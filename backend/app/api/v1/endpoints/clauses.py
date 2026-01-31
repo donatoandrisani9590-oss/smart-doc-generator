@@ -9,6 +9,7 @@ from app.db import get_db
 from app.api import deps
 from app.schemas import clause as schemas
 from app.models import documents as models
+from app.models.enterprise import GeneratedDocument
 
 router = APIRouter()
 
@@ -107,9 +108,9 @@ async def get_clause_impact_analysis(
             # Zähle generierte Dokumente mit diesem Dokumenttyp
             usage_query = (
                 select(func.count())
-                .select_from(models.GeneratedDocument)
-                .where(models.GeneratedDocument.document_type_id == dt.id)
-                .where(models.GeneratedDocument.created_at >= thirty_days_ago)
+                .select_from(GeneratedDocument)
+                .where(GeneratedDocument.document_type_id == dt.id)
+                .where(GeneratedDocument.created_at >= thirty_days_ago)
             )
             usage_result = await db.execute(usage_query)
             usage_count = usage_result.scalar() or 0

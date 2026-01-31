@@ -324,45 +324,9 @@ class CompanySettings(Base):
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# GENERIERTE DOKUMENTE (Tracking für Export-Historie)
+# GENERIERTE DOKUMENTE - Model in enterprise.py definiert
+# Import hier für Referenz: from app.models.enterprise import GeneratedDocument
 # ══════════════════════════════════════════════════════════════════════════════
-class GeneratedDocument(Base):
-    """
-    Tracking generierter Dokumente.
-
-    Speichert Metadaten zu allen generierten Dokumenten für:
-    - Export-Historie
-    - Nutzungsstatistiken
-    - Fristen-Tracking
-    """
-    __tablename__ = "generated_documents"
-    __table_args__ = {'extend_existing': True}
-
-    id = Column(Integer, primary_key=True, index=True)
-    document_type_id = Column(Integer, ForeignKey("document_types.id", ondelete="SET NULL"), nullable=True, index=True)
-    country_code = Column(String(2), nullable=False, index=True)
-
-    # Dokument-Metadaten
-    document_name = Column(String(255), nullable=False)
-    file_format = Column(String(10), default="docx")  # docx, pdf
-    file_path = Column(String(500), nullable=True)  # Pfad zur generierten Datei
-
-    # Mitarbeiter-Info (für Tracking)
-    employee_name = Column(String(255), nullable=True)
-    employee_id = Column(String(100), nullable=True)
-
-    # Formular-Daten (JSON für spätere Referenz)
-    form_data = Column(Text, nullable=True)  # JSON
-
-    # Status
-    status = Column(String(50), default="generated")  # generated, sent, archived
-
-    # Metadata
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False, index=True)
-    created_by = Column(String(255), nullable=True)
-
-    # Beziehung
-    document_type = relationship("DocumentType")
 
 
 # ══════════════════════════════════════════════════════════════════════════════
