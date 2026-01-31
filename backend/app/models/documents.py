@@ -336,6 +336,7 @@ class GeneratedDocument(Base):
     - Fristen-Tracking
     """
     __tablename__ = "generated_documents"
+    __table_args__ = {'extend_existing': True}
 
     id = Column(Integer, primary_key=True, index=True)
     document_type_id = Column(Integer, ForeignKey("document_types.id", ondelete="SET NULL"), nullable=True, index=True)
