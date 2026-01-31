@@ -64,7 +64,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (storedToken && storedUser) {
         try {
-          const user = JSON.parse(storedUser) as User;
+          // Parse stored user for fallback (used in catch block)
+          JSON.parse(storedUser) as User;
 
           // Validate token by fetching current user
           const response = await fetch(`${API_BASE}/api/v1/auth/me`, {
