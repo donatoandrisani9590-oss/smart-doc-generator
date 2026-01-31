@@ -1,0 +1,627 @@
+@import "tailwindcss";
+@import "./styles/magic-import.css";
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   NIEDERWIESER CORPORATE DESIGN SYSTEM
+   Farben nach v4.2 Spezifikation - "Lawlift meets Apple"
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@theme {
+  /* ─────────────────────────────────────────────────────────────────────────
+     PRIMARY: Niederwieser Blau #243186
+     Verwendung: Haupt-Buttons, aktive Navigation, Links, Focus-Ring
+     ───────────────────────────────────────────────────────────────────────── */
+  --color-primary: hsl(228 58% 33%);
+  /* #243186 */
+  --color-primary-foreground: hsl(0 0% 100%);
+  /* Weiß */
+  --color-primary-50: hsl(228 58% 95%);
+  --color-primary-100: hsl(228 58% 90%);
+  --color-primary-200: hsl(228 58% 80%);
+  --color-primary-300: hsl(228 58% 65%);
+  --color-primary-400: hsl(228 58% 50%);
+  --color-primary-500: hsl(228 58% 33%);
+  /* Main */
+  --color-primary-600: hsl(228 58% 27%);
+  /* Hover */
+  --color-primary-700: hsl(228 58% 21%);
+  --color-primary-800: hsl(228 58% 15%);
+  --color-primary-900: hsl(228 58% 9%);
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     SECONDARY: Niederwieser Grün #6EBD84
+     Verwendung: Checkboxen, Toggles, Erfolg-Badges, positive Status
+     ───────────────────────────────────────────────────────────────────────── */
+  /* Soft & Simple Theme (Quibills Inspired) */
+  /* Airy Background: #F8F9FB */
+  --background: 220 20% 97%;
+  --foreground: 222 47% 11%;
+  /* Deep Charcoal */
+
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 47% 11%;
+
+  /* Vibrant Primary: Indigo/Violet */
+  --primary: 245 80% 60%;
+  --primary-foreground: 210 40% 98%;
+
+  --secondary: 210 40% 96.1%;
+  --secondary-foreground: 222 47% 11.2%;
+
+  --muted: 210 40% 96.1%;
+  --muted-foreground: 215.4 16.3% 46.9%;
+
+  --accent: 210 40% 96.1%;
+  --accent-foreground: 222 47% 11.2%;
+
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 40% 98%;
+
+  --border: 214.3 31.8% 91.4%;
+  --input: 214.3 31.8% 91.4%;
+  --ring: 245 80% 60%;
+
+  /* Friendly Geometry: 1rem (16px) */
+  --radius: 1rem;
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     SUCCESS: Alias für Secondary (Niederwieser Grün)
+     ───────────────────────────────────────────────────────────────────────── */
+  --color-success: hsl(137 40% 58%);
+  /* #6EBD84 */
+  --color-success-foreground: hsl(0 0% 100%);
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     BACKGROUNDS: Apple-Style Off-White
+     ───────────────────────────────────────────────────────────────────────── */
+  /* ─────────────────────────────────────────────────────────────────────────
+     BACKGROUNDS: Warm Off-White / Paper-Like
+     ───────────────────────────────────────────────────────────────────────── */
+  --color-background: hsl(40 10% 98%);
+  /* #FAF9F6 - Warm Paper White */
+  --color-foreground: hsl(240 4% 16%);
+  /* #2A2A2C - Softer Black */
+
+  /* Surface: Reinweiß für Cards, Formulare, Container */
+  --color-surface: hsl(0 0% 100%);
+  /* #FFFFFF */
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     CARD/POPOVER: Weiß auf Off-White Background
+     ───────────────────────────────────────────────────────────────────────── */
+  --color-card: hsl(0 0% 100%);
+  --color-card-foreground: hsl(0 0% 11%);
+  --color-popover: hsl(0 0% 100%);
+  --color-popover-foreground: hsl(0 0% 11%);
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     NEUTRAL/BORDER: Niederwieser Grau/Beige #D7CFC5
+     Verwendung: Borders, inaktive Icons, Dividers
+     ───────────────────────────────────────────────────────────────────────── */
+  --color-border: hsl(30 18% 81%);
+  /* #D7CFC5 */
+  --color-input: hsl(30 18% 81%);
+  /* #D7CFC5 */
+  --color-ring: hsl(228 58% 33%);
+  /* Primary für Focus */
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     MUTED: Gedämpfte Farben für sekundäre Elemente
+     ───────────────────────────────────────────────────────────────────────── */
+  --color-muted: hsl(240 5% 96%);
+  /* #F5F5F7 */
+  --color-muted-foreground: hsl(0 0% 43%);
+  /* #6E6E73 - Apple muted text */
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     ACCENT: Für Hover-States und Highlights
+     ───────────────────────────────────────────────────────────────────────── */
+  --color-accent: hsl(240 5% 96%);
+  --color-accent-foreground: hsl(228 58% 33%);
+  /* Primary */
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     DESTRUCTIVE/WARNING: Status-Farben
+     ───────────────────────────────────────────────────────────────────────── */
+  --color-destructive: hsl(0 72% 51%);
+  /* #DC3545 */
+  --color-destructive-foreground: hsl(0 0% 100%);
+  --color-warning: hsl(45 100% 51%);
+  /* #FFC107 */
+  --color-warning-foreground: hsl(0 0% 11%);
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     BORDER RADIUS: Apple-style rounded corners
+     ───────────────────────────────────────────────────────────────────────── */
+  --radius: 0.5rem;
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.25rem;
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     TYPOGRAPHY DESIGN TOKENS
+     Einheitliche Typografie für das gesamte System
+     ───────────────────────────────────────────────────────────────────────── */
+
+  /* Font Sizes - Konsistente Größen-Skala */
+  --font-size-page-title: 1.5rem;
+  /* 24px - Alle Seiten-Titel */
+  --font-size-section-title: 1.125rem;
+  /* 18px - Abschnitts-Überschriften */
+  --font-size-card-title: 1.125rem;
+  /* 18px - Card-Überschriften */
+  --font-size-body: 0.875rem;
+  /* 14px - Fließtext */
+  --font-size-body-sm: 0.8125rem;
+  /* 13px - Kompakter Fließtext */
+  --font-size-caption: 0.75rem;
+  /* 12px - Beschreibungen, Labels */
+  --font-size-micro: 0.625rem;
+  /* 10px - Badges, Tags, Timestamps */
+
+  /* Line Heights - Für optimale Lesbarkeit */
+  --line-height-tight: 1.25;
+  /* Überschriften */
+  --line-height-normal: 1.5;
+  /* Fließtext */
+  --line-height-relaxed: 1.625;
+  /* Längere Texte */
+
+  /* Font Weights */
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* Letter Spacing */
+  --letter-spacing-tight: -0.025em;
+  /* Überschriften */
+  --letter-spacing-normal: 0;
+  /* Fließtext */
+  --letter-spacing-wide: 0.025em;
+  /* Micro-Text, Badges */
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     SPACING DESIGN TOKENS
+     Konsistentes Spacing im gesamten System
+     ───────────────────────────────────────────────────────────────────────── */
+
+  /* Base Unit: 4px */
+  --spacing-1: 0.25rem;
+  /* 4px */
+  --spacing-2: 0.5rem;
+  /* 8px */
+  --spacing-3: 0.75rem;
+  /* 12px */
+  --spacing-4: 1rem;
+  /* 16px */
+  --spacing-5: 1.25rem;
+  /* 20px */
+  --spacing-6: 1.5rem;
+  /* 24px */
+  --spacing-8: 2rem;
+  /* 32px */
+  --spacing-10: 2.5rem;
+  /* 40px */
+  --spacing-12: 3rem;
+  /* 48px */
+
+  /* Semantic Spacing */
+  --spacing-section: 1.5rem;
+  /* Zwischen Sektionen */
+  --spacing-content: 1rem;
+  /* Innerhalb von Sektionen */
+  --spacing-form-field: 1rem;
+  /* Zwischen Formularfeldern */
+  --spacing-inline: 0.5rem;
+  /* Inline-Elemente */
+  --spacing-card-padding: 1.5rem;
+  /* Card Innenabstand */
+  --spacing-card-gap: 1rem;
+  /* Zwischen Cards */
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     ICON SIZE TOKENS
+     Einheitliche Icon-Größen
+     ───────────────────────────────────────────────────────────────────────── */
+
+  --icon-size-xs: 0.75rem;
+  /* 12px - Micro-Icons */
+  --icon-size-sm: 1rem;
+  /* 16px - Inline-Icons */
+  --icon-size-md: 1.25rem;
+  /* 20px - Standard-Icons */
+  --icon-size-lg: 1.5rem;
+  /* 24px - Prominente Icons */
+  --icon-size-xl: 2rem;
+  /* 32px - Feature-Icons */
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CLEAN DESIGN SYSTEM (No more Glassmorphism everywhere)
+   Focus on whitespace and clean lines.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Remove global glass styles and replace with solid clean surfaces */
+.glass,
+.glass-subtle,
+.glass-sidebar,
+.glass-header,
+.glass-card,
+.glass-popover {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: none;
+  /* Flat design */
+}
+
+/* Only Modals/Overlays keep a subtle backdrop blur */
+.glass-overlay {
+  background-color: rgba(255, 255, 255, 0.8) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+}
+
+/* Card Improvements - Subtle floating */
+.glass-card {
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  border-radius: var(--radius-lg);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.glass-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+/* Header - Solid but detached */
+.glass-header {
+  border-bottom: 1px solid var(--color-border);
+  background-color: rgba(255, 255, 255, 0.95);
+}
+
+/* Sidebar - Clean separation */
+.glass-sidebar {
+  border-right: 1px solid var(--color-border);
+  background-color: #FDFDFD;
+}
+
+/* Popover - Clean shadow */
+.glass-popover {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+}
+
+@supports not (backdrop-filter: blur(1px)) {
+  .glass-overlay {
+    background-color: rgba(0, 0, 0, 0.5) !important;
+  }
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   NIEDERWIESER CUSTOM UTILITIES
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* DIN A4 Preview "schwebendes Papier" Effekt */
+.shadow-paper {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+/* Softer Shadows */
+/*
+ * "Soft & Simple" Utilities
+ * Floating, borderless look
+ */
+.card-floating {
+  background: white;
+  border: none;
+  box-shadow:
+    0 4px 20px -2px rgba(0, 0, 0, 0.05),
+    0 0 0 1px rgba(0, 0, 0, 0.02);
+  /* Subtle Border */
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.card-floating:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 10px 25px -5px rgba(99, 102, 241, 0.15),
+    /* Indigo Glow */
+    0 0 0 1px rgba(99, 102, 241, 0.1);
+}
+
+.input-clean {
+  background: white;
+  border: 1px solid theme('colors.slate.200');
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
+  transition: all 0.2s ease;
+}
+
+.input-clean:focus {
+  border-color: theme('colors.indigo.500');
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.shadow-soft-sm {
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.shadow-soft-md {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+}
+
+.shadow-soft-lg {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+}
+
+/* Checkbox mit Niederwieser Grün */
+.checkbox-success[data-state="checked"] {
+  background-color: var(--color-secondary);
+  border-color: var(--color-secondary);
+}
+
+/* Interactive Card Hover */
+.card-interactive {
+  transition: all 0.2s ease-out;
+}
+
+.card-interactive:hover {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+  transform: translateY(-1px);
+}
+
+/* Focus Ring with Primary Color */
+.focus-primary:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-background), 0 0 0 4px var(--color-primary);
+}
+
+/* Document Preview Container */
+.document-preview {
+  width: 210mm;
+  min-height: 297mm;
+  padding: 20mm 25mm;
+  margin: 0 auto;
+  background: white;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06);
+  font-family: 'Arial', sans-serif;
+  font-size: 11pt;
+  line-height: 1.5;
+}
+
+/* Page Break für mehrseitige Dokumente */
+.page-break {
+  page-break-after: always;
+  border-bottom: 1px dashed var(--color-border);
+  margin: 20mm 0;
+}
+
+/* Document Header/Footer Styling */
+.document-header {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 2px solid var(--color-primary);
+  padding-bottom: 10mm;
+  margin-bottom: 15mm;
+}
+
+.document-footer {
+  position: absolute;
+  bottom: 15mm;
+  left: 25mm;
+  right: 25mm;
+  font-size: 9pt;
+  color: var(--color-muted-foreground);
+  border-top: 1px solid var(--color-border);
+  padding-top: 5mm;
+}
+
+/* Print-Optimierung */
+@media print {
+  .document-preview {
+    box-shadow: none;
+    margin: 0;
+  }
+}
+
+/* Drag & Drop Styles */
+.drag-item {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.drag-item.dragging {
+  transform: scale(1.02);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+}
+
+.drop-zone {
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.drop-zone.drag-over {
+  background-color: var(--color-primary-50);
+  border-color: var(--color-primary);
+}
+
+/* TipTap Strict Mode Editor */
+.tiptap-strict .ProseMirror {
+  min-height: 200px;
+  padding: 1rem;
+  outline: none;
+}
+
+.tiptap-strict .ProseMirror:focus {
+  outline: none;
+}
+
+.tiptap-strict .ProseMirror h1 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--color-primary);
+}
+
+.tiptap-strict .ProseMirror h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--color-foreground);
+}
+
+.tiptap-strict .ProseMirror p {
+  margin-bottom: 0.75rem;
+}
+
+.tiptap-strict .ProseMirror ul,
+.tiptap-strict .ProseMirror ol {
+  padding-left: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.tiptap-strict .ProseMirror li {
+  margin-bottom: 0.25rem;
+}
+
+/* Placeholder Badge Styling */
+.placeholder-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.5rem;
+  background-color: var(--color-primary-100);
+  color: var(--color-primary);
+  border-radius: 0.25rem;
+  font-family: monospace;
+  font-size: 0.875rem;
+  cursor: default;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PLATZHALTER-HERVORHEBUNG IM EDITOR (UX-Verbesserung)
+   Macht {{ placeholder }} visuell als Tags/Chips erkennbar
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Regex-basiertes Styling für {{ placeholder }} im TipTap Editor */
+.tiptap-strict .ProseMirror {
+  /* Aktiviert CSS-basierte Platzhalter-Erkennung */
+}
+
+/* Platzhalter-Highlight: Inline-Styling via JavaScript (TipTap Mark)
+   Fallback: Wir verwenden stattdessen den Decoration-Ansatz */
+
+/* Container für Platzhalter-Preview in der Dokumentvorschau */
+.placeholder-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.125rem 0.5rem;
+  background: linear-gradient(135deg, hsl(228 58% 95%) 0%, hsl(228 58% 90%) 100%);
+  color: hsl(228 58% 33%);
+  border: 1px solid hsl(228 58% 80%);
+  border-radius: 0.375rem;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  cursor: default;
+  user-select: none;
+  transition: all 0.15s ease;
+}
+
+.placeholder-chip:hover {
+  background: linear-gradient(135deg, hsl(228 58% 92%) 0%, hsl(228 58% 85%) 100%);
+  border-color: hsl(228 58% 70%);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(36, 49, 134, 0.15);
+}
+
+.placeholder-chip::before {
+  content: "{{";
+  opacity: 0.5;
+  font-size: 0.75rem;
+}
+
+.placeholder-chip::after {
+  content: "}}";
+  opacity: 0.5;
+  font-size: 0.75rem;
+}
+
+/* Platzhalter im HTML-Dokument-Preview */
+.document-preview .placeholder-inline,
+.document-preview [data-placeholder] {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.375rem;
+  background-color: hsl(228 58% 95%);
+  color: hsl(228 58% 40%);
+  border: 1px dashed hsl(228 58% 70%);
+  border-radius: 0.25rem;
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  font-size: 0.875em;
+  font-weight: 500;
+}
+
+/* Paragraph-Nummer Platzhalter - spezielles Styling */
+.placeholder-chip[data-type="paragraph_number"],
+.document-preview .placeholder-inline[data-type="paragraph_number"] {
+  background: linear-gradient(135deg, hsl(137 40% 95%) 0%, hsl(137 40% 88%) 100%);
+  color: hsl(137 45% 30%);
+  border-color: hsl(137 40% 70%);
+}
+
+/* Fehlerhafte/unbekannte Platzhalter */
+.placeholder-chip.placeholder-error,
+.placeholder-chip[data-status="unknown"] {
+  background: linear-gradient(135deg, hsl(0 72% 95%) 0%, hsl(0 72% 90%) 100%);
+  color: hsl(0 72% 40%);
+  border-color: hsl(0 72% 70%);
+  border-style: dashed;
+}
+
+/* Animation für neu eingefügte Platzhalter */
+@keyframes placeholder-pulse {
+
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(36, 49, 134, 0.3);
+  }
+
+  50% {
+    box-shadow: 0 0 0 4px rgba(36, 49, 134, 0.1);
+  }
+}
+
+.placeholder-chip.placeholder-new {
+  animation: placeholder-pulse 0.6s ease-out;
+}
+
+/* Skeleton Loading */
+.skeleton {
+  background: linear-gradient(90deg, var(--color-muted) 25%, var(--color-background) 50%, var(--color-muted) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}

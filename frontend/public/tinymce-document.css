@@ -1,0 +1,181 @@
+/**
+ * TinyMCE Content CSS - A4 Document Styling
+ * Loaded inside the TinyMCE editor iframe
+ * Mirrors preview.css for visual consistency
+ */
+
+/* Base body styling (A4 paper) */
+body {
+  font-family: 'Arial', 'Inter', sans-serif;
+  font-size: 11pt;
+  line-height: 1.15;
+  color: #1D1D1F;
+  padding: 25mm 20mm 20mm 25mm; /* DIN 5008 margins */
+  margin: 0;
+  background: #ffffff;
+  box-sizing: border-box;
+  min-height: 297mm;
+  width: 210mm;
+}
+
+/* Reset all margins/padding */
+* {
+  box-sizing: border-box;
+}
+
+/* Document Header */
+.document-header {
+  text-align: right;
+  border-bottom: 2px solid #243186;
+  padding-bottom: 8mm;
+  margin-bottom: 10mm;
+}
+
+.document-header .logo img {
+  width: 50mm;
+  height: auto;
+  max-height: 80px;
+}
+
+/* Document Title */
+.document-title {
+  text-align: center;
+  font-size: 16pt;
+  font-weight: bold;
+  margin: 15mm 0 8mm 0;
+  color: #243186;
+}
+
+/* Contract Parties */
+.contract-parties {
+  text-align: center;
+  margin-bottom: 10mm;
+}
+
+.party-label {
+  font-size: 11pt;
+  margin: 5mm 0;
+}
+
+.party-name {
+  font-weight: bold;
+  font-size: 11pt;
+}
+
+.party-address {
+  font-size: 11pt;
+}
+
+.party-role {
+  font-size: 10pt;
+  font-style: italic;
+  color: #555;
+  margin: 3mm 0 8mm 0;
+}
+
+/* Document Content (Clauses) */
+.document-content {
+  margin-top: 8mm;
+}
+
+.document-content h1,
+.document-content h2,
+h1, h2 {
+  font-size: 11pt;
+  font-weight: bold;
+  text-align: center;
+  margin: 12pt 0 6pt 0;
+}
+
+.document-content p,
+p {
+  margin-bottom: 0.8em;
+  text-align: justify;
+}
+
+.document-content ul,
+.document-content ol,
+ul, ol {
+  margin-left: 2em;
+  margin-bottom: 0.8em;
+}
+
+.document-content li,
+li {
+  margin-bottom: 0.4em;
+}
+
+/* Signature Section */
+.signature-section {
+  margin-top: 20mm;
+}
+
+.signature-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.signature-table td {
+  width: 50%;
+  padding: 5mm 0;
+  vertical-align: top;
+}
+
+.signature-line {
+  border-top: 1px solid #333;
+  padding-top: 2mm;
+  margin-top: 15mm;
+  font-size: 10pt;
+}
+
+/* Table Styling */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1em 0;
+}
+
+table td,
+table th {
+  border: 1px solid #ccc;
+  padding: 8px;
+}
+
+table th {
+  background: #f5f5f5;
+  font-weight: bold;
+}
+
+/* Custom Clause Highlight */
+.custom-clause {
+  border-left: 3px solid #243186;
+  padding-left: 1em;
+  margin: 1.5em 0;
+  background: #f9f9f9;
+  padding: 1em;
+}
+
+/* Placeholder Highlight (for editing) */
+.mce-content-body [data-placeholder] {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-radius: 4px;
+  padding: 2px 6px;
+}
+
+/* Remove TinyMCE default outlines when focused */
+.mce-content-body:focus {
+  outline: none;
+}
+
+/* Images */
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Page Break */
+.page-break {
+  page-break-after: always;
+  border-bottom: 1px dashed #ccc;
+  margin: 20mm 0;
+}

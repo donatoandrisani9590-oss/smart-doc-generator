@@ -1,0 +1,191 @@
+"""
+Redis caching service for performance optimization.
+Caches design settings, clauses, and document type data for fast preview.
+"""
+import json
+from typing import Optional, Any
+import os
+
+# Try to import redis, fall back to in-memory cache if not available
+try:
+    import redis.asyncio as redis
+    REDIS_AVAILABLE = True
+except ImportError:
+    REDIS_AVAILABLE = False
+    redis = None
+
+
+class CacheService:
+    """
+    Caching service with Redis backend (production) or in-memory fallback (dev).
+    """
+    
+    def __init__(self):
+        self._redis_client: Optional[Any] = None
+        self._memory_cache: dict = {}
+        self._initialized = False
+    
+    async def init(self):
+        """Initialize Redis connection."""
+        if self._initialized:
+            return
+        
+        redis_url = os.getenv("REDIS_URL", "redis://localhost:6379")
+        
+        if REDIS_AVAILABLE:
+            try:
+                self._redis_client = redis.from_url(
+                    redis_url,
+                    encoding="utf-8",
+                    decode_responses=True
+                )
+                # Test connection
+                await self._redis_client.ping()
+                print(f"✓ Redis connected: {redis_url}")
+            except Exception as e:
+                print(f"⚠ Redis unavailable ({e}), using memory cache")
+                self._redis_client = None
+        else:
+            print("⚠ Redis library not installed, using memory cache")
+        
+        self._initialized = True
+    
+    async def get(self, key: str) -> Optional[Any]:
+        """Get value from cache."""
+        if not self._initialized:
+            await self.init()
+        
+        if self._redis_client:
+            try:
+                value = await self._redis_client.get(key)
+                if value:
+                    return json.loads(value)
+            except Exception:
+                pass
+        
+        return self._memory_cache.get(key)
+    
+    async def set(self, key: str, value: Any, ttl: int = 300) -> bool:
+        """
+        Set value in cache with TTL (seconds).
+        Default TTL: 5 minutes.
+        """
+        if not self._initialized:
+            await self.init()
+        
+        serialized = json.dumps(value, default=str)
+        
+        if self._redis_client:
+            try:
+                await self._redis_client.setex(key, ttl, serialized)
+                return True
+            except Exception:
+                pass
+        
+        # Memory cache fallback (no TTL enforcement)
+        self._memory_cache[key] = value
+        return True
+    
+    async def delete(self, key: str) -> bool:
+        """Delete key from cache."""
+        if not self._initialized:
+            await self.init()
+        
+        if self._redis_client:
+            try:
+                await self._redis_client.delete(key)
+            except Exception:
+                pass
+        
+        self._memory_cache.pop(key, None)
+        return True
+    
+    async def delete_pattern(self, pattern: str) -> int:
+        """Delete all keys matching pattern."""
+        if not self._initialized:
+            await self.init()
+        
+        count = 0
+        
+        if self._redis_client:
+            try:
+                async for key in self._redis_client.scan_iter(match=pattern):
+                    await self._redis_client.delete(key)
+                    count += 1
+            except Exception:
+                pass
+        
+        # Memory cache pattern matching
+        keys_to_delete = [k for k in self._memory_cache if pattern.replace("*", "") in k]
+        for k in keys_to_delete:
+            del self._memory_cache[k]
+            count += 1
+        
+        return count
+    
+    async def clear(self) -> bool:
+        """Clear entire cache."""
+        if not self._initialized:
+            await self.init()
+        
+        if self._redis_client:
+            try:
+                await self._redis_client.flushdb()
+            except Exception:
+                pass
+        
+        self._memory_cache.clear()
+        return True
+
+
+# Global cache instance
+cache = CacheService()
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# CACHE KEY HELPERS
+# ═══════════════════════════════════════════════════════════════════════════
+
+def design_settings_key(country_code: str) -> str:
+    return f"design_settings:{country_code}"
+
+
+def clauses_key(document_type_id: int) -> str:
+    return f"clauses:type:{document_type_id}"
+
+
+def document_type_key(document_type_id: int) -> str:
+    return f"document_type:{document_type_id}"
+
+
+def form_fields_key(document_type_id: int) -> str:
+    return f"form_fields:type:{document_type_id}"
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# CACHE INVALIDATION HELPERS
+# ═══════════════════════════════════════════════════════════════════════════
+
+async def invalidate_design_settings(country_code: str):
+    """Invalidate design settings cache for a country."""
+    await cache.delete(design_settings_key(country_code))
+
+
+async def invalidate_clauses(document_type_id: int = None):
+    """Invalidate clauses cache."""
+    if document_type_id:
+        await cache.delete(clauses_key(document_type_id))
+    else:
+        await cache.delete_pattern("clauses:*")
+
+
+async def invalidate_document_type(document_type_id: int):
+    """Invalidate document type cache."""
+    await cache.delete(document_type_key(document_type_id))
+    await cache.delete(clauses_key(document_type_id))
+    await cache.delete(form_fields_key(document_type_id))
+
+
+async def invalidate_all():
+    """Clear all caches."""
+    await cache.clear()

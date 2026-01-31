@@ -1,0 +1,250 @@
+[
+  {
+    "name": "Einladung Fürsorgegespräch",
+    "path": "/Users/donatoandrisani/Documents/Test Dokumente/01_Einladung Fürsorgegespräch (1).docx",
+    "structure": {
+      "paragraphs": 45,
+      "tables": 5,
+      "table_details": [
+        {
+          "index": 0,
+          "rows": 1,
+          "cols": 2,
+          "has_borders": true
+        },
+        {
+          "index": 1,
+          "rows": 1,
+          "cols": 1,
+          "has_borders": true
+        },
+        {
+          "index": 2,
+          "rows": 5,
+          "cols": 9,
+          "has_borders": true
+        },
+        {
+          "index": 3,
+          "rows": 4,
+          "cols": 2,
+          "has_borders": true
+        },
+        {
+          "index": 4,
+          "rows": 1,
+          "cols": 1,
+          "has_borders": true
+        }
+      ],
+      "headings": [],
+      "placeholders": [
+        "Vorname Nachname",
+        "Strasse Hausnummer",
+        "PLZ Ort",
+        "Ort",
+        "TT.MM.JJJJ",
+        "Vorname",
+        "HH:MM",
+        "Raum / Gebäude",
+        "Name",
+        "Telefon",
+        "E-Mail"
+      ],
+      "fonts": [
+        "Arial",
+        "Segoe UI Symbol"
+      ],
+      "alignments": [
+        "right",
+        "both"
+      ],
+      "has_header": false,
+      "has_footer": false
+    },
+    "margins_cm": {
+      "top": 1.27,
+      "bottom": 1.27,
+      "left": 1.27,
+      "right": 1.27
+    },
+    "din5008": {
+      "left": {
+        "actual_cm": 1.27,
+        "required_cm": 2.5,
+        "compliant": false
+      },
+      "right": {
+        "actual_cm": 1.27,
+        "required_cm": 1.0,
+        "compliant": true
+      },
+      "top": {
+        "actual_cm": 1.27,
+        "required_cm": 2.0,
+        "compliant": false
+      },
+      "bottom": {
+        "actual_cm": 1.27,
+        "required_cm": 2.0,
+        "compliant": false
+      },
+      "overall": false
+    }
+  },
+  {
+    "name": "DIRIGENTE Contratto (IT)",
+    "path": "/Users/donatoandrisani/Documents/Test Dokumente/DIRIGENTE_Contratto_Alessandra Secchi_03112025.docx",
+    "structure": {
+      "paragraphs": 231,
+      "tables": 4,
+      "table_details": [
+        {
+          "index": 0,
+          "rows": 5,
+          "cols": 1,
+          "has_borders": true
+        },
+        {
+          "index": 1,
+          "rows": 5,
+          "cols": 1,
+          "has_borders": true
+        },
+        {
+          "index": 2,
+          "rows": 5,
+          "cols": 1,
+          "has_borders": true
+        },
+        {
+          "index": 3,
+          "rows": 5,
+          "cols": 1,
+          "has_borders": true
+        }
+      ],
+      "headings": [
+        "CONTRATTO DI DIRIGENTE DI AZIENDA",
+        "IDENTITA’ DELLE PARTI",
+        "LUOGO DI LAVORO",
+        "SEDE / DOMICILIO DEL DATORE DI LAVORO",
+        "CONTRATTO COLLETTIVO APPLICATO E PARTI CHE LO HANNO SOTTOSCRITTO",
+        "INQUADRAMENTO, LIVELLO E QUALIFICA ATTRIBUITI",
+        "DATA DI INIZIO DEL RAPPORTO DI LAVORO",
+        "TIPOLOGIA DEL RAPPORTO DI LAVORO",
+        "ORARIO DI LAVORO",
+        "DURATA DEL PERIODO DI PROVA",
+        "DIRITTO ALLA FORMAZIONE",
+        "DURATA DI FERIE E ALTRI CONGEDI RETRIBUITI",
+        "PROCEDURA, FORMA E TERMINI DEL PREAVVISO",
+        "IMPORTO INIZIALE DELLA RETRIBUZIONE, ELEMENTI COSTITUTIVI, PERIODI E MODALITÀ DI PAGAMENTO E BENEFIT",
+        "PROGRAMMAZIONE ORARIO NORMALE DI LAVORO, CONDIZIONI PER STRAORDINARIO E RELATIVO TRATTAMENTO",
+        "UTILIZZO DI SISTEMI DECISIONALI O DI MONITORAGGIO",
+        "RINVIO ALLA DISCIPLINA DI DETTAGLIO DEI SINGOLI ISTITUTI",
+        "MISURE DI SICUREZZA PER LA SALVAGUARDIA DELLA SALUTE NEI LUOGHI DI LAVORO",
+        "OBBLIGAZIONI",
+        "MODIFICHE",
+        "RINVIO"
+      ],
+      "placeholders": [],
+      "fonts": [
+        "Verdana",
+        "Arial"
+      ],
+      "alignments": [
+        "both",
+        "right"
+      ],
+      "has_header": false,
+      "has_footer": false
+    },
+    "margins_cm": {
+      "top": 1.2,
+      "bottom": 0.88,
+      "left": 0.75,
+      "right": 0.99
+    },
+    "din5008": {
+      "left": {
+        "actual_cm": 0.75,
+        "required_cm": 2.5,
+        "compliant": false
+      },
+      "right": {
+        "actual_cm": 0.99,
+        "required_cm": 1.0,
+        "compliant": true
+      },
+      "top": {
+        "actual_cm": 1.2,
+        "required_cm": 2.0,
+        "compliant": false
+      },
+      "bottom": {
+        "actual_cm": 0.88,
+        "required_cm": 2.0,
+        "compliant": false
+      },
+      "overall": false
+    }
+  },
+  {
+    "name": "Arbeitsvertrag (DE)",
+    "path": "/Users/donatoandrisani/Documents/Test Dokumente/Mehmet Öztürk Vertragsentwurf 112025.docx",
+    "structure": {
+      "paragraphs": 77,
+      "tables": 1,
+      "table_details": [
+        {
+          "index": 0,
+          "rows": 3,
+          "cols": 2,
+          "has_borders": false
+        }
+      ],
+      "headings": [
+        "Arbeitsvertrag"
+      ],
+      "placeholders": [],
+      "fonts": [
+        "Arial"
+      ],
+      "alignments": [
+        "center",
+        "both"
+      ],
+      "has_header": false,
+      "has_footer": false
+    },
+    "margins_cm": {
+      "top": 1.27,
+      "bottom": 1.27,
+      "left": 1.27,
+      "right": 1.27
+    },
+    "din5008": {
+      "left": {
+        "actual_cm": 1.27,
+        "required_cm": 2.5,
+        "compliant": false
+      },
+      "right": {
+        "actual_cm": 1.27,
+        "required_cm": 1.0,
+        "compliant": true
+      },
+      "top": {
+        "actual_cm": 1.27,
+        "required_cm": 2.0,
+        "compliant": false
+      },
+      "bottom": {
+        "actual_cm": 1.27,
+        "required_cm": 2.0,
+        "compliant": false
+      },
+      "overall": false
+    }
+  }
+]
