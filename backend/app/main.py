@@ -29,7 +29,7 @@ from app.api.v1.endpoints import placeholders, statistics, favorites, search, te
 from app.api.v1.endpoints import corrections, repository, audit, notifications, export
 from app.api.v1.endpoints import clause_notes, company_settings, clause_approval, deadlines, works_council
 from app.api.v1.endpoints import word_import, document_type_import, clause_variants, users
-from app.api.v1.endpoints import composer
+from app.api.v1.endpoints import composer, setup
 
 # ═══════════════════════════════════════════════════════════════════════════
 # LOGGING CONFIGURATION
@@ -239,6 +239,9 @@ app.include_router(composer.router, prefix=f"{settings.API_V1_STR}/composer", ta
 
 # Public/Guest Access
 app.include_router(guest.router, tags=["guest"])
+
+# Initial Setup (only active when no admin exists)
+app.include_router(setup.router, prefix=f"{settings.API_V1_STR}/setup", tags=["setup"])
 
 
 # ═══════════════════════════════════════════════════════════════════════════
