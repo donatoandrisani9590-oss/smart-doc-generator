@@ -135,6 +135,19 @@ async def lifespan(app: FastAPI):
     logger.info(f"CORS Origins: {settings.BACKEND_CORS_ORIGINS}")
     logger.info("=" * 60)
 
+    # Auto-create database tables if they don't exist
+    try:
+        from app.db import engine, Base
+        # Import all models to register them with Base
+        from app.models import core, documents, enterprise  # noqa: F401
+
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+        logger.info("Database tables verified/created successfully")
+    except Exception as e:
+        logger.error(f"Failed to create database tables: {e}")
+        # Don't fail startup - allow health checks to report the issue
+
     yield
 
     # Shutdown
