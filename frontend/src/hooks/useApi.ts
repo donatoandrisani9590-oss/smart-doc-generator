@@ -3,8 +3,12 @@
  * Centralized data fetching with caching, refetching, and optimistic updates.
  */
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { authFetch } from "@/lib/authFetch";
 
 const API_BASE = "/api/v1";
+
+// Use authFetch for all API calls to automatically include auth token
+const fetch = authFetch;
 
 // ═══════════════════════════════════════════════════════════════════════════
 // CLAUSES

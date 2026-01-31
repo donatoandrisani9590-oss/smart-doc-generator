@@ -27,19 +27,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-
-interface UserInfo {
-    name: string;
-    email: string;
-    role: "admin" | "user" | "manager";
-    initials: string;
-}
+import { useAuth } from "@/contexts/AuthContext";
 
 interface UserDropdownProps {
-    /** Benutzerinformationen */
-    user?: UserInfo;
-    /** Callback beim Logout */
-    onLogout?: () => void;
     /** Zusätzliche CSS-Klassen */
     className?: string;
 }
@@ -62,28 +52,53 @@ const roleBadgeVariants: Record<string, "default" | "secondary" | "outline"> = {
     user: "outline",
 };
 
-export const UserDropdown = ({
-    user = {
-        name: "Max Mustermann",
-        email: "max.mustermann@niederwieser.com",
-        role: "admin",
-        initials: "MM",
-    },
-    onLogout,
-    className,
-}: UserDropdownProps) => {
+/**
+ * Get initials from email address
+ */
+const getInitials = (email: string): string => {
+    const name = email.split("@")[0];
+    const parts = name.split(/[._-]/);
+    if (parts.length >= 2) {
+        return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return name.slice(0, 2).toUpperCase();
+};
+
+/**
+ * Get display name from email address
+ */
+const getDisplayName = (email: string): string => {
+    const name = email.split("@")[0];
+    const parts = name.split(/[._-]/);
+    return parts
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+        .join(" ");
+};
+
+export const UserDropdown = ({ className }: UserDropdownProps) => {
     const navigate = useNavigate();
+    const { user, logout } = useAuth();
     const [open, setOpen] = React.useState(false);
 
+    // Fallback for when user is not loaded yet
+    const displayUser = user
+        ? {
+              name: getDisplayName(user.email),
+              email: user.email,
+              role: user.role as "admin" | "user" | "manager",
+              initials: getInitials(user.email),
+          }
+        : {
+              name: "Laden...",
+              email: "",
+              role: "user" as const,
+              initials: "...",
+          };
+
     const handleLogout = () => {
-        // TODO: Implement actual logout logic
-        if (onLogout) {
-            onLogout();
-        } else {
-            // Placeholder: Clear auth and redirect
-            localStorage.removeItem("auth_token");
-            navigate("/login");
-        }
+        setOpen(false);
+        logout();
+        navigate("/login");
     };
 
     const handleProfileClick = () => {
@@ -94,7 +109,7 @@ export const UserDropdown = ({
 
     const handleSettingsClick = () => {
         setOpen(false);
-        navigate("/admin/company-settings");
+        navigate("/settings");
     };
 
     return (
@@ -114,16 +129,16 @@ export const UserDropdown = ({
                 >
                     {/* Avatar */}
                     <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-semibold text-sm shrink-0">
-                        {user.initials}
+                        {displayUser.initials}
                     </div>
 
                     {/* User Info */}
                     <div className="flex-1 text-left min-w-0">
                         <p className="text-sm font-medium text-foreground truncate">
-                            {user.name}
+                            {displayUser.name}
                         </p>
                         <p className="text-xs text-muted-foreground truncate">
-                            {roleLabels[user.role]}
+                            {roleLabels[displayUser.role] || displayUser.role}
                         </p>
                     </div>
 
@@ -148,16 +163,16 @@ export const UserDropdown = ({
                 <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-2">
                         <div className="flex items-center gap-2">
-                            <p className="text-sm font-medium">{user.name}</p>
+                            <p className="text-sm font-medium">{displayUser.name}</p>
                             <Badge
-                                variant={roleBadgeVariants[user.role]}
+                                variant={roleBadgeVariants[displayUser.role] || "outline"}
                                 className="text-[10px] px-1.5 py-0"
                             >
-                                {roleLabels[user.role]}
+                                {roleLabels[displayUser.role] || displayUser.role}
                             </Badge>
                         </div>
                         <p className="text-xs text-muted-foreground truncate">
-                            {user.email}
+                            {displayUser.email}
                         </p>
                     </div>
                 </DropdownMenuLabel>
@@ -181,11 +196,11 @@ export const UserDropdown = ({
                     Einstellungen
                 </DropdownMenuItem>
 
-                {user.role === "admin" && (
+                {displayUser.role === "admin" && (
                     <DropdownMenuItem
                         onClick={() => {
                             setOpen(false);
-                            navigate("/admin/audit");
+                            navigate("/settings?tab=advanced&section=audit");
                         }}
                         className="gap-2 cursor-pointer"
                     >
