@@ -14,7 +14,7 @@ import { useDebounce } from "use-debounce";
 import { useNavigate } from "react-router-dom";
 import { useUndoRedo } from "@/hooks/useUndoRedo";
 import { useToast } from "@/components/ui/toast";
-import { api } from "@/lib/api-client";
+import { api, getApiBaseUrl } from "@/lib/api-client";
 import { logError } from "@/lib/logger";
 import {
     type WizardState,
@@ -579,7 +579,8 @@ export function useDocumentWizard(initialDraftId?: number): WizardContextValue {
 
             // Use native fetch for blob download
             const token = localStorage.getItem("auth_token");
-            const response = await fetch(`/api/v1/documents/generate/${documentTypeId}`, {
+            const apiBase = getApiBaseUrl();
+            const response = await fetch(`${apiBase}/api/v1/documents/generate/${documentTypeId}`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

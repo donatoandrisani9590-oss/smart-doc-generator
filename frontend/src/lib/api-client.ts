@@ -51,6 +51,13 @@ const DEFAULT_CONFIG: Required<Omit<RequestConfig, "signal" | "skipErrorHandling
 // Base URL
 const BASE_URL = import.meta.env.VITE_API_URL || "";
 
+/**
+ * Get the API base URL for direct fetch calls
+ */
+export function getApiBaseUrl(): string {
+    return BASE_URL;
+}
+
 // Online status
 let isOnline = typeof navigator !== "undefined" ? navigator.onLine : true;
 
