@@ -10,12 +10,12 @@
  * v2.1: Bug-Fixes für Edge Cases (Invalid Date, Empty Names)
  */
 
-import { useState, useMemo } from "react";
-import { Check, RotateCcw, Trash2, Reply, MoreHorizontal, CheckCircle2 } from "lucide-react";
+import { useState, useMemo, useCallback } from "react";
+import { Check, RotateCcw, Trash2, Reply, MoreHorizontal, CheckCircle2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { MentionInput } from "@/components/collaboration/MentionInput";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -29,7 +29,8 @@ interface CommentThreadProps {
     onResolve?: () => void;
     onReopen?: () => void;
     onDelete: () => void;
-    onReply?: (text: string) => void;
+    /** Async reply handler - returns Promise for proper error handling */
+    onReply?: (text: string) => Promise<void> | void;
     isResolved?: boolean;
 }
 
@@ -140,13 +141,29 @@ export const CommentThread = ({
 }: CommentThreadProps) => {
     const [isReplying, setIsReplying] = useState(false);
     const [replyText, setReplyText] = useState("");
+    const [isSubmittingReply, setIsSubmittingReply] = useState(false);
 
-    const handleSubmitReply = () => {
+    // QA Fix: Async reply handler with proper error handling and rollback
+    const handleSubmitReply = useCallback(async () => {
         if (!replyText.trim() || !onReply) return;
-        onReply(replyText.trim());
-        setReplyText("");
-        setIsReplying(false);
-    };
+
+        const textToSend = replyText.trim();
+        setIsSubmittingReply(true);
+
+        try {
+            // Call async handler
+            await onReply(textToSend);
+            // Only clear on success
+            setReplyText("");
+            setIsReplying(false);
+        } catch (error) {
+            // Keep text in input for retry - don't clear!
+            console.error("Reply submission failed:", error);
+            // Error handling is done in parent component via toast
+        } finally {
+            setIsSubmittingReply(false);
+        }
+    }, [replyText, onReply]);
 
     // Memoize rendered content
     const renderedContent = useMemo(
@@ -272,17 +289,18 @@ export const CommentThread = ({
                 </div>
             )}
 
-            {/* Antwort-Eingabe */}
+            {/* Antwort-Eingabe mit @Mention Support */}
             {!isResolved && (
                 <div className="mt-2">
                     {isReplying ? (
                         <div className="space-y-2">
-                            <Textarea
+                            <MentionInput
                                 value={replyText}
-                                onChange={(e) => setReplyText(e.target.value)}
-                                placeholder="Antwort eingeben..."
-                                className="min-h-[60px] text-xs resize-none"
+                                onChange={setReplyText}
+                                placeholder="Antwort eingeben... (@Name für Erwähnung)"
+                                className="min-h-[60px] text-xs"
                                 autoFocus
+                                disabled={isSubmittingReply}
                             />
                             <div className="flex justify-end gap-1">
                                 <Button
@@ -293,6 +311,7 @@ export const CommentThread = ({
                                         setIsReplying(false);
                                         setReplyText("");
                                     }}
+                                    disabled={isSubmittingReply}
                                 >
                                     Abbrechen
                                 </Button>
@@ -300,9 +319,13 @@ export const CommentThread = ({
                                     size="sm"
                                     className="h-6 text-xs"
                                     onClick={handleSubmitReply}
-                                    disabled={!replyText.trim()}
+                                    disabled={!replyText.trim() || isSubmittingReply}
                                 >
-                                    Antworten
+                                    {isSubmittingReply ? (
+                                        <Loader2 className="w-3 h-3 animate-spin" />
+                                    ) : (
+                                        "Antworten"
+                                    )}
                                 </Button>
                             </div>
                         </div>
@@ -310,7 +333,7 @@ export const CommentThread = ({
                         <Button
                             variant="ghost"
                             size="sm"
-                            className="h-6 text-xs text-muted-foreground"
+                            className="h-6 text-xs text-muted-foreground hover:text-primary"
                             onClick={() => setIsReplying(true)}
                         >
                             <Reply className="w-3 h-3 mr-1" />

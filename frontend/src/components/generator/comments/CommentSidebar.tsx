@@ -10,12 +10,16 @@
  * - Echtzeit-Sync mit anderen Benutzern (Phase 3)
  * - Lösch-Bestätigung für Datensicherheit
  * - Autosave für ungesendete Kommentare
+ * - Local→Backend Sync bei Draft-Speicherung
  *
- * v2.1: Bug-Fixes + UX-Verbesserungen nach QA-Audit
+ * v2.2: QA Stress-Test Fixes
+ * - Local→Backend Migration bei erstem Sync
+ * - Verbessertes Sync-Status Feedback
+ * - Reply Error Handling mit Rollback
  */
 
-import { useState, useEffect, useCallback } from "react";
-import { Plus, MessageSquare, Loader2, Cloud, CloudOff, Filter } from "lucide-react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { Plus, MessageSquare, Loader2, Cloud, CloudOff, Filter, RefreshCw, CheckCircle2, AlertCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -45,6 +49,9 @@ import { useComments, useCreateComment, useResolveComment, useDeleteComment } fr
 // Autosave Key für localStorage
 const AUTOSAVE_PREFIX = "comment-draft-";
 
+// Sync-Status Types für besseres Feedback
+type SyncStatus = "idle" | "syncing" | "synced" | "error" | "offline";
+
 export const CommentSidebar = () => {
     const { state, actions } = useWizardContext();
     const { comments: localComments, loadedDraftId } = state;
@@ -54,9 +61,16 @@ export const CommentSidebar = () => {
     const [isAddingComment, setIsAddingComment] = useState(false);
     const [showResolved, setShowResolved] = useState(true);
     const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+    const [syncStatus, setSyncStatus] = useState<SyncStatus>("idle");
+    const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
 
-    // Autosave: Lade Draft aus localStorage
-    const autosaveKey = `${AUTOSAVE_PREFIX}${loadedDraftId ?? "local"}`;
+    // Track previous draftId to detect Local→Backend transition
+    const prevDraftIdRef = useRef<number | null>(null);
+    const hasMigratedRef = useRef(false);
+
+    // Autosave: Lade Draft aus localStorage (mit Tab-Session-ID)
+    const tabSessionId = useRef(Math.random().toString(36).substring(7));
+    const autosaveKey = `${AUTOSAVE_PREFIX}${loadedDraftId ?? "local"}-${tabSessionId.current}`;
     const [newCommentText, setNewCommentText] = useState(() => {
         if (typeof window !== "undefined") {
             return localStorage.getItem(autosaveKey) || "";
@@ -93,6 +107,67 @@ export const CommentSidebar = () => {
     const createCommentMutation = useCreateComment();
     const resolveCommentMutation = useResolveComment();
     const deleteCommentMutation = useDeleteComment();
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // LOCAL → BACKEND MIGRATION (QA Fix: ID-Mapping)
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    // Detect transition from local to backend mode and migrate comments
+    useEffect(() => {
+        const migrateLocalCommentsToBackend = async () => {
+            // Only migrate once when draftId first becomes available
+            if (!loadedDraftId || hasMigratedRef.current) return;
+            if (prevDraftIdRef.current !== null) return; // Was already in backend mode
+            if (localComments.length === 0) return; // Nothing to migrate
+
+            setSyncStatus("syncing");
+            hasMigratedRef.current = true;
+
+            try {
+                // Migrate each local comment to backend
+                for (const comment of localComments) {
+                    await createCommentMutation.mutateAsync({
+                        anchor_type: "draft",
+                        anchor_id: loadedDraftId,
+                        content: comment.content,
+                    });
+                }
+
+                // Clear local comments after successful migration
+                localComments.forEach(c => actions.deleteComment(c.id));
+
+                setSyncStatus("synced");
+                setLastSyncTime(new Date());
+                toast.success("Synchronisiert", `${localComments.length} Kommentar(e) wurden gespeichert.`);
+            } catch (error) {
+                console.error("Migration fehlgeschlagen:", error);
+                setSyncStatus("error");
+                hasMigratedRef.current = false; // Allow retry
+                toast.error("Sync-Fehler", "Lokale Kommentare konnten nicht synchronisiert werden. Bitte erneut versuchen.");
+            }
+        };
+
+        migrateLocalCommentsToBackend();
+        prevDraftIdRef.current = loadedDraftId;
+    }, [loadedDraftId, localComments, createCommentMutation, actions, toast]);
+
+    // Update sync status based on backend state
+    useEffect(() => {
+        if (!useBackend) {
+            setSyncStatus("offline");
+        } else if (isLoadingBackend) {
+            setSyncStatus("syncing");
+        } else if (backendError) {
+            setSyncStatus("error");
+        } else {
+            setSyncStatus("synced");
+            setLastSyncTime(new Date());
+        }
+    }, [useBackend, isLoadingBackend, backendError]);
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // COMMENT DATA MAPPING
+    // ═══════════════════════════════════════════════════════════════════════════
 
     // Kombiniere lokale und Backend-Kommentare
     // Backend-Response: { comments: CommentThread[], total, unresolved_count }
@@ -250,35 +325,64 @@ export const CommentSidebar = () => {
                                 {activeComments.length}
                             </Badge>
                         )}
-                        {/* Sync-Status Indikator */}
-                        <TooltipProvider>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <span className="ml-1">
-                                        {useBackend ? (
-                                            isLoadingBackend ? (
-                                                <Loader2 className="w-3 h-3 animate-spin text-muted-foreground" />
-                                            ) : backendError ? (
-                                                <CloudOff className="w-3 h-3 text-destructive" />
-                                            ) : (
-                                                <Cloud className="w-3 h-3 text-green-500" />
-                                            )
-                                        ) : (
-                                            <CloudOff className="w-3 h-3 text-muted-foreground" />
-                                        )}
-                                    </span>
-                                </TooltipTrigger>
-                                <TooltipContent side="bottom">
-                                    {useBackend
-                                        ? backendError
-                                            ? "Synchronisierung fehlgeschlagen"
-                                            : "Mit Server synchronisiert"
-                                        : "Nur lokal (Draft noch nicht gespeichert)"
-                                    }
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
                     </h3>
+                    {/* Sync-Status Indikator (verbessert nach QA) */}
+                    <div className="flex items-center gap-1.5 text-[10px]">
+                        {syncStatus === "syncing" && (
+                            <span className="flex items-center gap-1 text-muted-foreground">
+                                <RefreshCw className="w-3 h-3 animate-spin" />
+                                <span className="hidden sm:inline">Sync...</span>
+                            </span>
+                        )}
+                        {syncStatus === "synced" && (
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <span className="flex items-center gap-1 text-green-600">
+                                            <CheckCircle2 className="w-3 h-3" />
+                                            <span className="hidden sm:inline">Synced</span>
+                                        </span>
+                                    </TooltipTrigger>
+                                    <TooltipContent side="bottom">
+                                        {lastSyncTime
+                                            ? `Zuletzt synchronisiert: ${lastSyncTime.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })}`
+                                            : "Mit Server synchronisiert"
+                                        }
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                        )}
+                        {syncStatus === "error" && (
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <span className="flex items-center gap-1 text-destructive">
+                                            <AlertCircle className="w-3 h-3" />
+                                            <span className="hidden sm:inline">Fehler</span>
+                                        </span>
+                                    </TooltipTrigger>
+                                    <TooltipContent side="bottom">
+                                        Synchronisierung fehlgeschlagen. Bitte erneut versuchen.
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                        )}
+                        {syncStatus === "offline" && (
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <span className="flex items-center gap-1 text-amber-600">
+                                            <CloudOff className="w-3 h-3" />
+                                            <span className="hidden sm:inline">Lokal</span>
+                                        </span>
+                                    </TooltipTrigger>
+                                    <TooltipContent side="bottom">
+                                        Nur lokal gespeichert. Speichern Sie den Entwurf, um zu synchronisieren.
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                        )}
+                    </div>
                     <div className="flex items-center gap-1">
                         {/* Filter Toggle */}
                         <TooltipProvider>
@@ -366,20 +470,55 @@ export const CommentSidebar = () => {
                         </div>
                     )}
 
-                    {/* Empty State */}
+                    {/* Empty State - Verbessert nach QA */}
                     {!isLoadingBackend && activeComments.length === 0 && !isAddingComment && (
-                        <div className="text-center py-8 text-muted-foreground">
-                            <MessageSquare className="w-8 h-8 mx-auto mb-2 opacity-30" />
-                            <p className="text-sm">Keine Kommentare</p>
-                            <p className="text-xs mt-1">
-                                Klicken Sie auf +, um einen Kommentar hinzuzufügen.
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.4, ease: "easeOut" }}
+                            className="text-center py-10 px-4"
+                        >
+                            {/* Animated Icon */}
+                            <motion.div
+                                initial={{ scale: 0.8 }}
+                                animate={{ scale: 1 }}
+                                transition={{ duration: 0.3, delay: 0.1 }}
+                            >
+                                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/5 flex items-center justify-center">
+                                    <MessageSquare className="w-8 h-8 text-primary/40" />
+                                </div>
+                            </motion.div>
+
+                            <h4 className="text-sm font-medium text-foreground mb-1">
+                                Noch keine Kommentare
+                            </h4>
+                            <p className="text-xs text-muted-foreground mb-4 max-w-[200px] mx-auto">
+                                Fügen Sie Anmerkungen hinzu, um mit Ihrem Team zusammenzuarbeiten.
                             </p>
+
+                            {/* CTA Button */}
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setIsAddingComment(true)}
+                                className="gap-2"
+                            >
+                                <Plus className="w-4 h-4" />
+                                Ersten Kommentar erstellen
+                            </Button>
+
+                            {/* Sync hint */}
                             {!useBackend && (
-                                <p className="text-[10px] mt-2 text-amber-600">
-                                    💡 Speichern Sie den Entwurf, um Kommentare mit dem Team zu teilen.
-                                </p>
+                                <motion.p
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    transition={{ delay: 0.5 }}
+                                    className="text-[10px] mt-4 text-amber-600 bg-amber-50 rounded-md py-1.5 px-2"
+                                >
+                                    💡 Tipp: Speichern Sie den Entwurf, um Kommentare mit dem Team zu teilen.
+                                </motion.p>
                             )}
-                        </div>
+                        </motion.div>
                     )}
 
                     {/* Aktive Kommentare mit Animation */}
