@@ -11,7 +11,7 @@ Ermöglicht:
 """
 
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Text, Index
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, backref
 from sqlalchemy.sql import func
 from app.db import Base
 
@@ -66,15 +66,7 @@ class Comment(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
     updated_at = Column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now())
 
-    # Relationships (lazy loaded)
-    replies = relationship(
-        "Comment",
-        backref="parent",
-        remote_side="Comment.id",
-        lazy="dynamic",
-        cascade="all, delete-orphan",
-        single_parent=True
-    )
+    # Relationships
     mentions = relationship("CommentMention", back_populates="comment", cascade="all, delete-orphan")
 
     # Composite Index für häufige Abfragen
@@ -82,6 +74,16 @@ class Comment(Base):
         Index("ix_comments_anchor", "anchor_type", "anchor_id"),
         Index("ix_comments_created", "created_at", "is_deleted"),
     )
+
+
+# Self-referential relationship muss nach der Klassen-Definition hinzugefügt werden
+# um die Column-Referenz korrekt aufzulösen
+Comment.replies = relationship(
+    "Comment",
+    backref=backref("parent", remote_side=[Comment.id]),
+    foreign_keys=[Comment.parent_id],
+    lazy="selectin",
+)
 
 
 class CommentMention(Base):
