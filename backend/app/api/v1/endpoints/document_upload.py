@@ -304,11 +304,23 @@ async def upload_and_extract(
             detail="Nur PDF und DOCX Dateien werden unterstützt"
         )
 
-    # Save to temp file
-    with tempfile.NamedTemporaryFile(delete=False, suffix=f".{file_ext}") as tmp:
-        content = await file.read()
-        tmp.write(content)
-        tmp_path = tmp.name
+    # Save to temp file using chunked streaming (prevents memory issues with large files)
+    tmp_path = None
+    try:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=f".{file_ext}") as tmp:
+            tmp_path = tmp.name
+            # Stream in 1MB chunks to avoid loading entire file in memory
+            chunk_size = 1024 * 1024  # 1MB
+            while chunk := await file.read(chunk_size):
+                tmp.write(chunk)
+    except Exception as e:
+        # Cleanup if temp file was created but writing failed
+        if tmp_path and os.path.exists(tmp_path):
+            os.unlink(tmp_path)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Fehler beim Speichern der Datei: {str(e)}"
+        )
 
     try:
         # Extract text

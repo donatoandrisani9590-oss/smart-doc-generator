@@ -76,6 +76,11 @@ class RejectRequest(BaseModel):
     reason: str
 
 
+class ApproveRequest(BaseModel):
+    """Request zum Genehmigen einer Klausel (optional mit Kommentar)."""
+    comment: Optional[str] = None
+
+
 # ══════════════════════════════════════════════════════════════════════════════
 # WORKFLOW ENDPOINTS
 # ══════════════════════════════════════════════════════════════════════════════
@@ -273,8 +278,9 @@ async def reset_to_draft(
 @router.post("/{clause_id}/approve")
 async def approve_clause(
     clause_id: int,
-    db: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[Any, Depends(deps.get_current_active_admin)],
+    request: Optional[ApproveRequest] = None,
+    db: AsyncSession = Depends(get_db),
+    current_user: Any = Depends(deps.get_current_active_admin),
 ) -> Any:
     """
     Klausel direkt freigeben (vereinfachter Endpoint für Smart UX).
@@ -293,6 +299,10 @@ async def approve_clause(
     clause.is_active = True
     clause.approval_reviewed_at = datetime.utcnow().isoformat()
     clause.approval_reviewed_by = getattr(current_user, "full_name", "Admin")
+
+    # Optional: Kommentar speichern
+    if request and request.comment:
+        clause.approval_comment = request.comment
 
     # Benutzer benachrichtigen falls approval_requested_by gesetzt
     submitter_info = clause.approval_requested_by

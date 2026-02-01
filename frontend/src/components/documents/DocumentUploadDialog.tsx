@@ -152,11 +152,25 @@ export function DocumentUploadDialog({
     [useAI, isAIEnabled]
   );
 
-  // Dropzone
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+  // Dropzone with file size limit (25MB)
+  const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25MB in bytes
+
+  const { getRootProps, getInputProps, isDragActive, fileRejections } = useDropzone({
     onDrop: (acceptedFiles) => {
       if (acceptedFiles.length > 0) {
         handleUpload(acceptedFiles[0]);
+      }
+    },
+    onDropRejected: (rejectedFiles) => {
+      const rejection = rejectedFiles[0];
+      if (rejection?.errors?.[0]?.code === "file-too-large") {
+        toast.error("Datei zu groß", {
+          description: "Maximale Dateigröße: 25 MB",
+        });
+      } else if (rejection?.errors?.[0]?.code === "file-invalid-type") {
+        toast.error("Ungültiges Format", {
+          description: "Nur PDF und DOCX Dateien werden unterstützt",
+        });
       }
     },
     accept: {
@@ -166,6 +180,7 @@ export function DocumentUploadDialog({
       ],
     },
     maxFiles: 1,
+    maxSize: MAX_FILE_SIZE,
     disabled: isUploading,
   });
 
@@ -317,6 +332,21 @@ export function DocumentUploadDialog({
                 <X className="w-4 h-4 mr-2" />
                 Zurück
               </Button>
+              {/* Retry button for failed uploads */}
+              {!result.success && uploadedFile && (
+                <Button
+                  onClick={() => handleUpload(uploadedFile)}
+                  className="flex-1 gap-2"
+                  disabled={isUploading}
+                >
+                  {isUploading ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <ArrowRight className="w-4 h-4" />
+                  )}
+                  Erneut versuchen
+                </Button>
+              )}
               {result.success && result.extracted_fields.length > 0 && (
                 <Button onClick={handleUseData} className="flex-1 gap-2">
                   Daten verwenden
@@ -382,15 +412,20 @@ export function DocumentUploadDialog({
                       oder klicken zum Auswählen
                     </p>
                   </div>
-                  <div className="flex justify-center gap-2">
-                    <Badge variant="outline" className="gap-1">
-                      <FileIcon className="w-3 h-3" />
-                      PDF
-                    </Badge>
-                    <Badge variant="outline" className="gap-1">
-                      <FileText className="w-3 h-3" />
-                      DOCX
-                    </Badge>
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="flex gap-2">
+                      <Badge variant="outline" className="gap-1">
+                        <FileIcon className="w-3 h-3" />
+                        PDF
+                      </Badge>
+                      <Badge variant="outline" className="gap-1">
+                        <FileText className="w-3 h-3" />
+                        DOCX
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Max. 25 MB
+                    </p>
                   </div>
                 </div>
               )}

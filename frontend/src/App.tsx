@@ -17,6 +17,8 @@ import SettingsHub from "@/pages/SettingsHub";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { LoginPage } from "@/pages/LoginPage";
+// Feature Settings (loaded once, shared globally)
+import { FeatureSettingsProvider } from "@/contexts/FeatureSettingsContext";
 
 // Redirect-Komponente für /composer/:draftId → /generate?draft=:draftId
 const ComposerDraftRedirect = () => {
@@ -38,7 +40,9 @@ function App() {
               path="/"
               element={
                 <ProtectedRoute>
-                  <Layout />
+                  <FeatureSettingsProvider>
+                    <Layout />
+                  </FeatureSettingsProvider>
                 </ProtectedRoute>
               }
             >
