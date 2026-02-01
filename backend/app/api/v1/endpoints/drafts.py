@@ -11,7 +11,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, Union, List
 from datetime import datetime, timedelta
 import json
 
@@ -27,13 +27,15 @@ class DraftCreate(BaseModel):
     country_code: str = "DE"
     name: Optional[str] = None
     form_data: dict
-    custom_clauses: Optional[dict] = None
+    # custom_clauses kann entweder ein dict oder eine Liste von Clause-IDs sein
+    custom_clauses: Optional[Union[dict, List[int]]] = None
 
 
 class DraftUpdate(BaseModel):
     name: Optional[str] = None
     form_data: Optional[dict] = None
-    custom_clauses: Optional[dict] = None
+    # custom_clauses kann entweder ein dict oder eine Liste von Clause-IDs sein
+    custom_clauses: Optional[Union[dict, List[int]]] = None
 
 
 DRAFT_TTL_DAYS = 30  # Entwürfe werden nach 30 Tagen gelöscht
