@@ -57,7 +57,7 @@ async def list_drafts(
     current_user = Depends(get_current_user)
 ):
     """List all drafts for the current user with TTL information and document type name."""
-    from app.models.core import DocumentType
+    from app.models.documents import DocumentType
 
     # JOIN mit DocumentType um den Namen zu erhalten
     result = await db.execute(
@@ -115,7 +115,7 @@ async def get_draft(
     current_user = Depends(get_current_user)
 ):
     """Get a specific draft with full form data and document type name."""
-    from app.models.core import DocumentType
+    from app.models.documents import DocumentType
 
     draft = await db.get(DocumentDraft, draft_id)
 
@@ -216,8 +216,8 @@ async def finalize_draft(
         - download_url: URL zum Herunterladen
         - format: Ausgabeformat (pdf/docx)
     """
-    from app.models.core import DocumentType, DesignSetting
-    from app.models.documents import GeneratedDocument, Clause, DocumentTypeClause
+    from app.models.core import DesignSetting
+    from app.models.documents import DocumentType, GeneratedDocument, Clause, DocumentTypeClause
     from app.api.v1.endpoints.generation import create_document_from_clauses
     from datetime import datetime
     import uuid
