@@ -1,21 +1,28 @@
 /**
  * LeftControlPanel - Linke Seite des Split-Screen Editors
  *
- * Enthält alle Steuerungselemente:
+ * Clean Design nach UX-Audit:
  * - Dokumenttitel (editierbar)
- * - Formularfelder (collapsible)
- * - Klauseln (collapsible)
- * - Anlagen (collapsible)
+ * - Formularfelder (IMMER sichtbar, nicht collapsible)
+ * - Klauseln (kompakter Link mit Modal)
+ * - Anlagen (kompakter Link mit Modal)
  * - Export-Buttons
  *
- * Der Benutzer "gibt Befehle" und das Dokument rechts reagiert.
+ * v5.0: Aufgeräumtes Design - keine Akkordeons mehr
  */
 
 import { useState } from "react";
-import { ChevronDown, ChevronRight, FileText, Users, Layers, Paperclip } from "lucide-react";
+import { FileText, Users, Layers, Paperclip, ChevronRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
 import { useWizardContext } from "../WizardContext";
 import { FormFieldsSection } from "./FormFieldsSection";
 import { ClauseSelectionSection } from "./ClauseSelectionSection";
@@ -37,10 +44,9 @@ export const LeftControlPanel = ({ documentTypes }: LeftControlPanelProps) => {
     const { state, actions } = useWizardContext();
     const { documentTitle, documentTypeId, documentClauses, selectedAttachmentIds } = state;
 
-    // Collapsible states
-    const [formOpen, setFormOpen] = useState(true);
-    const [clausesOpen, setClausesOpen] = useState(true);
-    const [attachmentsOpen, setAttachmentsOpen] = useState(false);
+    // Modal states für Klauseln und Anlagen
+    const [showClausesModal, setShowClausesModal] = useState(false);
+    const [showAttachmentsModal, setShowAttachmentsModal] = useState(false);
 
     const documentTypeName = documentTypes.find(t => t.id === documentTypeId)?.name || "Dokument";
     const enabledClausesCount = documentClauses.filter(c => c.is_enabled).length;
@@ -64,86 +70,104 @@ export const LeftControlPanel = ({ documentTypes }: LeftControlPanelProps) => {
 
             {/* Scrollbarer Bereich für Sektionen */}
             <ScrollArea className="flex-1 overflow-auto">
-                <div className="p-3 space-y-2">
-                    {/* Formularfelder */}
-                    <Collapsible open={formOpen} onOpenChange={setFormOpen}>
-                        <CollapsibleTrigger className="flex items-center justify-between w-full p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
-                            <div className="flex items-center gap-2">
-                                <Users className="w-4 h-4 text-primary" />
-                                <span className="font-medium text-sm">Formularfelder</span>
-                            </div>
-                            {formOpen ? (
-                                <ChevronDown className="w-4 h-4 text-muted-foreground" />
-                            ) : (
-                                <ChevronRight className="w-4 h-4 text-muted-foreground" />
-                            )}
-                        </CollapsibleTrigger>
-                        <CollapsibleContent className="pt-3">
-                            <FormFieldsSection />
-                        </CollapsibleContent>
-                    </Collapsible>
+                <div className="p-3 space-y-3">
+                    {/* Formularfelder - IMMER sichtbar (nicht collapsible) */}
+                    <div>
+                        <div className="flex items-center gap-2 px-1 py-2 mb-2">
+                            <Users className="w-4 h-4 text-primary" />
+                            <span className="font-medium text-sm">Formularfelder</span>
+                        </div>
+                        <FormFieldsSection />
+                    </div>
 
-                    {/* Klauseln */}
-                    <Collapsible open={clausesOpen} onOpenChange={setClausesOpen}>
-                        <CollapsibleTrigger className="flex items-center justify-between w-full p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
+                    {/* Klauseln - Kompakter Link mit Modal */}
+                    {totalClausesCount > 0 && (
+                        <Button
+                            variant="ghost"
+                            className="w-full justify-between h-auto py-3 px-3 bg-muted/30 hover:bg-muted/50"
+                            onClick={() => setShowClausesModal(true)}
+                        >
                             <div className="flex items-center gap-2">
                                 <Layers className="w-4 h-4 text-primary" />
                                 <span className="font-medium text-sm">Klauseln</span>
-                                <span className="text-xs text-muted-foreground">
-                                    ({enabledClausesCount}/{totalClausesCount} aktiv)
-                                </span>
                             </div>
-                            {clausesOpen ? (
-                                <ChevronDown className="w-4 h-4 text-muted-foreground" />
-                            ) : (
+                            <div className="flex items-center gap-2">
+                                <Badge variant="secondary" className="text-xs">
+                                    {enabledClausesCount}/{totalClausesCount}
+                                </Badge>
                                 <ChevronRight className="w-4 h-4 text-muted-foreground" />
-                            )}
-                        </CollapsibleTrigger>
-                        <CollapsibleContent className="pt-3">
-                            <ClauseSelectionSection />
-                        </CollapsibleContent>
-                    </Collapsible>
+                            </div>
+                        </Button>
+                    )}
 
-                    {/* Anlagen */}
+                    {/* Anlagen - Kompakter Link mit Modal */}
                     {documentTypeId && (
-                        <Collapsible open={attachmentsOpen} onOpenChange={setAttachmentsOpen}>
-                            <CollapsibleTrigger className="flex items-center justify-between w-full p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
-                                <div className="flex items-center gap-2">
-                                    <Paperclip className="w-4 h-4 text-primary" />
-                                    <span className="font-medium text-sm">Anlagen</span>
-                                    {selectedAttachmentIds.length > 0 && (
-                                        <span className="text-xs text-muted-foreground">
-                                            ({selectedAttachmentIds.length} ausgewählt)
-                                        </span>
-                                    )}
-                                </div>
-                                {attachmentsOpen ? (
-                                    <ChevronDown className="w-4 h-4 text-muted-foreground" />
-                                ) : (
-                                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                        <Button
+                            variant="ghost"
+                            className="w-full justify-between h-auto py-3 px-3 bg-muted/30 hover:bg-muted/50"
+                            onClick={() => setShowAttachmentsModal(true)}
+                        >
+                            <div className="flex items-center gap-2">
+                                <Paperclip className="w-4 h-4 text-primary" />
+                                <span className="font-medium text-sm">Anlagen</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                {selectedAttachmentIds.length > 0 && (
+                                    <Badge variant="secondary" className="text-xs">
+                                        {selectedAttachmentIds.length}
+                                    </Badge>
                                 )}
-                            </CollapsibleTrigger>
-                            <CollapsibleContent className="pt-3">
-                                <AttachmentSelector
-                                    documentTypeId={documentTypeId}
-                                    selectedIds={selectedAttachmentIds}
-                                    onSelectionChange={(ids) => {
-                                        // Sync attachment selection
-                                        const currentIds = [...selectedAttachmentIds];
-                                        const addedIds = ids.filter(id => !currentIds.includes(id));
-                                        const removedIds = currentIds.filter(id => !ids.includes(id));
-                                        for (const id of addedIds) actions.toggleAttachment(id);
-                                        for (const id of removedIds) actions.toggleAttachment(id);
-                                    }}
-                                />
-                            </CollapsibleContent>
-                        </Collapsible>
+                                <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                            </div>
+                        </Button>
                     )}
                 </div>
             </ScrollArea>
 
             {/* Action Bar (fixiert unten) */}
             <ActionBar />
+
+            {/* Klauseln Modal */}
+            <Dialog open={showClausesModal} onOpenChange={setShowClausesModal}>
+                <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <Layers className="w-5 h-5 text-primary" />
+                            Klauseln anpassen
+                        </DialogTitle>
+                    </DialogHeader>
+                    <div className="flex-1 overflow-auto py-4">
+                        <ClauseSelectionSection />
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            {/* Anlagen Modal */}
+            <Dialog open={showAttachmentsModal} onOpenChange={setShowAttachmentsModal}>
+                <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <Paperclip className="w-5 h-5 text-primary" />
+                            Anlagen auswählen
+                        </DialogTitle>
+                    </DialogHeader>
+                    <div className="flex-1 overflow-auto py-4">
+                        {documentTypeId && (
+                            <AttachmentSelector
+                                documentTypeId={documentTypeId}
+                                selectedIds={selectedAttachmentIds}
+                                onSelectionChange={(ids) => {
+                                    const currentIds = [...selectedAttachmentIds];
+                                    const addedIds = ids.filter(id => !currentIds.includes(id));
+                                    const removedIds = currentIds.filter(id => !ids.includes(id));
+                                    for (const id of addedIds) actions.toggleAttachment(id);
+                                    for (const id of removedIds) actions.toggleAttachment(id);
+                                }}
+                            />
+                        )}
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 };

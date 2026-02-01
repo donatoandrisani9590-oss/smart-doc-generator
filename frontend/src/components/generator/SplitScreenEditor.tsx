@@ -1,12 +1,12 @@
 /**
  * SplitScreenEditor - Haupt-Container für den Split-Screen Document Editor
  *
- * Layout wie Microsoft Word / Apple Pages:
- * - Linke Seite (350px min): Formularfelder, Klauseln, Anlagen, Export-Buttons
- * - Rechte Seite (flex): Live WYSIWYG Editor (TinyMCE)
+ * Layout nach UX-Audit optimiert (30/70 Split):
+ * - Linke Seite (320px): Formularfelder, Klauseln-Link, Anlagen-Link, Export-Buttons
+ * - Rechte Seite (flex): Live WYSIWYG Editor (TinyMCE) - mehr Platz für Dokument
  * - Optional: Kommentar-Seitenleiste (280px)
  *
- * Verwendet CSS Grid für stabiles Layout.
+ * v5.0: Schmaleres Control Panel für mehr Editor-Fläche
  */
 
 import { LeftControlPanel } from "./panels/LeftControlPanel";
@@ -31,10 +31,10 @@ export const SplitScreenEditor = ({ documentTypes }: SplitScreenEditorProps) => 
 
     return (
         <div className="h-[calc(100vh-64px)] w-full overflow-hidden flex">
-            {/* Linke Seite: Steuerung - feste Mindestbreite */}
+            {/* Linke Seite: Steuerung - kompakter (30% statt 40%) */}
             <div
                 className="bg-background border-r overflow-hidden flex-shrink-0"
-                style={{ width: "380px", minWidth: "320px", maxWidth: "450px" }}
+                style={{ width: "320px", minWidth: "280px", maxWidth: "360px" }}
             >
                 <LeftControlPanel documentTypes={documentTypes} />
             </div>
