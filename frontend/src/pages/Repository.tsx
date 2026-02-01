@@ -43,6 +43,7 @@ import {
     Play,
 } from "lucide-react";
 import { DocumentCorrectionDialog } from "@/components/documents/DocumentCorrectionDialog";
+import { useFeatureEnabled } from "@/hooks/useFeatureSettings";
 import {
     Dialog,
     DialogContent,
@@ -59,6 +60,9 @@ export const RepositoryPage = () => {
     const navigate = useNavigate();
     const toast = useToast();
     const undo = useUndo();
+
+    // Feature toggle check
+    const isEnabled = useFeatureEnabled("show_documents_overview");
     const [filters, setFilters] = useState<RepositoryFilters>({
         page: 1,
         page_size: 20,
@@ -247,6 +251,24 @@ export const RepositoryPage = () => {
         filters.date_to ||
         filters.has_corrections !== undefined
     );
+
+    // Feature disabled state
+    if (!isEnabled) {
+        return (
+            <div className="flex flex-col items-center justify-center py-16 max-w-md mx-auto text-center">
+                <div className="w-16 h-16 mb-4 rounded-full bg-muted flex items-center justify-center">
+                    <FileText className="w-8 h-8 text-muted-foreground" />
+                </div>
+                <h2 className="text-xl font-semibold mb-2">Dokumentenübersicht deaktiviert</h2>
+                <p className="text-muted-foreground mb-4">
+                    Diese Funktion ist in Ihren Einstellungen deaktiviert.
+                </p>
+                <Button variant="outline" onClick={() => navigate("/settings?tab=features")}>
+                    Einstellungen öffnen
+                </Button>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6 max-w-6xl mx-auto">

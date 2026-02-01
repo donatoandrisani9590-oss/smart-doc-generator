@@ -31,6 +31,11 @@ import { formatDistanceToNow } from "@/lib/dateUtils";
 import { DocumentWizardDialog } from "@/components/dashboard/DocumentWizardDialog";
 import { QuickTemplates } from "@/components/dashboard/QuickTemplates";
 import { SmartChatInput } from "@/components/chat/SmartChatInput";
+import { DeadlinesWidget } from "@/components/dashboard/DeadlinesWidget";
+import { ApprovalRequestsWidget } from "@/components/dashboard/ApprovalRequestsWidget";
+import { DocumentUploadDialog } from "@/components/documents/DocumentUploadDialog";
+import { ActivityFeedWidget } from "@/components/dashboard/ActivityFeedWidget";
+import { useFeatureEnabled } from "@/hooks/useFeatureSettings";
 
 // Tageszeit-basierte Begrüßung
 const getGreeting = () => {
@@ -45,7 +50,9 @@ export const Dashboard = () => {
     const { data: activity, isLoading: activityLoading } = useMyActivity(5);
     const [searchQuery, setSearchQuery] = useState("");
     const [wizardOpen, setWizardOpen] = useState(false);
+    const [uploadOpen, setUploadOpen] = useState(false);
     const navigate = useNavigate();
+    const isUploadEnabled = useFeatureEnabled("enable_document_upload");
 
     const isLoading = statsLoading || activityLoading;
     const hasOpenDrafts = (stats?.open_drafts ?? 0) > 0;
@@ -105,15 +112,27 @@ export const Dashboard = () => {
                                 </p>
                             </div>
                         </div>
-                        <Button
-                            size="lg"
-                            variant="secondary"
-                            className="gap-2 bg-white/20 text-white hover:bg-white/30 border-0 h-14 px-6 text-base font-semibold backdrop-blur-sm"
-                            onClick={() => setWizardOpen(true)}
-                        >
-                            <PlusCircle className="w-5 h-5" />
-                            Wizard starten
-                        </Button>
+                        <div className="flex gap-2">
+                            {isUploadEnabled && (
+                                <Button
+                                    size="lg"
+                                    variant="secondary"
+                                    className="gap-2 bg-white/10 text-white hover:bg-white/20 border-0 h-14 px-5 text-base font-semibold backdrop-blur-sm"
+                                    onClick={() => setUploadOpen(true)}
+                                >
+                                    Dokument hochladen
+                                </Button>
+                            )}
+                            <Button
+                                size="lg"
+                                variant="secondary"
+                                className="gap-2 bg-white/20 text-white hover:bg-white/30 border-0 h-14 px-6 text-base font-semibold backdrop-blur-sm"
+                                onClick={() => setWizardOpen(true)}
+                            >
+                                <PlusCircle className="w-5 h-5" />
+                                Wizard starten
+                            </Button>
+                        </div>
                     </div>
 
                     {/* Smart Chat Input - Main Entry Point */}
@@ -134,6 +153,12 @@ export const Dashboard = () => {
                         />
                     </div>
                 </div>
+            </div>
+
+            {/* Widgets Row: Fristen + Genehmigungen */}
+            <div className="grid gap-6 lg:grid-cols-2">
+                <DeadlinesWidget limit={4} showStats={true} />
+                <ApprovalRequestsWidget limit={3} />
             </div>
 
             {/* Hauptbereich: 2 Spalten */}
@@ -296,6 +321,9 @@ export const Dashboard = () => {
                 </div>
             </div>
 
+            {/* Activity Feed */}
+            <ActivityFeedWidget limit={5} />
+
             {/* Kompakte Statistik-Zeile */}
             <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
                 <Card className="bg-muted/30">
@@ -364,6 +392,7 @@ export const Dashboard = () => {
             </div>
 
             <DocumentWizardDialog open={wizardOpen} onOpenChange={setWizardOpen} />
+            <DocumentUploadDialog open={uploadOpen} onOpenChange={setUploadOpen} />
         </div >
     );
 };

@@ -29,7 +29,7 @@ from app.api.v1.endpoints import placeholders, statistics, favorites, search, te
 from app.api.v1.endpoints import corrections, repository, audit, notifications, export
 from app.api.v1.endpoints import clause_notes, company_settings, clause_approval, deadlines, works_council
 from app.api.v1.endpoints import word_import, document_type_import, clause_variants, users
-from app.api.v1.endpoints import composer, setup, compliance, smart_mode
+from app.api.v1.endpoints import composer, setup, compliance, smart_mode, feature_settings, document_upload
 
 # ═══════════════════════════════════════════════════════════════════════════
 # LOGGING CONFIGURATION
@@ -255,6 +255,12 @@ app.include_router(compliance.router, prefix=f"{settings.API_V1_STR}", tags=["co
 
 # Smart Mode - Conversational Document Creation
 app.include_router(smart_mode.router, prefix=f"{settings.API_V1_STR}/smart-mode", tags=["smart-mode"])
+
+# User Feature Settings (Toggles)
+app.include_router(feature_settings.router, prefix=f"{settings.API_V1_STR}/feature-settings", tags=["feature-settings"])
+
+# Document Upload with AI Extraction
+app.include_router(document_upload.router, prefix=f"{settings.API_V1_STR}/document-upload", tags=["document-upload"])
 
 # Public/Guest Access
 app.include_router(guest.router, tags=["guest"])

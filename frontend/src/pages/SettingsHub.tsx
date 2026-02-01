@@ -32,6 +32,7 @@ import {
     CheckSquare,
     Layout,
     Eye,
+    ToggleRight,
 } from "lucide-react";
 
 // Lazy load sub-pages (mit Named Export Handling für Module ohne Default-Export)
@@ -48,6 +49,7 @@ const WorksCouncilTemplatesPage = lazy(() => import("./admin/WorksCouncilTemplat
 const ClauseApprovalQueue = lazy(() => import("./admin/ClauseApprovalQueue").then(m => ({ default: m.ClauseApprovalQueue })));
 const DocumentDesigner = lazy(() => import("./admin/DocumentDesigner").then(m => ({ default: m.DocumentDesigner })));
 const TemplatePreviewPage = lazy(() => import("./admin/TemplatePreviewPage").then(m => ({ default: m.TemplatePreviewPage })));
+const FeatureSettingsPanel = lazy(() => import("@/components/settings/FeatureSettingsPanel").then(m => ({ default: m.FeatureSettingsPanel })));
 
 // Tab definitions with icons and descriptions
 const TABS = [
@@ -56,6 +58,12 @@ const TABS = [
         label: "Allgemein",
         icon: Building2,
         description: "Firmendaten & Logo",
+    },
+    {
+        id: "features",
+        label: "Funktionen",
+        icon: ToggleRight,
+        description: "Feature-Toggles",
     },
     {
         id: "design",
@@ -179,7 +187,7 @@ export default function SettingsHub() {
             </div>
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-                <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:inline-flex">
+                <TabsList className="grid w-full grid-cols-6 lg:w-auto lg:inline-flex">
                     {TABS.map((tab) => (
                         <TabsTrigger
                             key={tab.id}
@@ -196,6 +204,13 @@ export default function SettingsHub() {
                 <TabsContent value="general" className="space-y-4">
                     <Suspense fallback={<TabSkeleton />}>
                         <CompanySettingsPage />
+                    </Suspense>
+                </TabsContent>
+
+                {/* Funktionen - Feature Toggles */}
+                <TabsContent value="features" className="space-y-4">
+                    <Suspense fallback={<TabSkeleton />}>
+                        <FeatureSettingsPanel />
                     </Suspense>
                 </TabsContent>
 

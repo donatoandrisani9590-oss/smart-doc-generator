@@ -42,6 +42,11 @@ from app.models.composer import (
     DocumentClauseInstance,
     ClauseOrigin,
 )
+from app.models.user_settings import (
+    UserFeatureSettings,
+    FEATURE_DEFINITIONS,
+    FEATURE_CATEGORIES,
+)
 
 __all__ = [
     # Core
@@ -87,4 +92,8 @@ __all__ = [
     # Composer (Smart UX)
     "DocumentClauseInstance",
     "ClauseOrigin",
+    # User Settings
+    "UserFeatureSettings",
+    "FEATURE_DEFINITIONS",
+    "FEATURE_CATEGORIES",
 ]
