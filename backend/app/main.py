@@ -29,7 +29,7 @@ from app.api.v1.endpoints import placeholders, statistics, favorites, search, te
 from app.api.v1.endpoints import corrections, repository, audit, notifications, export
 from app.api.v1.endpoints import clause_notes, company_settings, clause_approval, deadlines, works_council
 from app.api.v1.endpoints import word_import, document_type_import, clause_variants, users
-from app.api.v1.endpoints import composer, setup, compliance
+from app.api.v1.endpoints import composer, setup, compliance, smart_mode
 
 # ═══════════════════════════════════════════════════════════════════════════
 # LOGGING CONFIGURATION
@@ -252,6 +252,9 @@ app.include_router(composer.router, prefix=f"{settings.API_V1_STR}/composer", ta
 
 # Compliance - Proactive Risk Detection (Privacy-First: Mistral/Ollama)
 app.include_router(compliance.router, prefix=f"{settings.API_V1_STR}", tags=["compliance"])
+
+# Smart Mode - Conversational Document Creation
+app.include_router(smart_mode.router, prefix=f"{settings.API_V1_STR}/smart-mode", tags=["smart-mode"])
 
 # Public/Guest Access
 app.include_router(guest.router, tags=["guest"])

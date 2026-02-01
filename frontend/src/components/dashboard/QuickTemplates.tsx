@@ -10,10 +10,11 @@
 
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { FileText, Briefcase, FileSignature, UserMinus, ChevronRight } from "lucide-react";
+import { FileText, Briefcase, FileSignature, UserMinus, Wand2 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/lib/api-client";
 import { logError } from "@/lib/logger";
+import { SmartModeDialog } from "@/components/generator/SmartModeDialog";
 
 interface DocumentType {
     id: number;
@@ -53,6 +54,8 @@ export const QuickTemplates = ({ className }: QuickTemplatesProps) => {
     const navigate = useNavigate();
     const [types, setTypes] = useState<DocumentType[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [smartModeOpen, setSmartModeOpen] = useState(false);
+    const [selectedType, setSelectedType] = useState<DocumentType | null>(null);
 
     useEffect(() => {
         const loadTypes = async () => {
@@ -70,8 +73,22 @@ export const QuickTemplates = ({ className }: QuickTemplatesProps) => {
         loadTypes();
     }, []);
 
-    const handleSelectType = (typeId: number) => {
-        navigate(`/composer?type=${typeId}`);
+    const handleSelectType = (type: DocumentType, useSmartMode: boolean = false) => {
+        if (useSmartMode) {
+            setSelectedType(type);
+            setSmartModeOpen(true);
+        } else {
+            navigate(`/composer?type=${type.id}`);
+        }
+    };
+
+    const handleSmartModeComplete = (formData: Record<string, unknown>, title: string) => {
+        // Navigate to editor with pre-filled data
+        const params = new URLSearchParams();
+        params.set("type", String(selectedType?.id));
+        params.set("data", JSON.stringify(formData));
+        params.set("title", title);
+        navigate(`/generate?${params.toString()}`);
     };
 
     if (isLoading) {
@@ -99,32 +116,55 @@ export const QuickTemplates = ({ className }: QuickTemplatesProps) => {
                     const colors = TILE_COLORS[index % TILE_COLORS.length];
 
                     return (
-                        <button
+                        <div
                             key={type.id}
-                            onClick={() => handleSelectType(type.id)}
                             className={`
-                                flex items-center gap-4 p-5 rounded-2xl border transition-all text-left group
+                                relative flex items-center gap-4 p-5 rounded-2xl border transition-all text-left group
                                 ${colors.bg} ${colors.border}
                             `}
                         >
-                            <div className={`p-3 rounded-xl ${colors.icon}`}>
-                                <Icon className="w-6 h-6" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <p className="font-semibold text-gray-900 truncate">
-                                    {type.name}
-                                </p>
-                                {type.description && (
-                                    <p className="text-xs text-gray-500 truncate mt-0.5">
-                                        {type.description}
+                            <button
+                                onClick={() => handleSelectType(type, false)}
+                                className="flex items-center gap-4 flex-1 min-w-0 text-left"
+                            >
+                                <div className={`p-3 rounded-xl ${colors.icon}`}>
+                                    <Icon className="w-6 h-6" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <p className="font-semibold text-gray-900 truncate">
+                                        {type.name}
                                     </p>
-                                )}
-                            </div>
-                            <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-gray-500 transition-colors flex-shrink-0" />
-                        </button>
+                                    {type.description && (
+                                        <p className="text-xs text-gray-500 truncate mt-0.5">
+                                            {type.description}
+                                        </p>
+                                    )}
+                                </div>
+                            </button>
+                            {/* Smart Mode Button */}
+                            <button
+                                onClick={() => handleSelectType(type, true)}
+                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 transition-colors"
+                                title="Smart Mode - Schnelle Erstellung im Gesprächsmodus"
+                            >
+                                <Wand2 className="w-3.5 h-3.5" />
+                                Smart
+                            </button>
+                        </div>
                     );
                 })}
             </div>
+
+            {/* Smart Mode Dialog */}
+            {selectedType && (
+                <SmartModeDialog
+                    open={smartModeOpen}
+                    onOpenChange={setSmartModeOpen}
+                    documentTypeId={selectedType.id}
+                    documentTypeName={selectedType.name}
+                    onComplete={handleSmartModeComplete}
+                />
+            )}
         </div>
     );
 };
