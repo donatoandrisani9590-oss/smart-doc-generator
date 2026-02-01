@@ -9,7 +9,7 @@
  * - useMentionSuggestions: Autocomplete für @mentions
  */
 
-import { useQuery, useMutation, useQueryClient, UseQueryOptions } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api-client";
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -236,7 +236,7 @@ export function useDeleteComment() {
  */
 export function useMentionSuggestions(
     query: string,
-    options?: Partial<UseQueryOptions<UserSuggestion[], Error>>
+    options?: { enabled?: boolean }
 ) {
     return useQuery({
         queryKey: commentKeys.mentions(query),
