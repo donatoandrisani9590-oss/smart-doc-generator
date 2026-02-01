@@ -30,6 +30,7 @@ import { useDashboardStats, useMyActivity } from "@/hooks/useApi";
 import { formatDistanceToNow } from "@/lib/dateUtils";
 import { DocumentWizardDialog } from "@/components/dashboard/DocumentWizardDialog";
 import { QuickTemplates } from "@/components/dashboard/QuickTemplates";
+import { SmartChatInput } from "@/components/chat/SmartChatInput";
 
 // Tageszeit-basierte Begrüßung
 const getGreeting = () => {
@@ -89,28 +90,49 @@ export const Dashboard = () => {
             {/* Quick Templates - Top 3 Dokumenttypen */}
             <QuickTemplates />
 
-            {/* Primäre Aktion - Hervorgehoben */}
+            {/* Smart Document Creation - AI-Powered Hero */}
             <div className="rounded-3xl p-8 bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-xl shadow-indigo-200">
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-6">
-                        <div className="p-4 bg-white/20 backdrop-blur-sm rounded-2xl">
-                            <Sparkles className="w-8 h-8 text-white" />
+                <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-6">
+                            <div className="p-4 bg-white/20 backdrop-blur-sm rounded-2xl">
+                                <Sparkles className="w-8 h-8 text-white" />
+                            </div>
+                            <div>
+                                <h2 className="text-2xl font-bold mb-1">Neues Dokument erstellen</h2>
+                                <p className="text-indigo-100 text-lg">
+                                    Beschreiben Sie einfach, was Sie brauchen
+                                </p>
+                            </div>
                         </div>
-                        <div>
-                            <h2 className="text-2xl font-bold mb-1">Neues Dokument erstellen</h2>
-                            <p className="text-indigo-100 text-lg">
-                                Arbeitsvertrag, Änderung, Kündigung und mehr
-                            </p>
-                        </div>
+                        <Button
+                            size="lg"
+                            variant="secondary"
+                            className="gap-2 bg-white/20 text-white hover:bg-white/30 border-0 h-14 px-6 text-base font-semibold backdrop-blur-sm"
+                            onClick={() => setWizardOpen(true)}
+                        >
+                            <PlusCircle className="w-5 h-5" />
+                            Wizard starten
+                        </Button>
                     </div>
-                    <Button
-                        size="lg"
-                        className="gap-2 bg-white text-indigo-600 hover:bg-indigo-50 border-0 h-14 px-8 text-base font-semibold shadow-lg"
-                        onClick={() => setWizardOpen(true)}
-                    >
-                        <PlusCircle className="w-5 h-5" />
-                        Jetzt starten
-                    </Button>
+
+                    {/* Smart Chat Input - Main Entry Point */}
+                    <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4">
+                        <SmartChatInput
+                            placeholder="z.B. 'Erstelle einen Arbeitsvertrag für Max Müller, 5000€ Gehalt'"
+                            showSuggestions={true}
+                            onCreateDocument={(docType, initialData) => {
+                                // Navigate to generator with pre-filled data
+                                const params = new URLSearchParams();
+                                params.set("type", docType);
+                                if (Object.keys(initialData).length > 0) {
+                                    params.set("data", JSON.stringify(initialData));
+                                }
+                                navigate(`/generate?${params.toString()}`);
+                            }}
+                            className="[&_input]:bg-white [&_input]:text-gray-900 [&_input]:placeholder:text-gray-500"
+                        />
+                    </div>
                 </div>
             </div>
 
