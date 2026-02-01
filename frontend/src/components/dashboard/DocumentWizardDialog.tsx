@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
     Dialog,
@@ -9,9 +9,33 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, FileText, ChevronRight, Loader2 } from "lucide-react";
+import { Search, FileText, ChevronRight, Loader2, History } from "lucide-react";
 import { api } from "@/lib/api-client";
 import { logError } from "@/lib/logger";
+
+// LocalStorage key für kürzlich verwendete Types
+const RECENT_TYPES_KEY = "documentWizard_recentTypes";
+const MAX_RECENT_TYPES = 3;
+
+// Hilfsfunktionen für Recently Used
+const getRecentTypeIds = (): number[] => {
+    try {
+        const stored = localStorage.getItem(RECENT_TYPES_KEY);
+        return stored ? JSON.parse(stored) : [];
+    } catch {
+        return [];
+    }
+};
+
+const addRecentTypeId = (typeId: number): void => {
+    try {
+        const recent = getRecentTypeIds().filter(id => id !== typeId);
+        recent.unshift(typeId);
+        localStorage.setItem(RECENT_TYPES_KEY, JSON.stringify(recent.slice(0, MAX_RECENT_TYPES)));
+    } catch {
+        // Ignore localStorage errors
+    }
+};
 
 interface DocumentType {
     id: number;
@@ -56,7 +80,20 @@ export const DocumentWizardDialog = ({
         t.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
+    // Kürzlich verwendete Types (basierend auf localStorage)
+    const recentTypes = useMemo(() => {
+        const recentIds = getRecentTypeIds();
+        return recentIds
+            .map(id => types.find(t => t.id === id))
+            .filter((t): t is DocumentType => t !== undefined);
+    }, [types]);
+
+    // Zeige Recently Used nur wenn keine Suche aktiv
+    const showRecentlyUsed = !searchTerm && recentTypes.length > 0;
+
     const handleSelectType = (typeId: number) => {
+        // Speichere in Recently Used
+        addRecentTypeId(typeId);
         // Navigate to Composer with pre-selected type
         // The Composer will handle the actual draft creation / variant selection
         navigate(`/composer?type=${typeId}`);
@@ -91,7 +128,44 @@ export const DocumentWizardDialog = ({
                             <Loader2 className="h-8 w-8 animate-spin text-primary" />
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div className="space-y-6">
+                            {/* Kürzlich verwendet */}
+                            {showRecentlyUsed && (
+                                <div>
+                                    <div className="flex items-center gap-2 mb-3">
+                                        <History className="w-4 h-4 text-muted-foreground" />
+                                        <span className="text-sm font-medium text-muted-foreground">
+                                            Kürzlich verwendet
+                                        </span>
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                                        {recentTypes.map((type) => (
+                                            <button
+                                                key={`recent-${type.id}`}
+                                                onClick={() => handleSelectType(type.id)}
+                                                className="flex items-center gap-2 p-3 rounded-lg border border-primary/20 bg-primary/5 hover:bg-primary/10 text-left transition-all group"
+                                            >
+                                                <FileText className="h-4 w-4 text-primary flex-shrink-0" />
+                                                <span className="font-medium text-sm text-primary truncate">
+                                                    {type.name}
+                                                </span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Alle Dokumenttypen */}
+                            {showRecentlyUsed && (
+                                <div className="flex items-center gap-2">
+                                    <span className="text-sm font-medium text-muted-foreground">
+                                        Alle Dokumenttypen
+                                    </span>
+                                    <div className="flex-1 h-px bg-gray-200" />
+                                </div>
+                            )}
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                             {filteredTypes.map((type) => (
                                 <button
                                     key={type.id}
@@ -119,6 +193,7 @@ export const DocumentWizardDialog = ({
                                     Keine Dokumenttypen gefunden.
                                 </div>
                             )}
+                            </div>
                         </div>
                     )}
                 </div>

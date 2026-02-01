@@ -29,6 +29,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useDashboardStats, useMyActivity } from "@/hooks/useApi";
 import { formatDistanceToNow } from "@/lib/dateUtils";
 import { DocumentWizardDialog } from "@/components/dashboard/DocumentWizardDialog";
+import { QuickTemplates } from "@/components/dashboard/QuickTemplates";
 
 // Tageszeit-basierte Begrüßung
 const getGreeting = () => {
@@ -84,6 +85,9 @@ export const Dashboard = () => {
                     />
                 </div>
             </form>
+
+            {/* Quick Templates - Top 3 Dokumenttypen */}
+            <QuickTemplates />
 
             {/* Primäre Aktion - Hervorgehoben */}
             <div className="rounded-3xl p-8 bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-xl shadow-indigo-200">
