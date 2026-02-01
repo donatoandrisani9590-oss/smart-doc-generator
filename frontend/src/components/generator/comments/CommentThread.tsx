@@ -8,6 +8,7 @@
  * - Antworten-Thread
  *
  * v2.1: Bug-Fixes für Edge Cases (Invalid Date, Empty Names)
+ * v2.2: DATA-002 Fix - Reply Mentions werden jetzt auch gehighlighted
  */
 
 import { useState, useMemo, useCallback } from "react";
@@ -281,8 +282,9 @@ export const CommentThread = ({
                                     {formatDate(reply.createdAt)}
                                 </span>
                             </div>
+                            {/* DATA-002 Fix: Reply content with @Mention Highlighting */}
                             <p className="text-xs text-muted-foreground">
-                                {reply.content}
+                                {renderContentWithMentions(reply.content)}
                             </p>
                         </div>
                     ))}

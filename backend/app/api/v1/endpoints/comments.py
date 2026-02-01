@@ -9,11 +9,18 @@ Ermöglicht:
 - Activity Feed
 
 Ähnlich wie Google Docs / fynk.com Kommentarsystem.
+
+v2.3 Security Fixes (Release Audit):
+- SEC-001: Anchor existence validation
+- SEC-002: IDOR protection via user_id check
+- SEC-003: Resolve/Reopen authorization
+- PERF-001: N+1 query optimization with eager loading
+- SEC-004: Wildcard escaping in mention search
 """
 from fastapi import APIRouter, Depends, HTTPException, Query, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, and_, update, delete
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import selectinload, joinedload
 from pydantic import BaseModel, Field
 from typing import Optional, List
 from datetime import datetime
@@ -22,7 +29,8 @@ import json
 
 from app.db import get_db
 from app.models.collaboration import Comment, CommentMention, ActivityEvent
-from app.models.enterprise import Notification
+from app.models.enterprise import Notification, DocumentDraft, GeneratedDocument
+from app.models.documents import Clause
 from app.models.core import User
 from app.api.deps import get_current_user
 
@@ -109,6 +117,90 @@ class ResolveCommentRequest(BaseModel):
 MENTION_PATTERN = re.compile(r'@(\w+(?:\.\w+)?)|@\[([^\]]+)\]')
 
 
+def escape_like_wildcards(value: str) -> str:
+    """
+    SEC-004 Fix: Escape SQL LIKE wildcards to prevent DoS via expensive queries.
+    """
+    return value.replace('%', r'\%').replace('_', r'\_')
+
+
+async def validate_anchor_access(
+    anchor_type: str,
+    anchor_id: int,
+    current_user: User,
+    db: AsyncSession,
+    require_write: bool = False
+) -> bool:
+    """
+    SEC-001 + SEC-002 Fix: Validate anchor exists AND user has access.
+
+    Returns True if valid, raises HTTPException otherwise.
+    """
+    if anchor_type == "draft":
+        # Check draft exists and user owns it
+        query = select(DocumentDraft).where(DocumentDraft.id == anchor_id)
+        result = await db.execute(query)
+        draft = result.scalar_one_or_none()
+
+        if not draft:
+            raise HTTPException(status_code=404, detail="Entwurf nicht gefunden")
+
+        # IDOR Protection: Check user_id matches (user_id is string in this model)
+        if draft.user_id != str(current_user.id) and current_user.role != "admin":
+            raise HTTPException(status_code=403, detail="Kein Zugriff auf diesen Entwurf")
+
+        return True
+
+    elif anchor_type == "document":
+        # Check document exists and user created it
+        query = select(GeneratedDocument).where(
+            and_(
+                GeneratedDocument.id == anchor_id,
+                GeneratedDocument.is_deleted == False
+            )
+        )
+        result = await db.execute(query)
+        document = result.scalar_one_or_none()
+
+        if not document:
+            raise HTTPException(status_code=404, detail="Dokument nicht gefunden")
+
+        # IDOR Protection: Check created_by_id
+        if document.created_by_id != current_user.id and current_user.role != "admin":
+            raise HTTPException(status_code=403, detail="Kein Zugriff auf dieses Dokument")
+
+        return True
+
+    elif anchor_type == "clause":
+        # Clauses are global (library items), check existence only
+        query = select(Clause).where(
+            and_(
+                Clause.id == anchor_id,
+                Clause.is_active == True
+            )
+        )
+        result = await db.execute(query)
+        clause = result.scalar_one_or_none()
+
+        if not clause:
+            raise HTTPException(status_code=404, detail="Klausel nicht gefunden")
+
+        # Admin-only for clause comments
+        if current_user.role != "admin":
+            raise HTTPException(status_code=403, detail="Nur Admins können Klauseln kommentieren")
+
+        return True
+
+    elif anchor_type == "clause_instance":
+        # Clause instances are part of drafts - validate via parent draft
+        # For now, just validate format (positive integer)
+        if anchor_id <= 0:
+            raise HTTPException(status_code=400, detail="Ungültige Klausel-Instanz ID")
+        return True
+
+    return False
+
+
 async def extract_mentions(content: str, db: AsyncSession) -> List[int]:
     """
     Extrahiert @mentions aus dem Content und gibt User-IDs zurück.
@@ -123,9 +215,12 @@ async def extract_mentions(content: str, db: AsyncSession) -> List[int]:
     for match in matches:
         username_or_email = match[0] or match[1]  # Entweder Gruppe 1 oder 2
 
+        # SEC-004 Fix: Escape wildcards
+        escaped_search = escape_like_wildcards(username_or_email)
+
         # Suche User by email oder name
         query = select(User).where(
-            (User.email.ilike(f"%{username_or_email}%")) |
+            (User.email.ilike(f"%{escaped_search}%")) |
             (User.email == username_or_email)
         ).limit(1)
         result = await db.execute(query)
@@ -202,6 +297,8 @@ async def get_comments(
     anchor_type: str,
     anchor_id: int,
     include_resolved: bool = Query(True, description="Auch gelöste Kommentare anzeigen"),
+    limit: int = Query(50, ge=1, le=200, description="Max. Kommentare pro Seite"),
+    offset: int = Query(0, ge=0, description="Offset für Pagination"),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -209,13 +306,21 @@ async def get_comments(
     Holt alle Kommentare für eine Entität.
 
     Gibt Thread-Struktur zurück (Root-Kommentare mit Replies).
+
+    SEC-002 Fix: Validates user has access to the anchor entity.
+    PERF-001 Fix: Uses eager loading to reduce N+1 queries.
+    PERF-002 Fix: Added pagination support.
     """
     # Validiere anchor_type
     valid_types = ["document", "draft", "clause_instance", "clause"]
     if anchor_type not in valid_types:
         raise HTTPException(status_code=400, detail=f"Ungültiger anchor_type. Erlaubt: {valid_types}")
 
-    # Root-Kommentare laden
+    # SEC-001 + SEC-002: Validate anchor exists and user has access
+    await validate_anchor_access(anchor_type, anchor_id, current_user, db)
+
+    # PERF-001 Fix: Use eager loading for authors
+    # First, get all user IDs we'll need
     query = select(Comment).where(
         and_(
             Comment.anchor_type == anchor_type,
@@ -223,7 +328,7 @@ async def get_comments(
             Comment.parent_id.is_(None),
             Comment.is_deleted == False
         )
-    ).order_by(Comment.created_at.desc())
+    ).order_by(Comment.created_at.desc()).offset(offset).limit(limit)
 
     if not include_resolved:
         query = query.where(Comment.is_resolved == False)
@@ -231,34 +336,64 @@ async def get_comments(
     result = await db.execute(query)
     root_comments = result.scalars().all()
 
+    # Collect all user IDs for batch loading
+    user_ids = set()
+    root_ids = []
+    for root in root_comments:
+        root_ids.append(root.id)
+        if root.created_by_id:
+            user_ids.add(root.created_by_id)
+
+    # PERF-001 Fix: Batch load all replies at once
+    if root_ids:
+        replies_query = select(Comment).where(
+            and_(
+                Comment.parent_id.in_(root_ids),
+                Comment.is_deleted == False
+            )
+        ).order_by(Comment.parent_id, Comment.created_at.asc())
+
+        replies_result = await db.execute(replies_query)
+        all_replies = replies_result.scalars().all()
+
+        # Group replies by parent_id
+        replies_by_parent = {}
+        for reply in all_replies:
+            if reply.created_by_id:
+                user_ids.add(reply.created_by_id)
+            if reply.parent_id not in replies_by_parent:
+                replies_by_parent[reply.parent_id] = []
+            replies_by_parent[reply.parent_id].append(reply)
+    else:
+        replies_by_parent = {}
+
+    # PERF-001 Fix: Batch load all users at once
+    users_by_id = {}
+    if user_ids:
+        users_query = select(User).where(User.id.in_(user_ids))
+        users_result = await db.execute(users_query)
+        for user in users_result.scalars().all():
+            users_by_id[user.id] = user
+
+    # PERF-001 Fix: Batch load all mentions at once
+    mentions_by_comment = {}
+    if root_ids:
+        mentions_query = select(CommentMention).where(
+            CommentMention.comment_id.in_(root_ids)
+        )
+        mentions_result = await db.execute(mentions_query)
+        for mention in mentions_result.scalars().all():
+            if mention.comment_id not in mentions_by_comment:
+                mentions_by_comment[mention.comment_id] = []
+            mentions_by_comment[mention.comment_id].append(mention)
+
     threads = []
     unresolved_count = 0
 
     for root in root_comments:
-        # Replies laden
-        replies_query = select(Comment).where(
-            and_(
-                Comment.parent_id == root.id,
-                Comment.is_deleted == False
-            )
-        ).order_by(Comment.created_at.asc())
-
-        replies_result = await db.execute(replies_query)
-        replies = replies_result.scalars().all()
-
-        # Mentions für Root
-        mentions_query = select(CommentMention).where(
-            CommentMention.comment_id == root.id
-        )
-        mentions_result = await db.execute(mentions_query)
-        root_mentions = mentions_result.scalars().all()
-
-        # Author laden
-        author = None
-        if root.created_by_id:
-            author_query = select(User).where(User.id == root.created_by_id)
-            author_result = await db.execute(author_query)
-            author = author_result.scalar_one_or_none()
+        author = users_by_id.get(root.created_by_id)
+        root_mentions = mentions_by_comment.get(root.id, [])
+        replies = replies_by_parent.get(root.id, [])
 
         root_response = CommentResponse(
             id=root.id,
@@ -282,15 +417,10 @@ async def get_comments(
             reply_count=len(replies)
         )
 
-        # Replies mit Author
+        # Replies mit Author (already loaded)
         reply_responses = []
         for reply in replies:
-            reply_author = None
-            if reply.created_by_id:
-                ra_query = select(User).where(User.id == reply.created_by_id)
-                ra_result = await db.execute(ra_query)
-                reply_author = ra_result.scalar_one_or_none()
-
+            reply_author = users_by_id.get(reply.created_by_id)
             reply_responses.append(CommentResponse(
                 id=reply.id,
                 anchor_type=reply.anchor_type,
@@ -336,11 +466,17 @@ async def create_comment(
     - Extrahiert @mentions automatisch
     - Sendet Notifications an erwähnte User
     - Erstellt Activity Event
+
+    SEC-001 Fix: Validates anchor exists before creating comment.
+    SEC-002 Fix: Validates user has access to anchor.
     """
     # Validiere anchor_type
     valid_types = ["document", "draft", "clause_instance", "clause"]
     if request.anchor_type not in valid_types:
         raise HTTPException(status_code=400, detail=f"Ungültiger anchor_type. Erlaubt: {valid_types}")
+
+    # SEC-001 + SEC-002: Validate anchor exists and user has access
+    await validate_anchor_access(request.anchor_type, request.anchor_id, current_user, db, require_write=True)
 
     # Falls Antwort: Parent validieren
     if request.parent_id:
@@ -539,6 +675,7 @@ async def resolve_comment(
     """
     Markiert einen Kommentar-Thread als gelöst/ungelöst.
 
+    SEC-003 Fix: Only author, thread participants, or admins can resolve.
     Nur Root-Kommentare können resolved werden.
     """
     query = select(Comment).where(
@@ -553,6 +690,29 @@ async def resolve_comment(
 
     if not comment:
         raise HTTPException(status_code=404, detail="Kommentar nicht gefunden oder ist kein Thread-Root")
+
+    # SEC-003 Fix: Authorization check for resolve/reopen
+    is_admin = current_user.role == "admin"
+    is_author = comment.created_by_id == current_user.id
+
+    # Check if user participated in thread (replied to this comment)
+    is_participant = False
+    if not is_admin and not is_author:
+        participant_query = select(Comment).where(
+            and_(
+                Comment.parent_id == comment_id,
+                Comment.created_by_id == current_user.id,
+                Comment.is_deleted == False
+            )
+        ).limit(1)
+        participant_result = await db.execute(participant_query)
+        is_participant = participant_result.scalar_one_or_none() is not None
+
+    if not is_admin and not is_author and not is_participant:
+        raise HTTPException(
+            status_code=403,
+            detail="Nur Autor, Thread-Teilnehmer oder Admins können Kommentare auflösen"
+        )
 
     comment.is_resolved = request.is_resolved
     if request.is_resolved:
@@ -606,8 +766,12 @@ async def suggest_mentions(
     Autocomplete für @mentions.
 
     Sucht User nach Email oder Name (case-insensitive).
+
+    SEC-004 Fix: Escapes wildcards in search query.
     """
-    search_pattern = f"%{query.lower()}%"
+    # SEC-004 Fix: Escape wildcards
+    escaped_query = escape_like_wildcards(query.lower())
+    search_pattern = f"%{escaped_query}%"
 
     user_query = select(User).where(
         and_(
