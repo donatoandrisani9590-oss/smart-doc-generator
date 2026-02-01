@@ -2,24 +2,47 @@
  * Drag & Drop Components
  *
  * Reusable components for:
- * - Sortable lists (e.g., clause ordering)
+ * - Sortable lists (e.g., clause ordering) using @dnd-kit
  * - File drop zones
- * - Accessible drag handles
+ * - Accessible drag handles with keyboard navigation
  */
 
 import {
     useState,
     useRef,
     useCallback,
+    createContext,
+    useContext,
+    useMemo,
 } from "react";
-import type { ReactNode, DragEvent, KeyboardEvent } from "react";
-import { motion, AnimatePresence, Reorder } from "framer-motion";
+import type { ReactNode, DragEvent, CSSProperties } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+    DndContext,
+    closestCenter,
+    KeyboardSensor,
+    PointerSensor,
+    useSensor,
+    useSensors,
+    DragOverlay,
+    type DragStartEvent,
+    type DragEndEvent,
+    type UniqueIdentifier,
+} from "@dnd-kit/core";
+import {
+    arrayMove,
+    SortableContext,
+    sortableKeyboardCoordinates,
+    useSortable,
+    verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, Upload, File, X, AlertCircle, CheckCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "./button";
 
 // ============================================================================
-// Sortable List Components
+// Sortable List Components (using @dnd-kit)
 // ============================================================================
 
 interface SortableItem {
@@ -30,147 +53,281 @@ interface SortableItem {
 interface SortableListProps<T extends SortableItem> {
     items: T[];
     onReorder: (items: T[]) => void;
-    renderItem: (item: T, index: number, dragHandleProps: DragHandleProps) => ReactNode;
+    renderItem: (item: T, index: number) => ReactNode;
+    renderDragOverlay?: (item: T) => ReactNode;
     className?: string;
     disabled?: boolean;
 }
 
-interface DragHandleProps {
-    "aria-label": string;
-    "aria-describedby": string;
-    role: string;
-    tabIndex: number;
-    onKeyDown: (e: KeyboardEvent) => void;
-    className?: string;
+// Context for sharing sortable state
+interface SortableContextValue {
+    activeId: UniqueIdentifier | null;
+    disabled: boolean;
 }
 
+const SortableListContext = createContext<SortableContextValue>({
+    activeId: null,
+    disabled: false,
+});
+
 /**
- * Sortable list with drag & drop and keyboard support
+ * Sortable list with drag & drop and keyboard support using @dnd-kit
+ *
+ * Features:
+ * - Drag handles for precise control
+ * - Keyboard navigation (Arrow keys, Home, End)
+ * - Visual feedback during drag
+ * - Smooth animations
+ * - Touch support
+ * - Accessibility (ARIA labels, screen reader support)
  */
 export function SortableList<T extends SortableItem>({
     items,
     onReorder,
     renderItem,
+    renderDragOverlay,
     className,
     disabled = false,
 }: SortableListProps<T>) {
-    const [activeId, setActiveId] = useState<string | number | null>(null);
-    const instructionsId = `sortable-instructions-${Math.random().toString(36).substr(2, 9)}`;
+    const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
 
-    const handleKeyDown = useCallback(
-        (index: number) => (e: KeyboardEvent) => {
-            if (disabled) return;
-
-            const currentItems = [...items];
-            let newIndex = index;
-
-            switch (e.key) {
-                case "ArrowUp":
-                case "ArrowLeft":
-                    e.preventDefault();
-                    if (index > 0) {
-                        newIndex = index - 1;
-                        [currentItems[index], currentItems[newIndex]] = [currentItems[newIndex], currentItems[index]];
-                        onReorder(currentItems);
-                    }
-                    break;
-                case "ArrowDown":
-                case "ArrowRight":
-                    e.preventDefault();
-                    if (index < items.length - 1) {
-                        newIndex = index + 1;
-                        [currentItems[index], currentItems[newIndex]] = [currentItems[newIndex], currentItems[index]];
-                        onReorder(currentItems);
-                    }
-                    break;
-                case "Home":
-                    e.preventDefault();
-                    if (index > 0) {
-                        const [item] = currentItems.splice(index, 1);
-                        currentItems.unshift(item);
-                        onReorder(currentItems);
-                    }
-                    break;
-                case "End":
-                    e.preventDefault();
-                    if (index < items.length - 1) {
-                        const [item] = currentItems.splice(index, 1);
-                        currentItems.push(item);
-                        onReorder(currentItems);
-                    }
-                    break;
-            }
-        },
-        [items, onReorder, disabled]
-    );
-
-    const getDragHandleProps = useCallback(
-        (_item: T, index: number): DragHandleProps => ({
-            "aria-label": `Element ${index + 1} von ${items.length} verschieben`,
-            "aria-describedby": instructionsId,
-            role: "button",
-            tabIndex: disabled ? -1 : 0,
-            onKeyDown: handleKeyDown(index),
+    const sensors = useSensors(
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                distance: 8, // 8px movement before drag starts
+            },
         }),
-        [items.length, instructionsId, handleKeyDown, disabled]
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        })
     );
+
+    const handleDragStart = useCallback((event: DragStartEvent) => {
+        setActiveId(event.active.id);
+    }, []);
+
+    const handleDragEnd = useCallback(
+        (event: DragEndEvent) => {
+            const { active, over } = event;
+
+            if (over && active.id !== over.id) {
+                const oldIndex = items.findIndex((item) => item.id === active.id);
+                const newIndex = items.findIndex((item) => item.id === over.id);
+                const newItems = arrayMove(items, oldIndex, newIndex);
+                onReorder(newItems);
+            }
+
+            setActiveId(null);
+        },
+        [items, onReorder]
+    );
+
+    const handleDragCancel = useCallback(() => {
+        setActiveId(null);
+    }, []);
+
+    const activeItem = useMemo(
+        () => items.find((item) => item.id === activeId),
+        [items, activeId]
+    );
+
+    const contextValue = useMemo(
+        () => ({ activeId, disabled }),
+        [activeId, disabled]
+    );
+
+    const itemIds = useMemo(() => items.map((item) => item.id), [items]);
 
     return (
-        <div className={className}>
-            {/* Screen reader instructions */}
-            <div id={instructionsId} className="sr-only">
-                Verwenden Sie die Pfeiltasten, um Elemente zu verschieben. Home springt zum Anfang, End zum Ende.
-            </div>
-
-            <Reorder.Group
-                axis="y"
-                values={items}
-                onReorder={onReorder}
-                className="space-y-2"
+        <SortableListContext.Provider value={contextValue}>
+            <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragStart={handleDragStart}
+                onDragEnd={handleDragEnd}
+                onDragCancel={handleDragCancel}
             >
-                <AnimatePresence>
-                    {items.map((item, index) => (
-                        <Reorder.Item
-                            key={item.id}
-                            value={item}
-                            dragListener={!disabled}
-                            className={cn(
-                                "relative",
-                                activeId === item.id && "z-10"
-                            )}
-                            onDragStart={() => setActiveId(item.id)}
-                            onDragEnd={() => setActiveId(null)}
-                            initial={{ opacity: 0, y: -10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: 10 }}
-                            transition={{ duration: 0.2 }}
-                        >
-                            {renderItem(item, index, getDragHandleProps(item, index))}
-                        </Reorder.Item>
-                    ))}
-                </AnimatePresence>
-            </Reorder.Group>
-        </div>
+                <SortableContext items={itemIds} strategy={verticalListSortingStrategy}>
+                    <div className={className} role="list" aria-label="Sortierbare Liste">
+                        {items.map((item, index) => (
+                            <div key={item.id} role="listitem">
+                                {renderItem(item, index)}
+                            </div>
+                        ))}
+                    </div>
+                </SortableContext>
+
+                {/* Drag Overlay for visual feedback */}
+                <DragOverlay adjustScale={false}>
+                    {activeItem && renderDragOverlay ? (
+                        renderDragOverlay(activeItem)
+                    ) : activeItem ? (
+                        <div className="opacity-80 shadow-lg rounded-lg bg-background border">
+                            {renderItem(activeItem, items.findIndex((i) => i.id === activeItem.id))}
+                        </div>
+                    ) : null}
+                </DragOverlay>
+            </DndContext>
+        </SortableListContext.Provider>
     );
 }
 
 /**
- * Drag handle component
+ * Hook to access sortable list context
  */
-export function DragHandle({
+export function useSortableListContext() {
+    return useContext(SortableListContext);
+}
+
+// ============================================================================
+// Sortable Item Components
+// ============================================================================
+
+interface SortableItemProps {
+    id: string | number;
+    children: ReactNode;
+    className?: string;
+    disabled?: boolean;
+}
+
+/**
+ * Wrapper for individual sortable items
+ * Must be used as a child of SortableList's renderItem
+ */
+export function SortableItemWrapper({
+    id,
+    children,
     className,
-    ...props
-}: DragHandleProps & { children?: ReactNode; className?: string }) {
+    disabled: itemDisabled,
+}: SortableItemProps) {
+    const { disabled: listDisabled } = useSortableListContext();
+    const isDisabled = itemDisabled ?? listDisabled;
+
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging,
+    } = useSortable({
+        id,
+        disabled: isDisabled,
+    });
+
+    const style: CSSProperties = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.5 : 1,
+        zIndex: isDragging ? 1 : 0,
+    };
+
     return (
         <div
-            {...props}
+            ref={setNodeRef}
+            style={style}
             className={cn(
-                "flex items-center justify-center w-6 h-6 text-muted-foreground hover:text-foreground transition-colors cursor-grab active:cursor-grabbing focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded",
+                "relative transition-shadow",
+                isDragging && "shadow-lg",
                 className
             )}
+            {...attributes}
         >
-            <GripVertical className="w-4 h-4" />
+            {/* Provide listeners via context or render prop pattern */}
+            <SortableItemContext.Provider value={{ listeners, isDragging, isDisabled }}>
+                {children}
+            </SortableItemContext.Provider>
         </div>
+    );
+}
+
+// Context for sortable item
+interface SortableItemContextValue {
+    listeners: ReturnType<typeof useSortable>["listeners"];
+    isDragging: boolean;
+    isDisabled: boolean;
+}
+
+const SortableItemContext = createContext<SortableItemContextValue>({
+    listeners: undefined,
+    isDragging: false,
+    isDisabled: false,
+});
+
+/**
+ * Hook to access sortable item context (for drag handle)
+ */
+export function useSortableItemContext() {
+    return useContext(SortableItemContext);
+}
+
+// ============================================================================
+// Drag Handle Component
+// ============================================================================
+
+interface DragHandleProps {
+    className?: string;
+    children?: ReactNode;
+}
+
+/**
+ * Drag handle component - must be used inside SortableItemWrapper
+ * Provides visual handle and accessibility
+ */
+export function DragHandle({ className, children }: DragHandleProps) {
+    const { listeners, isDragging, isDisabled } = useSortableItemContext();
+
+    return (
+        <button
+            type="button"
+            {...listeners}
+            className={cn(
+                "flex items-center justify-center w-8 h-8 text-muted-foreground transition-all rounded",
+                "hover:text-foreground hover:bg-muted/50",
+                "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1",
+                "touch-none select-none",
+                isDragging ? "cursor-grabbing" : "cursor-grab",
+                isDisabled && "cursor-not-allowed opacity-50",
+                className
+            )}
+            aria-label="Element verschieben. Pfeiltasten zum Sortieren verwenden."
+            disabled={isDisabled}
+        >
+            {children || <GripVertical className="w-4 h-4" />}
+        </button>
+    );
+}
+
+// ============================================================================
+// Simple Sortable Row Component (convenience wrapper)
+// ============================================================================
+
+interface SortableRowProps {
+    id: string | number;
+    children: ReactNode;
+    className?: string;
+    showDragHandle?: boolean;
+    disabled?: boolean;
+}
+
+/**
+ * Convenience component for simple sortable rows
+ * Includes drag handle by default
+ */
+export function SortableRow({
+    id,
+    children,
+    className,
+    showDragHandle = true,
+    disabled,
+}: SortableRowProps) {
+    return (
+        <SortableItemWrapper id={id} disabled={disabled} className={className}>
+            <div className="flex items-center gap-2">
+                {showDragHandle && <DragHandle />}
+                <div className="flex-1">{children}</div>
+            </div>
+        </SortableItemWrapper>
     );
 }
 
@@ -240,7 +397,7 @@ export function FileDropZone({
                 // Check file size
                 if (file.size > maxSize) {
                     const maxSizeMB = (maxSize / 1024 / 1024).toFixed(1);
-                    errors.push(`${file.name}: Datei zu groß (max. ${maxSizeMB} MB)`);
+                    errors.push(`${file.name}: Datei zu gross (max. ${maxSizeMB} MB)`);
                     continue;
                 }
 
@@ -336,7 +493,7 @@ export function FileDropZone({
             <div
                 role="button"
                 tabIndex={disabled ? -1 : 0}
-                aria-label="Dateien hier ablegen oder klicken zum Auswählen"
+                aria-label="Dateien hier ablegen oder klicken zum Auswaehlen"
                 aria-disabled={disabled}
                 onClick={handleClick}
                 onKeyDown={handleKeyDown}
@@ -391,7 +548,7 @@ export function FileDropZone({
                         </div>
                         {(accept.length > 0 || maxSize) && (
                             <p className="text-xs text-muted-foreground">
-                                {accept.length > 0 && `${accept.join(", ")} • `}
+                                {accept.length > 0 && `${accept.join(", ")} - `}
                                 Max. {(maxSize / 1024 / 1024).toFixed(0)} MB
                             </p>
                         )}
@@ -491,3 +648,9 @@ export function FilePreviewList({ files, onRemove, className }: FilePreviewListP
         </div>
     );
 }
+
+// ============================================================================
+// Exports
+// ============================================================================
+
+export type { SortableItem, DroppedFile, SortableListProps };

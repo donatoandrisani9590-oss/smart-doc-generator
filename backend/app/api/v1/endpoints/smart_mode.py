@@ -94,7 +94,11 @@ class SmartModeGenerateRequest(BaseModel):
 # ═══════════════════════════════════════════════════════════════════════════
 
 # Default field configurations per document category
+# Erweitert für alle HR-Dokumenttypen (Phase 1-3)
 DEFAULT_FIELD_CONFIGS: Dict[str, List[Dict[str, Any]]] = {
+    # ==========================================================================
+    # PHASE 1: EINSTELLUNG & ONBOARDING
+    # ==========================================================================
     "Arbeitsvertrag": [
         {"name": "nachname", "label": "Nachname", "type": "text", "required": True, "priority": 1,
          "hint": "Familienname des Mitarbeiters"},
@@ -113,13 +117,108 @@ DEFAULT_FIELD_CONFIGS: Dict[str, List[Dict[str, Any]]] = {
         {"name": "urlaubstage", "label": "Urlaubstage", "type": "number", "required": False, "priority": 8,
          "default": "30", "hint": "Jahresurlaub in Tagen"},
     ],
+    "Einstellungszusage": [
+        {"name": "nachname", "label": "Nachname", "type": "text", "required": True, "priority": 1},
+        {"name": "vorname", "label": "Vorname", "type": "text", "required": True, "priority": 2},
+        {"name": "position", "label": "Position", "type": "text", "required": True, "priority": 3},
+        {"name": "gehalt", "label": "Monatsgehalt (brutto)", "type": "number", "required": True, "priority": 4},
+        {"name": "eintrittsdatum", "label": "Geplanter Eintrittsdatum", "type": "date", "required": True, "priority": 5},
+    ],
+    "Absageschreiben": [
+        {"name": "nachname", "label": "Nachname", "type": "text", "required": True, "priority": 1},
+        {"name": "vorname", "label": "Vorname", "type": "text", "required": True, "priority": 2},
+        {"name": "position", "label": "Beworbene Position", "type": "text", "required": False, "priority": 3},
+    ],
+    "Verschwiegenheit": [
+        {"name": "nachname", "label": "Nachname", "type": "text", "required": True, "priority": 1},
+        {"name": "vorname", "label": "Vorname", "type": "text", "required": True, "priority": 2},
+    ],
+
+    # ==========================================================================
+    # PHASE 2: LAUFENDES ARBEITSVERHÄLTNIS
+    # ==========================================================================
+    "Nachtrag": [
+        {"name": "nachname", "label": "Nachname", "type": "text", "required": True, "priority": 1},
+        {"name": "vorname", "label": "Vorname", "type": "text", "required": True, "priority": 2},
+        {"name": "urspruenglicher_vertrag", "label": "Datum ursprünglicher Vertrag", "type": "date", "required": True, "priority": 3,
+         "hint": "Datum des Originalvertrags"},
+        {"name": "aenderung", "label": "Was wird geändert?", "type": "text", "required": True, "priority": 4,
+         "hint": "z.B. Gehalt, Arbeitszeit, Position"},
+    ],
+    "Gehaltserhöhung": [
+        {"name": "nachname", "label": "Nachname", "type": "text", "required": True, "priority": 1},
+        {"name": "vorname", "label": "Vorname", "type": "text", "required": True, "priority": 2},
+        {"name": "neues_gehalt", "label": "Neues Monatsgehalt (brutto)", "type": "number", "required": True, "priority": 3},
+        {"name": "gueltig_ab", "label": "Gültig ab", "type": "date", "required": True, "priority": 4},
+    ],
+    "Beförderung": [
+        {"name": "nachname", "label": "Nachname", "type": "text", "required": True, "priority": 1},
+        {"name": "vorname", "label": "Vorname", "type": "text", "required": True, "priority": 2},
+        {"name": "neue_position", "label": "Neue Position", "type": "text", "required": True, "priority": 3},
+        {"name": "gueltig_ab", "label": "Gültig ab", "type": "date", "required": True, "priority": 4},
+        {"name": "neues_gehalt", "label": "Neues Monatsgehalt", "type": "number", "required": False, "priority": 5},
+    ],
+    "Abmahnung": [
+        {"name": "nachname", "label": "Nachname", "type": "text", "required": True, "priority": 1},
+        {"name": "vorname", "label": "Vorname", "type": "text", "required": True, "priority": 2},
+        {"name": "vorfall_datum", "label": "Datum des Vorfalls", "type": "date", "required": True, "priority": 3},
+        {"name": "vorfall_beschreibung", "label": "Beschreibung des Vorfalls", "type": "text", "required": True, "priority": 4,
+         "hint": "Was ist passiert?"},
+    ],
+    "Elternzeit": [
+        {"name": "nachname", "label": "Nachname", "type": "text", "required": True, "priority": 1},
+        {"name": "vorname", "label": "Vorname", "type": "text", "required": True, "priority": 2},
+        {"name": "elternzeit_von", "label": "Elternzeit von", "type": "date", "required": True, "priority": 3},
+        {"name": "elternzeit_bis", "label": "Elternzeit bis", "type": "date", "required": True, "priority": 4},
+    ],
+    "Homeoffice": [
+        {"name": "nachname", "label": "Nachname", "type": "text", "required": True, "priority": 1},
+        {"name": "vorname", "label": "Vorname", "type": "text", "required": True, "priority": 2},
+        {"name": "homeoffice_tage", "label": "Homeoffice-Tage pro Woche", "type": "number", "required": False, "priority": 3,
+         "default": "2", "hint": "z.B. 2 oder 3 Tage"},
+    ],
+    "Firmenwagen": [
+        {"name": "nachname", "label": "Nachname", "type": "text", "required": True, "priority": 1},
+        {"name": "vorname", "label": "Vorname", "type": "text", "required": True, "priority": 2},
+        {"name": "fahrzeugtyp", "label": "Fahrzeugtyp", "type": "text", "required": False, "priority": 3,
+         "hint": "z.B. BMW 3er, VW Passat"},
+    ],
+    "Bonus": [
+        {"name": "nachname", "label": "Nachname", "type": "text", "required": True, "priority": 1},
+        {"name": "vorname", "label": "Vorname", "type": "text", "required": True, "priority": 2},
+        {"name": "bonus_betrag", "label": "Bonusbetrag", "type": "number", "required": True, "priority": 3},
+        {"name": "bonus_grund", "label": "Grund/Anlass", "type": "text", "required": False, "priority": 4},
+    ],
+    "Fortbildung": [
+        {"name": "nachname", "label": "Nachname", "type": "text", "required": True, "priority": 1},
+        {"name": "vorname", "label": "Vorname", "type": "text", "required": True, "priority": 2},
+        {"name": "fortbildung_thema", "label": "Fortbildungsthema", "type": "text", "required": True, "priority": 3,
+         "hint": "z.B. SAP Grundlagen, Projektmanagement"},
+        {"name": "fortbildung_kosten", "label": "Kosten", "type": "number", "required": False, "priority": 4},
+    ],
+    "Überstunden": [
+        {"name": "nachname", "label": "Nachname", "type": "text", "required": True, "priority": 1},
+        {"name": "vorname", "label": "Vorname", "type": "text", "required": True, "priority": 2},
+        {"name": "ueberstunden_anzahl", "label": "Anzahl Überstunden", "type": "number", "required": True, "priority": 3},
+    ],
+
+    # ==========================================================================
+    # PHASE 3: BEENDIGUNG
+    # ==========================================================================
     "Kündigung": [
         {"name": "nachname", "label": "Nachname", "type": "text", "required": True, "priority": 1},
         {"name": "vorname", "label": "Vorname", "type": "text", "required": True, "priority": 2},
         {"name": "kuendigungsdatum", "label": "Kündigungsdatum", "type": "date", "required": True, "priority": 3,
-         "hint": "Wann soll die Kündigung wirksam werden?"},
+         "hint": "Wann endet das Arbeitsverhältnis?"},
         {"name": "kuendigungsgrund", "label": "Kündigungsgrund", "type": "select", "required": False, "priority": 4,
          "options": ["Ordentlich", "Außerordentlich", "Betriebsbedingt", "Personenbedingt", "Verhaltensbedingt"]},
+    ],
+    "Aufhebungsvertrag": [
+        {"name": "nachname", "label": "Nachname", "type": "text", "required": True, "priority": 1},
+        {"name": "vorname", "label": "Vorname", "type": "text", "required": True, "priority": 2},
+        {"name": "beendigungsdatum", "label": "Beendigungsdatum", "type": "date", "required": True, "priority": 3},
+        {"name": "abfindung", "label": "Abfindungsbetrag", "type": "number", "required": False, "priority": 4,
+         "hint": "Abfindung in Euro (falls vereinbart)"},
     ],
     "Zeugnis": [
         {"name": "nachname", "label": "Nachname", "type": "text", "required": True, "priority": 1},
@@ -130,6 +229,18 @@ DEFAULT_FIELD_CONFIGS: Dict[str, List[Dict[str, Any]]] = {
         {"name": "zeugnisart", "label": "Zeugnisart", "type": "select", "required": True, "priority": 6,
          "options": ["Einfaches Zeugnis", "Qualifiziertes Zeugnis", "Zwischenzeugnis"]},
     ],
+    "Freistellung": [
+        {"name": "nachname", "label": "Nachname", "type": "text", "required": True, "priority": 1},
+        {"name": "vorname", "label": "Vorname", "type": "text", "required": True, "priority": 2},
+        {"name": "freistellung_von", "label": "Freistellung von", "type": "date", "required": True, "priority": 3},
+        {"name": "freistellung_bis", "label": "Freistellung bis", "type": "date", "required": True, "priority": 4},
+        {"name": "freistellung_art", "label": "Art der Freistellung", "type": "select", "required": False, "priority": 5,
+         "options": ["Bezahlt", "Unbezahlt", "Widerruflich", "Unwiderruflich"]},
+    ],
+
+    # ==========================================================================
+    # FALLBACK
+    # ==========================================================================
     "default": [
         {"name": "nachname", "label": "Nachname", "type": "text", "required": True, "priority": 1},
         {"name": "vorname", "label": "Vorname", "type": "text", "required": True, "priority": 2},

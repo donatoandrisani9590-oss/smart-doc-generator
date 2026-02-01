@@ -254,7 +254,7 @@ export const AuditLogPage = () => {
                     {showFilters && (
                         <div className="mt-4 pt-4 border-t grid grid-cols-2 md:grid-cols-4 gap-4">
                             <div>
-                                <label className="text-xs font-medium text-muted-foreground mb-1 block">
+                                <label className="text-xs font-medium text-foreground mb-1 block">
                                     Benutzer-ID
                                 </label>
                                 <Input
@@ -264,7 +264,7 @@ export const AuditLogPage = () => {
                                 />
                             </div>
                             <div>
-                                <label className="text-xs font-medium text-muted-foreground mb-1 block">
+                                <label className="text-xs font-medium text-foreground mb-1 block">
                                     Entitäts-Typ
                                 </label>
                                 <select
@@ -281,7 +281,7 @@ export const AuditLogPage = () => {
                                 </select>
                             </div>
                             <div>
-                                <label className="text-xs font-medium text-muted-foreground mb-1 block">
+                                <label className="text-xs font-medium text-foreground mb-1 block">
                                     Von Datum
                                 </label>
                                 <Input
@@ -291,7 +291,7 @@ export const AuditLogPage = () => {
                                 />
                             </div>
                             <div>
-                                <label className="text-xs font-medium text-muted-foreground mb-1 block">
+                                <label className="text-xs font-medium text-foreground mb-1 block">
                                     Bis Datum
                                 </label>
                                 <Input
@@ -488,7 +488,7 @@ export const AuditLogPage = () => {
                         <div className="p-6 space-y-4">
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="text-xs font-medium text-muted-foreground">
+                                    <label className="text-xs font-medium text-foreground">
                                         Zeitstempel
                                     </label>
                                     <p className="text-sm">
@@ -497,7 +497,7 @@ export const AuditLogPage = () => {
                                     </p>
                                 </div>
                                 <div>
-                                    <label className="text-xs font-medium text-muted-foreground">
+                                    <label className="text-xs font-medium text-foreground">
                                         Status
                                     </label>
                                     <p className="text-sm">
@@ -509,7 +509,7 @@ export const AuditLogPage = () => {
                                     </p>
                                 </div>
                                 <div>
-                                    <label className="text-xs font-medium text-muted-foreground">
+                                    <label className="text-xs font-medium text-foreground">
                                         Benutzer
                                     </label>
                                     <p className="text-sm">
@@ -522,7 +522,7 @@ export const AuditLogPage = () => {
                                     )}
                                 </div>
                                 <div>
-                                    <label className="text-xs font-medium text-muted-foreground">
+                                    <label className="text-xs font-medium text-foreground">
                                         Aktion
                                     </label>
                                     <p className="text-sm">
@@ -536,13 +536,13 @@ export const AuditLogPage = () => {
                                     </p>
                                 </div>
                                 <div>
-                                    <label className="text-xs font-medium text-muted-foreground">
+                                    <label className="text-xs font-medium text-foreground">
                                         Kategorie
                                     </label>
                                     <p className="text-sm capitalize">{selectedEntry.action_category}</p>
                                 </div>
                                 <div>
-                                    <label className="text-xs font-medium text-muted-foreground">
+                                    <label className="text-xs font-medium text-foreground">
                                         Land
                                     </label>
                                     <p className="text-sm">{selectedEntry.country_code || "-"}</p>
@@ -551,7 +551,7 @@ export const AuditLogPage = () => {
 
                             {selectedEntry.entity_name && (
                                 <div>
-                                    <label className="text-xs font-medium text-muted-foreground">
+                                    <label className="text-xs font-medium text-foreground">
                                         Entität
                                     </label>
                                     <p className="text-sm">
@@ -562,7 +562,7 @@ export const AuditLogPage = () => {
                             )}
 
                             <div>
-                                <label className="text-xs font-medium text-muted-foreground">
+                                <label className="text-xs font-medium text-foreground">
                                     Beschreibung
                                 </label>
                                 <p className="text-sm">{selectedEntry.description || "-"}</p>
@@ -570,7 +570,7 @@ export const AuditLogPage = () => {
 
                             {selectedEntry.old_value && (
                                 <div>
-                                    <label className="text-xs font-medium text-muted-foreground">
+                                    <label className="text-xs font-medium text-foreground">
                                         Vorheriger Wert
                                     </label>
                                     <pre className="text-xs bg-muted p-3 rounded-md overflow-auto max-h-40">
@@ -581,7 +581,7 @@ export const AuditLogPage = () => {
 
                             {selectedEntry.new_value && (
                                 <div>
-                                    <label className="text-xs font-medium text-muted-foreground">
+                                    <label className="text-xs font-medium text-foreground">
                                         Neuer Wert
                                     </label>
                                     <pre className="text-xs bg-muted p-3 rounded-md overflow-auto max-h-40">

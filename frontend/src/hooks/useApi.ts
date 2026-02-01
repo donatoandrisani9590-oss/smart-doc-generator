@@ -3,7 +3,8 @@
  * Centralized data fetching with caching, refetching, and optimistic updates.
  */
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { authFetch } from "@/lib/authFetch";
+import { authFetch, authApi } from "@/lib/authFetch";
+import { toast } from "sonner";
 
 const API_BASE = "/api/v1";
 
@@ -296,17 +297,23 @@ export const useDeleteDocumentType = () => {
 
     return useMutation({
         mutationFn: async (documentTypeId: number) => {
-            const res = await fetch(`${API_BASE}/document-types/${documentTypeId}`, {
-                method: "DELETE",
-            });
+            const res = await authApi.delete(`${API_BASE}/document-types/${documentTypeId}`);
             if (!res.ok) {
-                const error = await res.json().catch(() => ({ detail: "Delete failed" }));
-                throw new Error(error.detail || "Failed to delete document type");
+                const error = await res.json().catch(() => ({ detail: "Löschen fehlgeschlagen" }));
+                throw new Error(error.detail || "Dokumenttyp konnte nicht gelöscht werden");
             }
             return res.json();
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["document-types"] });
+            toast.success("Dokumenttyp gelöscht", {
+                description: "Der Dokumenttyp wurde erfolgreich deaktiviert.",
+            });
+        },
+        onError: (error: Error) => {
+            toast.error("Löschen fehlgeschlagen", {
+                description: error.message || "Der Dokumenttyp konnte nicht gelöscht werden.",
+            });
         },
     });
 };

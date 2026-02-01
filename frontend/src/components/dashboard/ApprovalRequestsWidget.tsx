@@ -16,9 +16,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   CheckSquare,
-  Clock,
   Check,
-  X,
   ChevronRight,
   FileText,
   AlertCircle,

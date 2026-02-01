@@ -10,14 +10,14 @@
  * - Use useFeatureEnabled(key) for simple checks
  */
 
-import React, {
+import {
   createContext,
   useContext,
   useState,
   useEffect,
   useCallback,
   useMemo,
-  ReactNode,
+  type ReactNode,
 } from "react";
 import { api } from "@/lib/api-client";
 import { toast } from "sonner";

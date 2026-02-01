@@ -53,8 +53,85 @@ import {
     ChevronUp,
     Info,
     Settings2,
+    Eye,
+    Star,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+// ══════════════════════════════════════════════════════════════════════════════
+// HELPER FUNCTIONS
+// ══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Entfernt HTML-Tags und kuerzt den Text auf maxLength Zeichen
+ */
+const stripHtmlAndTruncate = (html: string, maxLength: number = 200): string => {
+    // HTML-Tags entfernen
+    const text = html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+
+    if (text.length <= maxLength) {
+        return text;
+    }
+
+    // Am letzten Wort vor maxLength abschneiden
+    const truncated = text.substring(0, maxLength);
+    const lastSpace = truncated.lastIndexOf(' ');
+
+    return lastSpace > 0 ? truncated.substring(0, lastSpace) + '...' : truncated + '...';
+};
+
+// ══════════════════════════════════════════════════════════════════════════════
+// CLAUSE PREVIEW TOOLTIP
+// ══════════════════════════════════════════════════════════════════════════════
+
+interface ClausePreviewTooltipProps {
+    content?: string;
+    title: string;
+    children: React.ReactNode;
+}
+
+/**
+ * Tooltip mit Klausel-Vorschau (erste 200 Zeichen)
+ */
+const ClausePreviewTooltip = ({ content, title, children }: ClausePreviewTooltipProps) => {
+    if (!content || content.trim().length === 0) {
+        return <>{children}</>;
+    }
+
+    const previewText = stripHtmlAndTruncate(content, 200);
+    const hasMoreContent = content.replace(/<[^>]*>/g, '').length > 200;
+
+    return (
+        <TooltipProvider delayDuration={300}>
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    {children}
+                </TooltipTrigger>
+                <TooltipContent
+                    side="right"
+                    align="start"
+                    className="max-w-[400px] p-4 bg-popover text-popover-foreground shadow-lg rounded-lg border"
+                    sideOffset={8}
+                >
+                    <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                            <Eye className="w-4 h-4 text-primary" />
+                            <span>Vorschau: {title}</span>
+                        </div>
+                        <p className="text-sm text-muted-foreground leading-relaxed">
+                            {previewText}
+                        </p>
+                        {hasMoreContent && (
+                            <p className="text-xs text-primary font-medium cursor-pointer hover:underline">
+                                Mehr anzeigen...
+                            </p>
+                        )}
+                    </div>
+                </TooltipContent>
+            </Tooltip>
+        </TooltipProvider>
+    );
+};
 
 // ══════════════════════════════════════════════════════════════════════════════
 // TYPES
@@ -64,9 +141,11 @@ export interface DocumentClause {
     id: number;
     uniqueId: string;
     title: string;
+    content?: string; // Klausel-Inhalt fuer Tooltip-Vorschau
     is_mandatory: boolean;
     is_enabled: boolean;
     is_order_locked: boolean;
+    is_recommended?: boolean; // Empfohlene Klausel (faellt zurueck auf is_mandatory wenn nicht gesetzt)
     order: number;
     clause_type: "standard" | "optional" | "conditional" | "variant";
     // Variant support
@@ -159,19 +238,24 @@ const SortableClauseItem = ({
 
             {/* Clause Info */}
             <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                    {clause.clause_type === "variant" ? (
-                        <Layers className="w-4 h-4 text-purple-600 shrink-0" />
-                    ) : (
-                        <FileText className="w-4 h-4 text-muted-foreground shrink-0" />
-                    )}
-                    <span className={cn(
-                        "text-sm font-medium truncate",
-                        !clause.is_enabled && "line-through text-muted-foreground"
-                    )}>
-                        {clause.title}
-                    </span>
-                </div>
+                <ClausePreviewTooltip content={clause.content} title={clause.title}>
+                    <div className="flex items-center gap-2 cursor-help">
+                        {clause.clause_type === "variant" ? (
+                            <Layers className="w-4 h-4 text-purple-600 shrink-0" />
+                        ) : (
+                            <FileText className="w-4 h-4 text-muted-foreground shrink-0" />
+                        )}
+                        <span className={cn(
+                            "text-sm font-medium truncate",
+                            !clause.is_enabled && "line-through text-muted-foreground"
+                        )}>
+                            {clause.title}
+                        </span>
+                        {clause.content && (
+                            <Eye className="w-3.5 h-3.5 text-muted-foreground/50 shrink-0" />
+                        )}
+                    </div>
+                </ClausePreviewTooltip>
 
                 {/* Variant Selector */}
                 {hasVariants && clause.is_enabled && (
@@ -205,6 +289,22 @@ const SortableClauseItem = ({
 
             {/* Badges */}
             <div className="flex items-center gap-2 shrink-0">
+                {/* Empfohlen Badge - zeigt an wenn is_recommended true ist, oder faellt auf is_mandatory zurueck */}
+                {(clause.is_recommended ?? clause.is_mandatory) && (
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger>
+                                <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100 text-xs gap-1">
+                                    <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
+                                    Empfohlen
+                                </Badge>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p>Diese Klausel wird fuer diesen Vertragstyp empfohlen</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                )}
                 {clause.is_mandatory && (
                     <TooltipProvider>
                         <Tooltip>

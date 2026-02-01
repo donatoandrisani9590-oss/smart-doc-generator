@@ -38,6 +38,7 @@ export const StepClauses = () => {
         id: clause.id,
         uniqueId: clause.unique_id,
         title: clause.name,
+        content: clause.content, // Fuer Klausel-Vorschau im Tooltip
         is_mandatory: clause.is_required,
         is_enabled: clause.is_enabled,
         is_order_locked: false,

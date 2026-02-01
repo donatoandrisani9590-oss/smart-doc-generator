@@ -10,7 +10,7 @@
 
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { FileText, Briefcase, FileSignature, UserMinus, Wand2 } from "lucide-react";
+import { FileText, Briefcase, FileSignature, UserMinus, Wand2, Award, AlertTriangle, Home, GraduationCap, Car, FileCheck, Clock, Gift, ScrollText, Shield } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/lib/api-client";
 import { logError } from "@/lib/logger";
@@ -25,17 +25,64 @@ interface DocumentType {
 }
 
 // Vordefinierte Icons für bekannte Dokumenttypen
+// Erweitert für alle HR-Dokumenttypen (Phase 1-3)
 const getIconForType = (name: string) => {
     const lowerName = name.toLowerCase();
-    if (lowerName.includes("arbeitsvertrag") || lowerName.includes("employment")) {
+
+    // PHASE 1: Einstellung & Onboarding
+    if (lowerName.includes("arbeitsvertrag") || lowerName.includes("employment") || lowerName.includes("anstellung")) {
         return Briefcase;
     }
-    if (lowerName.includes("kündigung") || lowerName.includes("termination")) {
-        return UserMinus;
+    if (lowerName.includes("einstellungszusage") || lowerName.includes("zusage")) {
+        return FileCheck;
     }
-    if (lowerName.includes("änderung") || lowerName.includes("amendment")) {
+    if (lowerName.includes("absage") || lowerName.includes("ablehnung")) {
+        return FileText;
+    }
+    if (lowerName.includes("geheimhaltung") || lowerName.includes("verschwiegenheit") || lowerName.includes("nda")) {
+        return Shield;
+    }
+
+    // PHASE 2: Laufendes Arbeitsverhältnis
+    if (lowerName.includes("nachtrag") || lowerName.includes("änderung") || lowerName.includes("amendment")) {
         return FileSignature;
     }
+    if (lowerName.includes("gehaltserh") || lowerName.includes("beförderung") || lowerName.includes("promotion")) {
+        return Award;
+    }
+    if (lowerName.includes("abmahnung") || lowerName.includes("warning")) {
+        return AlertTriangle;
+    }
+    if (lowerName.includes("homeoffice") || lowerName.includes("remote") || lowerName.includes("telearbeit")) {
+        return Home;
+    }
+    if (lowerName.includes("fortbildung") || lowerName.includes("schulung") || lowerName.includes("weiterbildung")) {
+        return GraduationCap;
+    }
+    if (lowerName.includes("firmenwagen") || lowerName.includes("dienstwagen")) {
+        return Car;
+    }
+    if (lowerName.includes("bonus") || lowerName.includes("prämie")) {
+        return Gift;
+    }
+    if (lowerName.includes("überstunden") || lowerName.includes("arbeitszeit")) {
+        return Clock;
+    }
+    if (lowerName.includes("elternzeit") || lowerName.includes("mutterschutz")) {
+        return FileText;
+    }
+
+    // PHASE 3: Beendigung
+    if (lowerName.includes("kündigung") || lowerName.includes("termination") || lowerName.includes("aufhebung")) {
+        return UserMinus;
+    }
+    if (lowerName.includes("zeugnis") || lowerName.includes("certificate") || lowerName.includes("reference")) {
+        return ScrollText;
+    }
+    if (lowerName.includes("freistellung")) {
+        return FileCheck;
+    }
+
     return FileText;
 };
 

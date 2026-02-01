@@ -4,8 +4,11 @@
  * Features:
  * - Single input that understands natural language
  * - Extracts intents: create document, fill fields, add clauses
- * - Direct integration with document generator
- * - Privacy-first: Uses Mistral (EU) or Ollama (local)
+ * - Privacy-first: Lokale Regex-Engine + Mistral EU-Fallback
+ *
+ * Datenschutz-Architektur:
+ * 1. Primär: Lokale Regex/Rules (80% der Anfragen, instant)
+ * 2. Fallback: Mistral AI (EU-hosted, DSGVO-freundlich)
  *
  * Examples:
  * - "Erstelle einen Arbeitsvertrag für Max Müller"
@@ -14,36 +17,35 @@
  */
 
 import { useState, useCallback, useRef, useEffect } from "react";
-import { Sparkles, Send, Loader2, ArrowRight, Zap, FileText } from "lucide-react";
+import {
+  Sparkles,
+  Send,
+  Loader2,
+  ArrowRight,
+  Zap,
+  FileText,
+  Shield,
+  Globe,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { api } from "@/lib/api-client";
+import {
+  processSmartMessage,
+  configureMistral,
+  type MistralResponse,
+} from "@/lib/mistral-service";
 
+// =============================================================================
 // Types
-interface DocumentIntent {
-  intent_type: string;
-  document_type: string | null;
-  extracted_data: Record<string, unknown>;
-  confidence: number;
-}
-
-interface SuggestedAction {
-  action: string;
-  document_type?: string;
-  initial_data?: Record<string, unknown>;
-  field?: string;
-  value?: unknown;
-  query?: string;
-}
-
-interface SmartChatResponse {
-  message: string;
-  intent: DocumentIntent | null;
-  suggested_actions: SuggestedAction[];
-  provider: string;
-}
+// =============================================================================
 
 interface SmartChatInputProps {
   /** Callback when document creation is triggered */
@@ -63,7 +65,13 @@ interface SmartChatInputProps {
   showSuggestions?: boolean;
   /** Custom class name */
   className?: string;
+  /** Mistral API Key (optional - enables AI fallback) */
+  mistralApiKey?: string;
 }
+
+// =============================================================================
+// Constants
+// =============================================================================
 
 // Quick action suggestions
 const QUICK_ACTIONS = [
@@ -84,22 +92,51 @@ const QUICK_ACTIONS = [
   },
 ];
 
+// Field labels for display
+const FIELD_LABELS: Record<string, string> = {
+  full_name: "Name",
+  first_name: "Vorname",
+  last_name: "Nachname",
+  salary: "Gehalt",
+  position: "Position",
+  department: "Abteilung",
+  start_date: "Startdatum",
+  working_hours: "Arbeitszeit",
+  vacation_days: "Urlaubstage",
+  probation_months: "Probezeit",
+  email: "E-Mail",
+  phone: "Telefon",
+  street: "Straße",
+  postal_code: "PLZ",
+  city: "Ort",
+};
+
+// =============================================================================
+// Component
+// =============================================================================
+
 export function SmartChatInput({
   onCreateDocument,
   onUpdateField,
   onSearchClause,
   currentContext,
-  placeholder = "Beschreibe, was du erstellen möchtest...",
+  placeholder = "z.B. 'Erstelle einen Arbeitsvertrag für Max Müller, 5000€ Gehalt'",
   showSuggestions = true,
   className,
+  mistralApiKey,
 }: SmartChatInputProps) {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [lastResponse, setLastResponse] = useState<SmartChatResponse | null>(
-    null
-  );
+  const [lastResponse, setLastResponse] = useState<MistralResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Configure Mistral if API key provided
+  useEffect(() => {
+    if (mistralApiKey) {
+      configureMistral(mistralApiKey, "mistral-small-latest");
+    }
+  }, [mistralApiKey]);
 
   // Focus input on mount
   useEffect(() => {
@@ -108,15 +145,12 @@ export function SmartChatInput({
 
   // Process the smart chat response
   const processActions = useCallback(
-    (response: SmartChatResponse) => {
-      for (const action of response.suggested_actions) {
+    (response: MistralResponse) => {
+      for (const action of response.suggestedActions) {
         switch (action.action) {
           case "create_draft":
-            if (action.document_type && onCreateDocument) {
-              onCreateDocument(
-                action.document_type,
-                action.initial_data || {}
-              );
+            if (action.documentType && onCreateDocument) {
+              onCreateDocument(action.documentType, action.initialData || {});
             }
             break;
           case "update_field":
@@ -135,7 +169,7 @@ export function SmartChatInput({
     [onCreateDocument, onUpdateField, onSearchClause]
   );
 
-  // Send message to smart chat endpoint
+  // Handle submit
   const handleSubmit = useCallback(async () => {
     if (!input.trim() || isLoading) return;
 
@@ -143,27 +177,24 @@ export function SmartChatInput({
     setError(null);
 
     try {
-      const response = await api.post<SmartChatResponse>("/api/v1/chat/smart", {
-        message: input.trim(),
-        current_context: currentContext,
-        country_code: "DE",
-      });
+      // Nutze lokale Engine + Mistral Fallback
+      const response = await processSmartMessage(input.trim(), currentContext);
 
-      setLastResponse(response.data);
+      setLastResponse(response);
 
       // Auto-process high-confidence actions
       if (
-        response.data.intent &&
-        response.data.intent.confidence >= 0.7 &&
-        response.data.suggested_actions.length > 0
+        response.intent.confidence >= 0.7 &&
+        response.intent.intentType !== "unknown" &&
+        response.suggestedActions.length > 0
       ) {
-        processActions(response.data);
+        processActions(response);
       }
 
       setInput("");
     } catch (err) {
       console.error("Smart chat error:", err);
-      setError("Verbindung zum Assistenten fehlgeschlagen");
+      setError("Verarbeitung fehlgeschlagen. Bitte versuchen Sie es erneut.");
     } finally {
       setIsLoading(false);
     }
@@ -193,6 +224,23 @@ export function SmartChatInput({
       setLastResponse(null);
     }
   }, [lastResponse, processActions]);
+
+  // Format field value for display
+  const formatFieldValue = (key: string, value: unknown): string => {
+    if (key === "salary" && typeof value === "number") {
+      return `${value.toLocaleString("de-DE")} €`;
+    }
+    if (key === "working_hours" && typeof value === "number") {
+      return `${value} Std/Woche`;
+    }
+    if (key === "vacation_days" && typeof value === "number") {
+      return `${value} Tage`;
+    }
+    if (key === "probation_months" && typeof value === "number") {
+      return `${value} Monate`;
+    }
+    return String(value);
+  };
 
   return (
     <div className={cn("space-y-3", className)}>
@@ -235,6 +283,7 @@ export function SmartChatInput({
               size="sm"
               onClick={() => handleQuickAction(action.prompt)}
               className="gap-1.5 text-xs"
+              data-suggestion="true"
             >
               <action.icon className="h-3.5 w-3.5" />
               {action.label}
@@ -246,9 +295,10 @@ export function SmartChatInput({
       {/* Response Display */}
       {lastResponse && (
         <div className="p-4 bg-muted/50 rounded-lg border space-y-3">
-          {/* Intent Badge */}
-          {lastResponse.intent && (
+          {/* Header: Intent + Provider Badge */}
+          <div className="flex items-center justify-between gap-2 flex-wrap">
             <div className="flex items-center gap-2">
+              {/* Intent Badge */}
               <Badge
                 variant={
                   lastResponse.intent.confidence >= 0.7 ? "default" : "secondary"
@@ -256,49 +306,96 @@ export function SmartChatInput({
                 className="gap-1"
               >
                 <Zap className="h-3 w-3" />
-                {lastResponse.intent.intent_type === "create_document"
+                {lastResponse.intent.intentType === "create_document"
                   ? "Dokument erstellen"
-                  : lastResponse.intent.intent_type === "fill_field"
+                  : lastResponse.intent.intentType === "fill_field"
                   ? "Felder ausfüllen"
-                  : lastResponse.intent.intent_type === "add_clause"
-                  ? "Klausel hinzufügen"
+                  : lastResponse.intent.intentType === "search"
+                  ? "Suchen"
                   : "Verarbeitet"}
               </Badge>
-              {lastResponse.intent.document_type && (
-                <Badge variant="outline">{lastResponse.intent.document_type}</Badge>
+
+              {/* Document Type Badge */}
+              {lastResponse.intent.documentType && (
+                <Badge variant="outline">
+                  {lastResponse.intent.documentType}
+                </Badge>
               )}
-              <span className="text-xs text-muted-foreground ml-auto">
+            </div>
+
+            {/* Provider + Confidence */}
+            <div className="flex items-center gap-2">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                      {lastResponse.provider === "local" ? (
+                        <>
+                          <Shield className="h-3 w-3 text-green-600" />
+                          <span className="text-green-600">Lokal</span>
+                        </>
+                      ) : (
+                        <>
+                          <Globe className="h-3 w-3 text-blue-600" />
+                          <span className="text-blue-600">EU</span>
+                        </>
+                      )}
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    {lastResponse.provider === "local" ? (
+                      <p>
+                        🔒 <strong>100% lokal verarbeitet</strong>
+                        <br />
+                        Ihre Daten haben den Browser nie verlassen.
+                      </p>
+                    ) : (
+                      <p>
+                        🇪🇺 <strong>EU-hosted (Mistral AI, Frankreich)</strong>
+                        <br />
+                        DSGVO-konforme Verarbeitung in der EU.
+                      </p>
+                    )}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+
+              <span className="text-xs text-muted-foreground">
                 {Math.round(lastResponse.intent.confidence * 100)}% sicher
               </span>
             </div>
-          )}
+          </div>
 
           {/* Message */}
           <p className="text-sm">{lastResponse.message}</p>
 
           {/* Extracted Data Preview */}
-          {lastResponse.intent &&
-            Object.keys(lastResponse.intent.extracted_data).length > 0 && (
-              <div className="text-xs space-y-1">
-                <p className="font-medium text-muted-foreground">
-                  Erkannte Daten:
-                </p>
-                <div className="flex flex-wrap gap-1">
-                  {Object.entries(lastResponse.intent.extracted_data).map(
-                    ([key, value]) => (
-                      <Badge key={key} variant="outline" className="text-xs">
-                        {key}: {String(value)}
-                      </Badge>
-                    )
-                  )}
-                </div>
+          {Object.keys(lastResponse.intent.extractedData).length > 0 && (
+            <div className="text-xs space-y-1">
+              <p className="font-medium text-muted-foreground">
+                Erkannte Daten:
+              </p>
+              <div className="flex flex-wrap gap-1">
+                {Object.entries(lastResponse.intent.extractedData).map(
+                  ([key, value]) => (
+                    <Badge key={key} variant="outline" className="text-xs">
+                      {FIELD_LABELS[key] || key}:{" "}
+                      {formatFieldValue(key, value)}
+                    </Badge>
+                  )
+                )}
               </div>
-            )}
+            </div>
+          )}
 
           {/* Actions */}
-          {lastResponse.suggested_actions.length > 0 && (
+          {lastResponse.suggestedActions.length > 0 && (
             <div className="flex gap-2 pt-2">
-              <Button size="sm" onClick={handleExecuteActions} className="gap-1">
+              <Button
+                size="sm"
+                onClick={handleExecuteActions}
+                className="gap-1"
+              >
                 <ArrowRight className="h-4 w-4" />
                 Ausführen
               </Button>
@@ -312,14 +409,12 @@ export function SmartChatInput({
             </div>
           )}
 
-          {/* Provider Info */}
-          <p className="text-xs text-muted-foreground">
-            {lastResponse.provider === "ollama"
-              ? "🔒 Lokal verarbeitet (Ollama)"
-              : lastResponse.provider === "mistral"
-              ? "🇪🇺 EU-hosted (Mistral AI)"
-              : `Verarbeitet mit ${lastResponse.provider}`}
-          </p>
+          {/* Processing Time (Debug) */}
+          {lastResponse.processingTime && (
+            <p className="text-[10px] text-muted-foreground/50">
+              Verarbeitet in {Math.round(lastResponse.processingTime)}ms
+            </p>
+          )}
         </div>
       )}
 

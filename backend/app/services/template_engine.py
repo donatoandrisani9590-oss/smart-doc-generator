@@ -45,11 +45,42 @@ DEFAULT_TEMPLATE_MAPPING: dict[str, str] = {
 }
 
 # Kategorien nach Dokumenttyp-Name (Heuristik)
+# Erweitert für alle HR-Dokumenttypen (Phase 1-3)
 CATEGORY_KEYWORDS: dict[str, list[str]] = {
-    "contract": ["vertrag", "arbeitsvertrag", "contract", "contratto", "anstellung"],
-    "letter": ["brief", "schreiben", "letter", "lettera", "mahnung", "mitteilung", "kündigung", "licenziamento"],
-    "certificate": ["bescheinigung", "zeugnis", "certificate", "certificato", "attestato"],
-    "amendment": ["änderung", "ergänzung", "nachtrag", "amendment", "modifica", "integrazione"],
+    # Verträge (PHASE 1 - Einstellung)
+    "contract": [
+        "vertrag", "arbeitsvertrag", "contract", "contratto", "anstellung",
+        "minijob", "teilzeit", "vollzeit", "befristet", "unbefristet",
+        "einstellungszusage", "zusage", "jobangebot",
+        # Vereinbarungen (PHASE 2)
+        "vereinbarung", "homeoffice", "firmenwagen", "bonus", "überstunden", "fortbildung",
+        "aufhebungsvertrag", "aufhebung"
+    ],
+    # Schreiben/Briefe (PHASE 2 & 3)
+    "letter": [
+        "brief", "schreiben", "letter", "lettera", "mitteilung",
+        # Kündigung
+        "kündigung", "kuendigung", "licenziamento", "fristlos",
+        # Abmahnung
+        "abmahnung", "verwarnung", "warning", "ammonizione",
+        # Absage
+        "absage", "absageschreiben", "ablehnung",
+        # Gehalts-/Beförderungsschreiben
+        "gehaltserhöhung", "beförderung", "versetzung",
+        # Bestätigungen
+        "bestätigung", "elternzeit", "freistellung", "kündigungsbestätigung"
+    ],
+    # Zeugnisse & Bescheinigungen (PHASE 3)
+    "certificate": [
+        "bescheinigung", "zeugnis", "certificate", "certificato", "attestato",
+        "arbeitszeugnis", "zwischenzeugnis", "qualifiziert", "einfach",
+        "arbeitsbescheinigung", "probezeit"
+    ],
+    # Änderungen/Nachträge
+    "amendment": [
+        "änderung", "ergänzung", "nachtrag", "amendment", "modifica", "integrazione",
+        "arbeitszeitänderung", "vertragsänderung", "zusatzvereinbarung"
+    ],
 }
 
 

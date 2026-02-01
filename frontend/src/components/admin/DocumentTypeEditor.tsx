@@ -8,7 +8,12 @@
  */
 
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence, Reorder } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+    SortableList,
+    SortableItemWrapper,
+    DragHandle,
+} from "@/components/ui/drag-drop";
 import {
     Dialog,
     DialogContent,
@@ -743,57 +748,73 @@ export const DocumentTypeEditor = ({
                                                         </p>
                                                     </div>
                                                 ) : (
-                                                    <Reorder.Group
-                                                        axis="y"
-                                                        values={selectedClauses}
+                                                    <SortableList
+                                                        items={selectedClauses.map((sc) => ({
+                                                            ...sc,
+                                                            id: sc.clause_id,
+                                                        }))}
                                                         onReorder={(newOrder) => {
                                                             setSelectedClauses(
                                                                 newOrder.map((sc, idx) => ({
                                                                     ...sc,
+                                                                    clause_id: sc.id as number,
                                                                     display_order: idx + 1,
                                                                 }))
                                                             );
                                                         }}
                                                         className="divide-y"
-                                                    >
-                                                        {selectedClauses.map((sc) => (
-                                                            <Reorder.Item
-                                                                key={sc.clause_id}
-                                                                value={sc}
-                                                                className="flex items-center gap-2 p-3 bg-white hover:bg-gray-50"
+                                                        renderItem={(item, index) => (
+                                                            <SortableItemWrapper
+                                                                id={item.id}
+                                                                className="bg-white hover:bg-gray-50"
                                                             >
-                                                                <GripVertical className="w-4 h-4 text-gray-400 cursor-grab" />
+                                                                <div className="flex items-center gap-2 p-3">
+                                                                    <DragHandle className="w-6 h-6" />
+                                                                    <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center font-medium">
+                                                                        {index + 1}
+                                                                    </span>
+                                                                    <div className="flex-1 min-w-0">
+                                                                        <p className="text-sm font-medium truncate">
+                                                                            {item.clause?.title || `Klausel ${item.clause_id}`}
+                                                                        </p>
+                                                                    </div>
+                                                                    <div className="flex items-center gap-2">
+                                                                        <button
+                                                                            onClick={() => toggleMandatory(item.clause_id)}
+                                                                            className={cn(
+                                                                                "px-2 py-1 text-xs rounded transition-colors",
+                                                                                item.is_mandatory
+                                                                                    ? "bg-secondary/20 text-secondary"
+                                                                                    : "bg-gray-100 text-gray-500"
+                                                                            )}
+                                                                        >
+                                                                            {item.is_mandatory ? "Pflicht" : "Optional"}
+                                                                        </button>
+                                                                        <Button
+                                                                            size="sm"
+                                                                            variant="ghost"
+                                                                            onClick={() => removeClause(item.clause_id)}
+                                                                        >
+                                                                            <X className="w-4 h-4 text-red-500" />
+                                                                        </Button>
+                                                                    </div>
+                                                                </div>
+                                                            </SortableItemWrapper>
+                                                        )}
+                                                        renderDragOverlay={(item) => (
+                                                            <div className="flex items-center gap-2 p-3 bg-white border rounded-lg shadow-lg">
+                                                                <GripVertical className="w-4 h-4 text-gray-400" />
                                                                 <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center font-medium">
-                                                                    {sc.display_order}
+                                                                    {selectedClauses.findIndex(sc => sc.clause_id === item.id) + 1}
                                                                 </span>
                                                                 <div className="flex-1 min-w-0">
                                                                     <p className="text-sm font-medium truncate">
-                                                                        {sc.clause?.title || `Klausel ${sc.clause_id}`}
+                                                                        {item.clause?.title || `Klausel ${item.clause_id}`}
                                                                     </p>
                                                                 </div>
-                                                                <div className="flex items-center gap-2">
-                                                                    <button
-                                                                        onClick={() => toggleMandatory(sc.clause_id)}
-                                                                        className={cn(
-                                                                            "px-2 py-1 text-xs rounded",
-                                                                            sc.is_mandatory
-                                                                                ? "bg-secondary/20 text-secondary"
-                                                                                : "bg-gray-100 text-gray-500"
-                                                                        )}
-                                                                    >
-                                                                        {sc.is_mandatory ? "Pflicht" : "Optional"}
-                                                                    </button>
-                                                                    <Button
-                                                                        size="sm"
-                                                                        variant="ghost"
-                                                                        onClick={() => removeClause(sc.clause_id)}
-                                                                    >
-                                                                        <X className="w-4 h-4 text-red-500" />
-                                                                    </Button>
-                                                                </div>
-                                                            </Reorder.Item>
-                                                        ))}
-                                                    </Reorder.Group>
+                                                            </div>
+                                                        )}
+                                                    />
                                                 )}
                                             </CardContent>
                                         </Card>

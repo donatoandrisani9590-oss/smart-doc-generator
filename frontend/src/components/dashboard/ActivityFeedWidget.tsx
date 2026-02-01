@@ -22,14 +22,11 @@ import {
   Edit3,
   CheckCircle,
   XCircle,
-  Clock,
-  User,
   ChevronRight,
-  RefreshCw,
+  Clock,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { api } from "@/lib/api-client";
@@ -134,20 +131,18 @@ export function ActivityFeedWidget({
 
   const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   // Fetch activities
   const fetchActivities = useCallback(async () => {
     setIsLoading(true);
-    setError(null);
 
     try {
       const response = await api.get<ActivityResponse>(
         `/api/v1/audit?limit=${limit}&action_type=document`
       );
       setActivities(response.data.activities || []);
-    } catch (err) {
-      console.error("Failed to load activities:", err);
+    } catch {
+      console.error("Failed to load activities");
       // Fallback to mock data if endpoint doesn't exist
       setActivities([]);
     } finally {

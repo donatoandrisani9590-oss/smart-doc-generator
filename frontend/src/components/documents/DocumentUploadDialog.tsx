@@ -155,7 +155,7 @@ export function DocumentUploadDialog({
   // Dropzone with file size limit (25MB)
   const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25MB in bytes
 
-  const { getRootProps, getInputProps, isDragActive, fileRejections } = useDropzone({
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop: (acceptedFiles) => {
       if (acceptedFiles.length > 0) {
         handleUpload(acceptedFiles[0]);

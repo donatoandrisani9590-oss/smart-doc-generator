@@ -149,7 +149,7 @@ export const Dashboard = () => {
                                 }
                                 navigate(`/generate?${params.toString()}`);
                             }}
-                            className="[&_input]:bg-white [&_input]:text-gray-900 [&_input]:placeholder:text-gray-500"
+                            className="[&_input]:bg-white [&_input]:text-gray-900 [&_input]:placeholder:text-gray-500 [&_button[data-suggestion]]:bg-white/90 [&_button[data-suggestion]]:text-indigo-700 [&_button[data-suggestion]]:border-white/50 [&_button[data-suggestion]]:hover:bg-white [&_button[data-suggestion]]:hover:text-indigo-800"
                         />
                     </div>
                 </div>

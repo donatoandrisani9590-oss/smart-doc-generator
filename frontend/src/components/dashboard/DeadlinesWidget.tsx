@@ -18,8 +18,6 @@ import {
   Calendar,
   ChevronRight,
   User,
-  FileText,
-  Bell,
   Check,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,7 +25,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/lib/api-client";
-import { format, formatDistanceToNow, isToday, isTomorrow, isThisWeek } from "date-fns";
+import { format, isToday, isTomorrow, isThisWeek } from "date-fns";
 import { de } from "date-fns/locale";
 import { useFeatureEnabled } from "@/hooks/useFeatureSettings";
 

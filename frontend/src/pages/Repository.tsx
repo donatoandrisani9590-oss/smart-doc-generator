@@ -380,7 +380,7 @@ export const RepositoryPage = () => {
                     {showFilters && (
                         <div className="mt-4 pt-4 border-t grid grid-cols-1 md:grid-cols-4 gap-4">
                             <div>
-                                <label className="text-sm font-medium text-muted-foreground mb-1 block">
+                                <label className="text-sm font-medium text-foreground mb-1 block">
                                     Dokumenttyp
                                 </label>
                                 <select
@@ -402,7 +402,7 @@ export const RepositoryPage = () => {
                                 </select>
                             </div>
                             <div>
-                                <label className="text-sm font-medium text-muted-foreground mb-1 block">
+                                <label className="text-sm font-medium text-foreground mb-1 block">
                                     Von Datum
                                 </label>
                                 <Input
@@ -414,7 +414,7 @@ export const RepositoryPage = () => {
                                 />
                             </div>
                             <div>
-                                <label className="text-sm font-medium text-muted-foreground mb-1 block">
+                                <label className="text-sm font-medium text-foreground mb-1 block">
                                     Bis Datum
                                 </label>
                                 <Input

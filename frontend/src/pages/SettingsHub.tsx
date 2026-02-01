@@ -17,6 +17,7 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 import {
     Building2,
     Palette,
@@ -33,7 +34,9 @@ import {
     Layout,
     Eye,
     ToggleRight,
+    Search,
 } from "lucide-react";
+import { SettingsCommandPalette } from "@/components/settings/SettingsCommandPalette";
 
 // Lazy load sub-pages (mit Named Export Handling für Module ohne Default-Export)
 const CompanySettingsPage = lazy(() => import("./admin/CompanySettingsPage"));
@@ -121,6 +124,7 @@ export default function SettingsHub() {
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "general");
     const [advancedSection, setAdvancedSection] = useState(searchParams.get("section") || "users");
+    const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
 
     // Sync URL with active tab
     useEffect(() => {
@@ -179,11 +183,33 @@ export default function SettingsHub() {
 
     return (
         <div className="container mx-auto py-6 max-w-7xl">
+            {/* Command Palette */}
+            <SettingsCommandPalette
+                open={commandPaletteOpen}
+                onOpenChange={setCommandPaletteOpen}
+            />
+
             <div className="mb-6">
-                <h1 className="text-2xl font-bold">Einstellungen</h1>
-                <p className="text-muted-foreground">
-                    Verwalten Sie Firmendaten, Design, Vorlagen und Textbausteine.
-                </p>
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h1 className="text-2xl font-bold">Einstellungen</h1>
+                        <p className="text-muted-foreground">
+                            Verwalten Sie Firmendaten, Design, Vorlagen und Textbausteine.
+                        </p>
+                    </div>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCommandPaletteOpen(true)}
+                        className="gap-2"
+                    >
+                        <Search className="h-4 w-4" />
+                        <span className="hidden sm:inline">Suchen</span>
+                        <kbd className="pointer-events-none hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground ml-2">
+                            {navigator.platform.includes("Mac") ? "Cmd" : "Ctrl"}+K
+                        </kbd>
+                    </Button>
+                </div>
             </div>
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">

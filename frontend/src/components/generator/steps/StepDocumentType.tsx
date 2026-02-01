@@ -11,15 +11,17 @@
  */
 
 import { useState, useMemo, useEffect } from "react";
-import { FileText, ArrowRight, Search, Clock, Star, X } from "lucide-react";
+import { FileText, ArrowRight, Search, Clock, Star, X, Sparkles } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { useWizardContext } from "../WizardContext";
+import { SmartModeDialog } from "../SmartModeDialog";
 
 interface DocumentType {
     id: number;
@@ -40,6 +42,7 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
     const { state, actions } = useWizardContext();
     const [searchQuery, setSearchQuery] = useState("");
     const [recentTypeIds, setRecentTypeIds] = useState<number[]>([]);
+    const [isSmartModeOpen, setIsSmartModeOpen] = useState(false);
 
     // Lade Zuletzt-verwendet beim Mount
     useEffect(() => {
@@ -262,23 +265,98 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
                 </CardContent>
             </Card>
 
-            {/* Weiter Button - Aktiviert Split-Screen Editor */}
-            <div className="flex flex-col items-end gap-2">
+            {/* Action Buttons - Wizard oder Smart Mode */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                {/* Klassischer Wizard Button */}
                 <Button
                     size="lg"
+                    variant="outline"
                     onClick={() => actions.enterSplitScreenMode()}
                     disabled={!canProceed}
-                    className="gap-2"
+                    className="gap-2 w-full sm:w-auto"
                 >
-                    Dokument erstellen
+                    <FileText className="w-4 h-4" />
+                    Manuell erstellen
                     <ArrowRight className="w-4 h-4" />
                 </Button>
-                {!canProceed && (
-                    <p className="text-xs text-muted-foreground">
-                        Bitte wählen Sie zuerst einen Dokumenttyp aus.
-                    </p>
-                )}
+
+                {/* ODER Trenner */}
+                <div className="flex items-center gap-3 text-muted-foreground">
+                    <div className="h-px w-8 bg-border hidden sm:block" />
+                    <span className="text-sm font-medium">ODER</span>
+                    <div className="h-px w-8 bg-border hidden sm:block" />
+                </div>
+
+                {/* Smart Mode Button - Prominent mit Gradient */}
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button
+                                size="lg"
+                                onClick={() => setIsSmartModeOpen(true)}
+                                disabled={!canProceed}
+                                className="gap-2 w-full sm:w-auto bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+                            >
+                                <Sparkles className="w-5 h-5" />
+                                Mit KI erstellen
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom" className="bg-slate-900 text-white">
+                            <p>Beschreiben Sie einfach, was Sie brauchen</p>
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
             </div>
+
+            {/* Hinweis wenn kein Dokumenttyp ausgewaehlt */}
+            {!canProceed && (
+                <p className="text-center text-sm text-muted-foreground">
+                    Bitte waehlen Sie zuerst einen Dokumenttyp aus.
+                </p>
+            )}
+
+            {/* Smart Mode Dialog */}
+            {selectedType && (
+                <SmartModeDialog
+                    open={isSmartModeOpen}
+                    onOpenChange={setIsSmartModeOpen}
+                    documentTypeId={selectedType.id}
+                    documentTypeName={selectedType.name}
+                    onComplete={(smartModeData, title) => {
+                        // Setze den Titel
+                        actions.setDocumentTitle(title);
+
+                        // Bekannte FormData-Felder
+                        const knownFields = [
+                            'vorname', 'nachname', 'strasse', 'plz', 'ort', 'geburtsdatum',
+                            'position', 'gehalt', 'eintrittsdatum', 'wochenstunden', 'probezeit',
+                            'urlaubstage', 'firmenwagen', 'homeoffice', 'signatory_name'
+                        ];
+
+                        // Trenne bekannte und dynamische Felder
+                        const formDataFields: Record<string, unknown> = {};
+
+                        for (const [key, value] of Object.entries(smartModeData)) {
+                            if (knownFields.includes(key)) {
+                                formDataFields[key] = value;
+                            } else {
+                                // Dynamische Felder einzeln setzen
+                                if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+                                    actions.updateDynamicField(key, value);
+                                }
+                            }
+                        }
+
+                        // Setze bekannte FormData-Felder
+                        if (Object.keys(formDataFields).length > 0) {
+                            actions.setFormData(formDataFields as Partial<import('../WizardContext').FormData>);
+                        }
+
+                        // Wechsle zum Editor
+                        actions.enterSplitScreenMode();
+                    }}
+                />
+            )}
 
             {/* Tipp */}
             <div className="text-center pt-4 border-t">

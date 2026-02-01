@@ -98,6 +98,15 @@ export interface AddCommentParams {
     textSelection: CommentTextSelection | null;
 }
 
+/** Auto-Save status types */
+export type AutoSaveStatus =
+    | 'idle'           // No changes, nothing to save
+    | 'pending'        // Changes detected, waiting for debounce
+    | 'saving'         // Currently saving
+    | 'saved'          // Just saved successfully
+    | 'error'          // Save failed
+    | 'offline';       // Saved to localStorage (offline mode)
+
 export interface WizardState {
     // Navigation
     currentStep: number;
@@ -141,6 +150,13 @@ export interface WizardState {
 
     // Validierung
     validationErrors: Array<{ field: string; message: string }>;
+
+    // Auto-Save State
+    autoSaveStatus: AutoSaveStatus;
+    lastSaved: Date | null;
+    lastSavedText: string;
+    hasRecoverableDraft: boolean;
+    autoSaveError: Error | null;
 }
 
 export interface WizardActions {
@@ -196,6 +212,12 @@ export interface WizardActions {
     resolveComment: (commentId: string) => void;
     reopenComment: (commentId: string) => void;
     addReply: (commentId: string, content: string) => void;
+
+    // Auto-Save Actions
+    forceSave: () => Promise<void>;
+    recoverDraft: () => void;
+    discardDraft: () => void;
+    clearAutoSaveError: () => void;
 }
 
 export interface WizardContextValue {
@@ -260,6 +282,13 @@ export const initialWizardState: WizardState = {
     hasUnsavedChanges: false,
 
     validationErrors: [],
+
+    // Auto-Save State
+    autoSaveStatus: "idle",
+    lastSaved: null,
+    lastSavedText: "Noch nicht gespeichert",
+    hasRecoverableDraft: false,
+    autoSaveError: null,
 };
 
 // ══════════════════════════════════════════════════════════════════════════════

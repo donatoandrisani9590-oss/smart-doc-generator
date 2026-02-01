@@ -101,11 +101,35 @@ import { CSS } from "@dnd-kit/utilities";
 // TYPES & INTERFACES
 // ============================================================================
 
+/** Condition kind - determines what the condition checks */
+export type ConditionKind = "field" | "clause_active" | "variant_selected";
+
+/** Reference to a clause for conditions */
+export interface ClauseReference {
+    id: number;
+    title: string;
+}
+
+/** Reference to a variant for conditions */
+export interface VariantReference {
+    id: number;
+    title: string;
+    clauseId: number;
+    clauseTitle?: string;
+}
+
 /** Single condition comparing a field with a value */
 export interface SimpleCondition {
     type: "simple";
     id: string;
+    /** Kind of condition: field comparison, clause activation, or variant selection */
+    conditionKind?: ConditionKind;
+    /** Field name (for field conditions) */
     field: string;
+    /** Clause ID (for clause_active conditions) */
+    clauseId?: number;
+    /** Variant ID (for variant_selected conditions) */
+    variantId?: number;
     operator: string;
     value: string | number | boolean;
 }
@@ -560,14 +584,46 @@ const cloneConditionWithNewIds = (condition: SimpleCondition | ConditionGroup): 
 // CONDITION TO NATURAL LANGUAGE
 // ============================================================================
 
+interface NaturalLanguageOptions {
+    fields: FieldDefinition[];
+    clauses?: ClauseReference[];
+    variants?: VariantReference[];
+}
+
 const conditionToNaturalLanguage = (
     condition: ClauseCondition,
-    fields: FieldDefinition[],
+    options: NaturalLanguageOptions | FieldDefinition[],
     depth: number = 0
 ): string => {
+    // Handle backwards compatibility - if options is an array, it's the old fields array
+    const { fields, clauses = [], variants = [] } = Array.isArray(options)
+        ? { fields: options, clauses: [], variants: [] }
+        : options;
+
     if (!condition) return "";
 
     if (condition.type === "simple") {
+        const conditionKind = condition.conditionKind || "field";
+
+        // Handle clause_active conditions
+        if (conditionKind === "clause_active" && condition.clauseId) {
+            const clause = clauses.find(c => c.id === condition.clauseId);
+            const clauseName = clause?.title || `Klausel #${condition.clauseId}`;
+            const isActive = condition.value === true;
+            const operatorNot = condition.operator === "!=" ? "nicht " : "";
+            return `Klausel „${clauseName}" ist ${operatorNot}${isActive ? "aktiv" : "inaktiv"}`;
+        }
+
+        // Handle variant_selected conditions
+        if (conditionKind === "variant_selected" && condition.variantId) {
+            const variant = variants.find(v => v.id === condition.variantId);
+            const variantName = variant?.title || `Variante #${condition.variantId}`;
+            const isSelected = condition.value === true;
+            const operatorNot = condition.operator === "!=" ? "nicht " : "";
+            return `Variante „${variantName}" ist ${operatorNot}${isSelected ? "gewählt" : "nicht gewählt"}`;
+        }
+
+        // Handle field conditions (default)
         const field = getFieldInfo(condition.field, fields);
         const operators = getOperatorsForField(condition.field, fields);
         const operator = operators.find((o) => o.value === condition.operator);
@@ -595,7 +651,7 @@ const conditionToNaturalLanguage = (
 
     if (condition.type === "group") {
         const parts = condition.conditions
-            .map((c) => conditionToNaturalLanguage(c, fields, depth + 1))
+            .map((c) => conditionToNaturalLanguage(c, { fields, clauses, variants }, depth + 1))
             .filter((s) => s.length > 0);
 
         if (parts.length === 0) return "";
@@ -823,6 +879,8 @@ interface SortableConditionRowProps {
     index: number;
     fields: FieldDefinition[];
     fieldSearch: string;
+    availableClauses: ClauseReference[];
+    availableVariants: VariantReference[];
 }
 
 const SortableConditionRow = ({
@@ -835,6 +893,8 @@ const SortableConditionRow = ({
     index,
     fields,
     fieldSearch,
+    availableClauses,
+    availableVariants,
 }: SortableConditionRowProps) => {
     const {
         attributes,
@@ -852,11 +912,18 @@ const SortableConditionRow = ({
         zIndex: isDragging ? 1000 : 1,
     };
 
+    // Determine condition kind (default to "field" for backwards compatibility)
+    const conditionKind: ConditionKind = condition.conditionKind || "field";
+
     const fieldsByCategory = useMemo(() => groupFieldsByCategory(fields), [fields]);
     const fieldInfo = getFieldInfo(condition.field, fields);
     const fieldType = fieldInfo?.type || "text";
     const operators = getOperatorsForField(condition.field, fields);
     const selectedOperator = operators.find((o) => o.value === condition.operator);
+
+    // Get clause/variant info
+    const selectedClause = availableClauses.find(c => c.id === condition.clauseId);
+    const selectedVariant = availableVariants.find(v => v.id === condition.variantId);
 
     // Filter fields based on search
     const filteredFieldsByCategory = useMemo(() => {
@@ -877,6 +944,48 @@ const SortableConditionRow = ({
         return result;
     }, [fieldsByCategory, fieldSearch]);
 
+    // Filter clauses based on search
+    const filteredClauses = useMemo(() => {
+        if (!fieldSearch) return availableClauses;
+        const search = fieldSearch.toLowerCase();
+        return availableClauses.filter(c => c.title.toLowerCase().includes(search));
+    }, [availableClauses, fieldSearch]);
+
+    // Filter variants based on search
+    const filteredVariants = useMemo(() => {
+        if (!fieldSearch) return availableVariants;
+        const search = fieldSearch.toLowerCase();
+        return availableVariants.filter(v =>
+            v.title.toLowerCase().includes(search) ||
+            v.clauseTitle?.toLowerCase().includes(search)
+        );
+    }, [availableVariants, fieldSearch]);
+
+    // Group variants by clause
+    const variantsByClause = useMemo(() => {
+        const grouped: Record<number, { clauseTitle: string; variants: VariantReference[] }> = {};
+        filteredVariants.forEach(v => {
+            if (!grouped[v.clauseId]) {
+                grouped[v.clauseId] = { clauseTitle: v.clauseTitle || `Klausel ${v.clauseId}`, variants: [] };
+            }
+            grouped[v.clauseId].variants.push(v);
+        });
+        return grouped;
+    }, [filteredVariants]);
+
+    const handleConditionKindChange = (newKind: ConditionKind) => {
+        // Reset the condition when changing kind
+        onChange({
+            ...condition,
+            conditionKind: newKind,
+            field: "",
+            clauseId: undefined,
+            variantId: undefined,
+            operator: newKind === "field" ? "" : "==",
+            value: newKind === "field" ? "" : true,
+        });
+    };
+
     const handleFieldChange = (newField: string) => {
         const newFieldInfo = getFieldInfo(newField, fields);
         const newType = newFieldInfo?.type || "text";
@@ -889,9 +998,36 @@ const SortableConditionRow = ({
 
         onChange({
             ...condition,
+            conditionKind: "field",
             field: newField,
+            clauseId: undefined,
+            variantId: undefined,
             operator: newOperators[0]?.value || "==",
             value: defaultValue,
+        });
+    };
+
+    const handleClauseChange = (clauseId: string) => {
+        onChange({
+            ...condition,
+            conditionKind: "clause_active",
+            field: "",
+            clauseId: parseInt(clauseId, 10),
+            variantId: undefined,
+            operator: "==",
+            value: true,
+        });
+    };
+
+    const handleVariantChange = (variantId: string) => {
+        onChange({
+            ...condition,
+            conditionKind: "variant_selected",
+            field: "",
+            clauseId: undefined,
+            variantId: parseInt(variantId, 10),
+            operator: "==",
+            value: true,
         });
     };
 
@@ -1034,6 +1170,157 @@ const SortableConditionRow = ({
         }
     };
 
+    // Check if clause/variant conditions are available
+    const hasClauseConditions = availableClauses.length > 0;
+    const hasVariantConditions = availableVariants.length > 0;
+    const showKindSelector = hasClauseConditions || hasVariantConditions;
+
+    // Render the target selector based on condition kind
+    const renderTargetSelector = () => {
+        switch (conditionKind) {
+            case "clause_active":
+                return (
+                    <Select
+                        value={condition.clauseId?.toString() || ""}
+                        onValueChange={handleClauseChange}
+                        disabled={disabled}
+                    >
+                        <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Klausel wählen..." />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-[300px]">
+                            {filteredClauses.map((clause) => (
+                                <SelectItem key={clause.id} value={clause.id.toString()}>
+                                    {clause.title}
+                                </SelectItem>
+                            ))}
+                            {filteredClauses.length === 0 && (
+                                <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                                    Keine Klauseln verfügbar
+                                </div>
+                            )}
+                        </SelectContent>
+                    </Select>
+                );
+
+            case "variant_selected":
+                return (
+                    <Select
+                        value={condition.variantId?.toString() || ""}
+                        onValueChange={handleVariantChange}
+                        disabled={disabled}
+                    >
+                        <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Variante wählen..." />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-[300px]">
+                            {Object.entries(variantsByClause).map(([clauseId, { clauseTitle, variants }]) => (
+                                <SelectGroup key={clauseId}>
+                                    <SelectLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                                        {clauseTitle}
+                                    </SelectLabel>
+                                    {variants.map((variant) => (
+                                        <SelectItem key={variant.id} value={variant.id.toString()}>
+                                            {variant.title}
+                                        </SelectItem>
+                                    ))}
+                                </SelectGroup>
+                            ))}
+                            {Object.keys(variantsByClause).length === 0 && (
+                                <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                                    Keine Varianten verfügbar
+                                </div>
+                            )}
+                        </SelectContent>
+                    </Select>
+                );
+
+            default: // "field"
+                return (
+                    <Select
+                        value={condition.field}
+                        onValueChange={handleFieldChange}
+                        disabled={disabled}
+                    >
+                        <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Feld wählen..." />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-[300px]">
+                            {Object.entries(filteredFieldsByCategory).map(([category, categoryFields]) => (
+                                <SelectGroup key={category}>
+                                    <SelectLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                                        {category}
+                                    </SelectLabel>
+                                    {categoryFields.map((field) => (
+                                        <SelectItem key={field.name} value={field.name}>
+                                            <div className="flex items-center gap-2">
+                                                <span>{field.label}</span>
+                                                {field.description && (
+                                                    <TooltipProvider>
+                                                        <Tooltip>
+                                                            <TooltipTrigger asChild>
+                                                                <HelpCircle className="w-3 h-3 text-muted-foreground" />
+                                                            </TooltipTrigger>
+                                                            <TooltipContent>
+                                                                {field.description}
+                                                            </TooltipContent>
+                                                        </Tooltip>
+                                                    </TooltipProvider>
+                                                )}
+                                            </div>
+                                        </SelectItem>
+                                    ))}
+                                </SelectGroup>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                );
+        }
+    };
+
+    // For clause_active and variant_selected, we show a simpler operator/value UI
+    const renderClauseVariantOperator = () => (
+        <Select
+            value={condition.operator}
+            onValueChange={(v) => onChange({ ...condition, operator: v })}
+            disabled={disabled}
+        >
+            <SelectTrigger className="min-w-[120px]">
+                <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+                <SelectItem value="==">ist</SelectItem>
+                <SelectItem value="!=">ist nicht</SelectItem>
+            </SelectContent>
+        </Select>
+    );
+
+    const renderClauseVariantValue = () => (
+        <Select
+            value={condition.value === true ? "true" : "false"}
+            onValueChange={(v) => handleValueChange(v === "true")}
+            disabled={disabled}
+        >
+            <SelectTrigger className="min-w-[130px]">
+                <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+                <SelectItem value="true">
+                    <div className="flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-green-600" />
+                        {conditionKind === "clause_active" ? "aktiv" : "gewählt"}
+                    </div>
+                </SelectItem>
+                <SelectItem value="false">
+                    <div className="flex items-center gap-2">
+                        <AlertCircle className="w-4 h-4 text-muted-foreground" />
+                        {conditionKind === "clause_active" ? "nicht aktiv" : "nicht gewählt"}
+                    </div>
+                </SelectItem>
+            </SelectContent>
+        </Select>
+    );
+
     return (
         <div
             ref={setNodeRef}
@@ -1059,78 +1346,110 @@ const SortableConditionRow = ({
                 {index + 1}
             </div>
 
-            {/* Field Selector */}
+            {/* Condition Kind Selector - only shown if clauses/variants are available */}
+            {showKindSelector && (
+                <div className="flex-shrink-0 min-w-[130px]">
+                    <Select
+                        value={conditionKind}
+                        onValueChange={(v) => handleConditionKindChange(v as ConditionKind)}
+                        disabled={disabled}
+                    >
+                        <SelectTrigger className="w-full">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="field">
+                                <div className="flex items-center gap-2">
+                                    <Layers className="w-4 h-4" />
+                                    Feld
+                                </div>
+                            </SelectItem>
+                            {hasClauseConditions && (
+                                <SelectItem value="clause_active">
+                                    <div className="flex items-center gap-2">
+                                        <GitBranch className="w-4 h-4" />
+                                        Klausel
+                                    </div>
+                                </SelectItem>
+                            )}
+                            {hasVariantConditions && (
+                                <SelectItem value="variant_selected">
+                                    <div className="flex items-center gap-2">
+                                        <CheckCircle2 className="w-4 h-4" />
+                                        Variante
+                                    </div>
+                                </SelectItem>
+                            )}
+                        </SelectContent>
+                    </Select>
+                </div>
+            )}
+
+            {/* Target Selector (Field / Clause / Variant) */}
             <div className="flex-1 min-w-[180px]">
-                <Select
-                    value={condition.field}
-                    onValueChange={handleFieldChange}
-                    disabled={disabled}
-                >
-                    <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Feld wählen..." />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-[300px]">
-                        {Object.entries(filteredFieldsByCategory).map(([category, categoryFields]) => (
-                            <SelectGroup key={category}>
-                                <SelectLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                                    {category}
-                                </SelectLabel>
-                                {categoryFields.map((field) => (
-                                    <SelectItem key={field.name} value={field.name}>
+                {renderTargetSelector()}
+            </div>
+
+            {/* Operator & Value - different for field vs clause/variant */}
+            {conditionKind === "field" ? (
+                <>
+                    {/* Operator Selector */}
+                    <div className="flex-shrink-0 min-w-[140px]">
+                        <Select
+                            value={condition.operator}
+                            onValueChange={handleOperatorChange}
+                            disabled={disabled || !condition.field}
+                        >
+                            <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Bedingung..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {operators.map((op) => (
+                                    <SelectItem key={op.value} value={op.value}>
                                         <div className="flex items-center gap-2">
-                                            <span>{field.label}</span>
-                                            {field.description && (
-                                                <TooltipProvider>
-                                                    <Tooltip>
-                                                        <TooltipTrigger asChild>
-                                                            <HelpCircle className="w-3 h-3 text-muted-foreground" />
-                                                        </TooltipTrigger>
-                                                        <TooltipContent>
-                                                            {field.description}
-                                                        </TooltipContent>
-                                                    </Tooltip>
-                                                </TooltipProvider>
+                                            <span>{op.label}</span>
+                                            {op.description && (
+                                                <span className="text-xs text-muted-foreground">
+                                                    ({op.description})
+                                                </span>
                                             )}
                                         </div>
                                     </SelectItem>
                                 ))}
-                            </SelectGroup>
-                        ))}
-                    </SelectContent>
-                </Select>
-            </div>
+                            </SelectContent>
+                        </Select>
+                    </div>
 
-            {/* Operator Selector */}
-            <div className="flex-shrink-0 min-w-[140px]">
-                <Select
-                    value={condition.operator}
-                    onValueChange={handleOperatorChange}
-                    disabled={disabled || !condition.field}
-                >
-                    <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Bedingung..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {operators.map((op) => (
-                            <SelectItem key={op.value} value={op.value}>
-                                <div className="flex items-center gap-2">
-                                    <span>{op.label}</span>
-                                    {op.description && (
-                                        <span className="text-xs text-muted-foreground">
-                                            ({op.description})
-                                        </span>
-                                    )}
-                                </div>
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-            </div>
+                    {/* Value Input */}
+                    <div className="flex-shrink-0">
+                        {renderValueInput()}
+                    </div>
+                </>
+            ) : (
+                <>
+                    {/* Simplified Operator for Clause/Variant */}
+                    <div className="flex-shrink-0">
+                        {renderClauseVariantOperator()}
+                    </div>
 
-            {/* Value Input */}
-            <div className="flex-shrink-0">
-                {renderValueInput()}
-            </div>
+                    {/* Simplified Value for Clause/Variant */}
+                    <div className="flex-shrink-0">
+                        {renderClauseVariantValue()}
+                    </div>
+
+                    {/* Show selected item info */}
+                    {conditionKind === "clause_active" && selectedClause && (
+                        <Badge variant="outline" className="text-xs">
+                            {selectedClause.title}
+                        </Badge>
+                    )}
+                    {conditionKind === "variant_selected" && selectedVariant && (
+                        <Badge variant="outline" className="text-xs">
+                            {selectedVariant.title}
+                        </Badge>
+                    )}
+                </>
+            )}
 
             {/* Action Buttons */}
             <div className="flex-shrink-0 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -1188,6 +1507,8 @@ interface ConditionGroupEditorProps {
     depth?: number;
     fields: FieldDefinition[];
     fieldSearch: string;
+    availableClauses: ClauseReference[];
+    availableVariants: VariantReference[];
 }
 
 const ConditionGroupEditor = ({
@@ -1199,6 +1520,8 @@ const ConditionGroupEditor = ({
     depth = 0,
     fields,
     fieldSearch,
+    availableClauses,
+    availableVariants,
 }: ConditionGroupEditorProps) => {
     void _isRoot;
     const [isCollapsed, setIsCollapsed] = useState(false);
@@ -1423,6 +1746,8 @@ const ConditionGroupEditor = ({
                                             index={index}
                                             fields={fields}
                                             fieldSearch={fieldSearch}
+                                            availableClauses={availableClauses}
+                                            availableVariants={availableVariants}
                                         />
                                     ) : (
                                         <ConditionGroupEditor
@@ -1433,6 +1758,8 @@ const ConditionGroupEditor = ({
                                             depth={depth + 1}
                                             fields={fields}
                                             fieldSearch={fieldSearch}
+                                            availableClauses={availableClauses}
+                                            availableVariants={availableVariants}
                                         />
                                     )}
                                 </div>
@@ -1643,6 +1970,10 @@ interface ConditionBuilderProps {
     onChange: (condition: ClauseCondition) => void;
     disabled?: boolean;
     fields?: FieldDefinition[];
+    /** Available clauses for "clause is active" conditions */
+    availableClauses?: ClauseReference[];
+    /** Available variants for "variant is selected" conditions */
+    availableVariants?: VariantReference[];
     showTemplates?: boolean;
     showTester?: boolean;
     showShortcuts?: boolean;
@@ -1653,6 +1984,8 @@ export const ConditionBuilder = ({
     onChange,
     disabled = false,
     fields = DEFAULT_CONDITION_FIELDS,
+    availableClauses = [],
+    availableVariants = [],
     showTemplates = true,
     showTester = true,
     showShortcuts = true,
@@ -1787,8 +2120,12 @@ export const ConditionBuilder = ({
 
     // Natural language preview
     const previewText = useMemo(
-        () => conditionToNaturalLanguage(historyCondition, fields),
-        [historyCondition, fields]
+        () => conditionToNaturalLanguage(historyCondition, {
+            fields,
+            clauses: availableClauses,
+            variants: availableVariants,
+        }),
+        [historyCondition, fields, availableClauses, availableVariants]
     );
 
     return (
@@ -2009,6 +2346,8 @@ export const ConditionBuilder = ({
                         depth={0}
                         fields={fields}
                         fieldSearch={fieldSearch}
+                        availableClauses={availableClauses}
+                        availableVariants={availableVariants}
                     />
 
                     {/* Live Preview */}

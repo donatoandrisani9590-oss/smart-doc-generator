@@ -13,6 +13,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useDebounce } from "use-debounce";
 import { useNavigate } from "react-router-dom";
 import { useUndoRedo } from "@/hooks/useUndoRedo";
+import { useAutoSave } from "@/hooks/useAutoSave";
 import { useToast } from "@/components/ui/toast";
 import { api, getApiBaseUrl } from "@/lib/api-client";
 import { logError } from "@/lib/logger";
@@ -25,6 +26,7 @@ import {
     type VariantGroup,
     type Comment,
     type AddCommentParams,
+    type AutoSaveStatus,
     initialFormData,
     STANDARD_STEP_ORDER,
     FULL_STEP_ORDER,
@@ -144,6 +146,120 @@ export function useDocumentWizard(initialDraftId?: number): WizardContextValue {
 
     // Refs
     const exportLockRef = useRef(false);
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // AUTO-SAVE DATA STRUCTURE
+    // ══════════════════════════════════════════════════════════════════════════
+
+    // Combine all wizard data for auto-save
+    const autoSaveData = useMemo(() => ({
+        formData,
+        dynamicFormValues,
+        documentTitle,
+        documentTypeId,
+        comments,
+        documentClauses: documentClauses.filter(c => c.is_enabled).map(c => c.id),
+        selectedVariants,
+        selectedAttachmentIds,
+        currentStep,
+        timestamp: new Date().toISOString(),
+    }), [formData, dynamicFormValues, documentTitle, documentTypeId, comments, documentClauses, selectedVariants, selectedAttachmentIds, currentStep]);
+
+    // Auto-save callback - save to server if possible
+    const performAutoSave = useCallback(async (data: typeof autoSaveData): Promise<void> => {
+        // Only auto-save if we have a document type and some meaningful data
+        if (!data.documentTypeId) return;
+
+        // If we have a loaded draft ID, update it
+        if (loadedDraftId && data.documentTitle?.trim()) {
+            const draftData = {
+                document_type_id: data.documentTypeId,
+                name: data.documentTitle.trim(),
+                form_data: {
+                    ...data.formData,
+                    ...data.dynamicFormValues,
+                },
+                custom_clauses: data.documentClauses,
+            };
+            await api.put(`/api/v1/drafts/${loadedDraftId}`, draftData);
+        }
+        // Note: If no loadedDraftId, data is only saved to localStorage by useAutoSave
+    }, [loadedDraftId]);
+
+    // Auto-Save Hook
+    const autoSaveKey = useMemo(() =>
+        documentTypeId ? `wizard_${documentTypeId}` : 'wizard_new',
+    [documentTypeId]);
+
+    const {
+        lastSaved,
+        isSaving: isAutoSaving,
+        error: autoSaveError,
+        forceSave,
+        clearError: clearAutoSaveError,
+        hasUnsavedChanges: autoSaveHasUnsavedChanges,
+        lastSavedText,
+        hasRecoverableDraft,
+        recoverDraft: recoverDraftFromStorage,
+        discardDraft: discardDraftFromStorage,
+        saveStatus: autoSaveStatus,
+    } = useAutoSave(
+        autoSaveKey,
+        autoSaveData,
+        performAutoSave,
+        {
+            interval: 30000, // 30 seconds
+            debounce: 1000,  // 1 second debounce
+            enabled: !!documentTypeId && hasUnsavedChanges,
+            storagePrefix: 'docgen_autosave_',
+            onSaveStart: () => {
+                // Optional: Could show a subtle indicator
+            },
+            onSaveSuccess: () => {
+                setHasUnsavedChanges(false);
+            },
+            onSaveError: (error) => {
+                logError("Auto-save failed", { error });
+            },
+        }
+    );
+
+    // Recover draft function
+    const recoverDraft = useCallback(() => {
+        const recovered = recoverDraftFromStorage();
+        if (recovered) {
+            // Restore form data
+            if (recovered.formData) {
+                setFormDataRaw({
+                    ...initialFormData,
+                    ...(recovered.formData as Partial<FormData>),
+                });
+            }
+            if (recovered.dynamicFormValues) {
+                setDynamicFormValues(recovered.dynamicFormValues as Record<string, string | number | boolean>);
+            }
+            if (recovered.documentTitle) {
+                setDocumentTitle(recovered.documentTitle as string);
+            }
+            if (recovered.documentTypeId) {
+                setDocumentTypeIdState(recovered.documentTypeId as number);
+            }
+            if (recovered.comments) {
+                setComments(recovered.comments as Comment[]);
+            }
+            if (typeof recovered.currentStep === 'number') {
+                setCurrentStep(recovered.currentStep);
+            }
+
+            toast.success("Entwurf wiederhergestellt", "Ihre nicht gespeicherten Änderungen wurden wiederhergestellt");
+        }
+    }, [recoverDraftFromStorage, setFormDataRaw, toast]);
+
+    // Discard draft function
+    const discardDraft = useCallback(() => {
+        discardDraftFromStorage();
+        toast.info("Entwurf verworfen", "Der gespeicherte Entwurf wurde gelöscht");
+    }, [discardDraftFromStorage, toast]);
 
     // ══════════════════════════════════════════════════════════════════════════
     // COMPUTED VALUES
@@ -544,7 +660,7 @@ export function useDocumentWizard(initialDraftId?: number): WizardContextValue {
         } finally {
             setIsSaving(false);
         }
-    }, [documentTypeId, documentTitle, formData, dynamicFormValues, documentClauses, loadedDraftId, navigate, toast]);
+    }, [documentTypeId, documentTitle, formData, dynamicFormValues, documentClauses, loadedDraftId, toast]);
 
     // ══════════════════════════════════════════════════════════════════════════
     // EXPORT ACTIONS
@@ -754,10 +870,16 @@ export function useDocumentWizard(initialDraftId?: number): WizardContextValue {
         showCommentSidebar,
         comments,
         isLoading,
-        isSaving,
+        isSaving: isSaving || isAutoSaving,
         isGenerating,
-        hasUnsavedChanges,
+        hasUnsavedChanges: hasUnsavedChanges || autoSaveHasUnsavedChanges,
         validationErrors,
+        // Auto-Save State
+        autoSaveStatus: autoSaveStatus as AutoSaveStatus,
+        lastSaved,
+        lastSavedText,
+        hasRecoverableDraft,
+        autoSaveError,
     };
 
     const actions: WizardActions = {
@@ -792,6 +914,11 @@ export function useDocumentWizard(initialDraftId?: number): WizardContextValue {
         resolveComment,
         reopenComment,
         addReply,
+        // Auto-Save Actions
+        forceSave,
+        recoverDraft,
+        discardDraft,
+        clearAutoSaveError,
     };
 
     return {

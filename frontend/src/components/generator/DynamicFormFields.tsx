@@ -2,12 +2,13 @@
  * DynamicFormFields - Dynamische Formularfelder basierend auf Klauseln/Varianten
  *
  * v4.2 Feature:
- * - Lädt FormFields dynamisch vom Backend
+ * - Laedt FormFields dynamisch vom Backend
  * - Zeigt Felder basierend auf aktivierten Klauseln
- * - Unterstützt bedingte Sichtbarkeit (show_condition)
- * - Kaskadierender Flow: Klausel aktiviert → Variante wählen → Felder anzeigen
+ * - Unterstuetzt bedingte Sichtbarkeit (show_condition)
+ * - Kaskadierender Flow: Klausel aktiviert -> Variante waehlen -> Felder anzeigen
  *
  * v4.2.1: Inline-Validierung mit onBlur und Fehlermeldungen
+ * v4.3: Erweitertes Condition Schema mit AND/OR-Logik
  */
 
 import { useState, useEffect, useCallback, useMemo } from "react";
@@ -34,6 +35,7 @@ import { cn } from "@/lib/utils";
 import { api } from "@/lib/api-client";
 import { logError } from "@/lib/logger";
 import { useTranslation } from "react-i18next";
+import { evaluateShowCondition, type ConditionContext } from "@/lib/condition-evaluator";
 
 // ══════════════════════════════════════════════════════════════════════════════
 // TYPES
@@ -65,25 +67,18 @@ export interface FormFieldDefinition {
     pattern?: string;
     pattern_error_message?: string;
 
-    // Conditional visibility
-    show_condition?: string; // JSON: { clause_id?: number, variant_id?: number, field_conditions?: [...] }
+    // Conditional visibility - unterstuetzt neues UND altes Format
+    // Neues Format: { type: 'AND'|'OR', conditions: [...] } oder { type: 'field'|'clause_enabled'|'variant_selected', ... }
+    // Legacy-Format: { clause_id?: number, variant_id?: number, field_conditions?: [...] }
+    show_condition?: string;
 
     // Metadata
     is_system_field: boolean;
     source_clause_id?: number;
 }
 
-interface ShowCondition {
-    clause_id?: number;
-    clause_ids?: number[];
-    variant_id?: number;
-    variant_ids?: number[];
-    field_conditions?: Array<{
-        field: string;
-        operator: "=" | "!=" | ">" | "<" | ">=" | "<=";
-        value: string | number | boolean;
-    }>;
-}
+// Legacy ShowCondition interface entfernt - wird jetzt vom condition-evaluator gehandhabt
+// Siehe: @/types/conditions und @/lib/condition-evaluator
 
 interface DynamicFormFieldsProps {
     documentTypeId: number | null;
@@ -157,90 +152,27 @@ export const DynamicFormFields = ({
     }, [documentTypeId]);
 
     // ══════════════════════════════════════════════════════════════════════════
+    // CONDITION CONTEXT
+    // ══════════════════════════════════════════════════════════════════════════
+    const conditionContext: ConditionContext = useMemo(
+        () => ({
+            formData: formValues,
+            enabledClauseIds,
+            selectedVariantIds,
+        }),
+        [formValues, enabledClauseIds, selectedVariantIds]
+    );
+
+    // ══════════════════════════════════════════════════════════════════════════
     // CHECK FIELD VISIBILITY
     // ══════════════════════════════════════════════════════════════════════════
     const isFieldVisible = useCallback(
         (field: FormFieldDefinition): boolean => {
-            // Kein show_condition = immer sichtbar
-            if (!field.show_condition) {
-                return true;
-            }
-
-            try {
-                const condition: ShowCondition = JSON.parse(field.show_condition);
-
-                // Prüfe Klausel-Bedingung
-                if (condition.clause_id) {
-                    if (!enabledClauseIds.includes(condition.clause_id)) {
-                        return false;
-                    }
-                }
-
-                if (condition.clause_ids && condition.clause_ids.length > 0) {
-                    const hasMatchingClause = condition.clause_ids.some((id) =>
-                        enabledClauseIds.includes(id)
-                    );
-                    if (!hasMatchingClause) {
-                        return false;
-                    }
-                }
-
-                // Prüfe Varianten-Bedingung
-                if (condition.variant_id) {
-                    if (!selectedVariantIds.includes(condition.variant_id)) {
-                        return false;
-                    }
-                }
-
-                if (condition.variant_ids && condition.variant_ids.length > 0) {
-                    const hasMatchingVariant = condition.variant_ids.some((id) =>
-                        selectedVariantIds.includes(id)
-                    );
-                    if (!hasMatchingVariant) {
-                        return false;
-                    }
-                }
-
-                // Prüfe Feld-Bedingungen
-                if (condition.field_conditions && condition.field_conditions.length > 0) {
-                    for (const fc of condition.field_conditions) {
-                        const fieldValue = formValues[fc.field];
-                        let matches = false;
-
-                        switch (fc.operator) {
-                            case "=":
-                                matches = fieldValue === fc.value;
-                                break;
-                            case "!=":
-                                matches = fieldValue !== fc.value;
-                                break;
-                            case ">":
-                                matches = Number(fieldValue) > Number(fc.value);
-                                break;
-                            case "<":
-                                matches = Number(fieldValue) < Number(fc.value);
-                                break;
-                            case ">=":
-                                matches = Number(fieldValue) >= Number(fc.value);
-                                break;
-                            case "<=":
-                                matches = Number(fieldValue) <= Number(fc.value);
-                                break;
-                        }
-
-                        if (!matches) {
-                            return false;
-                        }
-                    }
-                }
-
-                return true;
-            } catch {
-                // Bei Parse-Fehlern Feld anzeigen
-                return true;
-            }
+            // Nutze den neuen condition-evaluator
+            // Unterstuetzt sowohl das alte als auch das neue Format
+            return evaluateShowCondition(field.show_condition, conditionContext);
         },
-        [enabledClauseIds, selectedVariantIds, formValues]
+        [conditionContext]
     );
 
     // ══════════════════════════════════════════════════════════════════════════
