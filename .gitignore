@@ -57,6 +57,7 @@ postgres_data/
 *.db
 *.sqlite
 *.log
+.test-credentials
 
 # Docker volumes
 redis_data/
