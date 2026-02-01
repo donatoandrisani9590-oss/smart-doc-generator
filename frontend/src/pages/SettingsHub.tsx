@@ -35,6 +35,7 @@ import {
     Eye,
     ToggleRight,
     Search,
+    Bot,
 } from "lucide-react";
 import { SettingsCommandPalette } from "@/components/settings/SettingsCommandPalette";
 
@@ -53,6 +54,7 @@ const ClauseApprovalQueue = lazy(() => import("./admin/ClauseApprovalQueue").the
 const DocumentDesigner = lazy(() => import("./admin/DocumentDesigner").then(m => ({ default: m.DocumentDesigner })));
 const TemplatePreviewPage = lazy(() => import("./admin/TemplatePreviewPage").then(m => ({ default: m.TemplatePreviewPage })));
 const FeatureSettingsPanel = lazy(() => import("@/components/settings/FeatureSettingsPanel").then(m => ({ default: m.FeatureSettingsPanel })));
+const CopilotStudioSettings = lazy(() => import("@/components/settings/CopilotStudioSettings").then(m => ({ default: m.CopilotStudioSettings })));
 
 // Tab definitions with icons and descriptions
 const TABS = [
@@ -91,6 +93,12 @@ const TABS = [
         label: "Erweitert",
         icon: Settings2,
         description: "Power-User",
+    },
+    {
+        id: "integrations",
+        label: "Integrationen",
+        icon: Bot,
+        description: "Copilot Studio",
     },
 ];
 
@@ -213,7 +221,7 @@ export default function SettingsHub() {
             </div>
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-                <TabsList className="grid w-full grid-cols-6 lg:w-auto lg:inline-flex">
+                <TabsList className="grid w-full grid-cols-7 lg:w-auto lg:inline-flex">
                     {TABS.map((tab) => (
                         <TabsTrigger
                             key={tab.id}
@@ -284,6 +292,13 @@ export default function SettingsHub() {
                             {renderAdvancedContent()}
                         </CardContent>
                     </Card>
+                </TabsContent>
+
+                {/* Integrationen - Copilot Studio / Power Platform */}
+                <TabsContent value="integrations" className="space-y-4">
+                    <Suspense fallback={<TabSkeleton />}>
+                        <CopilotStudioSettings />
+                    </Suspense>
                 </TabsContent>
             </Tabs>
         </div>

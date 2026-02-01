@@ -30,6 +30,7 @@ from app.api.v1.endpoints import corrections, repository, audit, notifications, 
 from app.api.v1.endpoints import clause_notes, company_settings, clause_approval, deadlines, works_council
 from app.api.v1.endpoints import word_import, document_type_import, clause_variants, users
 from app.api.v1.endpoints import composer, setup, compliance, smart_mode, feature_settings, document_upload
+from app.api.v1.endpoints import actions, webhooks, copilot_studio
 
 # ═══════════════════════════════════════════════════════════════════════════
 # LOGGING CONFIGURATION
@@ -160,11 +161,41 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
-    # Hide API docs in production
-    openapi_url=f"{settings.API_V1_STR}/openapi.json" if settings.DEBUG else None,
+    description="""
+    HR Document Generator API - Erstellen Sie HR-Dokumente automatisiert.
+
+    ## Features
+    - 35+ HR-Dokumenttypen (Arbeitsverträge, Kündigungen, Zeugnisse, etc.)
+    - Template-basierte Generierung mit Klausel-Library
+    - PDF & DOCX Export
+    - Fristen-Management (Probezeit, Befristung)
+    - Compliance-Prüfung
+
+    ## Integration
+    Diese API ist kompatibel mit:
+    - Microsoft Copilot Studio (Custom Connector)
+    - Power Automate (HTTP Actions)
+    - Zapier / Make
+    - Jede REST-fähige Anwendung
+    """,
+    version="1.0.0",
+    # OpenAPI immer verfügbar für Copilot Studio / Power Platform Integration
+    openapi_url=f"{settings.API_V1_STR}/openapi.json",
     docs_url=f"{settings.API_V1_STR}/docs" if settings.DEBUG else None,
     redoc_url=f"{settings.API_V1_STR}/redoc" if settings.DEBUG else None,
-    lifespan=lifespan
+    lifespan=lifespan,
+    # OpenAPI Tags für bessere Strukturierung
+    openapi_tags=[
+        {"name": "actions", "description": "High-Level Actions für Bot-Integration (Copilot Studio)"},
+        {"name": "webhooks", "description": "Webhook-Subscriptions für Event-Benachrichtigungen"},
+        {"name": "auth", "description": "Authentifizierung & Token-Management"},
+        {"name": "generation", "description": "Dokument-Generierung"},
+        {"name": "document-types", "description": "Dokumenttyp-Verwaltung"},
+        {"name": "clauses", "description": "Klausel-Verwaltung"},
+        {"name": "drafts", "description": "Entwürfe"},
+        {"name": "deadlines", "description": "Fristen-Management"},
+        {"name": "search", "description": "Volltextsuche"},
+    ]
 )
 
 # Add middlewares (order matters - first added = outermost)
@@ -261,6 +292,19 @@ app.include_router(feature_settings.router, prefix=f"{settings.API_V1_STR}/featu
 
 # Document Upload with AI Extraction
 app.include_router(document_upload.router, prefix=f"{settings.API_V1_STR}/document-upload", tags=["document-upload"])
+
+# ═══════════════════════════════════════════════════════════════════════════
+# COPILOT STUDIO / POWER PLATFORM INTEGRATION
+# ═══════════════════════════════════════════════════════════════════════════
+
+# Bot-optimierte Actions API (für Copilot Studio Custom Connector)
+app.include_router(actions.router, prefix=f"{settings.API_V1_STR}/actions", tags=["actions"])
+
+# Webhooks für Power Automate Trigger
+app.include_router(webhooks.router, prefix=f"{settings.API_V1_STR}/webhooks", tags=["webhooks"])
+
+# Copilot Studio Konfiguration
+app.include_router(copilot_studio.router, prefix=f"{settings.API_V1_STR}/copilot-studio", tags=["copilot-studio"])
 
 # Public/Guest Access
 app.include_router(guest.router, tags=["guest"])

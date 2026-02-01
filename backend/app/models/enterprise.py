@@ -511,3 +511,116 @@ class SearchHistory(Base):
     country_code = Column(String(2), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
 
+
+# ═══════════════════════════════════════════════════════════════════════════
+# DEADLINES (HR-Fristen Management)
+# ═══════════════════════════════════════════════════════════════════════════
+
+class Deadline(Base):
+    """
+    HR-Fristen für Probezeit, Befristung, Kündigungsfristen etc.
+
+    Wird automatisch aus Dokumentdaten erstellt oder manuell angelegt.
+    """
+    __tablename__ = "deadlines"
+
+    id = Column(Integer, primary_key=True, index=True)
+    country_code = Column(String(2), nullable=False, index=True)
+
+    # Frist-Details
+    deadline_type = Column(String(50), nullable=False, index=True)  # probezeit_ende, befristung_ende, kuendigung_frist
+    deadline_date = Column(DateTime(timezone=True), nullable=False, index=True)
+    deadline_label = Column(String(255), nullable=True)
+
+    # Mitarbeiter-Referenz
+    employee_name = Column(String(255), nullable=False, index=True)
+    employee_id = Column(String(100), nullable=True, index=True)  # Personalnummer
+
+    # Status
+    status = Column(String(50), default="pending", index=True)  # pending, completed, cancelled
+    notes = Column(Text, nullable=True)
+
+    # Verknüpfung zum Dokument (optional)
+    document_id = Column(Integer, ForeignKey("generated_documents.id", ondelete="SET NULL"), nullable=True)
+
+    # Metadata
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    completed_at = Column(DateTime(timezone=True), nullable=True)
+    completed_by = Column(String(255), nullable=True)
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# WEBHOOK SUBSCRIPTIONS (für Copilot Studio / Power Automate Integration)
+# ═══════════════════════════════════════════════════════════════════════════
+
+class WebhookSubscription(Base):
+    """
+    Webhook-Subscriptions für Event-Benachrichtigungen.
+
+    Ermöglicht Integration mit:
+    - Microsoft Power Automate
+    - Microsoft Copilot Studio
+    - Zapier / Make
+    - Custom Systeme
+    """
+    __tablename__ = "webhook_subscriptions"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    # Webhook-Konfiguration
+    url = Column(String(1000), nullable=False)
+    events = Column(Text, nullable=False)  # JSON Array von Event-Namen
+    secret = Column(String(255), nullable=True)  # HMAC Secret für Signatur
+    description = Column(String(500), nullable=True)
+
+    # Status
+    is_active = Column(Boolean, default=True, index=True)
+
+    # Statistik
+    trigger_count = Column(Integer, default=0)
+    last_triggered_at = Column(DateTime(timezone=True), nullable=True)
+    last_error = Column(Text, nullable=True)
+
+    # Metadata
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    created_by = Column(String(255), nullable=True)
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# COPILOT STUDIO INTEGRATION SETTINGS
+# ═══════════════════════════════════════════════════════════════════════════
+
+class CopilotStudioConfig(Base):
+    """
+    Konfiguration für Microsoft Copilot Studio Integration.
+
+    Speichert Connection-Details und Berechtigungen.
+    """
+    __tablename__ = "copilot_studio_config"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    # Verbindung
+    is_enabled = Column(Boolean, default=False)
+    tenant_id = Column(String(100), nullable=True)  # Azure AD Tenant
+    client_id = Column(String(100), nullable=True)  # App Registration Client ID
+    bot_id = Column(String(100), nullable=True)  # Copilot Studio Bot ID
+
+    # API-Schlüssel (für eingehende Requests vom Bot)
+    api_key = Column(String(255), nullable=True)
+    api_key_created_at = Column(DateTime(timezone=True), nullable=True)
+
+    # Berechtigungen
+    allow_document_creation = Column(Boolean, default=True)
+    allow_document_search = Column(Boolean, default=True)
+    allow_deadline_access = Column(Boolean, default=True)
+    allowed_document_types = Column(Text, nullable=True)  # JSON Array oder NULL für alle
+
+    # Statistik
+    last_request_at = Column(DateTime(timezone=True), nullable=True)
+    request_count = Column(Integer, default=0)
+
+    # Metadata
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now())
+
