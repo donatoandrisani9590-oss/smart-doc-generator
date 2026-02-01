@@ -20,6 +20,7 @@ import {
 import { DocumentEditor } from "@/components/editor/DocumentEditor";
 import { useWizardContext } from "../WizardContext";
 import { WorkflowStepper } from "../WorkflowStepper";
+import { ComplianceRiskBanner } from "../ComplianceRiskBanner";
 
 export const RightEditorPanel = () => {
     const { state, actions } = useWizardContext();
@@ -176,6 +177,13 @@ export const RightEditorPanel = () => {
                     </div>
                 ) : (
                     <div className="mx-auto" style={{ maxWidth: "210mm" }}>
+                        {/* Compliance Risk Banner - proaktive Risikoerkennung */}
+                        <ComplianceRiskBanner
+                            contentHtml={displayContent}
+                            countryCode="DE"
+                            className="mb-4"
+                        />
+
                         {/* A4 Paper Container with shadow */}
                         <div
                             className="bg-white rounded shadow-[0_2px_10px_rgba(0,0,0,0.15)]"

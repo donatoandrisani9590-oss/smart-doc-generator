@@ -29,7 +29,7 @@ from app.api.v1.endpoints import placeholders, statistics, favorites, search, te
 from app.api.v1.endpoints import corrections, repository, audit, notifications, export
 from app.api.v1.endpoints import clause_notes, company_settings, clause_approval, deadlines, works_council
 from app.api.v1.endpoints import word_import, document_type_import, clause_variants, users
-from app.api.v1.endpoints import composer, setup
+from app.api.v1.endpoints import composer, setup, compliance
 
 # ═══════════════════════════════════════════════════════════════════════════
 # LOGGING CONFIGURATION
@@ -249,6 +249,9 @@ app.include_router(clause_variants.router, prefix=f"{settings.API_V1_STR}/clause
 
 # Smart UX - Unified Document Composer
 app.include_router(composer.router, prefix=f"{settings.API_V1_STR}/composer", tags=["composer"])
+
+# Compliance - Proactive Risk Detection (Privacy-First: Mistral/Ollama)
+app.include_router(compliance.router, prefix=f"{settings.API_V1_STR}", tags=["compliance"])
 
 # Public/Guest Access
 app.include_router(guest.router, tags=["guest"])
