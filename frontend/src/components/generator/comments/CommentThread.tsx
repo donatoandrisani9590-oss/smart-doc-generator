@@ -3,15 +3,19 @@
  *
  * Apple Pages-ähnliches Design:
  * - Autor und Zeitstempel
- * - Kommentar-Text
+ * - Kommentar-Text mit @Mention Highlighting
  * - Auflösen/Wiedereröffnen Button
- * - Antworten-Thread (Phase 5)
+ * - Antworten-Thread
+ *
+ * v2.1: Bug-Fixes für Edge Cases (Invalid Date, Empty Names)
  */
 
-import { useState } from "react";
-import { Check, RotateCcw, Trash2, Reply, MoreHorizontal } from "lucide-react";
+import { useState, useMemo } from "react";
+import { Check, RotateCcw, Trash2, Reply, MoreHorizontal, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -28,6 +32,103 @@ interface CommentThreadProps {
     onReply?: (text: string) => void;
     isResolved?: boolean;
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// HELPER FUNCTIONS (Edge-Case-sicher)
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * Formatiert ein Datum relativ zur aktuellen Zeit
+ * Handles: Invalid dates, future dates, edge cases
+ */
+const formatDate = (dateString: string): string => {
+    if (!dateString) return "Unbekannt";
+
+    const date = new Date(dateString);
+
+    // Check for invalid date
+    if (isNaN(date.getTime())) {
+        return "Unbekannt";
+    }
+
+    const now = new Date();
+    const diffMs = Math.max(0, now.getTime() - date.getTime()); // Keine negativen Werte
+
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return "Gerade eben";
+    if (diffMins < 60) return `vor ${diffMins} Min.`;
+    if (diffHours < 24) return `vor ${diffHours} Std.`;
+    if (diffDays === 1) return "Gestern";
+    if (diffDays < 7) return `vor ${diffDays} Tagen`;
+
+    return date.toLocaleDateString("de-DE", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+    });
+};
+
+/**
+ * Extrahiert Initialen aus einem Namen
+ * Handles: Empty strings, single words, special characters
+ */
+const getInitials = (name: string): string => {
+    if (!name?.trim()) return "??";
+
+    const cleanName = name.trim();
+    const parts = cleanName.split(/\s+/).filter(part => part.length > 0);
+
+    if (parts.length === 0) return "??";
+
+    // Einzelner Name: Erste zwei Buchstaben
+    if (parts.length === 1) {
+        return parts[0].slice(0, 2).toUpperCase();
+    }
+
+    // Mehrere Namen: Erste Buchstaben der ersten zwei Teile
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+};
+
+/**
+ * Rendert Text mit hervorgehobenen @Mentions
+ */
+const renderContentWithMentions = (content: string): React.ReactNode => {
+    const mentionRegex = /@(\w+(?:\.\w+)?(?:@[\w.]+)?)/g;
+    const parts: React.ReactNode[] = [];
+    let lastIndex = 0;
+    let match;
+
+    while ((match = mentionRegex.exec(content)) !== null) {
+        // Text vor dem Match
+        if (match.index > lastIndex) {
+            parts.push(content.slice(lastIndex, match.index));
+        }
+        // @Mention hervorheben
+        parts.push(
+            <span
+                key={match.index}
+                className="text-primary font-medium bg-primary/10 px-1 rounded"
+            >
+                @{match[1]}
+            </span>
+        );
+        lastIndex = match.index + match[0].length;
+    }
+
+    // Rest des Textes
+    if (lastIndex < content.length) {
+        parts.push(content.slice(lastIndex));
+    }
+
+    return parts.length > 0 ? parts : content;
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// COMPONENT
+// ═══════════════════════════════════════════════════════════════════════════
 
 export const CommentThread = ({
     comment,
@@ -47,55 +148,48 @@ export const CommentThread = ({
         setIsReplying(false);
     };
 
-    const formatDate = (dateString: string) => {
-        const date = new Date(dateString);
-        const now = new Date();
-        const diffMs = now.getTime() - date.getTime();
-        const diffMins = Math.floor(diffMs / 60000);
-        const diffHours = Math.floor(diffMs / 3600000);
-        const diffDays = Math.floor(diffMs / 86400000);
-
-        if (diffMins < 1) return "Gerade eben";
-        if (diffMins < 60) return `vor ${diffMins} Min.`;
-        if (diffHours < 24) return `vor ${diffHours} Std.`;
-        if (diffDays < 7) return `vor ${diffDays} Tagen`;
-
-        return date.toLocaleDateString("de-DE", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-        });
-    };
-
-    // Initialen aus Autor-Name
-    const getInitials = (name: string) => {
-        return name
-            .split(" ")
-            .map((n) => n[0])
-            .join("")
-            .toUpperCase()
-            .slice(0, 2);
-    };
+    // Memoize rendered content
+    const renderedContent = useMemo(
+        () => renderContentWithMentions(comment.content),
+        [comment.content]
+    );
 
     return (
         <div
-            className={`rounded-lg border p-3 transition-colors ${
+            className={cn(
+                "rounded-lg border p-3 transition-all duration-200",
                 isResolved
-                    ? "bg-muted/30 opacity-60"
-                    : "bg-background hover:bg-muted/20"
-            }`}
+                    ? "bg-muted/20 border-dashed border-muted-foreground/30"
+                    : "bg-background hover:bg-muted/10 hover:shadow-sm"
+            )}
         >
             {/* Header */}
             <div className="flex items-start justify-between gap-2 mb-2">
                 <div className="flex items-center gap-2">
                     {/* Avatar */}
-                    <div className="w-7 h-7 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-medium">
+                    <div className={cn(
+                        "w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium",
+                        isResolved
+                            ? "bg-muted text-muted-foreground"
+                            : "bg-primary/10 text-primary"
+                    )}>
                         {getInitials(comment.author)}
                     </div>
-                    <div>
-                        <p className="text-sm font-medium leading-none">
-                            {comment.author}
-                        </p>
+                    <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                            <p className="text-sm font-medium leading-none truncate">
+                                {comment.author || "Unbekannt"}
+                            </p>
+                            {isResolved && (
+                                <Badge
+                                    variant="outline"
+                                    className="h-4 px-1 text-[9px] text-green-600 border-green-200 gap-0.5"
+                                >
+                                    <CheckCircle2 className="w-2.5 h-2.5" />
+                                    Erledigt
+                                </Badge>
+                            )}
+                        </div>
                         <p className="text-xs text-muted-foreground mt-0.5">
                             {formatDate(comment.createdAt)}
                         </p>
@@ -108,7 +202,8 @@ export const CommentThread = ({
                         <Button
                             variant="ghost"
                             size="sm"
-                            className="h-6 w-6 p-0"
+                            className="h-6 w-6 p-0 opacity-60 hover:opacity-100"
+                            aria-label="Kommentar-Aktionen"
                         >
                             <MoreHorizontal className="w-4 h-4" />
                         </Button>
@@ -116,7 +211,7 @@ export const CommentThread = ({
                     <DropdownMenuContent align="end">
                         {!isResolved && onResolve && (
                             <DropdownMenuItem onClick={onResolve}>
-                                <Check className="w-4 h-4 mr-2" />
+                                <Check className="w-4 h-4 mr-2 text-green-600" />
                                 Als erledigt markieren
                             </DropdownMenuItem>
                         )}
@@ -139,15 +234,18 @@ export const CommentThread = ({
 
             {/* Text-Selektion Referenz (wenn vorhanden) */}
             {comment.textSelection && (
-                <div className="mb-2 px-2 py-1 bg-amber-50 border-l-2 border-amber-300 text-xs text-amber-800 italic rounded-r">
+                <div className="mb-2 px-2 py-1 bg-primary/5 border-l-2 border-primary/30 text-xs text-muted-foreground italic rounded-r">
                     "{comment.textSelection.text.slice(0, 50)}
                     {comment.textSelection.text.length > 50 ? "..." : ""}"
                 </div>
             )}
 
-            {/* Kommentar-Text */}
-            <p className={`text-sm ${isResolved ? "line-through" : ""}`}>
-                {comment.content}
+            {/* Kommentar-Text mit @Mention Highlighting */}
+            <p className={cn(
+                "text-sm whitespace-pre-wrap break-words",
+                isResolved && "text-muted-foreground"
+            )}>
+                {renderedContent}
             </p>
 
             {/* Antworten */}

@@ -47,6 +47,12 @@ from app.models.user_settings import (
     FEATURE_DEFINITIONS,
     FEATURE_CATEGORIES,
 )
+from app.models.collaboration import (
+    Comment,
+    CommentMention,
+    ActivityEvent,
+    CommentReaction,
+)
 
 __all__ = [
     # Core
@@ -96,4 +102,9 @@ __all__ = [
     "UserFeatureSettings",
     "FEATURE_DEFINITIONS",
     "FEATURE_CATEGORIES",
+    # Collaboration (Phase 2)
+    "Comment",
+    "CommentMention",
+    "ActivityEvent",
+    "CommentReaction",
 ]

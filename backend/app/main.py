@@ -31,6 +31,7 @@ from app.api.v1.endpoints import clause_notes, company_settings, clause_approval
 from app.api.v1.endpoints import word_import, document_type_import, clause_variants, users
 from app.api.v1.endpoints import composer, setup, compliance, smart_mode, feature_settings, document_upload
 from app.api.v1.endpoints import actions, webhooks, copilot_studio
+from app.api.v1.endpoints import comments
 
 # ═══════════════════════════════════════════════════════════════════════════
 # LOGGING CONFIGURATION
@@ -256,6 +257,7 @@ app.include_router(favorites.router, prefix=f"{settings.API_V1_STR}/favorites", 
 app.include_router(search.router, prefix=f"{settings.API_V1_STR}/search", tags=["search"])
 app.include_router(teams.router, prefix=f"{settings.API_V1_STR}/teams", tags=["teams"])
 app.include_router(notifications.router, prefix=f"{settings.API_V1_STR}/notifications", tags=["notifications"])
+app.include_router(comments.router, prefix=f"{settings.API_V1_STR}/comments", tags=["comments"])
 
 # Admin Features
 app.include_router(form_fields.router, prefix=f"{settings.API_V1_STR}/form-fields", tags=["form-fields"])
