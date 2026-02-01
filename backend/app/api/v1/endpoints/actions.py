@@ -15,6 +15,7 @@ from sqlalchemy import select, func
 from pydantic import BaseModel, Field
 from typing import Optional, List, Literal
 from datetime import date, datetime
+import json
 from app.db import get_db
 from app.models.documents import DocumentType, Clause
 from app.models.enterprise import GeneratedDocument, Deadline
@@ -210,7 +211,7 @@ async def create_contract(
         country_code=request.country_code,
         file_format="pdf",
         file_path=f"pending/{employee_name.replace(' ', '_')}_vertrag.pdf",
-        form_data=str(form_data),  # JSON als String
+        form_data=json.dumps(form_data, ensure_ascii=False),  # Korrektes JSON-Format
     )
 
     db.add(document)

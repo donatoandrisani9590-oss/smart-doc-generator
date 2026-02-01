@@ -309,21 +309,23 @@ const FIELD_LABELS: Record<string, string> = {
 // =============================================================================
 
 const PATTERNS = {
-  // Namen: "Max Müller", "Hans-Peter Schmidt", "Maria von Trapp"
+  // Namen: "Max Müller", "Hans-Peter Schmidt", "Maria von Trapp", "O'Connor", "José García"
   // Matcht: für/name/mitarbeiter + optionales Herr/Frau + Vorname + Nachname
+  // Unterstützt: Apostrophe, Akzente (é, á, ç, ñ), Bindestriche, Adelstitel
   // Stoppt bei: Komma, "als", "mit", Zahl, @, oder Ende
-  fullName: /(?:für|name|mitarbeiter)\s*:?\s*(?:(?:herr|frau|herrn)\s+)?([A-ZÄÖÜ][a-zäöüß]+(?:-[A-ZÄÖÜ]?[a-zäöüß]+)?(?:\s+(?:von|van|de|der|zu))?\s+[A-ZÄÖÜ][a-zäöüß]+)(?:\s*(?:,|als|mit|in\s+der|ab\s+|\d|@)|$)/i,
+  fullName: /(?:für|name|mitarbeiter)\s*:?\s*(?:(?:herr|frau|herrn)\s+)?([A-ZÄÖÜÉÈÊËÁÀÂÃÅÇÑa-zäöüßéèêëáàâãåçñ][a-zäöüßéèêëáàâãåçñ']+(?:-[A-ZÄÖÜÉÈÊËÁÀÂÃÅÇÑa-zäöüßéèêëáàâãåçñ]?[a-zäöüßéèêëáàâãåçñ']+)*(?:\s+(?:von|van|de|der|zu|da|di|del|della))?\s+[A-ZÄÖÜÉÈÊËÁÀÂÃÅÇÑa-zäöüßéèêëáàâãåçñ][a-zäöüßéèêëáàâãåçñ']+(?:-[A-ZÄÖÜÉÈÊËÁÀÂÃÅÇÑa-zäöüßéèêëáàâãåçñ]?[a-zäöüßéèêëáàâãåçñ']+)*)(?:\s*(?:,|als|mit|in\s+der|ab\s+|\d|@)|$)/i,
 
-  // Herr/Frau Präfix separat für bessere Erkennung
-  nameWithTitle: /(?:herr|frau|herrn)\s+([A-ZÄÖÜ][a-zäöüß]+(?:-[A-ZÄÖÜ]?[a-zäöüß]+)?(?:\s+(?:von|van|de|der|zu))?\s+[A-ZÄÖÜ][a-zäöüß]+)/i,
+  // Herr/Frau Präfix separat für bessere Erkennung (mit erweiterten Zeichen)
+  nameWithTitle: /(?:herr|frau|herrn)\s+([A-ZÄÖÜÉÈÊËÁÀÂÃÅÇÑa-zäöüßéèêëáàâãåçñ][a-zäöüßéèêëáàâãåçñ']+(?:-[A-ZÄÖÜÉÈÊËÁÀÂÃÅÇÑa-zäöüßéèêëáàâãåçñ]?[a-zäöüßéèêëáàâãåçñ']+)*(?:\s+(?:von|van|de|der|zu|da|di|del|della))?\s+[A-ZÄÖÜÉÈÊËÁÀÂÃÅÇÑa-zäöüßéèêëáàâãåçñ][a-zäöüßéèêëáàâãåçñ']+(?:-[A-ZÄÖÜÉÈÊËÁÀÂÃÅÇÑa-zäöüßéèêëáàâãåçñ]?[a-zäöüßéèêëáàâãåçñ']+)*)/i,
 
   // Vorname/Nachname separat
   firstName: /(?:vorname|first\s*name)\s*:?\s*([A-ZÄÖÜ][a-zäöüß]+)/i,
   lastName: /(?:nachname|last\s*name|familienname)\s*:?\s*([A-ZÄÖÜ][a-zäöüß]+)/i,
 
-  // Gehalt: "5000€", "5.000 Euro", "4500 EUR", "3,5k", "3.5k"
-  // Verbessert: k-Notation und Tausender-Trennzeichen
+  // Gehalt: "5000€", "5.000 Euro", "4500 EUR", "3,5k", "3.5k", "5000 €" (mit Leerzeichen)
+  // Verbessert: k-Notation, Tausender-Trennzeichen, optionales Leerzeichen vor Währung
   salary: /(\d{1,3}(?:[.,]\d{3})*|\d+[.,]?\d*)\s*(?:€|euro|eur|k)(?:\s|,|$)/i,
+  salaryWithSpace: /(\d{1,3}(?:[.,]\d{3})*|\d+[.,]?\d*)\s+(?:€|euro|eur)(?:\s|,|$)/i,
   salaryK: /(\d+[.,]?\d*)\s*k(?:\s|,|$)/i,
 
   // Position: "als Manager", "Position: Entwickler"
@@ -334,8 +336,9 @@ const PATTERNS = {
   // Abteilung - verbessert für "in der Abteilung X" und "Abteilung: X"
   department: /(?:in\s+der\s+)?(?:abteilung|department|bereich)\s*:?\s*([A-ZÄÖÜa-zäöüß][\w\s-]{1,25}?)(?=\s*(?:,|\.|$|\d))/i,
 
-  // Startdatum: "ab 01.03.2024", "ab dem 01.03.2024", "Start: März 2024"
-  startDate: /(?:ab(?:\s+dem)?|start|beginn|von|seit|zum)\s*:?\s*(\d{1,2}[./]\d{1,2}[./]\d{2,4}|\d{1,2}\.\s*(?:januar|februar|märz|april|mai|juni|juli|august|september|oktober|november|dezember)\s*\d{4})/i,
+  // Startdatum: "ab 01.03.2024", "ab dem 01.03.2024", "Start: März 2024", "01-03-2024"
+  // Unterstützt: Punkt, Schrägstrich, Bindestrich als Trennzeichen
+  startDate: /(?:ab(?:\s+dem)?|start|beginn|von|seit|zum)\s*:?\s*(\d{1,2}[./-]\d{1,2}[./-]\d{2,4}|\d{1,2}\.\s*(?:januar|februar|m[aä]rz|april|mai|juni|juli|august|september|oktober|november|dezember)\s*\d{4})/i,
 
   // Relative Datumsangaben: "nächsten Montag", "in 2 Wochen", "ab sofort"
   relativeDateKeywords: /(?:ab\s+)?(?:sofort|nächste[rn]?\s+(?:montag|dienstag|mittwoch|donnerstag|freitag|monat|woche)|in\s+\d+\s+(?:tagen?|wochen?|monaten?))/i,
@@ -367,8 +370,9 @@ const PATTERNS = {
   // NEUE PATTERNS FÜR ERWEITERTE HR-DOKUMENTE
   // ==========================================================================
 
-  // Enddatum: "bis 31.12.2024", "Ende: 30.06.2025", "befristet bis"
-  endDate: /(?:bis(?:\s+zum)?|ende|endet|befristet\s+bis|auslaufen)\s*:?\s*(\d{1,2}[./]\d{1,2}[./]\d{2,4}|\d{1,2}\.\s*(?:januar|februar|märz|april|mai|juni|juli|august|september|oktober|november|dezember)\s*\d{4})/i,
+  // Enddatum: "bis 31.12.2024", "Ende: 30.06.2025", "befristet bis", "31-12-2024"
+  // Unterstützt: Punkt, Schrägstrich, Bindestrich als Trennzeichen
+  endDate: /(?:bis(?:\s+zum)?|ende|endet|befristet\s+bis|auslaufen)\s*:?\s*(\d{1,2}[./-]\d{1,2}[./-]\d{2,4}|\d{1,2}\.\s*(?:januar|februar|m[aä]rz|april|mai|juni|juli|august|september|oktober|november|dezember)\s*\d{4})/i,
 
   // Kündigungsfrist: "mit einer Frist von 4 Wochen", "Kündigungsfrist 3 Monate"
   noticePeriod: /(?:kündigungsfrist|frist\s+von)\s*:?\s*(\d+)\s*(wochen?|monate?|tage?)/i,
@@ -414,6 +418,33 @@ const PATTERNS = {
 // =============================================================================
 // Helper Functions
 // =============================================================================
+
+/**
+ * Sanitiert einen String gegen XSS-Angriffe
+ * Entfernt HTML-Tags und gefährliche Zeichen
+ * @public - Exportiert für Nutzung in anderen Modulen
+ */
+export function sanitizeInput(text: string): string {
+  if (!text) return '';
+  return text
+    // HTML-Tags entfernen
+    .replace(/<[^>]*>/g, '')
+    // Script-Injections verhindern
+    .replace(/javascript:/gi, '')
+    .replace(/on\w+=/gi, '')
+    // Gefährliche Zeichen escapen
+    .replace(/[<>"'`]/g, (char) => {
+      const escapeMap: Record<string, string> = {
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#x27;',
+        '`': '&#x60;',
+      };
+      return escapeMap[char] || char;
+    })
+    .trim();
+}
 
 /**
  * Normalisiert einen String für besseres Matching
@@ -789,28 +820,29 @@ export function parseIntent(message: string): ParsedIntent {
   if (fullName) {
     // Entferne "Herr/Frau/Mitarbeiter" Präfix falls vorhanden
     fullName = fullName.replace(/^(?:herr|frau|herrn|mitarbeiter)\s+/i, '').trim();
-    extractedData.full_name = fullName;
+    // XSS-Sanitization für alle extrahierten Namen
+    extractedData.full_name = sanitizeInput(fullName);
 
     // Versuche zu splitten (beachte "von", "van" etc.)
-    const vonMatch = fullName.match(/^(.+?)\s+(von|van|de|der|zu)\s+(.+)$/i);
+    const vonMatch = fullName.match(/^(.+?)\s+(von|van|de|der|zu|da|di|del|della)\s+(.+)$/i);
     if (vonMatch) {
-      extractedData.first_name = vonMatch[1];
-      extractedData.last_name = `${vonMatch[2]} ${vonMatch[3]}`;
+      extractedData.first_name = sanitizeInput(vonMatch[1]);
+      extractedData.last_name = sanitizeInput(`${vonMatch[2]} ${vonMatch[3]}`);
     } else {
       const nameParts = fullName.split(/\s+/);
       if (nameParts.length >= 2) {
-        extractedData.first_name = nameParts[0];
-        extractedData.last_name = nameParts.slice(1).join(' ');
+        extractedData.first_name = sanitizeInput(nameParts[0]);
+        extractedData.last_name = sanitizeInput(nameParts.slice(1).join(' '));
       }
     }
   } else {
     const firstName = extractWithPattern(message, PATTERNS.firstName);
     const lastName = extractWithPattern(message, PATTERNS.lastName);
-    if (firstName) extractedData.first_name = firstName;
-    if (lastName) extractedData.last_name = lastName;
+    if (firstName) extractedData.first_name = sanitizeInput(firstName);
+    if (lastName) extractedData.last_name = sanitizeInput(lastName);
   }
 
-  // Gehalt - prüfe zuerst Jahresgehalt, dann k-Notation, dann normal
+  // Gehalt - prüfe zuerst Jahresgehalt, dann k-Notation, dann normal (mit/ohne Leerzeichen)
   const yearlySalaryStr = extractWithPattern(message, PATTERNS.yearlySalary);
   if (yearlySalaryStr) {
     const isK = /k/i.test(yearlySalaryStr);
@@ -825,7 +857,9 @@ export function parseIntent(message: string): ParsedIntent {
       const salary = parseSalary(salaryKStr, true, false);
       if (salary) extractedData.salary = salary;
     } else {
-      const salaryStr = extractWithPattern(message, PATTERNS.salary);
+      // Versuche beide Patterns: mit und ohne Leerzeichen vor €
+      const salaryStr = extractWithPattern(message, PATTERNS.salary)
+        || extractWithPattern(message, PATTERNS.salaryWithSpace);
       if (salaryStr) {
         const salary = parseSalary(salaryStr, false, false);
         if (salary) extractedData.salary = salary;
@@ -833,18 +867,18 @@ export function parseIntent(message: string): ParsedIntent {
     }
   }
 
-  // Position - prüfe "als X" Pattern zuerst (häufiger)
+  // Position - prüfe "als X" Pattern zuerst (häufiger) - mit XSS-Sanitization
   const positionAls = extractWithPattern(message, PATTERNS.positionAls);
   if (positionAls) {
-    extractedData.position = positionAls.trim();
+    extractedData.position = sanitizeInput(positionAls.trim());
   } else {
     const position = extractWithPattern(message, PATTERNS.position);
-    if (position) extractedData.position = position.trim();
+    if (position) extractedData.position = sanitizeInput(position.trim());
   }
 
-  // Abteilung
+  // Abteilung - mit XSS-Sanitization
   const department = extractWithPattern(message, PATTERNS.department);
-  if (department) extractedData.department = department.trim();
+  if (department) extractedData.department = sanitizeInput(department.trim());
 
   // Startdatum - zuerst konkret, dann relativ
   const startDate = extractWithPattern(message, PATTERNS.startDate);
@@ -882,15 +916,15 @@ export function parseIntent(message: string): ParsedIntent {
   const phone = extractWithPattern(message, PATTERNS.phone);
   if (phone) extractedData.phone = phone.replace(/\s+/g, '');
 
-  // Adresse
+  // Adresse - mit XSS-Sanitization
   const street = extractWithPattern(message, PATTERNS.street);
-  if (street) extractedData.street = street;
+  if (street) extractedData.street = sanitizeInput(street);
 
   const postalCode = extractWithPattern(message, PATTERNS.postalCode);
-  if (postalCode) extractedData.postal_code = postalCode;
+  if (postalCode) extractedData.postal_code = postalCode; // Nur Zahlen, kein Sanitizing nötig
 
   const city = extractWithPattern(message, PATTERNS.city);
-  if (city) extractedData.city = city;
+  if (city) extractedData.city = sanitizeInput(city);
 
   // ==========================================================================
   // ERWEITERTE FELDER FÜR HR-DOKUMENTE
@@ -907,9 +941,9 @@ export function parseIntent(message: string): ParsedIntent {
     extractedData.employment_end = periodMatch[2];
   }
 
-  // Arbeitsort
+  // Arbeitsort - mit XSS-Sanitization
   const workLocation = extractWithPattern(message, PATTERNS.workLocation);
-  if (workLocation) extractedData.work_location = workLocation;
+  if (workLocation) extractedData.work_location = sanitizeInput(workLocation);
 
   // Kündigungsfrist
   const noticePeriodMatch = message.match(PATTERNS.noticePeriod);
@@ -940,9 +974,9 @@ export function parseIntent(message: string): ParsedIntent {
   const incidentDate = extractWithPattern(message, PATTERNS.incidentDate);
   if (incidentDate) extractedData.incident_date = incidentDate;
 
-  // Vorfall-Beschreibung (Abmahnung)
+  // Vorfall-Beschreibung (Abmahnung) - mit XSS-Sanitization
   const incidentReason = extractWithPattern(message, PATTERNS.incidentReason);
-  if (incidentReason) extractedData.incident_description = incidentReason.trim();
+  if (incidentReason) extractedData.incident_description = sanitizeInput(incidentReason.trim());
 
   // Original-Vertragsdatum (Nachträge)
   const originalContractDate = extractWithPattern(message, PATTERNS.originalContractDate);
@@ -959,11 +993,11 @@ export function parseIntent(message: string): ParsedIntent {
     if (hours) extractedData.overtime_hours = parseInt(hours);
   }
 
-  // Fortbildung (Pattern hat 2 Gruppen, prüfe beide)
+  // Fortbildung (Pattern hat 2 Gruppen, prüfe beide) - mit XSS-Sanitization
   const trainingMatch = message.match(PATTERNS.trainingDescription);
   if (trainingMatch) {
     const trainingDesc = trainingMatch[1] || trainingMatch[2];
-    if (trainingDesc) extractedData.training_description = trainingDesc.trim();
+    if (trainingDesc) extractedData.training_description = sanitizeInput(trainingDesc.trim());
   }
 
   // Freistellungsart
@@ -1124,16 +1158,25 @@ export function getAutocompleteSuggestions(partialInput: string): string[] {
  */
 export function validateExtractedData(
   data: Record<string, string | number>,
-  _documentType?: string | null
+  documentType?: string | null
 ): { valid: boolean; warnings: string[] } {
   const warnings: string[] = [];
 
-  // Gehalt-Validierung
+  // Minijob-Erkennung für spezielle Validierungsregeln
+  const isMinijob = documentType?.toLowerCase().includes('minijob') ||
+    documentType?.toLowerCase().includes('geringfügig');
+
+  // Gehalt-Validierung (mit Minijob-Ausnahme)
   if (typeof data.salary === 'number') {
-    if (data.salary < 500) {
+    // Minijobs haben niedrigere Gehälter - das ist normal
+    if (data.salary < 500 && !isMinijob) {
       warnings.push('Gehalt erscheint sehr niedrig. Meinten Sie ein Jahresgehalt?');
     }
-    if (data.salary > 50000) {
+    // Bei Minijobs max 520€ (Stand 2024)
+    if (isMinijob && data.salary > 520) {
+      warnings.push('Minijob-Gehalt überschreitet die 520€-Grenze');
+    }
+    if (data.salary > 50000 && !isMinijob) {
       warnings.push('Gehalt erscheint sehr hoch. Ist das ein Monatsgehalt?');
     }
   }

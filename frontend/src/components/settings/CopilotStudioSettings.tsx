@@ -142,6 +142,17 @@ export const CopilotStudioSettings = () => {
     response_time_ms?: number;
   } | null>(null);
 
+  // Delete Confirmation Dialog
+  const [deleteConfirmDialog, setDeleteConfirmDialog] = useState<{
+    open: boolean;
+    webhookId: number | null;
+    webhookUrl: string;
+  }>({ open: false, webhookId: null, webhookUrl: "" });
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // URL Validation
+  const [urlError, setUrlError] = useState<string | null>(null);
+
   // ═══════════════════════════════════════════════════════════════════════════
   // Load Data
   // ═══════════════════════════════════════════════════════════════════════════
@@ -192,8 +203,17 @@ export const CopilotStudioSettings = () => {
     try {
       await api.put("/api/v1/copilot-studio/config", config);
       toast.success("Gespeichert", "Copilot Studio Einstellungen wurden gespeichert");
-    } catch (error) {
-      toast.error("Fehler", "Einstellungen konnten nicht gespeichert werden");
+    } catch (error: unknown) {
+      // Detailliertere Fehlermeldung
+      let errorDetail = "Bitte prüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.";
+      if (error instanceof Error) {
+        if (error.message.includes("401") || error.message.includes("403")) {
+          errorDetail = "Sie haben keine Berechtigung für diese Aktion. Bitte melden Sie sich erneut an.";
+        } else if (error.message.includes("network") || error.message.includes("Network")) {
+          errorDetail = "Netzwerkfehler: Server ist nicht erreichbar.";
+        }
+      }
+      toast.error("Speichern fehlgeschlagen", errorDetail);
     } finally {
       setIsSaving(false);
     }
@@ -215,10 +235,16 @@ export const CopilotStudioSettings = () => {
             }
           : prev
       );
-      toast.success("API-Schlüssel generiert", "Kopieren Sie den Schlüssel jetzt - er wird nur einmal angezeigt!");
+      toast.success("API-Schlüssel generiert", "Kopieren Sie den Schlüssel jetzt - er wird nur einmal vollständig angezeigt!");
       setShowApiKey(true);
-    } catch (error) {
-      toast.error("Fehler", "API-Schlüssel konnte nicht generiert werden");
+    } catch (error: unknown) {
+      let errorDetail = "Bitte versuchen Sie es erneut.";
+      if (error instanceof Error) {
+        if (error.message.includes("401") || error.message.includes("403")) {
+          errorDetail = "Keine Berechtigung. Nur Administratoren können API-Schlüssel generieren.";
+        }
+      }
+      toast.error("API-Schlüssel Fehler", errorDetail);
     }
   };
 
@@ -239,12 +265,48 @@ export const CopilotStudioSettings = () => {
   // Webhook Management
   // ═══════════════════════════════════════════════════════════════════════════
 
+  /**
+   * Validiert eine URL auf Gültigkeit und Sicherheit
+   */
+  const validateWebhookUrl = (url: string): string | null => {
+    if (!url || url.trim() === "") {
+      return "URL ist erforderlich";
+    }
+
+    // Prüfe auf gefährliche Protokolle (XSS-Schutz)
+    const dangerousProtocols = /^(javascript|data|vbscript|file):/i;
+    if (dangerousProtocols.test(url.trim())) {
+      return "Ungültiges URL-Protokoll. Nur HTTPS-URLs sind erlaubt.";
+    }
+
+    // Prüfe auf gültiges URL-Format
+    try {
+      const parsedUrl = new URL(url);
+      // Nur HTTPS erlauben (außer localhost für Dev)
+      if (parsedUrl.protocol !== "https:" && !parsedUrl.hostname.includes("localhost")) {
+        return "Nur HTTPS-URLs sind aus Sicherheitsgründen erlaubt";
+      }
+      return null; // Gültig
+    } catch {
+      return "Ungültiges URL-Format. Bitte eine vollständige URL eingeben (z.B. https://...)";
+    }
+  };
+
   const handleCreateWebhook = async () => {
-    if (!newWebhook.url || newWebhook.events.length === 0) {
-      toast.error("Fehler", "Bitte URL und mindestens ein Event angeben");
+    // URL-Validierung
+    const urlValidationError = validateWebhookUrl(newWebhook.url);
+    if (urlValidationError) {
+      setUrlError(urlValidationError);
+      toast.error("Ungültige URL", urlValidationError);
       return;
     }
 
+    if (newWebhook.events.length === 0) {
+      toast.error("Fehler", "Bitte mindestens ein Event auswählen");
+      return;
+    }
+
+    setUrlError(null);
     setIsCreatingWebhook(true);
     try {
       const res = await api.post<WebhookSubscription>("/api/v1/webhooks/subscribe", {
@@ -256,23 +318,46 @@ export const CopilotStudioSettings = () => {
       setWebhooks((prev) => [res.data, ...prev]);
       setShowNewWebhookDialog(false);
       setNewWebhook({ url: "", events: [], description: "", secret: "" });
-      toast.success("Webhook erstellt", "Webhook-Subscription wurde erstellt");
-    } catch (error) {
-      toast.error("Fehler", "Webhook konnte nicht erstellt werden");
+      toast.success("Webhook erstellt", "Webhook-Subscription wurde erfolgreich erstellt. Testen Sie die Verbindung mit dem Play-Button.");
+    } catch (error: unknown) {
+      let errorDetail = "Bitte überprüfen Sie die eingegebenen Daten.";
+      if (error instanceof Error) {
+        if (error.message.includes("400")) {
+          errorDetail = "Ungültige Daten. Bitte prüfen Sie URL und Events.";
+        } else if (error.message.includes("409")) {
+          errorDetail = "Ein Webhook mit dieser URL existiert bereits.";
+        }
+      }
+      toast.error("Webhook Fehler", errorDetail);
     } finally {
       setIsCreatingWebhook(false);
     }
   };
 
-  const handleDeleteWebhook = async (id: number) => {
-    if (!confirm("Webhook wirklich löschen?")) return;
+  const handleDeleteWebhookClick = (webhook: WebhookSubscription) => {
+    // Custom Confirm Dialog öffnen statt native confirm()
+    setDeleteConfirmDialog({
+      open: true,
+      webhookId: webhook.id,
+      webhookUrl: webhook.url,
+    });
+  };
 
+  const handleDeleteWebhookConfirm = async () => {
+    if (!deleteConfirmDialog.webhookId) return;
+
+    setIsDeleting(true);
     try {
-      await api.delete(`/api/v1/webhooks/subscriptions/${id}`);
-      setWebhooks((prev) => prev.filter((w) => w.id !== id));
-      toast.success("Gelöscht", "Webhook wurde gelöscht");
-    } catch (error) {
-      toast.error("Fehler", "Webhook konnte nicht gelöscht werden");
+      await api.delete(`/api/v1/webhooks/subscriptions/${deleteConfirmDialog.webhookId}`);
+      setWebhooks((prev) => prev.filter((w) => w.id !== deleteConfirmDialog.webhookId));
+      toast.success("Gelöscht", "Webhook wurde erfolgreich gelöscht");
+      setDeleteConfirmDialog({ open: false, webhookId: null, webhookUrl: "" });
+    } catch (error: unknown) {
+      // Detailliertere Fehlermeldung
+      const errorMessage = error instanceof Error ? error.message : "Unbekannter Fehler";
+      toast.error("Löschen fehlgeschlagen", `Der Webhook konnte nicht gelöscht werden: ${errorMessage}`);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -559,7 +644,7 @@ export const CopilotStudioSettings = () => {
                               <Play className="w-4 h-4" />
                             )}
                           </Button>
-                          <Button variant="ghost" size="icon" onClick={() => handleDeleteWebhook(webhook.id)}>
+                          <Button variant="ghost" size="icon" onClick={() => handleDeleteWebhookClick(webhook)}>
                             <Trash2 className="w-4 h-4" />
                           </Button>
                         </div>
@@ -614,6 +699,47 @@ export const CopilotStudioSettings = () => {
           </>
         )}
 
+        {/* Delete Confirmation Dialog (Accessible Custom Dialog) */}
+        <Dialog open={deleteConfirmDialog.open} onOpenChange={(open) => !open && setDeleteConfirmDialog({ open: false, webhookId: null, webhookUrl: "" })}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-red-600">
+                <Trash2 className="w-5 h-5" />
+                Webhook löschen?
+              </DialogTitle>
+              <DialogDescription>
+                Diese Aktion kann nicht rückgängig gemacht werden. Der folgende Webhook wird dauerhaft gelöscht:
+              </DialogDescription>
+            </DialogHeader>
+            <div className="py-4">
+              <div className="p-3 bg-muted rounded-lg">
+                <p className="text-sm font-mono break-all">{deleteConfirmDialog.webhookUrl}</p>
+              </div>
+              <p className="text-sm text-muted-foreground mt-2">
+                Power Automate Flows, die diesen Webhook verwenden, werden keine Benachrichtigungen mehr erhalten.
+              </p>
+            </div>
+            <DialogFooter className="gap-2 sm:gap-0">
+              <Button
+                variant="outline"
+                onClick={() => setDeleteConfirmDialog({ open: false, webhookId: null, webhookUrl: "" })}
+                disabled={isDeleting}
+              >
+                Abbrechen
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleDeleteWebhookConfirm}
+                disabled={isDeleting}
+                className="gap-2"
+              >
+                {isDeleting && <Loader2 className="w-4 h-4 animate-spin" />}
+                Endgültig löschen
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
         {/* New Webhook Dialog */}
         <Dialog open={showNewWebhookDialog} onOpenChange={setShowNewWebhookDialog}>
           <DialogContent className="sm:max-w-lg">
@@ -630,8 +756,23 @@ export const CopilotStudioSettings = () => {
                 <Input
                   placeholder="https://prod-123.westeurope.logic.azure.com/workflows/..."
                   value={newWebhook.url}
-                  onChange={(e) => setNewWebhook((prev) => ({ ...prev, url: e.target.value }))}
+                  onChange={(e) => {
+                    setNewWebhook((prev) => ({ ...prev, url: e.target.value }));
+                    // Live-Validierung bei Eingabe
+                    if (e.target.value) {
+                      setUrlError(validateWebhookUrl(e.target.value));
+                    } else {
+                      setUrlError(null);
+                    }
+                  }}
+                  className={urlError ? "border-red-500" : ""}
                 />
+                {urlError && (
+                  <p className="text-xs text-red-500 flex items-center gap-1">
+                    <XCircle className="w-3 h-3" />
+                    {urlError}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
