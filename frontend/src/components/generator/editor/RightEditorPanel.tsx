@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/popover";
 import { DocumentEditor } from "@/components/editor/DocumentEditor";
 import { useWizardContext } from "../WizardContext";
+import { WorkflowStepper } from "../WorkflowStepper";
 
 export const RightEditorPanel = () => {
     const { state, actions } = useWizardContext();
@@ -79,6 +80,9 @@ export const RightEditorPanel = () => {
 
     return (
         <div className="h-full flex flex-col">
+            {/* Workflow Stepper - zeigt Dokumenten-Lifecycle */}
+            <WorkflowStepper />
+
             {/* Toolbar */}
             <div className="flex items-center justify-between p-2 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
                 <div className="flex items-center gap-2">

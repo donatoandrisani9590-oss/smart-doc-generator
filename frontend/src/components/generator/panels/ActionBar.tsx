@@ -16,6 +16,7 @@ import { Save, FileText, FileType2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useWizardContext } from "../WizardContext";
 import { ValidationProgress, type ValidationState, type ValidationIssue } from "../ValidationProgress";
+import { ExportSuccessModal } from "../ExportSuccessModal";
 
 // Pflichtfelder Definition
 const REQUIRED_FIELDS = [
@@ -34,6 +35,10 @@ export const ActionBar = () => {
     const [isSavingDraft, setIsSavingDraft] = useState(false);
     const [isExportingPdf, setIsExportingPdf] = useState(false);
     const [isExportingDocx, setIsExportingDocx] = useState(false);
+
+    // Export Success Modal state
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [lastExportFormat, setLastExportFormat] = useState<"pdf" | "docx">("pdf");
 
     // Berechne Validierungs-State für die Ampel
     const validationState: ValidationState = useMemo(() => {
@@ -110,6 +115,8 @@ export const ActionBar = () => {
         setIsExportingPdf(true);
         try {
             await actions.exportDocument("pdf");
+            setLastExportFormat("pdf");
+            setShowSuccessModal(true);
         } finally {
             setIsExportingPdf(false);
         }
@@ -121,8 +128,20 @@ export const ActionBar = () => {
         setIsExportingDocx(true);
         try {
             await actions.exportDocument("docx");
+            setLastExportFormat("docx");
+            setShowSuccessModal(true);
         } finally {
             setIsExportingDocx(false);
+        }
+    };
+
+    // Download Again from Modal
+    const handleDownloadAgain = async (format: "pdf" | "docx") => {
+        setShowSuccessModal(false);
+        if (format === "pdf") {
+            await handleExportPdf();
+        } else {
+            await handleExportDocx();
         }
     };
 
@@ -193,6 +212,16 @@ export const ActionBar = () => {
                     Bitte wählen Sie einen Dokumenttyp.
                 </p>
             )}
+
+            {/* Export Success Modal - Magic Moment! */}
+            <ExportSuccessModal
+                isOpen={showSuccessModal}
+                onClose={() => setShowSuccessModal(false)}
+                documentTitle={documentTitle}
+                exportFormat={lastExportFormat}
+                onDownloadAgain={handleDownloadAgain}
+                documentsThisMonth={1} // TODO: Aus Backend laden
+            />
         </div>
     );
 };

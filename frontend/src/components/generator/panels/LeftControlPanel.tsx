@@ -28,6 +28,7 @@ import { FormFieldsSection } from "./FormFieldsSection";
 import { ClauseSelectionSection } from "./ClauseSelectionSection";
 import { ActionBar } from "./ActionBar";
 import { AttachmentSelector } from "../AttachmentSelector";
+import { DocumentStatusBadge, useDocumentStatus } from "@/components/documents/DocumentStatusBadge";
 
 interface DocumentType {
     id: number;
@@ -52,13 +53,24 @@ export const LeftControlPanel = ({ documentTypes }: LeftControlPanelProps) => {
     const enabledClausesCount = documentClauses.filter(c => c.is_enabled).length;
     const totalClausesCount = documentClauses.length;
 
+    // Berechne Dokumentstatus für Badge
+    const documentStatus = useDocumentStatus({
+        documentTypeId,
+        formData: state.formData,
+        documentTitle,
+        hasExported: false, // TODO: Aus state lesen wenn implementiert
+    });
+
     return (
         <div className="h-full flex flex-col overflow-hidden">
             {/* Header mit Dokumenttitel */}
             <div className="p-3 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shrink-0">
-                <div className="flex items-center gap-2 mb-2">
-                    <FileText className="w-4 h-4 text-primary shrink-0" />
-                    <span className="text-xs font-medium text-muted-foreground truncate">{documentTypeName}</span>
+                <div className="flex items-center justify-between gap-2 mb-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                        <FileText className="w-4 h-4 text-primary shrink-0" />
+                        <span className="text-xs font-medium text-muted-foreground truncate">{documentTypeName}</span>
+                    </div>
+                    <DocumentStatusBadge status={documentStatus} size="sm" />
                 </div>
                 <Input
                     value={documentTitle}
