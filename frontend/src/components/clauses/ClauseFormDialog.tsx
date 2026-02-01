@@ -9,9 +9,12 @@
  * - Land-Auswahl (DE/IT)
  * - Live-Vorschau
  * - Validierung vor Speicherung
+ * - Warnung bei ungespeicherten Änderungen (QA Fix)
+ *
+ * v2.0: UX-Verbesserungen für Release
  */
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import {
     Dialog,
     DialogContent,
@@ -20,6 +23,16 @@ import {
     DialogDescription,
     DialogFooter,
 } from "@/components/ui/dialog";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -56,6 +69,7 @@ import {
     X,
     Info,
     Lightbulb,
+    AlertTriangle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -116,6 +130,46 @@ export const ClauseFormDialog = ({
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [touched, setTouched] = useState<Record<string, boolean>>({});
 
+    // ═══════════════════════════════════════════════════════════════════════════
+    // UNSAVED CHANGES TRACKING (QA Critical Fix)
+    // ═══════════════════════════════════════════════════════════════════════════
+    const [showDiscardDialog, setShowDiscardDialog] = useState(false);
+    const initialValuesRef = useRef<{
+        title: string;
+        category: string;
+        content: string;
+    } | null>(null);
+
+    // Track if user has made changes
+    const hasUnsavedChanges = useCallback(() => {
+        if (!initialValuesRef.current) return false;
+        return (
+            title !== initialValuesRef.current.title ||
+            category !== initialValuesRef.current.category ||
+            content !== initialValuesRef.current.content
+        );
+    }, [title, category, content]);
+
+    // Handle close attempt with unsaved changes
+    const handleCloseAttempt = useCallback((shouldClose: boolean) => {
+        if (!shouldClose) {
+            // Dialog is being closed
+            if (hasUnsavedChanges()) {
+                setShowDiscardDialog(true);
+            } else {
+                onOpenChange(false);
+            }
+        } else {
+            onOpenChange(true);
+        }
+    }, [hasUnsavedChanges, onOpenChange]);
+
+    // Confirm discard
+    const handleConfirmDiscard = useCallback(() => {
+        setShowDiscardDialog(false);
+        onOpenChange(false);
+    }, [onOpenChange]);
+
     // API Hooks
     const createMutation = useCreateClause();
     const updateMutation = useUpdateClause();
@@ -130,6 +184,12 @@ export const ClauseFormDialog = ({
             setContent(editClause.content || "");
             setIsActive(editClause.is_active);
             setCurrentStep("content"); // Skip to content in edit mode
+            // Store initial values for change detection
+            initialValuesRef.current = {
+                title: editClause.title || "",
+                category: editClause.category || "",
+                content: editClause.content || "",
+            };
         } else {
             // Reset form for new clause
             setTitle("");
@@ -141,6 +201,12 @@ export const ClauseFormDialog = ({
             setCurrentStep("basics");
             setErrors({});
             setTouched({});
+            // Store initial values (empty)
+            initialValuesRef.current = {
+                title: "",
+                category: "",
+                content: "",
+            };
         }
     }, [editClause, defaultCountryCode, open]);
 
@@ -616,28 +682,29 @@ export const ClauseFormDialog = ({
     };
 
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2 text-xl">
-                        {isEditMode ? (
-                            <>
-                                <FileText className="w-5 h-5 text-primary" />
-                                Klausel bearbeiten
-                            </>
-                        ) : (
-                            <>
-                                <Sparkles className="w-5 h-5 text-primary" />
-                                Neue Klausel erstellen
-                            </>
-                        )}
-                    </DialogTitle>
-                    <DialogDescription>
-                        {isEditMode
-                            ? "Bearbeiten Sie die Klauseldetails und den Inhalt"
-                            : "Erstellen Sie eine neue wiederverwendbare Klausel für Ihre Dokumente"}
-                    </DialogDescription>
-                </DialogHeader>
+        <>
+            <Dialog open={open} onOpenChange={handleCloseAttempt}>
+                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2 text-xl">
+                            {isEditMode ? (
+                                <>
+                                    <FileText className="w-5 h-5 text-primary" />
+                                    Textbaustein bearbeiten
+                                </>
+                            ) : (
+                                <>
+                                    <Sparkles className="w-5 h-5 text-primary" />
+                                    Neuen Textbaustein erstellen
+                                </>
+                            )}
+                        </DialogTitle>
+                        <DialogDescription>
+                            {isEditMode
+                                ? "Bearbeiten Sie den Textbaustein und seinen Inhalt"
+                                : "Erstellen Sie einen neuen wiederverwendbaren Textbaustein für Ihre Dokumente"}
+                        </DialogDescription>
+                    </DialogHeader>
 
                 {!isEditMode && renderStepIndicator()}
 
@@ -651,7 +718,7 @@ export const ClauseFormDialog = ({
                     {/* Cancel */}
                     <Button
                         variant="ghost"
-                        onClick={() => onOpenChange(false)}
+                        onClick={() => handleCloseAttempt(false)}
                         disabled={isSaving}
                         className="sm:mr-auto"
                     >
@@ -701,5 +768,31 @@ export const ClauseFormDialog = ({
                 </DialogFooter>
             </DialogContent>
         </Dialog>
+
+            {/* Discard Changes Confirmation Dialog */}
+            <AlertDialog open={showDiscardDialog} onOpenChange={setShowDiscardDialog}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle className="flex items-center gap-2">
+                            <AlertTriangle className="w-5 h-5 text-amber-500" />
+                            Ungespeicherte Änderungen
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Sie haben Änderungen vorgenommen, die noch nicht gespeichert wurden.
+                            Wenn Sie fortfahren, gehen diese Änderungen verloren.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Zurück zur Bearbeitung</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={handleConfirmDiscard}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                            Änderungen verwerfen
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+        </>
     );
 };

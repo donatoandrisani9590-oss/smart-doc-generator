@@ -598,10 +598,10 @@ export const ClausesPage = () => {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
                     <h1 className="text-2xl font-bold tracking-tight text-foreground">
-                        Klauselverwaltung
+                        Textbausteine
                     </h1>
                     <p className="text-muted-foreground">
-                        Verwalten Sie die Textbausteine für Ihre Dokumente
+                        Verwalten Sie wiederverwendbare Textblöcke für Ihre Dokumente
                     </p>
                 </div>
                 <div className="flex gap-2">
@@ -639,17 +639,17 @@ export const ClausesPage = () => {
                         onClick={handleCreateClause}
                     >
                         <Plus className="w-4 h-4" />
-                        Neue Klausel
+                        Neuer Textbaustein
                     </Button>
                 </div>
             </div>
 
-            {/* Tabs für Klauseln und Varianten */}
+            {/* Tabs für Textbausteine und Varianten */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList className="grid w-full max-w-md grid-cols-2">
                     <TabsTrigger value="clauses" className="gap-2">
                         <FileText className="w-4 h-4" />
-                        Klauseln
+                        Textbausteine
                     </TabsTrigger>
                     <TabsTrigger value="variants" className="gap-2">
                         <Layers className="w-4 h-4" />
@@ -779,25 +779,67 @@ export const ClausesPage = () => {
                     <Loader2 className="w-8 h-8 animate-spin text-primary" />
                 </div>
             ) : filteredClauses.length === 0 ? (
-                <Card>
-                    <CardContent className="py-12 text-center">
-                        <FileText className="w-12 h-12 mx-auto text-border mb-4" />
-                        <p className="text-lg font-medium text-foreground">
-                            Keine Klauseln gefunden
-                        </p>
-                        <p className="text-muted-foreground mb-4">
-                            {searchQuery || categoryFilter !== "all" || statusFilter !== "all"
-                                ? "Versuchen Sie andere Filterkriterien"
-                                : "Erstellen Sie Ihre erste Klausel"}
-                        </p>
-                        {!searchQuery && categoryFilter === "all" && statusFilter === "all" && (
-                            <Button
-                                onClick={handleCreateClause}
-                                className="bg-primary hover:bg-primary/90"
-                            >
-                                <Plus className="w-4 h-4 mr-2" />
-                                Erste Klausel erstellen
-                            </Button>
+                <Card className="border-dashed">
+                    <CardContent className="py-16 text-center">
+                        {/* Animated Icon */}
+                        <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-primary/5 flex items-center justify-center">
+                            <FileText className="w-10 h-10 text-primary/40" />
+                        </div>
+
+                        {searchQuery || categoryFilter !== "all" || statusFilter !== "all" ? (
+                            // Filter aktiv - keine Ergebnisse
+                            <>
+                                <p className="text-lg font-medium text-foreground mb-2">
+                                    Keine Textbausteine gefunden
+                                </p>
+                                <p className="text-muted-foreground mb-4">
+                                    Versuchen Sie andere Filterkriterien oder erstellen Sie einen neuen Textbaustein.
+                                </p>
+                            </>
+                        ) : (
+                            // Keine Textbausteine vorhanden - Onboarding
+                            <>
+                                <p className="text-xl font-semibold text-foreground mb-2">
+                                    Willkommen bei den Textbausteinen!
+                                </p>
+                                <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                                    Textbausteine sind wiederverwendbare Absätze für Ihre Dokumente.
+                                    Erstellen Sie z.B. Bausteine für <span className="font-medium">„Arbeitszeit"</span>,
+                                    <span className="font-medium"> „Kündigungsfrist"</span> oder
+                                    <span className="font-medium"> „Geheimhaltung"</span>.
+                                </p>
+
+                                {/* Visual Guide */}
+                                <div className="flex justify-center gap-4 mb-6 text-sm text-muted-foreground">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary">1</div>
+                                        <span>Baustein erstellen</span>
+                                    </div>
+                                    <span className="text-border">→</span>
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary">2</div>
+                                        <span>In Vorlage einfügen</span>
+                                    </div>
+                                    <span className="text-border">→</span>
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary">3</div>
+                                        <span>Dokument generieren</span>
+                                    </div>
+                                </div>
+
+                                <Button
+                                    onClick={handleCreateClause}
+                                    size="lg"
+                                    className="bg-primary hover:bg-primary/90"
+                                >
+                                    <Plus className="w-5 h-5 mr-2" />
+                                    Ersten Textbaustein erstellen
+                                </Button>
+
+                                <p className="text-xs text-muted-foreground mt-4">
+                                    💡 Tipp: Sie können auch bestehende Word-Dokumente importieren
+                                </p>
+                            </>
                         )}
                     </CardContent>
                 </Card>
