@@ -13,6 +13,9 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 // API Base URL
 const API_BASE = import.meta.env.VITE_API_URL || "";
 
+// Dev Mode - skip auth validation for local testing
+const DEV_MODE = import.meta.env.DEV && !import.meta.env.VITE_API_URL;
+
 // Types
 export interface User {
   id: number;
@@ -59,6 +62,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Initialize from localStorage
   useEffect(() => {
     const initAuth = async () => {
+      // DEV MODE: Auto-login with mock user for local development
+      if (DEV_MODE) {
+        console.log("[Auth] DEV_MODE enabled - using mock user");
+        const mockUser: User = {
+          id: 1,
+          email: "admin@niederwieser.com",
+          role: "admin",
+          country_code: "DE",
+          is_active: true,
+        };
+        setState({
+          user: mockUser,
+          token: "dev-token",
+          isAuthenticated: true,
+          isLoading: false,
+        });
+        return;
+      }
+
       const storedToken = localStorage.getItem(TOKEN_KEY);
       const storedUser = localStorage.getItem(USER_KEY);
 

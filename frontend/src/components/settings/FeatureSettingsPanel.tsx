@@ -51,7 +51,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { useFeatureSettings, FeatureKey } from "@/hooks/useFeatureSettings";
+import { useFeatureSettings, type FeatureKey } from "@/contexts/FeatureSettingsContext";
 import { toast } from "sonner";
 
 // Icon mapping

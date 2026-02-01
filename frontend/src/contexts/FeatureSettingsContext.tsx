@@ -62,7 +62,7 @@ export type FeatureKey =
   | "compact_sidebar";
 
 // Default settings (all enabled except compact_sidebar)
-const DEFAULT_SETTINGS: Record<FeatureKey, boolean> = {
+export const DEFAULT_SETTINGS: Record<FeatureKey, boolean> = {
   show_documents_overview: true,
   show_deadlines_widget: true,
   show_activity_feed: true,
@@ -80,7 +80,7 @@ const DEFAULT_SETTINGS: Record<FeatureKey, boolean> = {
 // CONTEXT
 // ═══════════════════════════════════════════════════════════════════════════
 
-interface FeatureSettingsContextValue {
+export interface FeatureSettingsContextValue {
   categories: FeatureCategory[];
   settings: Record<string, boolean>;
   isLoading: boolean;
@@ -282,6 +282,4 @@ export function useFeatureEnabled(feature: FeatureKey): boolean {
   return context.isEnabled(feature);
 }
 
-// Re-export types
-export { DEFAULT_SETTINGS };
-export type { FeatureSettingsContextValue };
+// Note: DEFAULT_SETTINGS and FeatureSettingsContextValue are exported above
