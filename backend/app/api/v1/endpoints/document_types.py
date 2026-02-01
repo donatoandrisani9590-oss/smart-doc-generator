@@ -22,6 +22,8 @@ class DuplicateRequest(BaseModel):
     include_clauses: bool = True
     include_attachments: bool = True
     include_form_fields: bool = True
+    include_header_footer: bool = True  # v4.3: Kopf-/Fußzeilen übernehmen
+    include_variant_groups: bool = True  # v4.3: Varianten-Gruppen übernehmen
 
 
 class DuplicateResponse(BaseModel):
@@ -34,12 +36,50 @@ class DuplicateResponse(BaseModel):
     clauses_copied: int
     attachments_copied: int
     form_fields_copied: int
+    variant_groups_copied: int = 0
     # Kopierte Standardwerte
     default_probation_months: Optional[int] = None
     default_notice_period: Optional[str] = None
     default_vacation_days: Optional[int] = None
     default_weekly_hours: Optional[int] = None
+    # Header/Footer Status
+    header_footer_copied: bool = False
     message: str
+
+
+class HeaderFooterSettings(BaseModel):
+    """Individuelle Kopf-/Fußzeilen-Einstellungen für einen Dokumenttyp."""
+    # Kopfzeile
+    custom_header_enabled: bool = False
+    custom_header_line1: Optional[str] = None
+    custom_header_line2: Optional[str] = None
+    custom_header_line3: Optional[str] = None
+    # Fußzeile
+    custom_footer_enabled: bool = False
+    custom_footer_line1: Optional[str] = None
+    custom_footer_line2: Optional[str] = None
+    custom_footer_line3: Optional[str] = None
+    # Logo
+    custom_logo_enabled: bool = False
+    custom_logo_path: Optional[str] = None
+    custom_logo_position: Optional[str] = None  # 'left', 'center', 'right'
+    custom_logo_width_cm: Optional[str] = None
+    # Ränder
+    custom_margin_left_cm: Optional[str] = None
+    custom_margin_right_cm: Optional[str] = None
+    custom_margin_top_cm: Optional[str] = None
+    custom_margin_bottom_cm: Optional[str] = None
+
+
+class CopyFromTemplateRequest(BaseModel):
+    """Request zum Übernehmen von Einstellungen von einer anderen Vorlage."""
+    source_template_id: int
+    copy_header: bool = True
+    copy_footer: bool = True
+    copy_logo: bool = True
+    copy_margins: bool = False
+    copy_clauses: bool = False
+    copy_variant_groups: bool = False
 
 
 @router.get("/", response_model=List[schemas.DocumentType])
@@ -262,7 +302,31 @@ async def duplicate_document_type(
         default_notice_period=original.default_notice_period,
         default_vacation_days=original.default_vacation_days,
         default_weekly_hours=original.default_weekly_hours,
+        # Referenz zur Quell-Vorlage
+        source_template_id=original.id,
     )
+
+    # v4.3: Header/Footer übernehmen wenn gewünscht
+    header_footer_copied = False
+    if duplicate_request.include_header_footer:
+        new_doc_type.custom_header_enabled = original.custom_header_enabled
+        new_doc_type.custom_header_line1 = original.custom_header_line1
+        new_doc_type.custom_header_line2 = original.custom_header_line2
+        new_doc_type.custom_header_line3 = original.custom_header_line3
+        new_doc_type.custom_footer_enabled = original.custom_footer_enabled
+        new_doc_type.custom_footer_line1 = original.custom_footer_line1
+        new_doc_type.custom_footer_line2 = original.custom_footer_line2
+        new_doc_type.custom_footer_line3 = original.custom_footer_line3
+        new_doc_type.custom_logo_enabled = original.custom_logo_enabled
+        new_doc_type.custom_logo_path = original.custom_logo_path
+        new_doc_type.custom_logo_position = original.custom_logo_position
+        new_doc_type.custom_logo_width_cm = original.custom_logo_width_cm
+        new_doc_type.custom_margin_left_cm = original.custom_margin_left_cm
+        new_doc_type.custom_margin_right_cm = original.custom_margin_right_cm
+        new_doc_type.custom_margin_top_cm = original.custom_margin_top_cm
+        new_doc_type.custom_margin_bottom_cm = original.custom_margin_bottom_cm
+        header_footer_copied = True
+
     db.add(new_doc_type)
     await db.commit()
     await db.refresh(new_doc_type)
@@ -270,6 +334,7 @@ async def duplicate_document_type(
     clauses_copied = 0
     attachments_copied = 0
     form_fields_copied = 0
+    variant_groups_copied = 0
 
     # Copy clause links
     if duplicate_request.include_clauses:
@@ -333,6 +398,25 @@ async def duplicate_document_type(
             db.add(new_field)
             form_fields_copied += 1
 
+    # v4.3: Copy variant group links
+    if duplicate_request.include_variant_groups:
+        vg_links_query = select(models.DocumentTypeVariantGroup).where(
+            models.DocumentTypeVariantGroup.document_type_id == document_type_id
+        )
+        vg_links_result = await db.execute(vg_links_query)
+        vg_links = vg_links_result.scalars().all()
+
+        for link in vg_links:
+            new_vg_link = models.DocumentTypeVariantGroup(
+                document_type_id=new_doc_type.id,
+                variant_group_id=link.variant_group_id,
+                display_order=link.display_order,
+                is_mandatory=link.is_mandatory,
+                default_variant_id=link.default_variant_id,
+            )
+            db.add(new_vg_link)
+            variant_groups_copied += 1
+
     await db.commit()
 
     return DuplicateResponse(
@@ -344,10 +428,12 @@ async def duplicate_document_type(
         clauses_copied=clauses_copied,
         attachments_copied=attachments_copied,
         form_fields_copied=form_fields_copied,
+        variant_groups_copied=variant_groups_copied,
         default_probation_months=new_doc_type.default_probation_months,
         default_notice_period=new_doc_type.default_notice_period,
         default_vacation_days=new_doc_type.default_vacation_days,
         default_weekly_hours=new_doc_type.default_weekly_hours,
+        header_footer_copied=header_footer_copied,
         message=f"Dokumenttyp erfolgreich dupliziert als '{new_name}'"
     )
 
@@ -673,3 +759,290 @@ async def remove_variant_group_from_document_type(
     await db.commit()
 
     return {"status": "removed", "document_type_id": document_type_id, "variant_group_id": variant_group_id}
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# HEADER/FOOTER ENDPOINTS (v4.3 Feature: Individuelle Kopf-/Fußzeilen)
+# ══════════════════════════════════════════════════════════════════════════════
+
+@router.get("/{document_type_id}/header-footer", response_model=HeaderFooterSettings)
+async def get_header_footer_settings(
+    document_type_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[models.Base, Depends(deps.get_current_user)],
+) -> Any:
+    """
+    Gibt die individuellen Kopf-/Fußzeilen-Einstellungen für einen Dokumenttyp zurück.
+
+    Falls keine individuellen Einstellungen gesetzt sind (custom_*_enabled=False),
+    werden die globalen DesignSettings verwendet.
+    """
+    doc_type = await db.get(models.DocumentType, document_type_id)
+    if not doc_type:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Document type not found"
+        )
+
+    return HeaderFooterSettings(
+        custom_header_enabled=doc_type.custom_header_enabled or False,
+        custom_header_line1=doc_type.custom_header_line1,
+        custom_header_line2=doc_type.custom_header_line2,
+        custom_header_line3=doc_type.custom_header_line3,
+        custom_footer_enabled=doc_type.custom_footer_enabled or False,
+        custom_footer_line1=doc_type.custom_footer_line1,
+        custom_footer_line2=doc_type.custom_footer_line2,
+        custom_footer_line3=doc_type.custom_footer_line3,
+        custom_logo_enabled=doc_type.custom_logo_enabled or False,
+        custom_logo_path=doc_type.custom_logo_path,
+        custom_logo_position=doc_type.custom_logo_position,
+        custom_logo_width_cm=doc_type.custom_logo_width_cm,
+        custom_margin_left_cm=doc_type.custom_margin_left_cm,
+        custom_margin_right_cm=doc_type.custom_margin_right_cm,
+        custom_margin_top_cm=doc_type.custom_margin_top_cm,
+        custom_margin_bottom_cm=doc_type.custom_margin_bottom_cm,
+    )
+
+
+@router.put("/{document_type_id}/header-footer", response_model=HeaderFooterSettings)
+async def update_header_footer_settings(
+    document_type_id: int,
+    settings: HeaderFooterSettings,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[models.Base, Depends(deps.get_current_active_admin)],
+) -> Any:
+    """
+    Aktualisiert die individuellen Kopf-/Fußzeilen-Einstellungen für einen Dokumenttyp.
+
+    Diese überschreiben die globalen DesignSettings bei der Dokumentgenerierung.
+    """
+    doc_type = await db.get(models.DocumentType, document_type_id)
+    if not doc_type:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Document type not found"
+        )
+
+    # Update all header/footer fields
+    doc_type.custom_header_enabled = settings.custom_header_enabled
+    doc_type.custom_header_line1 = settings.custom_header_line1
+    doc_type.custom_header_line2 = settings.custom_header_line2
+    doc_type.custom_header_line3 = settings.custom_header_line3
+    doc_type.custom_footer_enabled = settings.custom_footer_enabled
+    doc_type.custom_footer_line1 = settings.custom_footer_line1
+    doc_type.custom_footer_line2 = settings.custom_footer_line2
+    doc_type.custom_footer_line3 = settings.custom_footer_line3
+    doc_type.custom_logo_enabled = settings.custom_logo_enabled
+    doc_type.custom_logo_path = settings.custom_logo_path
+    doc_type.custom_logo_position = settings.custom_logo_position
+    doc_type.custom_logo_width_cm = settings.custom_logo_width_cm
+    doc_type.custom_margin_left_cm = settings.custom_margin_left_cm
+    doc_type.custom_margin_right_cm = settings.custom_margin_right_cm
+    doc_type.custom_margin_top_cm = settings.custom_margin_top_cm
+    doc_type.custom_margin_bottom_cm = settings.custom_margin_bottom_cm
+
+    await db.commit()
+    await db.refresh(doc_type)
+
+    return settings
+
+
+@router.post("/{document_type_id}/copy-from-template")
+async def copy_settings_from_template(
+    document_type_id: int,
+    request: CopyFromTemplateRequest,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[models.Base, Depends(deps.get_current_active_admin)],
+) -> Any:
+    """
+    Übernimmt Einstellungen von einer anderen Vorlage.
+
+    Ermöglicht das selektive Kopieren von:
+    - Kopfzeile
+    - Fußzeile
+    - Logo-Einstellungen
+    - Seitenränder
+    - Klauseln
+    - Varianten-Gruppen
+    """
+    # Get target document type
+    target = await db.get(models.DocumentType, document_type_id)
+    if not target:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Target document type not found"
+        )
+
+    # Get source document type
+    source = await db.get(models.DocumentType, request.source_template_id)
+    if not source:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Source template not found"
+        )
+
+    copied_items = []
+
+    # Copy header
+    if request.copy_header:
+        target.custom_header_enabled = source.custom_header_enabled
+        target.custom_header_line1 = source.custom_header_line1
+        target.custom_header_line2 = source.custom_header_line2
+        target.custom_header_line3 = source.custom_header_line3
+        copied_items.append("Kopfzeile")
+
+    # Copy footer
+    if request.copy_footer:
+        target.custom_footer_enabled = source.custom_footer_enabled
+        target.custom_footer_line1 = source.custom_footer_line1
+        target.custom_footer_line2 = source.custom_footer_line2
+        target.custom_footer_line3 = source.custom_footer_line3
+        copied_items.append("Fußzeile")
+
+    # Copy logo settings
+    if request.copy_logo:
+        target.custom_logo_enabled = source.custom_logo_enabled
+        target.custom_logo_path = source.custom_logo_path
+        target.custom_logo_position = source.custom_logo_position
+        target.custom_logo_width_cm = source.custom_logo_width_cm
+        copied_items.append("Logo")
+
+    # Copy margins
+    if request.copy_margins:
+        target.custom_margin_left_cm = source.custom_margin_left_cm
+        target.custom_margin_right_cm = source.custom_margin_right_cm
+        target.custom_margin_top_cm = source.custom_margin_top_cm
+        target.custom_margin_bottom_cm = source.custom_margin_bottom_cm
+        copied_items.append("Seitenränder")
+
+    # Set source reference
+    target.source_template_id = source.id
+
+    # Copy clauses if requested
+    clauses_copied = 0
+    if request.copy_clauses:
+        from sqlalchemy import delete
+
+        # Delete existing clause links
+        await db.execute(
+            delete(models.DocumentTypeClause).where(
+                models.DocumentTypeClause.document_type_id == document_type_id
+            )
+        )
+
+        # Copy clause links from source
+        clause_links_query = select(models.DocumentTypeClause).where(
+            models.DocumentTypeClause.document_type_id == request.source_template_id
+        )
+        clause_links_result = await db.execute(clause_links_query)
+        clause_links = clause_links_result.scalars().all()
+
+        for link in clause_links:
+            new_link = models.DocumentTypeClause(
+                document_type_id=document_type_id,
+                clause_id=link.clause_id,
+                display_order=link.display_order,
+                is_mandatory=link.is_mandatory,
+                clause_type=link.clause_type,
+                is_default_selected=link.is_default_selected,
+                condition=link.condition,
+                variant_group=link.variant_group,
+                is_default_variant=link.is_default_variant,
+                is_order_locked=link.is_order_locked,
+            )
+            db.add(new_link)
+            clauses_copied += 1
+
+        if clauses_copied > 0:
+            copied_items.append(f"{clauses_copied} Klauseln")
+
+    # Copy variant groups if requested
+    variant_groups_copied = 0
+    if request.copy_variant_groups:
+        from sqlalchemy import delete
+
+        # Delete existing variant group links
+        await db.execute(
+            delete(models.DocumentTypeVariantGroup).where(
+                models.DocumentTypeVariantGroup.document_type_id == document_type_id
+            )
+        )
+
+        # Copy variant group links from source
+        vg_links_query = select(models.DocumentTypeVariantGroup).where(
+            models.DocumentTypeVariantGroup.document_type_id == request.source_template_id
+        )
+        vg_links_result = await db.execute(vg_links_query)
+        vg_links = vg_links_result.scalars().all()
+
+        for link in vg_links:
+            new_vg_link = models.DocumentTypeVariantGroup(
+                document_type_id=document_type_id,
+                variant_group_id=link.variant_group_id,
+                display_order=link.display_order,
+                is_mandatory=link.is_mandatory,
+                default_variant_id=link.default_variant_id,
+            )
+            db.add(new_vg_link)
+            variant_groups_copied += 1
+
+        if variant_groups_copied > 0:
+            copied_items.append(f"{variant_groups_copied} Varianten-Gruppen")
+
+    await db.commit()
+
+    return {
+        "success": True,
+        "target_id": document_type_id,
+        "source_id": request.source_template_id,
+        "source_name": source.name,
+        "copied_items": copied_items,
+        "clauses_copied": clauses_copied,
+        "variant_groups_copied": variant_groups_copied,
+        "message": f"Einstellungen von '{source.name}' übernommen: {', '.join(copied_items)}"
+    }
+
+
+@router.delete("/{document_type_id}/header-footer")
+async def reset_header_footer_settings(
+    document_type_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[models.Base, Depends(deps.get_current_active_admin)],
+) -> Any:
+    """
+    Setzt die individuellen Kopf-/Fußzeilen-Einstellungen zurück.
+
+    Nach dem Zurücksetzen werden wieder die globalen DesignSettings verwendet.
+    """
+    doc_type = await db.get(models.DocumentType, document_type_id)
+    if not doc_type:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Document type not found"
+        )
+
+    # Reset all custom settings
+    doc_type.custom_header_enabled = False
+    doc_type.custom_header_line1 = None
+    doc_type.custom_header_line2 = None
+    doc_type.custom_header_line3 = None
+    doc_type.custom_footer_enabled = False
+    doc_type.custom_footer_line1 = None
+    doc_type.custom_footer_line2 = None
+    doc_type.custom_footer_line3 = None
+    doc_type.custom_logo_enabled = False
+    doc_type.custom_logo_path = None
+    doc_type.custom_logo_position = None
+    doc_type.custom_logo_width_cm = None
+    doc_type.custom_margin_left_cm = None
+    doc_type.custom_margin_right_cm = None
+    doc_type.custom_margin_top_cm = None
+    doc_type.custom_margin_bottom_cm = None
+    doc_type.source_template_id = None
+
+    await db.commit()
+
+    return {
+        "success": True,
+        "message": "Individuelle Einstellungen zurückgesetzt. Globale Design-Einstellungen werden verwendet."
+    }

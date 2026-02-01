@@ -33,8 +33,40 @@ class DocumentType(Base):
     default_vacation_days = Column(Integer, default=30)  # Urlaubstage pro Jahr
     default_weekly_hours = Column(Integer, default=40)  # Wochenstunden
 
+    # ══════════════════════════════════════════════════════════════════════════
+    # INDIVIDUELLE KOPF-/FUSSZEILEN PRO VORLAGE (v4.3 Feature)
+    # Überschreibt die globalen DesignSettings wenn gesetzt
+    # ══════════════════════════════════════════════════════════════════════════
+    # Kopfzeile
+    custom_header_enabled = Column(Boolean, default=False)  # True = eigene Kopfzeile nutzen
+    custom_header_line1 = Column(Text, nullable=True)
+    custom_header_line2 = Column(Text, nullable=True)
+    custom_header_line3 = Column(Text, nullable=True)
+
+    # Fußzeile
+    custom_footer_enabled = Column(Boolean, default=False)  # True = eigene Fußzeile nutzen
+    custom_footer_line1 = Column(Text, nullable=True)
+    custom_footer_line2 = Column(Text, nullable=True)
+    custom_footer_line3 = Column(Text, nullable=True)
+
+    # Logo-Einstellungen (überschreibt DesignSettings wenn gesetzt)
+    custom_logo_enabled = Column(Boolean, default=False)
+    custom_logo_path = Column(String, nullable=True)  # Eigenes Logo für diese Vorlage
+    custom_logo_position = Column(String(20), nullable=True)  # 'left', 'center', 'right'
+    custom_logo_width_cm = Column(String(10), nullable=True)  # z.B. "5.0"
+
+    # Design-Einstellungen überschreiben
+    custom_margin_left_cm = Column(String(10), nullable=True)
+    custom_margin_right_cm = Column(String(10), nullable=True)
+    custom_margin_top_cm = Column(String(10), nullable=True)
+    custom_margin_bottom_cm = Column(String(10), nullable=True)
+
+    # Referenz zur Quell-Vorlage (für "von Vorlage übernommen")
+    source_template_id = Column(Integer, ForeignKey("document_types.id", ondelete="SET NULL"), nullable=True)
+
     clauses = relationship("DocumentTypeClause", back_populates="document_type", order_by="DocumentTypeClause.display_order")
     variant_groups = relationship("DocumentTypeVariantGroup", back_populates="document_type", order_by="DocumentTypeVariantGroup.display_order")
+    source_template = relationship("DocumentType", remote_side=[id], foreign_keys=[source_template_id])
 
 class ClauseApprovalStatus(str, enum.Enum):
     """Status für den Freigabe-Workflow (4-Augen-Prinzip)."""

@@ -326,6 +326,25 @@ async def health_check():
     return {"status": "ok"}
 
 
+@app.get(f"{settings.API_V1_STR}/health")
+async def api_health_check():
+    """
+    API health check - Endpoint für Frontend Offline-Detector.
+    Unterstützt HEAD-Requests für minimalen Overhead.
+    """
+    return {"status": "ok", "api_version": "1.0.0"}
+
+
+@app.head(f"{settings.API_V1_STR}/health")
+async def api_health_check_head():
+    """
+    HEAD request für Offline-Detector (minimaler Overhead).
+    Gibt nur Status-Code zurück, keinen Body.
+    """
+    from fastapi.responses import Response
+    return Response(status_code=200)
+
+
 @app.get("/health/ready")
 async def readiness_check():
     """
