@@ -1,0 +1,51 @@
+{
+  "$schema": "./locations.schema.json",
+  "_comment": "Standort-Konfiguration (Seed Data) - Wird in DB geladen",
+  "_version": "1.0.0",
+  "_lastUpdated": "2025-02-02",
+
+  "locations": [
+    {
+      "code": "DE_SULZ",
+      "name": "Sulzberg",
+      "name_local": "Sulzberg",
+      "country_code": "DE",
+      "street": "Beispielstraße 1",
+      "postal_code": "87477",
+      "city": "Sulzberg",
+      "region": "Bayern",
+      "legal_entity_name": "Niederwieser GmbH",
+      "tax_id": "DE123456789",
+      "commercial_register": "HRB 12345",
+      "phone": "+49 8376 12345",
+      "email": "info@niederwieser.com",
+      "website": "https://www.niederwieser.com",
+      "signature_city": "Sulzberg",
+      "default_signatory": "Max Mustermann, Geschäftsführer",
+      "is_headquarters": true,
+      "is_active": true,
+      "sort_order": 1
+    },
+    {
+      "code": "IT_LAIV",
+      "name": "Laives",
+      "name_local": "Leifers",
+      "country_code": "IT",
+      "street": "Via Esempio 1",
+      "postal_code": "39055",
+      "city": "Laives",
+      "region": "Südtirol / Alto Adige",
+      "legal_entity_name": "Niederwieser Italia S.r.l.",
+      "tax_id": "IT12345678901",
+      "commercial_register": "BZ-12345",
+      "phone": "+39 0471 12345",
+      "email": "info@niederwieser.it",
+      "website": "https://www.niederwieser.it",
+      "signature_city": "Laives",
+      "default_signatory": "Mario Rossi, Amministratore",
+      "is_headquarters": false,
+      "is_active": true,
+      "sort_order": 2
+    }
+  ]
+}

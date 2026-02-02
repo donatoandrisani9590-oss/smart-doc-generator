@@ -1,0 +1,104 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "countries.schema.json",
+  "title": "Countries Configuration",
+  "description": "Configuration schema for supported countries",
+  "type": "object",
+  "required": ["countries", "default_country"],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "_comment": {
+      "type": "string"
+    },
+    "_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "_lastUpdated": {
+      "type": "string",
+      "format": "date"
+    },
+    "countries": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["code", "name", "name_en", "name_local", "flag", "currency", "locale", "date_format", "month_names", "is_active", "sort_order"],
+        "properties": {
+          "code": {
+            "type": "string",
+            "pattern": "^[A-Z]{2}$",
+            "description": "ISO 3166-1 alpha-2 country code"
+          },
+          "name": {
+            "type": "string",
+            "description": "Country name in German (UI language)"
+          },
+          "name_en": {
+            "type": "string",
+            "description": "Country name in English"
+          },
+          "name_local": {
+            "type": "string",
+            "description": "Country name in local language"
+          },
+          "flag": {
+            "type": "string",
+            "description": "Country flag emoji"
+          },
+          "currency": {
+            "type": "string",
+            "pattern": "^[A-Z]{3}$",
+            "description": "ISO 4217 currency code"
+          },
+          "locale": {
+            "type": "string",
+            "pattern": "^[a-z]{2}-[A-Z]{2}$",
+            "description": "BCP 47 locale tag"
+          },
+          "date_format": {
+            "type": "string",
+            "description": "Date format pattern (moment.js style)"
+          },
+          "legal_standards": {
+            "type": "object",
+            "properties": {
+              "document_standard": {
+                "type": "string",
+                "description": "Document formatting standard"
+              },
+              "labor_law": {
+                "type": "string",
+                "description": "Applicable labor law references"
+              }
+            }
+          },
+          "month_names": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 12,
+            "maxItems": 12,
+            "description": "Localized month names (January-December)"
+          },
+          "is_active": {
+            "type": "boolean",
+            "description": "Whether this country is enabled in the system"
+          },
+          "sort_order": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Display order in dropdowns"
+          }
+        }
+      }
+    },
+    "default_country": {
+      "type": "string",
+      "pattern": "^[A-Z]{2}$",
+      "description": "Default country code for new users"
+    }
+  }
+}

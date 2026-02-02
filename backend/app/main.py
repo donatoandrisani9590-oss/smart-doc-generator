@@ -32,6 +32,8 @@ from app.api.v1.endpoints import word_import, document_type_import, clause_varia
 from app.api.v1.endpoints import composer, setup, compliance, smart_mode, feature_settings, document_upload
 from app.api.v1.endpoints import actions, webhooks, copilot_studio
 from app.api.v1.endpoints import comments
+from app.api.v1.endpoints import countries
+from app.api.v1.endpoints import locations
 
 # ═══════════════════════════════════════════════════════════════════════════
 # LOGGING CONFIGURATION
@@ -313,6 +315,12 @@ app.include_router(guest.router, tags=["guest"])
 
 # Initial Setup (only active when no admin exists)
 app.include_router(setup.router, prefix=f"{settings.API_V1_STR}/setup", tags=["setup"])
+
+# Countries Configuration API (v3.1 - Dynamic country support)
+app.include_router(countries.router, prefix=f"{settings.API_V1_STR}/countries", tags=["countries"])
+
+# Locations API (v3.1 - Multi-location support)
+app.include_router(locations.router, prefix=f"{settings.API_V1_STR}/locations", tags=["locations"])
 
 
 # ═══════════════════════════════════════════════════════════════════════════

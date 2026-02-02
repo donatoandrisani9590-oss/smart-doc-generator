@@ -1,0 +1,60 @@
+{
+  "$schema": "./template-mapping.schema.json",
+  "_comment": "Template-Mapping Konfiguration - Änderbar ohne Code-Deployment",
+  "_version": "1.0.0",
+  "_lastUpdated": "2025-02-02",
+
+  "templates": {
+    "DE": {
+      "contract": {
+        "filename": "template_contract_de.docx",
+        "description": "DIN 5008 Typ A/B Arbeitsvertrag",
+        "keywords": ["vertrag", "arbeitsvertrag", "contract", "anstellung", "minijob", "teilzeit", "vollzeit", "befristet", "unbefristet", "einstellungszusage", "zusage", "jobangebot", "vereinbarung", "homeoffice", "firmenwagen", "bonus", "überstunden", "fortbildung", "aufhebungsvertrag", "aufhebung"]
+      },
+      "letter": {
+        "filename": "template_letter_de.docx",
+        "description": "DIN 5008 Geschäftsbrief",
+        "keywords": ["brief", "schreiben", "letter", "mitteilung", "kündigung", "kuendigung", "fristlos", "abmahnung", "verwarnung", "warning", "absage", "absageschreiben", "ablehnung", "gehaltserhöhung", "beförderung", "versetzung", "bestätigung", "elternzeit", "freistellung", "kündigungsbestätigung"]
+      },
+      "certificate": {
+        "filename": "template_certificate_de.docx",
+        "description": "Bescheinigungen und Zeugnisse",
+        "keywords": ["bescheinigung", "zeugnis", "certificate", "arbeitszeugnis", "zwischenzeugnis", "qualifiziert", "einfach", "arbeitsbescheinigung", "probezeit"]
+      },
+      "amendment": {
+        "filename": "template_amendment_de.docx",
+        "description": "Vertragsänderungen und Nachträge",
+        "keywords": ["änderung", "ergänzung", "nachtrag", "amendment", "arbeitszeitänderung", "vertragsänderung", "zusatzvereinbarung"]
+      }
+    },
+    "IT": {
+      "contract": {
+        "filename": "template_contract_it.docx",
+        "description": "Contratto di lavoro (UNI)",
+        "keywords": ["contratto", "contract", "assunzione", "lavoro", "tempo determinato", "indeterminato", "part-time", "full-time"]
+      },
+      "letter": {
+        "filename": "template_letter_it.docx",
+        "description": "Lettera commerciale italiana",
+        "keywords": ["lettera", "letter", "comunicazione", "licenziamento", "ammonizione", "rifiuto", "aumento", "promozione", "trasferimento", "conferma", "congedo parentale"]
+      },
+      "certificate": {
+        "filename": "template_certificate_it.docx",
+        "description": "Certificati e attestati",
+        "keywords": ["certificato", "attestato", "certificate", "certificato di lavoro", "referenze"]
+      },
+      "amendment": {
+        "filename": "template_amendment_it.docx",
+        "description": "Modifiche contrattuali",
+        "keywords": ["modifica", "integrazione", "amendment", "variazione orario", "modifica contratto"]
+      }
+    }
+  },
+
+  "defaults": {
+    "DE": "template_default_de.docx",
+    "IT": "template_default_it.docx"
+  },
+
+  "categories": ["contract", "letter", "certificate", "amendment"]
+}

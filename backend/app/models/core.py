@@ -64,3 +64,55 @@ class UserSession(Base):
     last_active = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
 
+class Location(Base):
+    """
+    Physical company locations (Standorte) for document generation.
+
+    Enables multi-location support within a country:
+    - Sulzberg (Headquarters - DE)
+    - Laives/Leifers (IT)
+    - Future: New locations in DE, IT, ES, etc.
+
+    Used for:
+    - Signature location on documents ("Ort, Datum")
+    - Address in document headers
+    - Legal entity assignment
+    """
+    __tablename__ = "locations"
+
+    id = Column(Integer, primary_key=True, index=True)
+    code = Column(String(20), unique=True, nullable=False, index=True)  # e.g. "DE_SULZ", "IT_LAIV"
+    name = Column(String(100), nullable=False)  # Display name: "Sulzberg"
+    name_local = Column(String(100), nullable=True)  # Local name: "Laives" vs "Leifers"
+    country_code = Column(String(2), nullable=False, index=True)  # ISO 3166-1: "DE", "IT"
+
+    # Address details
+    street = Column(String(200), nullable=True)
+    postal_code = Column(String(20), nullable=True)
+    city = Column(String(100), nullable=False)  # City for documents
+    region = Column(String(100), nullable=True)  # State/Province: "Bayern", "Südtirol"
+
+    # Legal entity info
+    legal_entity_name = Column(String(200), nullable=True)  # "Niederwieser GmbH"
+    tax_id = Column(String(50), nullable=True)  # VAT/Tax ID
+    commercial_register = Column(String(100), nullable=True)  # "HRB 12345"
+
+    # Contact
+    phone = Column(String(50), nullable=True)
+    email = Column(String(100), nullable=True)
+    website = Column(String(200), nullable=True)
+
+    # Document settings
+    signature_city = Column(String(100), nullable=True)  # City shown in signature: "Sulzberg"
+    default_signatory = Column(String(200), nullable=True)  # Default person signing
+
+    # Status
+    is_headquarters = Column(Boolean, default=False)  # Main office?
+    is_active = Column(Boolean, default=True)
+    sort_order = Column(Integer, default=0)
+
+    # Timestamps
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now())
+
+

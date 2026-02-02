@@ -1,0 +1,116 @@
+{
+  "$schema": "./error-messages.schema.json",
+  "_comment": "Lokalisierte Fehlermeldungen - Backend i18n",
+  "_version": "1.0.0",
+  "_lastUpdated": "2025-02-02",
+
+  "error_messages": {
+    "DE": {
+      "auth": {
+        "invalid_credentials": "Falsche E-Mail oder Passwort",
+        "inactive_user": "Benutzerkonto ist deaktiviert",
+        "user_not_found": "Benutzer nicht gefunden",
+        "token_expired": "Sitzung abgelaufen. Bitte erneut anmelden.",
+        "token_invalid": "Ungültiges Token",
+        "password_too_short": "Passwort muss mindestens 8 Zeichen lang sein",
+        "email_exists": "Ein Benutzer mit dieser E-Mail existiert bereits",
+        "not_authorized": "Keine Berechtigung für diese Aktion",
+        "admin_required": "Administrator-Berechtigung erforderlich"
+      },
+      "validation": {
+        "required_field": "Feld '{field}' ist erforderlich",
+        "invalid_email": "Ungültige E-Mail-Adresse",
+        "invalid_date": "Ungültiges Datumsformat",
+        "date_in_past": "Datum darf nicht in der Vergangenheit liegen",
+        "value_too_long": "Wert für '{field}' ist zu lang (max. {max} Zeichen)",
+        "value_too_short": "Wert für '{field}' ist zu kurz (min. {min} Zeichen)",
+        "invalid_country": "Ungültiger Ländercode"
+      },
+      "document": {
+        "type_not_found": "Dokumenttyp nicht gefunden",
+        "clause_not_found": "Klausel nicht gefunden",
+        "generation_failed": "Dokumentgenerierung fehlgeschlagen",
+        "template_not_found": "Template nicht gefunden",
+        "invalid_form_data": "Ungültige Formulardaten"
+      },
+      "general": {
+        "internal_error": "Ein interner Fehler ist aufgetreten",
+        "not_found": "Ressource nicht gefunden",
+        "bad_request": "Ungültige Anfrage",
+        "conflict": "Konflikt mit vorhandenen Daten"
+      }
+    },
+    "IT": {
+      "auth": {
+        "invalid_credentials": "Email o password errati",
+        "inactive_user": "Account utente disattivato",
+        "user_not_found": "Utente non trovato",
+        "token_expired": "Sessione scaduta. Effettua nuovamente l'accesso.",
+        "token_invalid": "Token non valido",
+        "password_too_short": "La password deve contenere almeno 8 caratteri",
+        "email_exists": "Esiste già un utente con questa email",
+        "not_authorized": "Non autorizzato per questa azione",
+        "admin_required": "Richiesti privilegi di amministratore"
+      },
+      "validation": {
+        "required_field": "Il campo '{field}' è obbligatorio",
+        "invalid_email": "Indirizzo email non valido",
+        "invalid_date": "Formato data non valido",
+        "date_in_past": "La data non può essere nel passato",
+        "value_too_long": "Il valore per '{field}' è troppo lungo (max. {max} caratteri)",
+        "value_too_short": "Il valore per '{field}' è troppo corto (min. {min} caratteri)",
+        "invalid_country": "Codice paese non valido"
+      },
+      "document": {
+        "type_not_found": "Tipo di documento non trovato",
+        "clause_not_found": "Clausola non trovata",
+        "generation_failed": "Generazione documento fallita",
+        "template_not_found": "Template non trovato",
+        "invalid_form_data": "Dati del modulo non validi"
+      },
+      "general": {
+        "internal_error": "Si è verificato un errore interno",
+        "not_found": "Risorsa non trovata",
+        "bad_request": "Richiesta non valida",
+        "conflict": "Conflitto con dati esistenti"
+      }
+    },
+    "ES": {
+      "auth": {
+        "invalid_credentials": "Email o contraseña incorrectos",
+        "inactive_user": "Cuenta de usuario desactivada",
+        "user_not_found": "Usuario no encontrado",
+        "token_expired": "Sesión expirada. Por favor, inicie sesión de nuevo.",
+        "token_invalid": "Token no válido",
+        "password_too_short": "La contraseña debe tener al menos 8 caracteres",
+        "email_exists": "Ya existe un usuario con este email",
+        "not_authorized": "No autorizado para esta acción",
+        "admin_required": "Se requieren privilegios de administrador"
+      },
+      "validation": {
+        "required_field": "El campo '{field}' es obligatorio",
+        "invalid_email": "Dirección de email no válida",
+        "invalid_date": "Formato de fecha no válido",
+        "date_in_past": "La fecha no puede ser en el pasado",
+        "value_too_long": "El valor de '{field}' es demasiado largo (máx. {max} caracteres)",
+        "value_too_short": "El valor de '{field}' es demasiado corto (mín. {min} caracteres)",
+        "invalid_country": "Código de país no válido"
+      },
+      "document": {
+        "type_not_found": "Tipo de documento no encontrado",
+        "clause_not_found": "Cláusula no encontrada",
+        "generation_failed": "Error en la generación del documento",
+        "template_not_found": "Plantilla no encontrada",
+        "invalid_form_data": "Datos del formulario no válidos"
+      },
+      "general": {
+        "internal_error": "Se ha producido un error interno",
+        "not_found": "Recurso no encontrado",
+        "bad_request": "Solicitud no válida",
+        "conflict": "Conflicto con datos existentes"
+      }
+    }
+  },
+
+  "default_language": "DE"
+}

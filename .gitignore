@@ -53,6 +53,9 @@ next-env.d.ts
 
 # Project specific
 storage/
+!backend/storage/config/
+backend/storage/config/*.schema.json
+backend/storage/config/*.json
 postgres_data/
 *.db
 *.sqlite

@@ -31,46 +31,86 @@ logger = logging.getLogger(__name__)
 OUTPUT_DIR = Path(__file__).parent.parent.parent.parent.parent / "storage" / "generated"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
-# Month names for date formatting
-GERMAN_MONTHS = {
-    1: "Januar", 2: "Februar", 3: "März", 4: "April",
-    5: "Mai", 6: "Juni", 7: "Juli", 8: "August",
-    9: "September", 10: "Oktober", 11: "November", 12: "Dezember"
-}
+# ═══════════════════════════════════════════════════════════════════════════════
+# MONTH NAMES - Loaded dynamically from country configuration
+# v3.1: Uses storage/config/countries.json instead of hardcoded values
+# ═══════════════════════════════════════════════════════════════════════════════
 
-ITALIAN_MONTHS = {
-    1: "gennaio", 2: "febbraio", 3: "marzo", 4: "aprile",
-    5: "maggio", 6: "giugno", 7: "luglio", 8: "agosto",
-    9: "settembre", 10: "ottobre", 11: "novembre", 12: "dicembre"
-}
+def get_month_names(country_code: str) -> dict[int, str]:
+    """
+    Get localized month names from country configuration.
 
-# Localized document text
-DOCUMENT_TEXT = {
-    "DE": {
-        "title": "Arbeitsvertrag",
-        "between": "Zwischen",
-        "and": "und",
-        "employer_label": '– nachstehend „Arbeitgeber" genannt –',
-        "employee_label": '– nachstehend „Arbeitnehmer" genannt –',
-        "employee_prefix": "Herr/Frau",
-        "signature_location": "Sulzberg",
-        "date_placeholder": "______________",
-    },
-    "IT": {
-        "title": "CONTRATTO DI LAVORO",
-        "between": "Tra",
-        "and": "e",
-        "employer_label": '– di seguito denominato "Datore di Lavoro" –',
-        "employee_label": '– di seguito denominato "Lavoratore/Lavoratrice" –',
-        "employee_prefix": "Sig./Sig.ra",
-        "signature_location": "Laives",
-        "date_placeholder": "______________",
-    }
-}
+    Args:
+        country_code: ISO 3166-1 alpha-2 code (e.g., "DE", "IT")
+
+    Returns:
+        Dictionary mapping month number (1-12) to localized name
+    """
+    try:
+        from app.services.country_config import get_country
+        country = get_country(country_code)
+        return {i + 1: name for i, name in enumerate(country.month_names)}
+    except Exception as e:
+        logger.warning(f"Could not load months for {country_code}: {e}")
+        # Fallback to German
+        return {
+            1: "Januar", 2: "Februar", 3: "März", 4: "April",
+            5: "Mai", 6: "Juni", 7: "Juli", 8: "August",
+            9: "September", 10: "Oktober", 11: "November", 12: "Dezember"
+        }
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# DOCUMENT TEXTS - Loaded dynamically from config
+# v3.1: Uses storage/config/document-texts.json instead of hardcoded values
+# ═══════════════════════════════════════════════════════════════════════════════
+
+def get_document_texts_for_country(country_code: str) -> dict[str, str]:
+    """
+    Get localized document texts from configuration.
+
+    Args:
+        country_code: ISO 3166-1 alpha-2 code (e.g., "DE", "IT")
+
+    Returns:
+        Dictionary with localized texts (title, between, and, etc.)
+    """
+    try:
+        from app.services.document_texts import get_document_texts
+        return get_document_texts(country_code)
+    except Exception as e:
+        logger.warning(f"Could not load document texts for {country_code}: {e}")
+        # Fallback to German
+        return {
+            "title": "Arbeitsvertrag",
+            "between": "Zwischen",
+            "and": "und",
+            "employer_label": "– nachstehend „Arbeitgeber" genannt –",
+            "employee_label": "– nachstehend „Arbeitnehmer" genannt –",
+            "employee_prefix": "Herr/Frau",
+            "signature_location": "Sulzberg",
+            "date_placeholder": "______________",
+        }
+
+# Backwards compatibility function
+def get_document_text(country_code: str) -> dict[str, str]:
+    """Legacy wrapper for get_document_texts_for_country."""
+    return get_document_texts_for_country(country_code)
 
 
 def format_date_localized(date_str: str, country_code: str = "DE") -> str:
-    """Convert ISO date to localized format based on country code."""
+    """
+    Convert ISO date to localized format based on country code.
+
+    Uses country configuration for month names.
+    Supports formats:
+    - ISO: 2026-01-15
+    - German: 15.01.2026
+    - Italian: 15/01/2026
+
+    Returns:
+    - German: "15. Januar 2026"
+    - Italian: "15 gennaio 2026"
+    """
     if not date_str:
         return date_str
     try:
@@ -89,11 +129,18 @@ def format_date_localized(date_str: str, country_code: str = "DE") -> str:
         else:
             return date_str
 
+        # Get month names from country configuration
+        months = get_month_names(country_code)
+        month_name = months.get(dt.month, str(dt.month))
+
         if country_code == "IT":
-            return f"{dt.day} {ITALIAN_MONTHS[dt.month]} {dt.year}"
+            # Italian format: "15 gennaio 2026" (no dot after day)
+            return f"{dt.day} {month_name} {dt.year}"
         else:
-            return f"{dt.day:02d}. {GERMAN_MONTHS[dt.month]} {dt.year}"
-    except (ValueError, KeyError):
+            # German format: "15. Januar 2026" (dot after day)
+            return f"{dt.day:02d}. {month_name} {dt.year}"
+    except (ValueError, KeyError) as e:
+        logger.warning(f"Date formatting error: {e}")
         return date_str
 
 
@@ -288,8 +335,8 @@ def create_document_from_clauses(
     """
     doc = Document()
 
-    # Get localized text
-    loc_text = DOCUMENT_TEXT.get(country_code, DOCUMENT_TEXT["DE"])
+    # Get localized text from configuration
+    loc_text = get_document_texts_for_country(country_code)
 
     # Set up page format - A4 with compliant margins (configurable)
     section = doc.sections[0]

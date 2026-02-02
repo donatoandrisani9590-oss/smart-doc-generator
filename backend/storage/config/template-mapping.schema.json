@@ -1,0 +1,74 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "template-mapping.schema.json",
+  "title": "Template Mapping Configuration",
+  "description": "Configuration schema for document template mappings",
+  "type": "object",
+  "required": ["templates", "defaults", "categories"],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "_comment": {
+      "type": "string",
+      "description": "Human-readable comment about the configuration"
+    },
+    "_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Semantic version of the configuration"
+    },
+    "_lastUpdated": {
+      "type": "string",
+      "format": "date",
+      "description": "Last update date in ISO 8601 format"
+    },
+    "templates": {
+      "type": "object",
+      "description": "Template mappings per country code",
+      "additionalProperties": {
+        "type": "object",
+        "description": "Category mappings for a country",
+        "additionalProperties": {
+          "type": "object",
+          "required": ["filename", "description", "keywords"],
+          "properties": {
+            "filename": {
+              "type": "string",
+              "pattern": "^[\\w-]+\\.docx$",
+              "description": "Template filename"
+            },
+            "description": {
+              "type": "string",
+              "description": "Human-readable description of the template"
+            },
+            "keywords": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "minItems": 1,
+              "description": "Keywords used for auto-detection of document category"
+            }
+          }
+        }
+      }
+    },
+    "defaults": {
+      "type": "object",
+      "description": "Default template filenames per country",
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^[\\w-]+\\.docx$"
+      }
+    },
+    "categories": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "description": "List of valid document categories"
+    }
+  }
+}

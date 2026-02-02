@@ -1,0 +1,111 @@
+{
+  "$schema": "./countries.schema.json",
+  "_comment": "Länderkonfiguration - Erweiterbar ohne Code-Deployment",
+  "_version": "1.0.0",
+  "_lastUpdated": "2025-02-02",
+
+  "countries": {
+    "DE": {
+      "code": "DE",
+      "name": "Deutschland",
+      "name_en": "Germany",
+      "name_local": "Deutschland",
+      "flag": "🇩🇪",
+      "currency": "EUR",
+      "locale": "de-DE",
+      "date_format": "DD.MM.YYYY",
+      "legal_standards": {
+        "document_standard": "DIN 5008",
+        "labor_law": "BGB, ArbG, TzBfG"
+      },
+      "month_names": [
+        "Januar", "Februar", "März", "April", "Mai", "Juni",
+        "Juli", "August", "September", "Oktober", "November", "Dezember"
+      ],
+      "is_active": true,
+      "sort_order": 1
+    },
+    "IT": {
+      "code": "IT",
+      "name": "Italien",
+      "name_en": "Italy",
+      "name_local": "Italia",
+      "flag": "🇮🇹",
+      "currency": "EUR",
+      "locale": "it-IT",
+      "date_format": "DD/MM/YYYY",
+      "legal_standards": {
+        "document_standard": "UNI 10999",
+        "labor_law": "Codice Civile, Statuto dei Lavoratori"
+      },
+      "month_names": [
+        "gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno",
+        "luglio", "agosto", "settembre", "ottobre", "novembre", "dicembre"
+      ],
+      "is_active": true,
+      "sort_order": 2
+    },
+    "ES": {
+      "code": "ES",
+      "name": "Spanien",
+      "name_en": "Spain",
+      "name_local": "España",
+      "flag": "🇪🇸",
+      "currency": "EUR",
+      "locale": "es-ES",
+      "date_format": "DD/MM/YYYY",
+      "legal_standards": {
+        "document_standard": "UNE",
+        "labor_law": "Estatuto de los Trabajadores"
+      },
+      "month_names": [
+        "enero", "febrero", "marzo", "abril", "mayo", "junio",
+        "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"
+      ],
+      "is_active": false,
+      "sort_order": 3
+    },
+    "AT": {
+      "code": "AT",
+      "name": "Österreich",
+      "name_en": "Austria",
+      "name_local": "Österreich",
+      "flag": "🇦🇹",
+      "currency": "EUR",
+      "locale": "de-AT",
+      "date_format": "DD.MM.YYYY",
+      "legal_standards": {
+        "document_standard": "ÖNORM",
+        "labor_law": "ABGB, ArbVG"
+      },
+      "month_names": [
+        "Jänner", "Februar", "März", "April", "Mai", "Juni",
+        "Juli", "August", "September", "Oktober", "November", "Dezember"
+      ],
+      "is_active": false,
+      "sort_order": 4
+    },
+    "FR": {
+      "code": "FR",
+      "name": "Frankreich",
+      "name_en": "France",
+      "name_local": "France",
+      "flag": "🇫🇷",
+      "currency": "EUR",
+      "locale": "fr-FR",
+      "date_format": "DD/MM/YYYY",
+      "legal_standards": {
+        "document_standard": "AFNOR NF Z 11-001",
+        "labor_law": "Code du travail"
+      },
+      "month_names": [
+        "janvier", "février", "mars", "avril", "mai", "juin",
+        "juillet", "août", "septembre", "octobre", "novembre", "décembre"
+      ],
+      "is_active": false,
+      "sort_order": 5
+    }
+  },
+
+  "default_country": "DE"
+}
