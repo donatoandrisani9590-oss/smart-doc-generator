@@ -261,6 +261,13 @@ export const ClauseEditor = ({
         setPendingContent(null)
     }, [])
 
+    // Handler für Paragraph-Nummer einfügen - MUSS vor early return stehen (React Hooks Regeln)
+    const handleInsertParagraphNumber = useCallback(() => {
+        if (editor) {
+            editor.chain().focus().insertContent('§ {{ paragraph_number }}').run()
+        }
+    }, [editor])
+
     if (!editor) return null
 
     // Transform placeholders for the dropdown
@@ -270,13 +277,6 @@ export const ClauseEditor = ({
         type: p.type,
         category: p.category
     }))
-
-    // Handler für Paragraph-Nummer einfügen
-    const handleInsertParagraphNumber = useCallback(() => {
-        if (editor) {
-            editor.chain().focus().insertContent('§ {{ paragraph_number }}').run()
-        }
-    }, [editor])
 
     // Prüfen ob content bereits paragraph_number enthält
     const hasParagraphNumber = content.includes('paragraph_number')

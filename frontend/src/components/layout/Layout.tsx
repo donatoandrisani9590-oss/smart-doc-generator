@@ -1,13 +1,22 @@
+/**
+ * Layout - SimpleDocs-inspired Layout
+ *
+ * Clean, minimal design:
+ * - Fixed sidebar (w-60)
+ * - Simple header without sticky behavior
+ * - Content area with proper padding
+ */
+
 import { useState, useEffect } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Sidebar } from "./Sidebar";
 import { NotificationDropdown } from "@/components/notifications/NotificationDropdown";
 import { CountrySelector } from "./CountrySelector";
 import { KeyboardShortcutsDialog } from "./KeyboardShortcutsDialog";
-import { OnboardingTour, useOnboardingTour } from "@/components/onboarding/OnboardingTour";
+import { OnboardingTour } from "@/components/onboarding/OnboardingTour";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { SkipLink, LiveRegion } from "@/hooks/useAccessibility";
-import { Keyboard, HelpCircle, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 // Page titles based on route - UX-optimiert für HR-Mitarbeiter
@@ -44,7 +53,7 @@ export const Layout = () => {
     const [showShortcuts, setShowShortcuts] = useState(false);
     const [pageAnnouncement, setPageAnnouncement] = useState("");
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-    const { isOpen: showTour, setIsOpen: setShowTour, startTour } = useOnboardingTour();
+    const [showTour, setShowTour] = useState(false);
 
     // Announce page changes for screen readers
     useEffect(() => {
@@ -117,49 +126,40 @@ export const Layout = () => {
                 </div>
             )}
 
-            <main className="flex-1 overflow-auto" role="main">
-                <header className="h-16 px-4 lg:px-6 flex items-center justify-between glass-header" role="banner">
+            {/* Main Content Area */}
+            <main className="flex-1 flex flex-col min-h-screen overflow-hidden" role="main">
+                {/* Header - Clean, simple, no sticky */}
+                <header
+                    className="h-14 px-6 flex items-center justify-between bg-white border-b border-gray-200 shrink-0"
+                    role="banner"
+                >
                     <div className="flex items-center gap-3">
                         {/* Mobile menu button */}
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="lg:hidden"
+                            className="lg:hidden -ml-2"
                             onClick={() => setMobileMenuOpen(true)}
                             aria-label="Menü öffnen"
                             aria-expanded={mobileMenuOpen}
                         >
                             <Menu className="w-5 h-5" />
                         </Button>
-                        <h2 className="text-lg font-semibold text-foreground" aria-live="polite">
+                        <h1 className="text-base font-semibold text-gray-900" aria-live="polite">
                             {pageTitle}
-                        </h2>
+                        </h1>
                     </div>
-                    <nav className="flex items-center gap-2 lg:gap-4" aria-label="Schnellaktionen">
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={startTour}
-                            aria-label="Einführungstour starten"
-                            title="Tour starten"
-                        >
-                            <HelpCircle className="w-5 h-5" aria-hidden="true" />
-                        </Button>
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setShowShortcuts(true)}
-                            aria-label="Tastaturkürzel anzeigen"
-                            title="Tastaturkürzel (? oder Cmd+/)"
-                        >
-                            <Keyboard className="w-5 h-5" aria-hidden="true" />
-                        </Button>
+                    <nav className="flex items-center gap-1" aria-label="Schnellaktionen">
                         <CountrySelector />
                         <NotificationDropdown />
                     </nav>
                 </header>
-                <div id="main-content" className="p-6 max-w-7xl mx-auto" tabIndex={-1}>
-                    <Outlet />
+
+                {/* Content Area - Scrollable */}
+                <div id="main-content" className="flex-1 overflow-y-auto bg-gray-50/50" tabIndex={-1}>
+                    <div className="p-6 max-w-6xl mx-auto">
+                        <Outlet />
+                    </div>
                 </div>
             </main>
 

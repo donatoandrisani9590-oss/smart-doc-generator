@@ -1,90 +1,80 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { motion } from "framer-motion";
-import { LayoutDashboard, FileText, Keyboard, FolderOpen, Settings2 } from "lucide-react";
+import {
+    FileText,
+    Keyboard,
+    FolderOpen,
+    Settings2,
+    Globe,
+    ChevronDown
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { FavoritesList } from "./FavoritesList";
 import { KeyboardShortcutsDialog } from "./KeyboardShortcutsDialog";
 import { UserDropdown } from "./UserDropdown";
 
 /**
- * Motion variants for sidebar navigation items
- * - Subtle scale and x-translation on hover
- * - Press feedback on tap
+ * SimpleDocs-inspired Sidebar
+ * - Clean, minimal design
+ * - Category headers in accent color
+ * - Simple hover states without animations
+ * - Clear visual hierarchy
  */
-const sidebarItemVariants = {
-    initial: { scale: 1, x: 0 },
-    hover: { scale: 1.02, x: 4 },
-    tap: { scale: 0.98, x: 0 },
-};
-
-const sidebarTransition = {
-    type: "spring",
-    stiffness: 400,
-    damping: 20,
-};
 
 interface SidebarItemProps {
     icon: React.ComponentType<{ className?: string }>;
     label: string;
     href: string;
     active: boolean;
-    /** Optional description shown as tooltip and below label on hover */
-    description?: string;
 }
 
-const SidebarItem = ({ icon: Icon, label, href, active, description }: SidebarItemProps) => (
-    <motion.div
-        variants={sidebarItemVariants}
-        initial="initial"
-        whileHover="hover"
-        whileTap="tap"
-        transition={sidebarTransition}
+const SidebarItem = ({ icon: Icon, label, href, active }: SidebarItemProps) => (
+    <Link
+        to={href}
+        className={cn(
+            "flex items-center gap-3 px-3 py-2 text-sm transition-colors rounded-md",
+            active
+                ? "bg-primary/10 text-primary font-medium"
+                : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+        )}
+        aria-current={active ? "page" : undefined}
     >
-        <Link
-            to={href}
-            className={cn(
-                "flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors rounded-lg group",
-                active
-                    ? "bg-primary text-primary-foreground shadow-md"
-                    : "text-foreground hover:bg-primary/10 hover:text-primary"
-            )}
-            aria-current={active ? "page" : undefined}
-            title={description}
-        >
-            <Icon className="w-5 h-5 shrink-0" aria-hidden="true" />
-            <div className="flex flex-col min-w-0">
-                <span>{label}</span>
-                {description && (
-                    <span className={cn(
-                        "text-[10px] font-normal truncate transition-opacity",
-                        active ? "text-primary-foreground/70" : "text-muted-foreground"
-                    )}>
-                        {description}
-                    </span>
-                )}
-            </div>
-        </Link>
-    </motion.div>
+        <Icon className={cn(
+            "w-4 h-4 shrink-0",
+            active ? "text-primary" : "text-gray-400"
+        )} aria-hidden="true" />
+        <span>{label}</span>
+    </Link>
 );
 
-/**
- * Animation for the entire sidebar
- * - Staggered children animation on mount
- */
-const sidebarContainerVariants = {
-    hidden: { opacity: 0 },
-    show: {
-        opacity: 1,
-        transition: {
-            staggerChildren: 0.03,
-        },
-    },
-};
+interface SidebarSectionProps {
+    title: string;
+    children: React.ReactNode;
+    defaultOpen?: boolean;
+}
 
-const sidebarChildVariants = {
-    hidden: { opacity: 0, x: -10 },
-    show: { opacity: 1, x: 0 },
+const SidebarSection = ({ title, children, defaultOpen = true }: SidebarSectionProps) => {
+    const [isOpen, setIsOpen] = useState(defaultOpen);
+
+    return (
+        <div className="space-y-1">
+            <button
+                onClick={() => setIsOpen(!isOpen)}
+                className="flex items-center justify-between w-full px-3 py-1.5 text-xs font-semibold text-primary uppercase tracking-wider hover:bg-gray-50 rounded transition-colors"
+            >
+                {title}
+                <ChevronDown className={cn(
+                    "w-3 h-3 text-gray-400 transition-transform",
+                    isOpen && "rotate-180"
+                )} />
+            </button>
+            {isOpen && (
+                <div className="space-y-0.5 pl-1">
+                    {children}
+                </div>
+            )}
+        </div>
+    );
 };
 
 export const Sidebar = () => {
@@ -94,7 +84,6 @@ export const Sidebar = () => {
 
     // Global keyboard shortcut to open dialog (? key)
     const handleKeyDown = useCallback((event: KeyboardEvent) => {
-        // Don't trigger if user is typing in an input/textarea
         const target = event.target as HTMLElement;
         if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable) {
             return;
@@ -112,114 +101,90 @@ export const Sidebar = () => {
 
     return (
         <>
-        <KeyboardShortcutsDialog open={showShortcuts} onOpenChange={setShowShortcuts} />
-        <div className="w-64 h-screen flex flex-col glass-sidebar">
-            {/* Niederwieser Logo */}
-            <motion.div
-                className="p-4 border-b border-border/30"
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
-            >
-                <div className="flex flex-col">
-                    {/* Niederwieser text logo - Markenfarben */}
-                    <h1
-                        className="text-xl font-bold tracking-tight"
-                        style={{
-                            fontFamily: 'system-ui, -apple-system, sans-serif',
-                            color: '#1a2b6b' /* Niederwieser Dunkelblau */
-                        }}
-                    >
-                        nıederwıeser
-                    </h1>
-                    <p
-                        className="text-[10px] font-medium tracking-widest uppercase"
-                        style={{ color: '#3eb489' /* Niederwieser Grün */ }}
-                    >
-                        Flexible Food Packaging
-                    </p>
+            <KeyboardShortcutsDialog open={showShortcuts} onOpenChange={setShowShortcuts} />
+            <div className="w-60 h-screen flex flex-col bg-white border-r border-gray-200">
+                {/* Logo Section */}
+                <div className="p-5 border-b border-gray-100">
+                    <div className="flex flex-col">
+                        <h1
+                            className="text-lg font-bold tracking-tight"
+                            style={{
+                                fontFamily: 'system-ui, -apple-system, sans-serif',
+                                color: '#1a2b6b'
+                            }}
+                        >
+                            nıederwıeser
+                        </h1>
+                        <p
+                            className="text-[9px] font-medium tracking-widest uppercase mt-0.5"
+                            style={{ color: '#3eb489' }}
+                        >
+                            Flexible Food Packaging
+                        </p>
+                    </div>
                 </div>
-                <p className="text-xs text-muted-foreground mt-3 pt-3 border-t border-border/20">HR-Dokumentensystem</p>
-            </motion.div>
 
-            <motion.nav
-                className="flex-1 p-4 space-y-1 overflow-y-auto"
-                variants={sidebarContainerVariants}
-                initial="hidden"
-                animate="show"
-            >
-                {/* NEUE VEREINFACHTE NAVIGATION - nur 4 Hauptpunkte */}
-                <motion.div variants={sidebarChildVariants}>
-                    <SidebarItem
-                        icon={LayoutDashboard}
-                        label="Dashboard"
-                        href="/"
-                        active={pathname === "/" || pathname === "/deadlines" || pathname === "/teams"}
-                        description="Übersicht & Fristen"
-                    />
-                </motion.div>
-                <motion.div variants={sidebarChildVariants}>
-                    <SidebarItem
-                        icon={FileText}
-                        label="Neues Dokument"
-                        href="/generate"
-                        active={pathname === "/generate" || pathname.startsWith("/composer")}
-                        description="Vertrag erstellen"
-                    />
-                </motion.div>
-                <motion.div variants={sidebarChildVariants}>
-                    <SidebarItem
-                        icon={FolderOpen}
-                        label="Meine Dokumente"
-                        href="/documents"
-                        active={pathname.startsWith("/documents") || pathname.startsWith("/search")}
-                        description="Archiv & Suche"
-                    />
-                </motion.div>
-                <motion.div variants={sidebarChildVariants}>
-                    <SidebarItem
-                        icon={Settings2}
-                        label="Einstellungen"
-                        href="/settings"
-                        active={pathname.startsWith("/settings") || pathname.startsWith("/admin")}
-                        description="Vorlagen & Design"
-                    />
-                </motion.div>
+                {/* Navigation */}
+                <nav className="flex-1 p-4 space-y-6 overflow-y-auto">
+                    {/* Main Navigation */}
+                    <SidebarSection title="Navigation">
+                        <SidebarItem
+                            icon={Globe}
+                            label="Dashboard"
+                            href="/"
+                            active={pathname === "/" || pathname === "/deadlines" || pathname === "/teams"}
+                        />
+                        <SidebarItem
+                            icon={FileText}
+                            label="Neues Dokument"
+                            href="/generate"
+                            active={pathname === "/generate" || pathname.startsWith("/composer")}
+                        />
+                        <SidebarItem
+                            icon={FolderOpen}
+                            label="Dokumente"
+                            href="/documents"
+                            active={pathname.startsWith("/documents") || pathname.startsWith("/search")}
+                        />
+                    </SidebarSection>
 
-                {/* Favorites Section - bleibt erhalten */}
-                <motion.div variants={sidebarChildVariants} className="pt-4 mt-4 border-t border-border/30">
-                    <FavoritesList />
-                </motion.div>
-            </motion.nav>
+                    {/* Settings Section */}
+                    <SidebarSection title="Verwaltung">
+                        <SidebarItem
+                            icon={Settings2}
+                            label="Einstellungen"
+                            href="/settings"
+                            active={pathname.startsWith("/settings") || pathname.startsWith("/admin")}
+                        />
+                    </SidebarSection>
 
-            {/* Keyboard shortcuts hint - clickable button */}
-            <motion.div
-                className="px-4 py-2 text-center"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.4 }}
-            >
-                <button
-                    onClick={() => setShowShortcuts(true)}
-                    className="text-xs text-muted-foreground flex items-center justify-center gap-1 w-full py-1 rounded-md hover:bg-primary/5 hover:text-primary transition-colors"
-                    aria-label="Tastaturkürzel anzeigen"
-                >
-                    <Keyboard className="w-3 h-3" aria-hidden="true" />
-                    <span>Tastaturkürzel:</span>
-                    <kbd className="px-1.5 py-0.5 bg-white/50 rounded text-[10px] font-mono border border-border/50">?</kbd>
-                </button>
-            </motion.div>
+                    {/* Favorites */}
+                    <div className="pt-2">
+                        <FavoritesList />
+                    </div>
+                </nav>
 
-            {/* User section with dropdown */}
-            <motion.div
-                className="p-4 border-t border-border/30"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.3 }}
-            >
-                <UserDropdown />
-            </motion.div>
-        </div>
+                {/* Bottom Section */}
+                <div className="border-t border-gray-100">
+                    {/* Keyboard Shortcuts Hint */}
+                    <div className="px-4 py-2">
+                        <button
+                            onClick={() => setShowShortcuts(true)}
+                            className="w-full flex items-center justify-center gap-2 py-2 text-xs text-gray-500 hover:text-primary hover:bg-gray-50 rounded-md transition-colors"
+                            aria-label="Tastaturkürzel anzeigen"
+                        >
+                            <Keyboard className="w-3.5 h-3.5" aria-hidden="true" />
+                            <span>Tastaturkürzel</span>
+                            <kbd className="px-1.5 py-0.5 bg-gray-100 rounded text-[10px] font-mono text-gray-500">?</kbd>
+                        </button>
+                    </div>
+
+                    {/* User Dropdown */}
+                    <div className="p-3 border-t border-gray-100">
+                        <UserDropdown />
+                    </div>
+                </div>
+            </div>
         </>
     );
 };

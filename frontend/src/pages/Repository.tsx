@@ -9,7 +9,7 @@
 
 import { useState, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+// Card imports removed - using direct div styling for SimpleDocs design
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -272,109 +272,92 @@ export const RepositoryPage = () => {
 
     return (
         <div className="space-y-6 max-w-6xl mx-auto">
-            {/* Header - Modern & Personal */}
-            <div className="flex items-center justify-between">
+            {/* Header - SimpleDocs Style */}
+            <div className="flex items-start justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Meine Dokumente</h1>
-                    <p className="text-muted-foreground text-lg">
+                    <h1 className="text-2xl font-semibold text-gray-900">Meine Dokumente</h1>
+                    <p className="text-gray-500 mt-1">
                         {drafts?.length ? `${drafts.length} Entwürfe, ` : ""}
                         {stats ? `${stats.total_documents} fertige Dokumente` : "Alle Ihre Dokumente"}
                     </p>
                 </div>
                 <Link to="/generate">
-                    <Button size="lg" className="gap-2">
-                        <PlusCircle className="w-5 h-5" />
+                    <Button className="h-9 gap-2">
+                        <PlusCircle className="w-4 h-4" />
                         Neues Dokument
                     </Button>
                 </Link>
             </div>
 
-            {/* Kompakte Statistiken */}
-            <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
-                <Card className="bg-muted/30">
-                    <CardContent className="py-4">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 bg-blue-50 rounded-lg">
-                                <FileText className="w-4 h-4 text-blue-600" />
-                            </div>
-                            <div>
-                                <p className="text-2xl font-bold">{stats?.total_documents ?? "-"}</p>
-                                <p className="text-xs text-muted-foreground">Gesamt</p>
-                            </div>
+            {/* Stats - SimpleDocs Style */}
+            <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+                <div className="bg-white border border-gray-200 rounded-lg px-4 py-3">
+                    <div className="flex items-center gap-3">
+                        <FileText className="w-4 h-4 text-primary" />
+                        <div>
+                            <p className="text-lg font-semibold text-gray-900">{stats?.total_documents ?? "-"}</p>
+                            <p className="text-xs text-gray-500">Gesamt</p>
                         </div>
-                    </CardContent>
-                </Card>
-                <Card className="bg-muted/30">
-                    <CardContent className="py-4">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 bg-green-50 rounded-lg">
-                                <Calendar className="w-4 h-4 text-green-600" />
-                            </div>
-                            <div>
-                                <p className="text-2xl font-bold">{stats?.documents_this_month ?? "-"}</p>
-                                <p className="text-xs text-muted-foreground">Diesen Monat</p>
-                            </div>
+                    </div>
+                </div>
+                <div className="bg-white border border-gray-200 rounded-lg px-4 py-3">
+                    <div className="flex items-center gap-3">
+                        <Calendar className="w-4 h-4 text-green-500" />
+                        <div>
+                            <p className="text-lg font-semibold text-gray-900">{stats?.documents_this_month ?? "-"}</p>
+                            <p className="text-xs text-gray-500">Diesen Monat</p>
                         </div>
-                    </CardContent>
-                </Card>
-                <Card className="bg-muted/30">
-                    <CardContent className="py-4">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 bg-amber-50 rounded-lg">
-                                <Edit3 className="w-4 h-4 text-amber-600" />
-                            </div>
-                            <div>
-                                <p className="text-2xl font-bold">{stats?.documents_with_corrections ?? "-"}</p>
-                                <p className="text-xs text-muted-foreground">Mit Korrekturen</p>
-                            </div>
+                    </div>
+                </div>
+                <div className="bg-white border border-gray-200 rounded-lg px-4 py-3">
+                    <div className="flex items-center gap-3">
+                        <Edit3 className="w-4 h-4 text-amber-500" />
+                        <div>
+                            <p className="text-lg font-semibold text-gray-900">{stats?.documents_with_corrections ?? "-"}</p>
+                            <p className="text-xs text-gray-500">Mit Korrekturen</p>
                         </div>
-                    </CardContent>
-                </Card>
-                <Card className="bg-muted/30">
-                    <CardContent className="py-4">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 bg-purple-50 rounded-lg">
-                                <FileCheck className="w-4 h-4 text-purple-600" />
-                            </div>
-                            <div>
-                                <p className="text-2xl font-bold truncate max-w-[100px]">
-                                    {stats?.documents_by_type[0]?.name || "-"}
-                                </p>
-                                <p className="text-xs text-muted-foreground">Häufigster Typ</p>
-                            </div>
+                    </div>
+                </div>
+                <div className="bg-white border border-gray-200 rounded-lg px-4 py-3">
+                    <div className="flex items-center gap-3">
+                        <FileCheck className="w-4 h-4 text-primary" />
+                        <div>
+                            <p className="text-lg font-semibold text-gray-900 truncate max-w-[100px]">
+                                {stats?.documents_by_type[0]?.name || "-"}
+                            </p>
+                            <p className="text-xs text-gray-500">Häufigster Typ</p>
                         </div>
-                    </CardContent>
-                </Card>
+                    </div>
+                </div>
             </div>
 
-            {/* Vereinfachte Suche */}
-            <Card>
-                <CardContent className="pt-4">
-                    <div className="flex gap-3">
-                        <div className="relative flex-1">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                            <Input
-                                placeholder="Dokument suchen (Name, Typ, Mitarbeiter...)"
-                                value={filters.search || ""}
-                                onChange={(e) => updateFilter("search", e.target.value || undefined)}
-                                className="pl-10 h-12 text-base"
-                            />
-                        </div>
-                        <Button
-                            variant={showFilters ? "default" : "outline"}
-                            className="h-12 px-4"
-                            onClick={() => setShowFilters(!showFilters)}
-                        >
-                            <Filter className="w-4 h-4 mr-2" />
-                            Filter
-                        </Button>
-                        {hasActiveFilters && (
-                            <Button variant="ghost" className="h-12" onClick={clearFilters}>
-                                <X className="w-4 h-4 mr-2" />
-                                Zurücksetzen
-                            </Button>
-                        )}
+            {/* Search - SimpleDocs Style */}
+            <div className="bg-white border border-gray-200 rounded-lg p-4">
+                <div className="flex gap-3">
+                    <div className="relative flex-1">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <Input
+                            placeholder="Dokument suchen..."
+                            value={filters.search || ""}
+                            onChange={(e) => updateFilter("search", e.target.value || undefined)}
+                            className="pl-10 h-10 bg-white border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/10"
+                        />
                     </div>
+                    <Button
+                        variant={showFilters ? "default" : "outline"}
+                        className="h-10"
+                        onClick={() => setShowFilters(!showFilters)}
+                    >
+                        <Filter className="w-4 h-4 mr-2" />
+                        Filter
+                    </Button>
+                    {hasActiveFilters && (
+                        <Button variant="ghost" className="h-10" onClick={clearFilters}>
+                            <X className="w-4 h-4 mr-2" />
+                            Zurücksetzen
+                        </Button>
+                    )}
+                </div>
 
                     {/* Erweiterte Filter */}
                     {showFilters && (
@@ -441,72 +424,68 @@ export const RepositoryPage = () => {
                             </div>
                         </div>
                     )}
-                </CardContent>
-            </Card>
+            </div>
 
-            {/* Bulk Actions */}
+            {/* Bulk Actions - SimpleDocs Style */}
             {selectedIds.length > 0 && (
-                <Card className="bg-primary/5 border-primary">
-                    <CardContent className="py-3">
-                        <div className="flex items-center justify-between">
-                            <span className="text-sm font-medium">
-                                {selectedIds.length} Dokument(e) ausgewählt
-                            </span>
-                            <div className="flex gap-2">
-                                <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => handleBulkAction("export")}
-                                    disabled={bulkAction.isPending}
-                                >
-                                    <Download className="w-4 h-4 mr-2" />
-                                    Exportieren
-                                </Button>
-                                <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => handleBulkAction("archive")}
-                                    disabled={bulkAction.isPending}
-                                >
-                                    <Archive className="w-4 h-4 mr-2" />
-                                    Archivieren
-                                </Button>
-                                <Button
-                                    size="sm"
-                                    variant="destructive"
-                                    onClick={() => handleBulkAction("delete")}
-                                    disabled={bulkAction.isPending}
-                                >
-                                    <Trash2 className="w-4 h-4 mr-2" />
-                                    Löschen
-                                </Button>
-                            </div>
+                <div className="bg-primary/5 border border-primary/20 rounded-lg px-4 py-3">
+                    <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-gray-900">
+                            {selectedIds.length} ausgewählt
+                        </span>
+                        <div className="flex gap-2">
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-8"
+                                onClick={() => handleBulkAction("export")}
+                                disabled={bulkAction.isPending}
+                            >
+                                <Download className="w-4 h-4 mr-1" />
+                                Export
+                            </Button>
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-8"
+                                onClick={() => handleBulkAction("archive")}
+                                disabled={bulkAction.isPending}
+                            >
+                                <Archive className="w-4 h-4 mr-1" />
+                                Archiv
+                            </Button>
+                            <Button
+                                size="sm"
+                                variant="destructive"
+                                className="h-8"
+                                onClick={() => handleBulkAction("delete")}
+                                disabled={bulkAction.isPending}
+                            >
+                                <Trash2 className="w-4 h-4 mr-1" />
+                                Löschen
+                            </Button>
                         </div>
-                    </CardContent>
-                </Card>
+                    </div>
+                </div>
             )}
 
-            {/* Unified Dokumentenliste: Entwürfe + Fertige Dokumente */}
-            <Card>
-                <CardHeader className="pb-2">
-                    <CardTitle className="text-base flex items-center justify-between">
-                        <span>
-                            {unifiedItems.length} Einträge
-                            {drafts?.length ? ` (${drafts.length} Entwürfe)` : ""}
-                        </span>
-                        {documents.length > 0 && (
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={toggleSelectAll}
-                                className="text-xs"
-                            >
-                                {selectedIds.length === documents.length ? "Auswahl aufheben" : "Alle auswählen"}
-                            </Button>
-                        )}
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
+            {/* Document List - SimpleDocs Style */}
+            <div className="bg-white border border-gray-200 rounded-lg">
+                <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+                    <h3 className="font-medium text-gray-900">
+                        {unifiedItems.length} Einträge
+                        {drafts?.length ? ` (${drafts.length} Entwürfe)` : ""}
+                    </h3>
+                    {documents.length > 0 && (
+                        <button
+                            onClick={toggleSelectAll}
+                            className="text-xs text-primary hover:underline"
+                        >
+                            {selectedIds.length === documents.length ? "Auswahl aufheben" : "Alle"}
+                        </button>
+                    )}
+                </div>
+                <div className="p-2">
                     {isLoading ? (
                         <div className="space-y-3">
                             {[1, 2, 3, 4, 5].map((i) => (
@@ -695,8 +674,8 @@ export const RepositoryPage = () => {
                             </div>
                         </div>
                     )}
-                </CardContent>
-            </Card>
+                </div>
+            </div>
 
             {/* Correction Dialog */}
             {correctionDocId && (

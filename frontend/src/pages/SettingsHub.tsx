@@ -15,7 +15,7 @@
 import { useState, useEffect, lazy, Suspense } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent } from "@/components/ui/card";
+// Card imports removed - using direct div styling for SimpleDocs design
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import {
@@ -190,34 +190,33 @@ export default function SettingsHub() {
     };
 
     return (
-        <div className="container mx-auto py-6 max-w-7xl">
+        <div className="max-w-6xl mx-auto">
             {/* Command Palette */}
             <SettingsCommandPalette
                 open={commandPaletteOpen}
                 onOpenChange={setCommandPaletteOpen}
             />
 
-            <div className="mb-6">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h1 className="text-2xl font-bold">Einstellungen</h1>
-                        <p className="text-muted-foreground">
-                            Verwalten Sie Firmendaten, Design, Vorlagen und Textbausteine.
-                        </p>
-                    </div>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setCommandPaletteOpen(true)}
-                        className="gap-2"
-                    >
-                        <Search className="h-4 w-4" />
-                        <span className="hidden sm:inline">Suchen</span>
-                        <kbd className="pointer-events-none hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground ml-2">
-                            {navigator.platform.includes("Mac") ? "Cmd" : "Ctrl"}+K
-                        </kbd>
-                    </Button>
+            {/* Header - SimpleDocs Style */}
+            <div className="flex items-start justify-between mb-6">
+                <div>
+                    <h1 className="text-2xl font-semibold text-gray-900">Einstellungen</h1>
+                    <p className="text-gray-500 mt-1">
+                        Firmendaten, Design, Vorlagen und Textbausteine verwalten
+                    </p>
                 </div>
+                <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCommandPaletteOpen(true)}
+                    className="gap-2 h-9"
+                >
+                    <Search className="h-4 w-4" />
+                    <span className="hidden sm:inline">Suchen</span>
+                    <kbd className="pointer-events-none hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border bg-gray-100 px-1.5 font-mono text-[10px] font-medium text-gray-500 ml-2">
+                        {navigator.platform.includes("Mac") ? "Cmd" : "Ctrl"}+K
+                    </kbd>
+                </Button>
             </div>
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
@@ -269,29 +268,29 @@ export default function SettingsHub() {
                     </Suspense>
                 </TabsContent>
 
-                {/* Erweitert - Sub-Navigation */}
+                {/* Erweitert - Sub-Navigation - SimpleDocs Style */}
                 <TabsContent value="advanced" className="space-y-4">
-                    <Card>
-                        <CardContent className="p-4">
-                            <div className="flex flex-wrap gap-2 mb-6">
-                                {ADVANCED_SECTIONS.map((section) => (
-                                    <button
-                                        key={section.id}
-                                        onClick={() => setAdvancedSection(section.id)}
-                                        className={`flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors ${
-                                            advancedSection === section.id
-                                                ? "bg-primary text-primary-foreground"
-                                                : "bg-muted hover:bg-muted/80 text-muted-foreground"
-                                        }`}
-                                    >
-                                        <section.icon className="w-4 h-4" />
-                                        {section.label}
-                                    </button>
-                                ))}
-                            </div>
+                    <div className="bg-white border border-gray-200 rounded-lg">
+                        <div className="flex flex-wrap gap-1 p-2 border-b border-gray-100">
+                            {ADVANCED_SECTIONS.map((section) => (
+                                <button
+                                    key={section.id}
+                                    onClick={() => setAdvancedSection(section.id)}
+                                    className={`flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors ${
+                                        advancedSection === section.id
+                                            ? "bg-primary/10 text-primary font-medium"
+                                            : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                                    }`}
+                                >
+                                    <section.icon className="w-4 h-4" />
+                                    {section.label}
+                                </button>
+                            ))}
+                        </div>
+                        <div className="p-4">
                             {renderAdvancedContent()}
-                        </CardContent>
-                    </Card>
+                        </div>
+                    </div>
                 </TabsContent>
 
                 {/* Integrationen - Copilot Studio / Power Platform */}
