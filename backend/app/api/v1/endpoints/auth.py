@@ -54,12 +54,12 @@ async def login_access_token(
     if not user or not security.verify_password(form_data.password, user.password_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
+            detail="Falsche E-Mail oder Passwort",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
     if not user.is_active:
-        raise HTTPException(status_code=400, detail="Inactive user")
+        raise HTTPException(status_code=400, detail="Benutzerkonto ist deaktiviert")
 
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = security.create_access_token(
@@ -83,7 +83,7 @@ async def register_user(
     if len(register_data.password) < 8:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Password must be at least 8 characters long"
+            detail="Passwort muss mindestens 8 Zeichen lang sein"
         )
 
     # Check if email already exists (case-insensitive)
@@ -93,7 +93,7 @@ async def register_user(
     if existing_result.scalar_one_or_none():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="A user with this email already exists"
+            detail="Ein Benutzer mit dieser E-Mail existiert bereits"
         )
 
     # Create new user
