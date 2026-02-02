@@ -116,12 +116,7 @@ export function DocumentUploadDialog({
 
         const response = await api.post<ExtractionResult>(
           "/api/v1/document-upload/upload",
-          formData,
-          {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          }
+          formData
         );
 
         setResult(response.data);

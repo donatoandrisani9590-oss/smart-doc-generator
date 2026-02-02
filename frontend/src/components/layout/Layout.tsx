@@ -118,7 +118,7 @@ export const Layout = () => {
             )}
 
             <main className="flex-1 overflow-auto" role="main">
-                <header className="h-16 sticky top-0 z-10 px-4 lg:px-6 flex items-center justify-between glass-header" role="banner">
+                <header className="h-16 px-4 lg:px-6 flex items-center justify-between glass-header" role="banner">
                     <div className="flex items-center gap-3">
                         {/* Mobile menu button */}
                         <Button

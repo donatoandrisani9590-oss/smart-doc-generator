@@ -130,7 +130,7 @@ export const Dashboard = () => {
                                 onClick={() => setWizardOpen(true)}
                             >
                                 <PlusCircle className="w-5 h-5" />
-                                Wizard starten
+                                Schritt-für-Schritt
                             </Button>
                         </div>
                     </div>

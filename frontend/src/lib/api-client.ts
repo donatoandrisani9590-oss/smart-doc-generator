@@ -167,9 +167,12 @@ async function request<T>(
         }
     }
 
-    // Build headers
+    // Check if body is FormData (for file uploads)
+    const isFormData = body instanceof FormData;
+
+    // Build headers - don't set Content-Type for FormData (browser sets it with boundary)
     const requestHeaders: Record<string, string> = {
-        "Content-Type": "application/json",
+        ...(!isFormData && { "Content-Type": "application/json" }),
         ...headers,
     };
 
@@ -196,7 +199,7 @@ async function request<T>(
             const response = await fetch(url, {
                 method,
                 headers: requestHeaders,
-                body: body ? JSON.stringify(body) : undefined,
+                body: body ? (isFormData ? body : JSON.stringify(body)) : undefined,
                 signal: combinedSignal,
             });
 

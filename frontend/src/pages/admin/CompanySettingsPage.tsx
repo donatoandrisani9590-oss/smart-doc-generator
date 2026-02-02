@@ -73,7 +73,10 @@ export default function CompanySettingsPage() {
         setIsLoading(true);
         setError(null);
         try {
-            const response = await fetch(`/api/v1/company-settings/${country}`);
+            const token = localStorage.getItem("auth_token");
+            const response = await fetch(`/api/v1/company-settings/${country}`, {
+                headers: token ? { "Authorization": `Bearer ${token}` } : {},
+            });
             if (!response.ok) throw new Error("Einstellungen konnten nicht geladen werden");
             const data: CompanySettings = await response.json();
             setSettings(data);
