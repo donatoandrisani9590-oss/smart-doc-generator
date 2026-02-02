@@ -37,8 +37,14 @@ export interface LoginCredentials {
   password: string;
 }
 
+export interface RegisterCredentials {
+  email: string;
+  password: string;
+}
+
 export interface AuthContextType extends AuthState {
   login: (credentials: LoginCredentials) => Promise<void>;
+  register: (credentials: RegisterCredentials) => Promise<void>;
   logout: () => void;
   refreshUser: () => Promise<void>;
 }
@@ -206,6 +212,45 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
+  // Register function
+  const register = useCallback(async (credentials: RegisterCredentials) => {
+    setState((prev) => ({ ...prev, isLoading: true }));
+
+    try {
+      const response = await fetch(`${API_BASE}/api/v1/auth/register`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: credentials.email,
+          password: credentials.password,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ detail: "Registrierung fehlgeschlagen" }));
+        throw new Error(error.detail || "Registrierung fehlgeschlagen");
+      }
+
+      const { user, access_token } = await response.json();
+
+      // Store in localStorage
+      localStorage.setItem(TOKEN_KEY, access_token);
+      localStorage.setItem(USER_KEY, JSON.stringify(user));
+
+      setState({
+        user,
+        token: access_token,
+        isAuthenticated: true,
+        isLoading: false,
+      });
+    } catch (error) {
+      setState((prev) => ({ ...prev, isLoading: false }));
+      throw error;
+    }
+  }, []);
+
   // Logout function
   const logout = useCallback(() => {
     localStorage.removeItem(TOKEN_KEY);
@@ -245,6 +290,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const value: AuthContextType = {
     ...state,
     login,
+    register,
     logout,
     refreshUser,
   };

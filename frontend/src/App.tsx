@@ -17,6 +17,7 @@ import SettingsHub from "@/pages/SettingsHub";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { LoginPage } from "@/pages/LoginPage";
+import { RegisterPage } from "@/pages/RegisterPage";
 // Feature Settings (loaded once, shared globally)
 import { FeatureSettingsProvider } from "@/contexts/FeatureSettingsContext";
 
@@ -32,8 +33,9 @@ function App() {
       <AuthProvider>
         <BrowserRouter>
           <Routes>
-            {/* Public Login Route */}
+            {/* Public Routes */}
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
 
             {/* Protected Routes */}
             <Route

@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 
 from app.db import get_db
 from app.core import security
@@ -26,6 +26,20 @@ class UserResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class UserRegister(BaseModel):
+    """Schema for user registration."""
+    email: EmailStr
+    password: str
+    country_code: str = "DE"
+
+
+class RegisterResponse(BaseModel):
+    """Response after successful registration."""
+    user: UserResponse
+    access_token: str
+    token_type: str = "bearer"
 
 
 @router.post("/login", response_model=token_schema.Token)
@@ -52,6 +66,65 @@ async def login_access_token(
         subject=user.id, expires_delta=access_token_expires
     )
     return {"access_token": access_token, "token_type": "bearer"}
+
+
+@router.post("/register", response_model=RegisterResponse)
+async def register_user(
+    register_data: UserRegister,
+    db: Annotated[AsyncSession, Depends(get_db)]
+):
+    """
+    Register a new user account.
+
+    Creates a new user with the provided email and password.
+    Returns user data and access token for immediate login.
+    """
+    # Validate password length
+    if len(register_data.password) < 8:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Password must be at least 8 characters long"
+        )
+
+    # Check if email already exists (case-insensitive)
+    email_lower = register_data.email.lower()
+    existing_query = select(User).where(User.email == email_lower)
+    existing_result = await db.execute(existing_query)
+    if existing_result.scalar_one_or_none():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="A user with this email already exists"
+        )
+
+    # Create new user
+    new_user = User(
+        email=email_lower,
+        password_hash=security.get_password_hash(register_data.password),
+        role="user",  # New registrations are always regular users
+        country_code=register_data.country_code,
+        is_active=True,
+    )
+    db.add(new_user)
+    await db.commit()
+    await db.refresh(new_user)
+
+    # Generate access token for immediate login
+    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = security.create_access_token(
+        subject=new_user.id, expires_delta=access_token_expires
+    )
+
+    return RegisterResponse(
+        user=UserResponse(
+            id=new_user.id,
+            email=new_user.email,
+            role=new_user.role,
+            country_code=new_user.country_code,
+            is_active=new_user.is_active,
+        ),
+        access_token=access_token,
+        token_type="bearer"
+    )
 
 
 @router.get("/me", response_model=UserResponse)

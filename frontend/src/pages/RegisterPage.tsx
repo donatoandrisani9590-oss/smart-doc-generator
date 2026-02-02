@@ -1,17 +1,18 @@
 /**
- * Login Page - Benutzeranmeldung
+ * Register Page - Benutzerregistrierung
  *
  * Features:
- * - Email/Passwort Login
+ * - Email/Passwort Registrierung
+ * - Passwort-Bestätigung
  * - Fehlerbehandlung
- * - Automatische Weiterleitung nach Login
+ * - Auto-Login nach Registrierung
  * - Responsive Design
  */
 
 import React, { useState } from "react";
-import { useNavigate, useLocation, Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Eye, EyeOff, LogIn, AlertCircle, Loader2 } from "lucide-react";
+import { Eye, EyeOff, UserPlus, AlertCircle, Loader2, CheckCircle2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,33 +20,55 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
-export const LoginPage: React.FC = () => {
+export const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
-  const location = useLocation();
-  const { login, isLoading } = useAuth();
+  const { register, isLoading } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Get redirect path from location state or default to home
-  const from = (location.state as { from?: { pathname: string } })?.from?.pathname || "/";
+  // Password validation
+  const passwordMinLength = password.length >= 8;
+  const passwordsMatch = password === confirmPassword && confirmPassword.length > 0;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
-    if (!email || !password) {
-      setError("Bitte geben Sie E-Mail und Passwort ein.");
+    // Validate all fields
+    if (!email || !password || !confirmPassword) {
+      setError("Bitte füllen Sie alle Felder aus.");
+      return;
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError("Bitte geben Sie eine gültige E-Mail-Adresse ein.");
+      return;
+    }
+
+    // Validate password length
+    if (password.length < 8) {
+      setError("Das Passwort muss mindestens 8 Zeichen lang sein.");
+      return;
+    }
+
+    // Validate password match
+    if (password !== confirmPassword) {
+      setError("Die Passwörter stimmen nicht überein.");
       return;
     }
 
     try {
-      await login({ email, password });
-      navigate(from, { replace: true });
+      await register({ email, password });
+      navigate("/", { replace: true });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Login fehlgeschlagen. Bitte versuchen Sie es erneut.");
+      setError(err instanceof Error ? err.message : "Registrierung fehlgeschlagen. Bitte versuchen Sie es erneut.");
     }
   };
 
@@ -67,10 +90,10 @@ export const LoginPage: React.FC = () => {
             </div>
 
             <CardTitle className="text-2xl text-center font-bold">
-              Willkommen
+              Konto erstellen
             </CardTitle>
             <CardDescription className="text-center">
-              Melden Sie sich an, um auf das HR-Dokumentensystem zuzugreifen
+              Registrieren Sie sich für das HR-Dokumentensystem
             </CardDescription>
           </CardHeader>
 
@@ -96,7 +119,7 @@ export const LoginPage: React.FC = () => {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="name@niederwieser.com"
+                  placeholder="name@beispiel.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={isLoading}
@@ -112,11 +135,11 @@ export const LoginPage: React.FC = () => {
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
-                    placeholder="Ihr Passwort"
+                    placeholder="Mindestens 8 Zeichen"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     disabled={isLoading}
-                    autoComplete="current-password"
+                    autoComplete="new-password"
                     className="pr-10"
                   />
                   <button
@@ -132,37 +155,92 @@ export const LoginPage: React.FC = () => {
                     )}
                   </button>
                 </div>
+                {/* Password strength indicator */}
+                {password.length > 0 && (
+                  <div className="flex items-center gap-2 text-xs">
+                    {passwordMinLength ? (
+                      <CheckCircle2 className="h-3 w-3 text-green-500" />
+                    ) : (
+                      <AlertCircle className="h-3 w-3 text-muted-foreground" />
+                    )}
+                    <span className={passwordMinLength ? "text-green-600" : "text-muted-foreground"}>
+                      Mindestens 8 Zeichen
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Confirm Password Field */}
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Passwort bestätigen</Label>
+                <div className="relative">
+                  <Input
+                    id="confirmPassword"
+                    type={showConfirmPassword ? "text" : "password"}
+                    placeholder="Passwort wiederholen"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    disabled={isLoading}
+                    autoComplete="new-password"
+                    className="pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    tabIndex={-1}
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
+                {/* Password match indicator */}
+                {confirmPassword.length > 0 && (
+                  <div className="flex items-center gap-2 text-xs">
+                    {passwordsMatch ? (
+                      <CheckCircle2 className="h-3 w-3 text-green-500" />
+                    ) : (
+                      <AlertCircle className="h-3 w-3 text-red-500" />
+                    )}
+                    <span className={passwordsMatch ? "text-green-600" : "text-red-500"}>
+                      {passwordsMatch ? "Passwörter stimmen überein" : "Passwörter stimmen nicht überein"}
+                    </span>
+                  </div>
+                )}
               </div>
 
               {/* Submit Button */}
               <Button
                 type="submit"
                 className="w-full"
-                disabled={isLoading}
+                disabled={isLoading || !passwordMinLength || !passwordsMatch}
                 size="lg"
               >
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Anmeldung...
+                    Registrierung...
                   </>
                 ) : (
                   <>
-                    <LogIn className="mr-2 h-4 w-4" />
-                    Anmelden
+                    <UserPlus className="mr-2 h-4 w-4" />
+                    Registrieren
                   </>
                 )}
               </Button>
             </form>
 
-            {/* Register Link */}
+            {/* Login Link */}
             <div className="mt-6 text-center text-sm">
-              <span className="text-muted-foreground">Noch kein Konto? </span>
+              <span className="text-muted-foreground">Bereits ein Konto? </span>
               <Link
-                to="/register"
+                to="/login"
                 className="text-primary hover:underline font-medium"
               >
-                Registrieren
+                Anmelden
               </Link>
             </div>
 
@@ -183,4 +261,4 @@ export const LoginPage: React.FC = () => {
   );
 };
 
-export default LoginPage;
+export default RegisterPage;
