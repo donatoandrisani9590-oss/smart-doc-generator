@@ -49,7 +49,9 @@ export const LeftControlPanel = ({ documentTypes }: LeftControlPanelProps) => {
     const [showClausesModal, setShowClausesModal] = useState(false);
     const [showAttachmentsModal, setShowAttachmentsModal] = useState(false);
 
-    const documentTypeName = documentTypes.find(t => t.id === documentTypeId)?.name || "Dokument";
+    const selectedDocumentType = documentTypes.find(t => t.id === documentTypeId);
+    const documentTypeName = selectedDocumentType?.name || "Dokument";
+    const documentCountryCode = selectedDocumentType?.country_code;
     const enabledClausesCount = documentClauses.filter(c => c.is_enabled).length;
     const totalClausesCount = documentClauses.length;
 
@@ -89,7 +91,7 @@ export const LeftControlPanel = ({ documentTypes }: LeftControlPanelProps) => {
                             <Users className="w-4 h-4 text-primary" />
                             <span className="font-medium text-sm">Formularfelder</span>
                         </div>
-                        <FormFieldsSection />
+                        <FormFieldsSection countryCode={documentCountryCode} />
                     </div>
 
                     {/* Klauseln - Kompakter Link mit Modal */}

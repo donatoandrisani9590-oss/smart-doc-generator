@@ -12,8 +12,9 @@
  */
 
 import { useState, useMemo, useCallback } from "react";
-import { Save, FileText, FileType2, Loader2 } from "lucide-react";
+import { Save, FileText, FileType2, Loader2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/toast";
 import { useWizardContext } from "../WizardContext";
 import { ValidationProgress, type ValidationState, type ValidationIssue } from "../ValidationProgress";
 import { ExportSuccessModal } from "../ExportSuccessModal";
@@ -31,6 +32,7 @@ const REQUIRED_FIELDS = [
 export const ActionBar = () => {
     const { state, actions } = useWizardContext();
     const { documentTypeId, documentTitle, formData, isGenerating } = state;
+    const toast = useToast();
 
     const [isSavingDraft, setIsSavingDraft] = useState(false);
     const [isExportingPdf, setIsExportingPdf] = useState(false);
@@ -97,6 +99,30 @@ export const ActionBar = () => {
     }, []);
 
     const canExport = documentTypeId && validationState.isValid;
+
+    // Handler für Klick auf deaktivierte Export-Buttons (zeigt Toast mit fehlenden Feldern)
+    const handleDisabledExportClick = useCallback(() => {
+        if (!validationState.isValid && validationState.missingFields.length > 0) {
+            const fieldNames = validationState.missingFields
+                .slice(0, 3)
+                .map(f => f.label)
+                .join(", ");
+            const moreCount = validationState.missingFields.length - 3;
+            const message = moreCount > 0
+                ? `${fieldNames} und ${moreCount} weitere`
+                : fieldNames;
+
+            toast.error(
+                "Pflichtfelder fehlen",
+                `Bitte füllen Sie aus: ${message}`
+            );
+        } else if (!documentTypeId) {
+            toast.error(
+                "Dokumenttyp fehlt",
+                "Bitte wählen Sie zuerst einen Dokumenttyp aus."
+            );
+        }
+    }, [validationState, documentTypeId, toast]);
 
     // Entwurf speichern
     const handleSaveDraft = async () => {
@@ -176,11 +202,14 @@ export const ActionBar = () => {
                 <Button
                     variant="default"
                     className="gap-2"
-                    onClick={handleExportPdf}
-                    disabled={!canExport || isAnyLoading}
+                    onClick={canExport ? handleExportPdf : handleDisabledExportClick}
+                    disabled={isAnyLoading}
+                    data-disabled={!canExport}
                 >
                     {isExportingPdf ? (
                         <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : !canExport ? (
+                        <AlertCircle className="w-4 h-4" />
                     ) : (
                         <FileText className="w-4 h-4" />
                     )}
@@ -189,11 +218,14 @@ export const ActionBar = () => {
                 <Button
                     variant="secondary"
                     className="gap-2"
-                    onClick={handleExportDocx}
-                    disabled={!canExport || isAnyLoading}
+                    onClick={canExport ? handleExportDocx : handleDisabledExportClick}
+                    disabled={isAnyLoading}
+                    data-disabled={!canExport}
                 >
                     {isExportingDocx ? (
                         <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : !canExport ? (
+                        <AlertCircle className="w-4 h-4" />
                     ) : (
                         <FileType2 className="w-4 h-4" />
                     )}
