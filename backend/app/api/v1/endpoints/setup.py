@@ -150,3 +150,73 @@ async def initialize_system(
         admin_email=admin_user.email,
         admin_id=admin_user.id,
     )
+
+
+@router.post("/migrate-schema")
+async def migrate_schema(
+    db: Annotated[AsyncSession, Depends(get_db)]
+):
+    """
+    Add missing columns to existing database tables.
+
+    This endpoint runs schema migrations for:
+    - document_types: custom header/footer/logo columns
+
+    Safe to run multiple times (uses IF NOT EXISTS).
+    """
+    from sqlalchemy import text
+
+    migrations = []
+    errors = []
+
+    # document_types table - custom header/footer/logo columns
+    document_type_columns = [
+        ("custom_header_enabled", "BOOLEAN DEFAULT FALSE"),
+        ("custom_header_line1", "TEXT"),
+        ("custom_header_line2", "TEXT"),
+        ("custom_header_line3", "TEXT"),
+        ("custom_footer_enabled", "BOOLEAN DEFAULT FALSE"),
+        ("custom_footer_line1", "TEXT"),
+        ("custom_footer_line2", "TEXT"),
+        ("custom_footer_line3", "TEXT"),
+        ("custom_logo_enabled", "BOOLEAN DEFAULT FALSE"),
+        ("custom_logo_path", "VARCHAR"),
+        ("custom_logo_position", "VARCHAR(20)"),
+        ("custom_logo_width_cm", "VARCHAR(10)"),
+        ("custom_margin_left_cm", "VARCHAR(10)"),
+        ("custom_margin_right_cm", "VARCHAR(10)"),
+        ("custom_margin_top_cm", "VARCHAR(10)"),
+        ("custom_margin_bottom_cm", "VARCHAR(10)"),
+        ("source_template_id", "INTEGER REFERENCES document_types(id) ON DELETE SET NULL"),
+        ("team_id", "INTEGER REFERENCES teams(id) ON DELETE SET NULL"),
+        ("visibility", "VARCHAR(20) DEFAULT 'global'"),
+        ("created_by_user_id", "INTEGER REFERENCES users(id) ON DELETE SET NULL"),
+        ("created_at", "TIMESTAMP WITH TIME ZONE DEFAULT NOW()"),
+    ]
+
+    for col_name, col_type in document_type_columns:
+        try:
+            # Check if column exists
+            check_sql = text(f"""
+                SELECT column_name
+                FROM information_schema.columns
+                WHERE table_name = 'document_types' AND column_name = '{col_name}'
+            """)
+            result = await db.execute(check_sql)
+            if not result.fetchone():
+                # Column doesn't exist, add it
+                alter_sql = text(f"ALTER TABLE document_types ADD COLUMN {col_name} {col_type}")
+                await db.execute(alter_sql)
+                migrations.append(f"Added column document_types.{col_name}")
+        except Exception as e:
+            errors.append(f"Failed to add document_types.{col_name}: {str(e)}")
+
+    await db.commit()
+
+    return {
+        "status": "completed",
+        "migrations_applied": migrations,
+        "errors": errors,
+        "total_migrations": len(migrations),
+        "total_errors": len(errors)
+    }
