@@ -182,13 +182,19 @@ export function SmartChatInput({
 
       setLastResponse(response);
 
-      // Auto-process high-confidence actions
+      // Auto-process based on confidence levels:
+      // >= 0.6: Auto-execute (navigate to generator)
+      // 0.5-0.6: Show confirmation (user clicks "Ausführen")
+      // < 0.5: Ask for clarification
       if (
-        response.intent.confidence >= 0.7 &&
+        response.intent.confidence >= 0.6 &&
         response.intent.intentType !== "unknown" &&
         response.suggestedActions.length > 0
       ) {
+        // High confidence - execute immediately
         processActions(response);
+        setInput("");
+        return; // Don't show response card for auto-executed actions
       }
 
       setInput("");

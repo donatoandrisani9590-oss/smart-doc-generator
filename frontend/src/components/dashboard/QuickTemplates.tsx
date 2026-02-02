@@ -125,7 +125,7 @@ export const QuickTemplates = ({ className }: QuickTemplatesProps) => {
             setSelectedType(type);
             setSmartModeOpen(true);
         } else {
-            navigate(`/composer?type=${type.id}`);
+            navigate(`/generate?type=${type.id}`);
         }
     };
 
