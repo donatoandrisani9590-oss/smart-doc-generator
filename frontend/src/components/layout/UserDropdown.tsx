@@ -32,8 +32,6 @@ import { useAuth } from "@/contexts/AuthContext";
 interface UserDropdownProps {
     /** Zusätzliche CSS-Klassen */
     className?: string;
-    /** Ist die Sidebar eingeklappt? */
-    isCollapsed?: boolean;
 }
 
 const sidebarTransition = {
@@ -77,7 +75,7 @@ const getDisplayName = (email: string): string => {
         .join(" ");
 };
 
-export const UserDropdown = ({ className, isCollapsed = false }: UserDropdownProps) => {
+export const UserDropdown = ({ className }: UserDropdownProps) => {
     const navigate = useNavigate();
     const { user, logout } = useAuth();
     const [open, setOpen] = React.useState(false);
@@ -122,7 +120,6 @@ export const UserDropdown = ({ className, isCollapsed = false }: UserDropdownPro
                         "w-full flex items-center gap-3 p-2 rounded-lg cursor-pointer",
                         "hover:bg-primary/5 transition-colors",
                         "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
-                        isCollapsed && "justify-center p-1.5",
                         className
                     )}
                     whileHover={{ backgroundColor: "hsl(var(--primary) / 0.05)" }}
@@ -131,35 +128,28 @@ export const UserDropdown = ({ className, isCollapsed = false }: UserDropdownPro
                     aria-label="Benutzermenü öffnen"
                 >
                     {/* Avatar */}
-                    <div className={cn(
-                        "rounded-full bg-primary flex items-center justify-center text-primary-foreground font-semibold text-sm shrink-0",
-                        isCollapsed ? "w-8 h-8" : "w-9 h-9"
-                    )}>
+                    <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-semibold text-sm shrink-0">
                         {displayUser.initials}
                     </div>
 
-                    {/* User Info - hidden when collapsed */}
-                    {!isCollapsed && (
-                        <>
-                            <div className="flex-1 text-left min-w-0">
-                                <p className="text-sm font-medium text-foreground truncate">
-                                    {displayUser.name}
-                                </p>
-                                <p className="text-xs text-muted-foreground truncate">
-                                    {roleLabels[displayUser.role] || displayUser.role}
-                                </p>
-                            </div>
+                    {/* User Info */}
+                    <div className="flex-1 text-left min-w-0">
+                        <p className="text-sm font-medium text-foreground truncate">
+                            {displayUser.name}
+                        </p>
+                        <p className="text-xs text-muted-foreground truncate">
+                            {roleLabels[displayUser.role] || displayUser.role}
+                        </p>
+                    </div>
 
-                            {/* Chevron */}
-                            <ChevronUp
-                                className={cn(
-                                    "w-4 h-4 text-muted-foreground transition-transform",
-                                    open && "rotate-180"
-                                )}
-                                aria-hidden="true"
-                            />
-                        </>
-                    )}
+                    {/* Chevron */}
+                    <ChevronUp
+                        className={cn(
+                            "w-4 h-4 text-muted-foreground transition-transform",
+                            open && "rotate-180"
+                        )}
+                        aria-hidden="true"
+                    />
                 </motion.button>
             </DropdownMenuTrigger>
 

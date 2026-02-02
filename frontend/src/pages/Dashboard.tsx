@@ -12,6 +12,7 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "@/components/ui/input";
 import {
     PlusCircle,
     FileCheck,
@@ -21,6 +22,7 @@ import {
     Calendar,
     Sparkles,
     AlertTriangle,
+    Search,
     ChevronRight,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
@@ -33,7 +35,6 @@ import { DeadlinesWidget } from "@/components/dashboard/DeadlinesWidget";
 import { ApprovalRequestsWidget } from "@/components/dashboard/ApprovalRequestsWidget";
 import { DocumentUploadDialog } from "@/components/documents/DocumentUploadDialog";
 import { ActivityFeedWidget } from "@/components/dashboard/ActivityFeedWidget";
-import { GlobalSearchDropdown } from "@/components/search/GlobalSearchDropdown";
 import { useFeatureEnabled } from "@/hooks/useFeatureSettings";
 
 // Tageszeit-basierte Begrüßung
@@ -47,6 +48,7 @@ const getGreeting = () => {
 export const Dashboard = () => {
     const { data: stats, isLoading: statsLoading } = useDashboardStats();
     const { data: activity, isLoading: activityLoading } = useMyActivity(5);
+    const [searchQuery, setSearchQuery] = useState("");
     const [wizardOpen, setWizardOpen] = useState(false);
     const [uploadOpen, setUploadOpen] = useState(false);
     const navigate = useNavigate();
@@ -55,6 +57,13 @@ export const Dashboard = () => {
     const isLoading = statsLoading || activityLoading;
     const hasOpenDrafts = (stats?.open_drafts ?? 0) > 0;
     const hasPendingTasks = hasOpenDrafts;
+
+    const handleSearch = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (searchQuery.trim()) {
+            navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+        }
+    };
 
     return (
         <div className="space-y-8 max-w-5xl mx-auto">
@@ -70,10 +79,20 @@ export const Dashboard = () => {
                 </p>
             </div>
 
-            {/* Globale Suche mit Live-Dropdown */}
-            <GlobalSearchDropdown
-                placeholder="Suchen Sie nach etwas?"
-            />
+            {/* Globale Suche */}
+            <form onSubmit={handleSearch}>
+                <div className="relative">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                    <Input
+                        type="text"
+                        placeholder="Suchen Sie nach etwas?"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="pl-12 h-12 text-base"
+                        data-global-search
+                    />
+                </div>
+            </form>
 
             {/* Quick Templates - Top 3 Dokumenttypen */}
             <QuickTemplates />

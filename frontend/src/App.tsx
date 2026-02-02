@@ -1,6 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate, useParams } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
-import { ThreePanelLayout } from "@/components/layout/ThreePanelLayout";
 import { Dashboard } from "@/pages/Dashboard";
 import { DocumentGenerator } from "@/pages/DocumentGenerator";
 import { SearchPage } from "@/pages/Search";
@@ -38,27 +37,7 @@ function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
 
-            {/* Protected Routes with Three-Panel Layout (modern UI) */}
-            <Route
-              path="/"
-              element={
-                <ProtectedRoute>
-                  <FeatureSettingsProvider>
-                    <ThreePanelLayout />
-                  </FeatureSettingsProvider>
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<PageErrorBoundary><Dashboard /></PageErrorBoundary>} />
-              <Route path="documents" element={<PageErrorBoundary><RepositoryPage /></PageErrorBoundary>} />
-              <Route path="documents/:documentId" element={<PageErrorBoundary><DocumentDetailPage /></PageErrorBoundary>} />
-              <Route path="search" element={<PageErrorBoundary><SearchPage /></PageErrorBoundary>} />
-              <Route path="teams" element={<PageErrorBoundary><TeamsPage /></PageErrorBoundary>} />
-              <Route path="deadlines" element={<PageErrorBoundary><DeadlinesCalendar /></PageErrorBoundary>} />
-              <Route path="notifications" element={<PageErrorBoundary><NotificationsPage /></PageErrorBoundary>} />
-            </Route>
-
-            {/* Protected Routes with Standard Layout (full-width content) */}
+            {/* Protected Routes */}
             <Route
               path="/"
               element={
@@ -69,11 +48,18 @@ function App() {
                 </ProtectedRoute>
               }
             >
+              <Route index element={<PageErrorBoundary><Dashboard /></PageErrorBoundary>} />
               <Route path="generate" element={<PageErrorBoundary><DocumentGenerator /></PageErrorBoundary>} />
               <Route path="bulk" element={<PageErrorBoundary><BulkUploadPage /></PageErrorBoundary>} />
               {/* Composer versteckt - Redirect zu /generate (v4.2 UX-Refactoring) */}
               <Route path="composer" element={<Navigate to="/generate" replace />} />
               <Route path="composer/:draftId" element={<ComposerDraftRedirect />} />
+              <Route path="documents" element={<PageErrorBoundary><RepositoryPage /></PageErrorBoundary>} />
+              <Route path="documents/:documentId" element={<PageErrorBoundary><DocumentDetailPage /></PageErrorBoundary>} />
+              <Route path="search" element={<PageErrorBoundary><SearchPage /></PageErrorBoundary>} />
+              <Route path="teams" element={<PageErrorBoundary><TeamsPage /></PageErrorBoundary>} />
+              <Route path="deadlines" element={<PageErrorBoundary><DeadlinesCalendar /></PageErrorBoundary>} />
+              <Route path="notifications" element={<PageErrorBoundary><NotificationsPage /></PageErrorBoundary>} />
 
               {/* UX-Refactoring: Neuer Settings-Hub */}
               <Route path="settings" element={<PageErrorBoundary><SettingsHub /></PageErrorBoundary>} />
