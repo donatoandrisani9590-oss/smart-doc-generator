@@ -42,7 +42,6 @@ import {
     LayoutTemplate,
     Copy,
     Globe,
-    Lock,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -57,7 +56,6 @@ import {
     useCreateTeamTemplate,
     type Team,
     type TeamMember,
-    type TeamTemplate,
 } from "@/hooks/useApi";
 import { useCountry } from "@/hooks/useCountry";
 import { useToast } from "@/components/ui/toast";

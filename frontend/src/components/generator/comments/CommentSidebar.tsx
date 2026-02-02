@@ -19,7 +19,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Plus, MessageSquare, Loader2, Cloud, CloudOff, Filter, RefreshCw, CheckCircle2, AlertCircle } from "lucide-react";
+import { Plus, MessageSquare, Loader2, CloudOff, Filter, RefreshCw, CheckCircle2, AlertCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -196,11 +196,6 @@ export const CommentSidebar = () => {
     // Filter: aktive vs. aufgelöste Kommentare
     const activeComments = allComments.filter((c) => !c.resolved);
     const resolvedComments = allComments.filter((c) => c.resolved);
-
-    // Filtered list based on showResolved toggle
-    const visibleComments = showResolved
-        ? allComments
-        : activeComments;
 
     // ═══════════════════════════════════════════════════════════════════════════
     // EVENT HANDLERS (mit Error Handling)

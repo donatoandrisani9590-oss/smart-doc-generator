@@ -199,7 +199,7 @@ export function useResolveComment() {
             commentId: number;
             isResolved: boolean;
         }): Promise<{ message: string; id: number; is_resolved: boolean }> => {
-            const response = await api.post(`/api/v1/comments/${commentId}/resolve`, {
+            const response = await api.post<{ message: string; id: number; is_resolved: boolean }>(`/api/v1/comments/${commentId}/resolve`, {
                 is_resolved: isResolved,
             });
             return response.data;
@@ -220,7 +220,7 @@ export function useDeleteComment() {
 
     return useMutation({
         mutationFn: async (commentId: number): Promise<{ message: string; id: number }> => {
-            const response = await api.delete(`/api/v1/comments/${commentId}`);
+            const response = await api.delete<{ message: string; id: number }>(`/api/v1/comments/${commentId}`);
             return response.data;
         },
         onSuccess: () => {

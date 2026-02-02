@@ -15,7 +15,8 @@
  * />
  */
 
-import { useState, useRef, useEffect, useCallback, KeyboardEvent } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import type { KeyboardEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AtSign, Loader2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";

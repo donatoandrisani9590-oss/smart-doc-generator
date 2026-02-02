@@ -38,10 +38,12 @@ export interface RequestConfig {
     headers?: Record<string, string>;
     /** Signal for cancellation */
     signal?: AbortSignal;
+    /** Query parameters */
+    params?: Record<string, string | number | boolean | undefined>;
 }
 
 // Default configuration
-const DEFAULT_CONFIG: Required<Omit<RequestConfig, "signal" | "skipErrorHandling">> = {
+const DEFAULT_CONFIG: Required<Omit<RequestConfig, "signal" | "skipErrorHandling" | "params">> = {
     timeout: 30000, // 30 seconds
     retries: 2,
     retryDelay: 1000, // 1 second
@@ -137,6 +139,7 @@ async function request<T>(
         headers = {},
         signal,
         skipErrorHandling = false,
+        params,
     } = config;
 
     // Check online status
@@ -149,7 +152,20 @@ async function request<T>(
         throw error;
     }
 
-    const url = `${BASE_URL}${endpoint}`;
+    // Build URL with query params
+    let url = `${BASE_URL}${endpoint}`;
+    if (params) {
+        const searchParams = new URLSearchParams();
+        Object.entries(params).forEach(([key, value]) => {
+            if (value !== undefined) {
+                searchParams.append(key, String(value));
+            }
+        });
+        const queryString = searchParams.toString();
+        if (queryString) {
+            url += `?${queryString}`;
+        }
+    }
 
     // Build headers
     const requestHeaders: Record<string, string> = {

@@ -27,13 +27,11 @@ import {
     Trash2,
     Edit3,
     Reply,
-    AtSign,
     Loader2,
     ChevronDown,
     ChevronUp,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
     DropdownMenu,
@@ -392,8 +390,9 @@ export const CommentThread = ({
     anchorId,
     onCommentCountChange,
     className,
-    compact = false,
+    compact: _compact = false,
 }: CommentThreadProps) => {
+    // Note: _compact is reserved for future compact mode styling
     const [newComment, setNewComment] = useState("");
     const [showNewInput, setShowNewInput] = useState(false);
 
