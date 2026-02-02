@@ -510,12 +510,12 @@ async def _send_and_update_webhook(
     secret: Optional[str]
 ):
     """Sendet Webhook und aktualisiert Statistik."""
-    from app.db import async_session
+    from app.db import async_session_factory
 
     success, status_code, error = await send_webhook(url, event, data, secret)
 
     # Update subscription stats
-    async with async_session() as db:
+    async with async_session_factory() as db:
         result = await db.execute(
             select(WebhookSubscription).where(WebhookSubscription.id == subscription_id)
         )

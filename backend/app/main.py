@@ -353,7 +353,7 @@ async def readiness_check():
     Readiness check - verifies all dependencies are available.
     Returns detailed status for monitoring.
     """
-    from app.db import async_session
+    from app.db import async_session_factory
     from sqlalchemy import text
     import redis.asyncio as redis
 
@@ -364,7 +364,7 @@ async def readiness_check():
 
     # Check database
     try:
-        async with async_session() as session:
+        async with async_session_factory() as session:
             await session.execute(text("SELECT 1"))
             checks["database"] = "healthy"
     except Exception as e:
