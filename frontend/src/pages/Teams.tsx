@@ -39,7 +39,12 @@ import {
     Eye,
     FileText,
     Share2,
+    LayoutTemplate,
+    Copy,
+    Globe,
+    Lock,
 } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
     useMyTeams,
     useCreateTeam,
@@ -48,8 +53,11 @@ import {
     useAddTeamMember,
     useRemoveTeamMember,
     useTeamShares,
+    useTeamTemplates,
+    useCreateTeamTemplate,
     type Team,
     type TeamMember,
+    type TeamTemplate,
 } from "@/hooks/useApi";
 import { useCountry } from "@/hooks/useCountry";
 import { useToast } from "@/components/ui/toast";
@@ -71,12 +79,16 @@ export const TeamsPage = () => {
     const [addMemberDialogOpen, setAddMemberDialogOpen] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
+    const [createTemplateDialogOpen, setCreateTemplateDialogOpen] = useState(false);
+    const [activeTab, setActiveTab] = useState("members");
 
     // Form state
     const [newTeamName, setNewTeamName] = useState("");
     const [newTeamDescription, setNewTeamDescription] = useState("");
     const [newMemberId, setNewMemberId] = useState("");
     const [newMemberRole, setNewMemberRole] = useState("member");
+    const [newTemplateName, setNewTemplateName] = useState("");
+    const [newTemplateDescription, setNewTemplateDescription] = useState("");
 
     const { data: teams, isLoading } = useMyTeams(countryCode);
     const createTeamMutation = useCreateTeam();
@@ -87,6 +99,8 @@ export const TeamsPage = () => {
     // Fetch members for selected team
     const { data: members } = useTeamMembers(selectedTeam?.id ?? 0);
     const { data: shares } = useTeamShares(selectedTeam?.id ?? 0);
+    const { data: templates } = useTeamTemplates(selectedTeam?.id ?? 0);
+    const createTemplateMutation = useCreateTeamTemplate();
 
     const handleCreateTeam = async () => {
         if (!newTeamName.trim()) return;
@@ -137,6 +151,27 @@ export const TeamsPage = () => {
             toast.success("Team gelöscht", `"${teamName}" wurde entfernt`);
         } catch (error) {
             toast.error("Fehler", "Das Team konnte nicht gelöscht werden");
+        }
+    };
+
+    const handleCreateTemplate = async () => {
+        if (!selectedTeam || !newTemplateName.trim()) return;
+
+        try {
+            await createTemplateMutation.mutateAsync({
+                teamId: selectedTeam.id,
+                data: {
+                    name: newTemplateName,
+                    description: newTemplateDescription || undefined,
+                    country_code: countryCode,
+                },
+            });
+            setCreateTemplateDialogOpen(false);
+            setNewTemplateName("");
+            setNewTemplateDescription("");
+            toast.success("Vorlage erstellt", `"${newTemplateName}" wurde für das Team erstellt`);
+        } catch (error) {
+            toast.error("Fehler", "Die Vorlage konnte nicht erstellt werden");
         }
     };
 
@@ -300,95 +335,211 @@ export const TeamsPage = () => {
                                     </DropdownMenu>
                                 </div>
                             </CardHeader>
-                            <CardContent className="space-y-6">
-                                {/* Members Section */}
-                                <div>
-                                    <h3 className="font-semibold mb-3 flex items-center gap-2">
-                                        <Users className="w-4 h-4" />
-                                        Mitglieder ({members?.length || 0})
-                                    </h3>
-                                    <div className="space-y-2">
-                                        {members?.map((member) => {
-                                            const role = roleInfo[member.role] || roleInfo.member;
-                                            const RoleIcon = role.icon;
+                            <CardContent>
+                                <Tabs value={activeTab} onValueChange={setActiveTab}>
+                                    <TabsList className="grid w-full grid-cols-3 mb-4">
+                                        <TabsTrigger value="members" className="flex items-center gap-2">
+                                            <Users className="w-4 h-4" />
+                                            Mitglieder
+                                        </TabsTrigger>
+                                        <TabsTrigger value="documents" className="flex items-center gap-2">
+                                            <FileText className="w-4 h-4" />
+                                            Dokumente
+                                        </TabsTrigger>
+                                        <TabsTrigger value="templates" className="flex items-center gap-2">
+                                            <LayoutTemplate className="w-4 h-4" />
+                                            Vorlagen
+                                        </TabsTrigger>
+                                    </TabsList>
 
-                                            return (
-                                                <div
-                                                    key={member.id}
-                                                    className="flex items-center justify-between p-3 bg-muted/30 rounded-lg"
-                                                >
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-sm">
-                                                            {member.user_id.charAt(0).toUpperCase()}
-                                                        </div>
-                                                        <div>
-                                                            <p className="font-medium text-sm">{member.user_id}</p>
-                                                            <p className="text-xs text-muted-foreground flex items-center gap-1">
-                                                                <RoleIcon className={`w-3 h-3 ${role.color}`} />
-                                                                {role.label}
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                    {(selectedTeam.my_role === "owner" || selectedTeam.my_role === "admin") &&
-                                                        member.role !== "owner" && (
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="icon"
-                                                                onClick={() => handleRemoveMember(member)}
-                                                                disabled={removeMemberMutation.isPending}
-                                                            >
-                                                                <Trash2 className="w-4 h-4 text-destructive" />
-                                                            </Button>
-                                                        )}
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-
-                                {/* Shared Documents Section */}
-                                <div>
-                                    <h3 className="font-semibold mb-3 flex items-center gap-2">
-                                        <Share2 className="w-4 h-4" />
-                                        Geteilte Dokumente ({shares?.length || 0})
-                                    </h3>
-                                    {shares?.length === 0 ? (
-                                        <div className="text-center py-6 bg-muted/30 rounded-lg">
-                                            <FileText className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
-                                            <p className="text-sm font-medium mb-1">Noch keine geteilten Dokumente</p>
-                                            <p className="text-xs text-muted-foreground max-w-xs mx-auto">
-                                                Teilen Sie Dokumente aus dem Repository mit diesem Team.
-                                            </p>
+                                    {/* Members Tab */}
+                                    <TabsContent value="members" className="space-y-4">
+                                        <div className="flex justify-between items-center">
+                                            <h3 className="font-semibold">
+                                                {members?.length || 0} Mitglieder
+                                            </h3>
+                                            {(selectedTeam.my_role === "owner" || selectedTeam.my_role === "admin") && (
+                                                <Button size="sm" onClick={() => setAddMemberDialogOpen(true)}>
+                                                    <UserPlus className="w-4 h-4 mr-2" />
+                                                    Hinzufügen
+                                                </Button>
+                                            )}
                                         </div>
-                                    ) : (
                                         <div className="space-y-2">
-                                            {shares?.map((share) => (
-                                                <div
-                                                    key={share.id}
-                                                    className="flex items-center justify-between p-3 bg-muted/30 rounded-lg"
-                                                >
-                                                    <div className="flex items-center gap-3">
-                                                        <FileText className="w-5 h-5 text-muted-foreground" />
-                                                        <div>
-                                                            <p className="text-sm font-medium">
-                                                                {share.document_id
-                                                                    ? `Dokument #${share.document_id}`
-                                                                    : `Entwurf #${share.draft_id}`}
-                                                            </p>
-                                                            <p className="text-xs text-muted-foreground">
-                                                                Geteilt von {share.shared_by}
-                                                            </p>
+                                            {members?.map((member) => {
+                                                const role = roleInfo[member.role] || roleInfo.member;
+                                                const RoleIcon = role.icon;
+
+                                                return (
+                                                    <div
+                                                        key={member.id}
+                                                        className="flex items-center justify-between p-3 bg-muted/30 rounded-lg"
+                                                    >
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-sm">
+                                                                {member.user_id.charAt(0).toUpperCase()}
+                                                            </div>
+                                                            <div>
+                                                                <p className="font-medium text-sm">{member.user_id}</p>
+                                                                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                                                                    <RoleIcon className={`w-3 h-3 ${role.color}`} />
+                                                                    {role.label}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                        {(selectedTeam.my_role === "owner" || selectedTeam.my_role === "admin") &&
+                                                            member.role !== "owner" && (
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="icon"
+                                                                    onClick={() => handleRemoveMember(member)}
+                                                                    disabled={removeMemberMutation.isPending}
+                                                                >
+                                                                    <Trash2 className="w-4 h-4 text-destructive" />
+                                                                </Button>
+                                                            )}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </TabsContent>
+
+                                    {/* Documents Tab */}
+                                    <TabsContent value="documents" className="space-y-4">
+                                        <div className="flex justify-between items-center">
+                                            <h3 className="font-semibold">
+                                                {shares?.length || 0} Geteilte Dokumente
+                                            </h3>
+                                        </div>
+                                        {shares?.length === 0 ? (
+                                            <div className="text-center py-8 bg-muted/30 rounded-lg">
+                                                <FileText className="w-10 h-10 mx-auto mb-3 text-muted-foreground" />
+                                                <p className="text-sm font-medium mb-1">Noch keine geteilten Dokumente</p>
+                                                <p className="text-xs text-muted-foreground max-w-xs mx-auto">
+                                                    Teilen Sie Dokumente aus dem Repository mit diesem Team.
+                                                </p>
+                                            </div>
+                                        ) : (
+                                            <div className="space-y-2">
+                                                {shares?.map((share) => (
+                                                    <div
+                                                        key={share.id}
+                                                        className="flex items-center justify-between p-3 bg-muted/30 rounded-lg"
+                                                    >
+                                                        <div className="flex items-center gap-3">
+                                                            <FileText className="w-5 h-5 text-muted-foreground" />
+                                                            <div>
+                                                                <p className="text-sm font-medium">
+                                                                    {share.document_id
+                                                                        ? `Dokument #${share.document_id}`
+                                                                        : `Entwurf #${share.draft_id}`}
+                                                                </p>
+                                                                <p className="text-xs text-muted-foreground">
+                                                                    Geteilt von {share.shared_by}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                                            {share.can_view && <Eye className="w-3 h-3" />}
+                                                            {share.can_edit && <span>Bearbeiten</span>}
                                                         </div>
                                                     </div>
-                                                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                                        {share.can_view && <Eye className="w-3 h-3" />}
-                                                        {share.can_edit && <span>Bearbeiten</span>}
-                                                    </div>
-                                                </div>
-                                            ))}
+                                                ))}
+                                            </div>
+                                        )}
+                                    </TabsContent>
+
+                                    {/* Templates Tab */}
+                                    <TabsContent value="templates" className="space-y-4">
+                                        <div className="flex justify-between items-center">
+                                            <h3 className="font-semibold">
+                                                {templates?.length || 0} Vorlagen
+                                            </h3>
+                                            {(selectedTeam.my_role === "owner" || selectedTeam.my_role === "admin") && (
+                                                <Button size="sm" onClick={() => setCreateTemplateDialogOpen(true)}>
+                                                    <Plus className="w-4 h-4 mr-2" />
+                                                    Neue Vorlage
+                                                </Button>
+                                            )}
                                         </div>
-                                    )}
-                                </div>
+                                        {templates?.length === 0 ? (
+                                            <div className="text-center py-8 bg-muted/30 rounded-lg">
+                                                <LayoutTemplate className="w-10 h-10 mx-auto mb-3 text-muted-foreground" />
+                                                <p className="text-sm font-medium mb-1">Noch keine Team-Vorlagen</p>
+                                                <p className="text-xs text-muted-foreground max-w-xs mx-auto">
+                                                    Erstellen Sie Vorlagen, die nur für dieses Team sichtbar sind.
+                                                </p>
+                                                {(selectedTeam.my_role === "owner" || selectedTeam.my_role === "admin") && (
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="mt-4"
+                                                        onClick={() => setCreateTemplateDialogOpen(true)}
+                                                    >
+                                                        <Plus className="w-4 h-4 mr-2" />
+                                                        Erste Vorlage erstellen
+                                                    </Button>
+                                                )}
+                                            </div>
+                                        ) : (
+                                            <div className="space-y-2">
+                                                {templates?.map((template) => (
+                                                    <div
+                                                        key={template.id}
+                                                        className="flex items-center justify-between p-3 bg-muted/30 rounded-lg"
+                                                    >
+                                                        <div className="flex items-center gap-3">
+                                                            <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                                                                template.is_own_template
+                                                                    ? 'bg-primary/20 text-primary'
+                                                                    : template.visibility === 'global'
+                                                                    ? 'bg-blue-100 text-blue-600'
+                                                                    : 'bg-orange-100 text-orange-600'
+                                                            }`}>
+                                                                {template.visibility === 'global' ? (
+                                                                    <Globe className="w-5 h-5" />
+                                                                ) : template.is_own_template ? (
+                                                                    <LayoutTemplate className="w-5 h-5" />
+                                                                ) : (
+                                                                    <Share2 className="w-5 h-5" />
+                                                                )}
+                                                            </div>
+                                                            <div>
+                                                                <p className="text-sm font-medium">{template.name}</p>
+                                                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                                                    {template.category && (
+                                                                        <span className="bg-muted px-1.5 py-0.5 rounded">
+                                                                            {template.category}
+                                                                        </span>
+                                                                    )}
+                                                                    {template.is_own_template ? (
+                                                                        <span className="text-primary">Team-Vorlage</span>
+                                                                    ) : template.visibility === 'global' ? (
+                                                                        <span className="text-blue-600">Global</span>
+                                                                    ) : (
+                                                                        <span className="text-orange-600">Geteilt</span>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            {template.can_duplicate && (
+                                                                <Button variant="ghost" size="icon" title="Kopieren">
+                                                                    <Copy className="w-4 h-4" />
+                                                                </Button>
+                                                            )}
+                                                            {template.can_use && (
+                                                                <Button variant="outline" size="sm">
+                                                                    Verwenden
+                                                                </Button>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </TabsContent>
+                                </Tabs>
                             </CardContent>
                         </>
                     ) : (
@@ -534,6 +685,54 @@ export const TeamsPage = () => {
                                 <LogOut className="w-4 h-4 mr-2" />
                             )}
                             Team verlassen
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Create Template Dialog */}
+            <Dialog open={createTemplateDialogOpen} onOpenChange={setCreateTemplateDialogOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Neue Team-Vorlage erstellen</DialogTitle>
+                        <DialogDescription>
+                            Erstellen Sie eine Vorlage, die nur für Mitglieder dieses Teams sichtbar ist.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="templateName">Vorlagen-Name</Label>
+                            <Input
+                                id="templateName"
+                                value={newTemplateName}
+                                onChange={(e) => setNewTemplateName(e.target.value)}
+                                placeholder="z.B. Arbeitsvertrag IT-Abteilung"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="templateDescription">Beschreibung (optional)</Label>
+                            <Input
+                                id="templateDescription"
+                                value={newTemplateDescription}
+                                onChange={(e) => setNewTemplateDescription(e.target.value)}
+                                placeholder="Kurze Beschreibung der Vorlage"
+                            />
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setCreateTemplateDialogOpen(false)}>
+                            Abbrechen
+                        </Button>
+                        <Button
+                            onClick={handleCreateTemplate}
+                            disabled={!newTemplateName.trim() || createTemplateMutation.isPending}
+                        >
+                            {createTemplateMutation.isPending ? (
+                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            ) : (
+                                <Plus className="w-4 h-4 mr-2" />
+                            )}
+                            Erstellen
                         </Button>
                     </DialogFooter>
                 </DialogContent>

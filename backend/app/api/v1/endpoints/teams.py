@@ -828,3 +828,457 @@ async def unshare_document(
     await db.commit()
 
     return {"message": "Freigabe erfolgreich entfernt"}
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# TEAM TEMPLATES (v4.4 Feature)
+# ═══════════════════════════════════════════════════════════════════════════
+
+class TeamTemplateResponse(BaseModel):
+    """Response for a template in team context."""
+    id: int
+    name: str
+    description: Optional[str]
+    category: Optional[str]
+    country_code: str
+    visibility: str
+    team_id: Optional[int]
+    is_own_template: bool = False  # True if created by this team
+    can_use: bool = True
+    can_duplicate: bool = False
+
+    class Config:
+        from_attributes = True
+
+
+class CreateTeamTemplateRequest(BaseModel):
+    """Request to create a new template for a team."""
+    name: str
+    description: Optional[str] = None
+    category: Optional[str] = None
+    country_code: str = "DE"
+    # Copy from existing template
+    source_template_id: Optional[int] = None
+
+
+class ShareTemplateRequest(BaseModel):
+    """Request to share a template with another team."""
+    document_type_id: int
+    can_use: bool = True
+    can_duplicate: bool = False
+    note: Optional[str] = None
+
+
+class TemplateShareResponse(BaseModel):
+    """Response for a template share."""
+    id: int
+    document_type_id: int
+    template_name: str
+    team_id: int
+    team_name: str
+    can_use: bool
+    can_duplicate: bool
+    shared_by: str
+    shared_at: datetime
+    note: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
+@router.get("/{team_id}/templates")
+async def get_team_templates(
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[core_models.User, Depends(deps.get_current_user)],
+    team_id: int,
+) -> List[TeamTemplateResponse]:
+    """
+    Get all templates available to this team.
+
+    Returns:
+    - Templates created by this team (visibility='team', team_id matches)
+    - Global templates (visibility='global')
+    - Templates shared with this team via TeamTemplateShare
+    """
+    user_id = str(current_user.id)
+
+    # Check membership
+    my_role = await get_user_role_in_team(db, team_id, user_id)
+    if not my_role:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Sie sind kein Mitglied dieses Teams",
+        )
+
+    # Import DocumentType here to avoid circular imports
+    from app.models.documents import DocumentType
+
+    # Get team's country code
+    team_result = await db.execute(select(models.Team).where(models.Team.id == team_id))
+    team = team_result.scalar_one_or_none()
+    if not team:
+        raise HTTPException(status_code=404, detail="Team nicht gefunden")
+
+    # Query: Own team templates + global templates + shared templates
+    # 1. Team's own templates
+    own_templates_query = select(DocumentType).where(
+        and_(
+            DocumentType.team_id == team_id,
+            DocumentType.is_active == True,
+            DocumentType.country_code == team.country_code,
+        )
+    )
+    own_result = await db.execute(own_templates_query)
+    own_templates = own_result.scalars().all()
+
+    # 2. Global templates
+    global_templates_query = select(DocumentType).where(
+        and_(
+            DocumentType.visibility == "global",
+            DocumentType.is_active == True,
+            DocumentType.country_code == team.country_code,
+        )
+    )
+    global_result = await db.execute(global_templates_query)
+    global_templates = global_result.scalars().all()
+
+    # 3. Shared templates (from TeamTemplateShare)
+    shared_query = select(
+        DocumentType,
+        models.TeamTemplateShare.can_use,
+        models.TeamTemplateShare.can_duplicate
+    ).join(
+        models.TeamTemplateShare,
+        models.TeamTemplateShare.document_type_id == DocumentType.id
+    ).where(
+        and_(
+            models.TeamTemplateShare.team_id == team_id,
+            DocumentType.is_active == True,
+        )
+    )
+    shared_result = await db.execute(shared_query)
+    shared_templates = shared_result.all()
+
+    # Build response
+    templates = []
+
+    # Add own templates
+    for t in own_templates:
+        templates.append(TeamTemplateResponse(
+            id=t.id,
+            name=t.name,
+            description=t.description,
+            category=t.category,
+            country_code=t.country_code,
+            visibility=t.visibility or "team",
+            team_id=t.team_id,
+            is_own_template=True,
+            can_use=True,
+            can_duplicate=True,
+        ))
+
+    # Add global templates (avoid duplicates)
+    existing_ids = {t.id for t in templates}
+    for t in global_templates:
+        if t.id not in existing_ids:
+            templates.append(TeamTemplateResponse(
+                id=t.id,
+                name=t.name,
+                description=t.description,
+                category=t.category,
+                country_code=t.country_code,
+                visibility="global",
+                team_id=t.team_id,
+                is_own_template=False,
+                can_use=True,
+                can_duplicate=True,
+            ))
+            existing_ids.add(t.id)
+
+    # Add shared templates
+    for doc_type, can_use, can_duplicate in shared_templates:
+        if doc_type.id not in existing_ids:
+            templates.append(TeamTemplateResponse(
+                id=doc_type.id,
+                name=doc_type.name,
+                description=doc_type.description,
+                category=doc_type.category,
+                country_code=doc_type.country_code,
+                visibility="shared",
+                team_id=doc_type.team_id,
+                is_own_template=False,
+                can_use=can_use,
+                can_duplicate=can_duplicate,
+            ))
+            existing_ids.add(doc_type.id)
+
+    return templates
+
+
+@router.post("/{team_id}/templates")
+async def create_team_template(
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[core_models.User, Depends(deps.get_current_user)],
+    team_id: int,
+    template_data: CreateTeamTemplateRequest,
+) -> TeamTemplateResponse:
+    """
+    Create a new template for the team.
+
+    Only team owners and admins can create templates.
+    Optionally copy from an existing template.
+    """
+    user_id = str(current_user.id)
+
+    # Check permission
+    my_role = await get_user_role_in_team(db, team_id, user_id)
+    if my_role not in ["owner", "admin"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Nur Eigentümer und Admins können Vorlagen erstellen",
+        )
+
+    from app.models.documents import DocumentType
+
+    # Get team for country code
+    team_result = await db.execute(select(models.Team).where(models.Team.id == team_id))
+    team = team_result.scalar_one_or_none()
+    if not team:
+        raise HTTPException(status_code=404, detail="Team nicht gefunden")
+
+    # Create template
+    new_template = DocumentType(
+        name=template_data.name,
+        description=template_data.description,
+        category=template_data.category,
+        country_code=template_data.country_code or team.country_code,
+        team_id=team_id,
+        visibility="team",
+        created_by_user_id=current_user.id,
+        source_template_id=template_data.source_template_id,
+        is_active=True,
+    )
+
+    # If copying from source template, copy default values
+    if template_data.source_template_id:
+        source_result = await db.execute(
+            select(DocumentType).where(DocumentType.id == template_data.source_template_id)
+        )
+        source = source_result.scalar_one_or_none()
+        if source:
+            new_template.default_probation_months = source.default_probation_months
+            new_template.default_notice_period = source.default_notice_period
+            new_template.default_vacation_days = source.default_vacation_days
+            new_template.default_weekly_hours = source.default_weekly_hours
+            new_template.custom_header_enabled = source.custom_header_enabled
+            new_template.custom_header_line1 = source.custom_header_line1
+            new_template.custom_header_line2 = source.custom_header_line2
+            new_template.custom_header_line3 = source.custom_header_line3
+            new_template.custom_footer_enabled = source.custom_footer_enabled
+            new_template.custom_footer_line1 = source.custom_footer_line1
+            new_template.custom_footer_line2 = source.custom_footer_line2
+            new_template.custom_footer_line3 = source.custom_footer_line3
+
+    db.add(new_template)
+    await db.commit()
+    await db.refresh(new_template)
+
+    return TeamTemplateResponse(
+        id=new_template.id,
+        name=new_template.name,
+        description=new_template.description,
+        category=new_template.category,
+        country_code=new_template.country_code,
+        visibility=new_template.visibility or "team",
+        team_id=new_template.team_id,
+        is_own_template=True,
+        can_use=True,
+        can_duplicate=True,
+    )
+
+
+@router.post("/{team_id}/templates/share")
+async def share_template_with_team(
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[core_models.User, Depends(deps.get_current_user)],
+    team_id: int,
+    share_data: ShareTemplateRequest,
+) -> TemplateShareResponse:
+    """
+    Share a template with this team.
+
+    The template's owning team (or global templates) can be shared with other teams.
+    """
+    user_id = str(current_user.id)
+
+    from app.models.documents import DocumentType
+
+    # Get the template
+    template_result = await db.execute(
+        select(DocumentType).where(DocumentType.id == share_data.document_type_id)
+    )
+    template = template_result.scalar_one_or_none()
+    if not template:
+        raise HTTPException(status_code=404, detail="Vorlage nicht gefunden")
+
+    # Get target team
+    team_result = await db.execute(select(models.Team).where(models.Team.id == team_id))
+    team = team_result.scalar_one_or_none()
+    if not team:
+        raise HTTPException(status_code=404, detail="Team nicht gefunden")
+
+    # Check permission: must be owner/admin of source template's team OR template is global
+    can_share = False
+    if template.team_id:
+        source_role = await get_user_role_in_team(db, template.team_id, user_id)
+        can_share = source_role in ["owner", "admin"]
+    else:
+        # Global template - any admin can share
+        can_share = current_user.role == "admin"
+
+    if not can_share:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Keine Berechtigung zum Teilen dieser Vorlage",
+        )
+
+    # Check if already shared
+    existing = await db.execute(
+        select(models.TeamTemplateShare).where(
+            and_(
+                models.TeamTemplateShare.document_type_id == share_data.document_type_id,
+                models.TeamTemplateShare.team_id == team_id,
+            )
+        )
+    )
+    if existing.scalar_one_or_none():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Vorlage ist bereits mit diesem Team geteilt",
+        )
+
+    # Create share
+    share = models.TeamTemplateShare(
+        document_type_id=share_data.document_type_id,
+        team_id=team_id,
+        can_use=share_data.can_use,
+        can_duplicate=share_data.can_duplicate,
+        shared_by=user_id,
+        note=share_data.note,
+    )
+    db.add(share)
+    await db.commit()
+    await db.refresh(share)
+
+    return TemplateShareResponse(
+        id=share.id,
+        document_type_id=share.document_type_id,
+        template_name=template.name,
+        team_id=share.team_id,
+        team_name=team.name,
+        can_use=share.can_use,
+        can_duplicate=share.can_duplicate,
+        shared_by=share.shared_by,
+        shared_at=share.shared_at,
+        note=share.note,
+    )
+
+
+@router.get("/{team_id}/templates/shares")
+async def get_template_shares(
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[core_models.User, Depends(deps.get_current_user)],
+    team_id: int,
+) -> List[TemplateShareResponse]:
+    """
+    Get all template shares for this team.
+    Shows both incoming (templates shared with us) and outgoing (templates we shared).
+    """
+    user_id = str(current_user.id)
+
+    # Check membership
+    my_role = await get_user_role_in_team(db, team_id, user_id)
+    if not my_role:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Sie sind kein Mitglied dieses Teams",
+        )
+
+    from app.models.documents import DocumentType
+
+    # Get shares where this team is the target
+    query = select(
+        models.TeamTemplateShare,
+        DocumentType.name.label("template_name"),
+        models.Team.name.label("team_name"),
+    ).join(
+        DocumentType, models.TeamTemplateShare.document_type_id == DocumentType.id
+    ).join(
+        models.Team, models.TeamTemplateShare.team_id == models.Team.id
+    ).where(
+        models.TeamTemplateShare.team_id == team_id
+    )
+
+    result = await db.execute(query)
+    shares = result.all()
+
+    return [
+        TemplateShareResponse(
+            id=share.id,
+            document_type_id=share.document_type_id,
+            template_name=template_name,
+            team_id=share.team_id,
+            team_name=team_name,
+            can_use=share.can_use,
+            can_duplicate=share.can_duplicate,
+            shared_by=share.shared_by,
+            shared_at=share.shared_at,
+            note=share.note,
+        )
+        for share, template_name, team_name in shares
+    ]
+
+
+@router.delete("/{team_id}/templates/shares/{share_id}")
+async def unshare_template(
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[core_models.User, Depends(deps.get_current_user)],
+    team_id: int,
+    share_id: int,
+) -> Any:
+    """
+    Remove a template share.
+    """
+    user_id = str(current_user.id)
+
+    # Get share
+    result = await db.execute(
+        select(models.TeamTemplateShare).where(
+            and_(
+                models.TeamTemplateShare.id == share_id,
+                models.TeamTemplateShare.team_id == team_id,
+            )
+        )
+    )
+    share = result.scalar_one_or_none()
+
+    if not share:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Freigabe nicht gefunden",
+        )
+
+    # Check permission - owner/admin or the person who shared
+    my_role = await get_user_role_in_team(db, team_id, user_id)
+    can_remove = my_role in ["owner", "admin"] or share.shared_by == user_id
+
+    if not can_remove:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Keine Berechtigung zum Entfernen der Freigabe",
+        )
+
+    await db.delete(share)
+    await db.commit()
+
+    return {"message": "Vorlagen-Freigabe erfolgreich entfernt"}

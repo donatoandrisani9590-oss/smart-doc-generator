@@ -64,6 +64,15 @@ class DocumentType(Base):
     # Referenz zur Quell-Vorlage (für "von Vorlage übernommen")
     source_template_id = Column(Integer, ForeignKey("document_types.id", ondelete="SET NULL"), nullable=True)
 
+    # ══════════════════════════════════════════════════════════════════════════
+    # TEAM-VORLAGEN (v4.4 Feature: Geteilte Vorlagen im Team)
+    # ══════════════════════════════════════════════════════════════════════════
+    team_id = Column(Integer, ForeignKey("teams.id", ondelete="SET NULL"), nullable=True, index=True)
+    # visibility: 'global' = alle sehen, 'team' = nur Team-Mitglieder, 'private' = nur Ersteller
+    visibility = Column(String(20), default="global", index=True)
+    created_by_user_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
     clauses = relationship("DocumentTypeClause", back_populates="document_type", order_by="DocumentTypeClause.display_order")
     variant_groups = relationship("DocumentTypeVariantGroup", back_populates="document_type", order_by="DocumentTypeVariantGroup.display_order")
     source_template = relationship("DocumentType", remote_side=[id], foreign_keys=[source_template_id])

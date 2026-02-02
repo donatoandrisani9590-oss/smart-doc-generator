@@ -279,6 +279,33 @@ class TeamDocumentShare(Base):
     note = Column(Text, nullable=True)  # Optional note for sharing
 
 
+class TeamTemplateShare(Base):
+    """
+    Share document templates (DocumentTypes) between teams.
+
+    Allows teams to discover and use templates created by other teams.
+    Different from TeamDocumentShare which shares generated documents.
+    """
+    __tablename__ = "team_template_shares"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    # Source: which template is being shared
+    document_type_id = Column(Integer, ForeignKey("document_types.id", ondelete="CASCADE"), nullable=False, index=True)
+
+    # Target: which team can use this template
+    team_id = Column(Integer, ForeignKey("teams.id", ondelete="CASCADE"), nullable=False, index=True)
+
+    # Permissions
+    can_use = Column(Boolean, default=True)  # Can create documents from this template
+    can_duplicate = Column(Boolean, default=False)  # Can copy/customize this template
+
+    # Metadata
+    shared_by = Column(String(255), nullable=False)
+    shared_at = Column(DateTime(timezone=True), server_default=func.now())
+    note = Column(Text, nullable=True)
+
+
 # ═══════════════════════════════════════════════════════════════════════════
 # DOCUMENT VERSIONING & CORRECTION (15.5.2)
 # ═══════════════════════════════════════════════════════════════════════════
