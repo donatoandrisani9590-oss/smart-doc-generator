@@ -111,7 +111,7 @@ async def list_deadlines(
     max_date = today + timedelta(days=days_ahead)
 
     query = select(DocumentDeadline).where(
-        DocumentDeadline.deadline_date <= max_date.isoformat()
+        DocumentDeadline.deadline_date <= max_date
     )
 
     if country_code:
@@ -169,15 +169,15 @@ async def get_deadline_summary(
         base_query = base_query.where(DocumentDeadline.country_code == country_code.upper())
 
     # Überfällige
-    overdue_query = base_query.where(DocumentDeadline.deadline_date < today.isoformat())
+    overdue_query = base_query.where(DocumentDeadline.deadline_date < today)
     overdue_result = await db.execute(overdue_query)
     overdue_count = len(overdue_result.scalars().all())
 
     # Diese Woche
     week_query = base_query.where(
         and_(
-            DocumentDeadline.deadline_date >= today.isoformat(),
-            DocumentDeadline.deadline_date <= week_end.isoformat()
+            DocumentDeadline.deadline_date >= today,
+            DocumentDeadline.deadline_date <= week_end
         )
     )
     week_result = await db.execute(week_query)
@@ -186,8 +186,8 @@ async def get_deadline_summary(
     # Dieser Monat (ohne diese Woche)
     month_query = base_query.where(
         and_(
-            DocumentDeadline.deadline_date > week_end.isoformat(),
-            DocumentDeadline.deadline_date <= month_end.isoformat()
+            DocumentDeadline.deadline_date > week_end,
+            DocumentDeadline.deadline_date <= month_end
         )
     )
     month_result = await db.execute(month_query)
@@ -195,7 +195,7 @@ async def get_deadline_summary(
 
     # Top 5 anstehende Fristen
     upcoming_query = base_query.where(
-        DocumentDeadline.deadline_date >= today.isoformat()
+        DocumentDeadline.deadline_date >= today
     ).order_by(DocumentDeadline.deadline_date.asc()).limit(5)
     upcoming_result = await db.execute(upcoming_query)
     upcoming_deadlines = []
