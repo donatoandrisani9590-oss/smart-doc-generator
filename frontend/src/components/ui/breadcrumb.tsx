@@ -41,22 +41,8 @@ const routeLabels: Record<string, string> = {
     "/search": "Suche",
     "/teams": "Teams",
     "/deadlines": "Fristen",
-    "/composer": "Dokument-Designer",
     "/notifications": "Benachrichtigungen",
-    "/admin": "Einstellungen",
-    "/admin/company-settings": "Firmendaten",
-    "/admin/settings": "Design",
-    "/admin/clauses": "Textbausteine",
-    "/admin/attachments": "Anlagen",
-    "/admin/types": "Dokumentvorlagen",
-    "/admin/template-preview": "Vorschau testen",
-    "/admin/form-fields": "Formularfelder",
-    "/admin/document-designer": "Layout-Editor",
-    "/admin/works-council": "Betriebsrat",
-    "/admin/retention": "Aufbewahrung",
-    "/admin/users": "Benutzer",
-    "/admin/clause-approvals": "Freigaben",
-    "/admin/audit": "Protokoll",
+    "/settings": "Einstellungen",
 };
 
 /**

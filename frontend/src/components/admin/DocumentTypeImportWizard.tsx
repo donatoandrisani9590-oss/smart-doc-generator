@@ -9,6 +9,7 @@
  */
 
 import { useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -55,6 +56,7 @@ import {
     GripVertical,
     X,
 } from "lucide-react";
+import { apiFetch } from "@/lib/api-client";
 
 // Types
 interface PlaceholderSuggestion {
@@ -121,6 +123,7 @@ export function DocumentTypeImportWizard({
     onImportComplete,
     countryCode = "DE",
 }: DocumentTypeImportWizardProps) {
+    const navigate = useNavigate();
     const [step, setStep] = useState<WizardStep>("upload");
     const [isLoading, setIsLoading] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
@@ -168,7 +171,7 @@ export function DocumentTypeImportWizard({
             formData.append("file", file);
             formData.append("country_code", selectedCountry);
 
-            const response = await fetch("/api/v1/document-type-import/analyze", {
+            const response = await apiFetch("/api/v1/document-type-import/analyze", {
                 method: "POST",
                 body: formData,
             });
@@ -235,7 +238,7 @@ export function DocumentTypeImportWizard({
         setError(null);
 
         try {
-            const response = await fetch("/api/v1/document-type-import/import", {
+            const response = await apiFetch("/api/v1/document-type-import/import", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -692,7 +695,7 @@ export function DocumentTypeImportWizard({
                                 </ul>
                             </div>
 
-                            <Button onClick={() => window.location.href = "/admin/types"}>
+                            <Button onClick={() => { handleClose(); navigate("/settings?tab=templates"); }}>
                                 <Sparkles className="w-4 h-4 mr-2" />
                                 Zu den Dokumententypen
                             </Button>

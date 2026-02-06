@@ -70,7 +70,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const initAuth = async () => {
       // DEV MODE: Auto-login with mock user for local development
       if (DEV_MODE) {
-        console.log("[Auth] DEV_MODE enabled - using mock user");
+        // DEV_MODE: Auto-login with mock user (no console output in production builds)
         const mockUser: User = {
           id: 1,
           email: "admin@niederwieser.com",

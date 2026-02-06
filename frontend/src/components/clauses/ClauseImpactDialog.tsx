@@ -9,6 +9,7 @@
  */
 
 import { useState, useEffect } from "react";
+import { apiFetch } from "@/lib/api-client";
 import {
     Dialog,
     DialogContent,
@@ -78,7 +79,7 @@ export function ClauseImpactDialog({
         setIsLoading(true);
         setError(null);
         try {
-            const response = await fetch(`/api/v1/clauses/${clauseId}/impact`);
+            const response = await apiFetch(`/api/v1/clauses/${clauseId}/impact`);
             if (!response.ok) {
                 throw new Error("Auswirkungsanalyse konnte nicht geladen werden");
             }

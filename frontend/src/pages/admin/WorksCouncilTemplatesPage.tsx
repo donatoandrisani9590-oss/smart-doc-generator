@@ -48,6 +48,7 @@ import {
     CheckCircle,
     Eye,
 } from "lucide-react";
+import { apiFetch } from "@/lib/api-client";
 
 interface BRTemplate {
     id: number;
@@ -120,7 +121,7 @@ export default function WorksCouncilTemplatesPage() {
 
     const loadTemplates = async () => {
         try {
-            const response = await fetch("/api/v1/works-council/templates");
+            const response = await apiFetch("/api/v1/works-council/templates");
             if (response.ok) {
                 const data = await response.json();
                 setTemplates(data);
@@ -134,7 +135,7 @@ export default function WorksCouncilTemplatesPage() {
 
     const loadNotifications = async () => {
         try {
-            const response = await fetch("/api/v1/works-council/notifications?limit=20");
+            const response = await apiFetch("/api/v1/works-council/notifications?limit=20");
             if (response.ok) {
                 const data = await response.json();
                 setNotifications(data);
@@ -176,7 +177,7 @@ export default function WorksCouncilTemplatesPage() {
                 ? `/api/v1/works-council/templates/${editingTemplate.id}`
                 : "/api/v1/works-council/templates";
 
-            const response = await fetch(url, {
+            const response = await apiFetch(url, {
                 method: editingTemplate ? "PUT" : "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({

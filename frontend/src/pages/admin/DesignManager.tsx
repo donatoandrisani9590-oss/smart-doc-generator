@@ -9,6 +9,7 @@
  */
 
 import { useState, useEffect, useRef } from "react";
+import { apiFetch } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -145,7 +146,7 @@ export const DesignManager = () => {
             const formData = new FormData();
             formData.append("file", file);
 
-            const response = await fetch(`/api/v1/admin/logo/${countryCode}`, {
+            const response = await apiFetch(`/api/v1/admin/logo/${countryCode}`, {
                 method: "POST",
                 body: formData,
             });
@@ -176,7 +177,7 @@ export const DesignManager = () => {
     const handleDeleteLogo = async () => {
         try {
             setLogoUploading(true);
-            const response = await fetch(`/api/v1/admin/logo/${countryCode}`, {
+            const response = await apiFetch(`/api/v1/admin/logo/${countryCode}`, {
                 method: "DELETE",
             });
 

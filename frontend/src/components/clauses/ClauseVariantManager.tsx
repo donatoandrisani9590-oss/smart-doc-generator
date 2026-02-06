@@ -14,6 +14,7 @@
  */
 
 import { useState, useEffect } from "react";
+import { apiFetch } from "@/lib/api-client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -112,7 +113,7 @@ interface ClauseVariantManagerProps {
 // ══════════════════════════════════════════════════════════════════════════════
 // API HOOKS (inline für diese Komponente)
 // ══════════════════════════════════════════════════════════════════════════════
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000/api/v1";
+const API_BASE = "/api/v1";
 
 const useVariantGroups = (countryCode?: string) => {
     const [data, setData] = useState<VariantGroup[]>([]);
@@ -125,7 +126,7 @@ const useVariantGroups = (countryCode?: string) => {
                 const url = countryCode
                     ? `${API_BASE}/clause-variants/groups?country_code=${countryCode}`
                     : `${API_BASE}/clause-variants/groups`;
-                const res = await fetch(url);
+                const res = await apiFetch(url);
                 if (!res.ok) throw new Error("Failed to fetch variant groups");
                 const groups = await res.json();
                 setData(groups);
@@ -144,7 +145,7 @@ const useVariantGroups = (countryCode?: string) => {
             const url = countryCode
                 ? `${API_BASE}/clause-variants/groups?country_code=${countryCode}`
                 : `${API_BASE}/clause-variants/groups`;
-            const res = await fetch(url);
+            const res = await apiFetch(url);
             if (!res.ok) throw new Error("Failed to fetch variant groups");
             const groups = await res.json();
             setData(groups);
@@ -190,7 +191,7 @@ const CreateGroupDialog = ({
         setError(null);
 
         try {
-            const res = await fetch(`${API_BASE}/clause-variants/groups`, {
+            const res = await apiFetch(`${API_BASE}/clause-variants/groups`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -338,7 +339,7 @@ const AddVariantDialog = ({
         setError(null);
 
         try {
-            const res = await fetch(
+            const res = await apiFetch(
                 `${API_BASE}/clause-variants/groups/${group.id}/variants`,
                 {
                     method: "POST",
@@ -526,7 +527,7 @@ const AssignDocumentTypesDialog = ({
         if (open && group) {
             setIsLoading(true);
             setError(null);
-            fetch(`${API_BASE}/clause-variants/groups/${group.id}/document-types`)
+            apiFetch(`${API_BASE}/clause-variants/groups/${group.id}/document-types`)
                 .then(res => {
                     if (!res.ok) throw new Error("Fehler beim Laden der Zuordnungen");
                     return res.json();
@@ -607,7 +608,7 @@ const AssignDocumentTypesDialog = ({
                     display_order: 0,
                 }));
 
-            const res = await fetch(`${API_BASE}/clause-variants/groups/${group.id}/document-types`, {
+            const res = await apiFetch(`${API_BASE}/clause-variants/groups/${group.id}/document-types`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ assignments: assignedDocs }),
@@ -909,7 +910,7 @@ export const ClauseVariantManager = ({
 
     const handleSetDefault = async (_groupId: number, variantId: number) => {
         try {
-            await fetch(`${API_BASE}/clause-variants/variants/${variantId}`, {
+            await apiFetch(`${API_BASE}/clause-variants/variants/${variantId}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ is_default: true }),
@@ -922,7 +923,7 @@ export const ClauseVariantManager = ({
 
     const handleDeleteVariant = async (variantId: number) => {
         try {
-            await fetch(`${API_BASE}/clause-variants/variants/${variantId}`, {
+            await apiFetch(`${API_BASE}/clause-variants/variants/${variantId}`, {
                 method: "DELETE",
             });
             refetch();

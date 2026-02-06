@@ -11,6 +11,7 @@ Features:
 - Headers to inform clients of their limits
 """
 
+import hashlib
 import logging
 import time
 from typing import Optional
@@ -69,10 +70,10 @@ def get_client_identifier(request: Request) -> tuple[str, bool]:
     # Check for authenticated user
     auth_header = request.headers.get("Authorization", "")
     if auth_header.startswith("Bearer "):
-        # Use token hash as identifier (authenticated user)
+        # Use hash of token as identifier (avoids predictable JWT prefix)
         token = auth_header[7:]
-        # Use first 16 chars of token as identifier
-        return f"auth:{token[:16]}", True
+        token_hash = hashlib.sha256(token.encode()).hexdigest()[:16]
+        return f"auth:{token_hash}", True
 
     # Fall back to IP address
     forwarded = request.headers.get("X-Forwarded-For")

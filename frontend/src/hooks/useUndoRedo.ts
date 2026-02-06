@@ -1,12 +1,16 @@
 /**
- * useUndoRedo Hook
+ * useUndoRedo - State history stack for form data
  *
- * Ermöglicht Undo/Redo-Funktionalität für Formulardaten.
- * Speichert Änderungen in einem History-Stack und ermöglicht
- * das Navigieren durch vergangene Zustände.
+ * Maintains a history of states and allows navigating back/forward
+ * (undo/redo) through them. Used for text fields and editor state.
+ *
+ * NOTE: This is NOT the same as useUndoableAction (toast undo).
+ * - useUndoRedo = time-travel for form state
+ * - useUndoableAction = undo toast for destructive operations
  */
 
 import { useState, useCallback, useRef, useEffect } from "react";
+import { HISTORY, DEBOUNCE } from "@/config/ui.config";
 
 interface UseUndoRedoOptions<T> {
     /** Maximale Anzahl der gespeicherten Zustände */
@@ -42,7 +46,7 @@ export function useUndoRedo<T>(
     initialState: T,
     options: UseUndoRedoOptions<T> = {}
 ): UseUndoRedoReturn<T> {
-    const { maxHistory = 50, onChange, debounceMs = 300 } = options;
+    const { maxHistory = HISTORY.maxUndoSteps, onChange, debounceMs = DEBOUNCE.undoRedo } = options;
 
     // State
     const [state, setStateInternal] = useState<T>(initialState);

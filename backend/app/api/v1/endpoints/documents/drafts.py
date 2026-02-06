@@ -220,7 +220,7 @@ async def finalize_draft(
     """
     from app.models.core import DesignSetting
     from app.models.documents import DocumentType, GeneratedDocument, Clause, DocumentTypeClause
-    from app.api.v1.endpoints.generation import create_document_from_clauses
+    from app.api.v1.endpoints.documents.generation import create_document_from_clauses
     from datetime import datetime
     import uuid
 

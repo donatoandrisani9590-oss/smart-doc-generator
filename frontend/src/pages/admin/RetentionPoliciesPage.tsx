@@ -42,6 +42,7 @@ import {
     Shield,
     Info,
 } from "lucide-react";
+import { apiFetch } from "@/lib/api-client";
 
 interface RetentionPolicy {
     id: number;
@@ -106,7 +107,7 @@ export default function RetentionPoliciesPage() {
     const fetchPolicies = async () => {
         setIsLoading(true);
         try {
-            const response = await fetch("/api/v1/retention-policies");
+            const response = await apiFetch("/api/v1/retention-policies");
             if (response.ok) {
                 const data = await response.json();
                 setPolicies(data);
@@ -198,7 +199,7 @@ export default function RetentionPoliciesPage() {
                 : "/api/v1/retention-policies";
             const method = editingPolicy ? "PUT" : "POST";
 
-            const response = await fetch(url, {
+            const response = await apiFetch(url, {
                 method,
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(formData),
@@ -217,7 +218,7 @@ export default function RetentionPoliciesPage() {
 
     const toggleActive = async (policy: RetentionPolicy) => {
         try {
-            await fetch(`/api/v1/retention-policies/${policy.id}`, {
+            await apiFetch(`/api/v1/retention-policies/${policy.id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ ...policy, is_active: !policy.is_active }),

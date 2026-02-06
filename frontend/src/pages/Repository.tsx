@@ -282,7 +282,7 @@ export const RepositoryPage = () => {
                     </p>
                 </div>
                 <Link to="/generate">
-                    <Button className="h-9 gap-2">
+                    <Button className="h-9 gap-2 btn-primary-soft">
                         <PlusCircle className="w-4 h-4" />
                         Neues Dokument
                     </Button>
@@ -291,7 +291,7 @@ export const RepositoryPage = () => {
 
             {/* Stats - SimpleDocs Style */}
             <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
-                <div className="bg-white border border-gray-200 rounded-lg px-4 py-3">
+                <div className="card-soft px-4 py-3">
                     <div className="flex items-center gap-3">
                         <FileText className="w-4 h-4 text-primary" />
                         <div>
@@ -300,7 +300,7 @@ export const RepositoryPage = () => {
                         </div>
                     </div>
                 </div>
-                <div className="bg-white border border-gray-200 rounded-lg px-4 py-3">
+                <div className="card-soft px-4 py-3">
                     <div className="flex items-center gap-3">
                         <Calendar className="w-4 h-4 text-green-500" />
                         <div>
@@ -309,7 +309,7 @@ export const RepositoryPage = () => {
                         </div>
                     </div>
                 </div>
-                <div className="bg-white border border-gray-200 rounded-lg px-4 py-3">
+                <div className="card-soft px-4 py-3">
                     <div className="flex items-center gap-3">
                         <Edit3 className="w-4 h-4 text-amber-500" />
                         <div>
@@ -318,7 +318,7 @@ export const RepositoryPage = () => {
                         </div>
                     </div>
                 </div>
-                <div className="bg-white border border-gray-200 rounded-lg px-4 py-3">
+                <div className="card-soft px-4 py-3">
                     <div className="flex items-center gap-3">
                         <FileCheck className="w-4 h-4 text-primary" />
                         <div>
@@ -332,7 +332,7 @@ export const RepositoryPage = () => {
             </div>
 
             {/* Search - SimpleDocs Style */}
-            <div className="bg-white border border-gray-200 rounded-lg p-4">
+            <div className="card-soft p-4">
                 <div className="flex gap-3">
                     <div className="relative flex-1">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -340,7 +340,7 @@ export const RepositoryPage = () => {
                             placeholder="Dokument suchen..."
                             value={filters.search || ""}
                             onChange={(e) => updateFilter("search", e.target.value || undefined)}
-                            className="pl-10 h-10 bg-white border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/10"
+                            className="pl-10 h-10 input-soft"
                         />
                     </div>
                     <Button
@@ -359,76 +359,76 @@ export const RepositoryPage = () => {
                     )}
                 </div>
 
-                    {/* Erweiterte Filter */}
-                    {showFilters && (
-                        <div className="mt-4 pt-4 border-t grid grid-cols-1 md:grid-cols-4 gap-4">
-                            <div>
-                                <label className="text-sm font-medium text-foreground mb-1 block">
-                                    Dokumenttyp
-                                </label>
-                                <select
-                                    value={filters.document_type_id || ""}
-                                    onChange={(e) =>
+                {/* Erweiterte Filter */}
+                {showFilters && (
+                    <div className="mt-4 pt-4 border-t grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div>
+                            <label className="text-sm font-medium text-foreground mb-1 block">
+                                Dokumenttyp
+                            </label>
+                            <select
+                                value={filters.document_type_id || ""}
+                                onChange={(e) =>
+                                    updateFilter(
+                                        "document_type_id",
+                                        e.target.value ? Number(e.target.value) : undefined
+                                    )
+                                }
+                                className="w-full h-10 px-3 border border-input rounded-md bg-background text-sm"
+                            >
+                                <option value="">Alle Typen</option>
+                                {(documentTypes || []).map((dt: { id: number; name: string }) => (
+                                    <option key={dt.id} value={dt.id}>
+                                        {dt.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                        <div>
+                            <label className="text-sm font-medium text-foreground mb-1 block">
+                                Von Datum
+                            </label>
+                            <Input
+                                type="date"
+                                value={filters.date_from || ""}
+                                onChange={(e) =>
+                                    updateFilter("date_from", e.target.value || undefined)
+                                }
+                            />
+                        </div>
+                        <div>
+                            <label className="text-sm font-medium text-foreground mb-1 block">
+                                Bis Datum
+                            </label>
+                            <Input
+                                type="date"
+                                value={filters.date_to || ""}
+                                onChange={(e) =>
+                                    updateFilter("date_to", e.target.value || undefined)
+                                }
+                            />
+                        </div>
+                        <div className="flex items-end">
+                            <label className="flex items-center gap-2 cursor-pointer">
+                                <Checkbox
+                                    checked={filters.has_corrections === true}
+                                    onCheckedChange={(checked) =>
                                         updateFilter(
-                                            "document_type_id",
-                                            e.target.value ? Number(e.target.value) : undefined
+                                            "has_corrections",
+                                            checked ? true : undefined
                                         )
                                     }
-                                    className="w-full h-10 px-3 border border-input rounded-md bg-background text-sm"
-                                >
-                                    <option value="">Alle Typen</option>
-                                    {(documentTypes || []).map((dt: { id: number; name: string }) => (
-                                        <option key={dt.id} value={dt.id}>
-                                            {dt.name}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div>
-                                <label className="text-sm font-medium text-foreground mb-1 block">
-                                    Von Datum
-                                </label>
-                                <Input
-                                    type="date"
-                                    value={filters.date_from || ""}
-                                    onChange={(e) =>
-                                        updateFilter("date_from", e.target.value || undefined)
-                                    }
                                 />
-                            </div>
-                            <div>
-                                <label className="text-sm font-medium text-foreground mb-1 block">
-                                    Bis Datum
-                                </label>
-                                <Input
-                                    type="date"
-                                    value={filters.date_to || ""}
-                                    onChange={(e) =>
-                                        updateFilter("date_to", e.target.value || undefined)
-                                    }
-                                />
-                            </div>
-                            <div className="flex items-end">
-                                <label className="flex items-center gap-2 cursor-pointer">
-                                    <Checkbox
-                                        checked={filters.has_corrections === true}
-                                        onCheckedChange={(checked) =>
-                                            updateFilter(
-                                                "has_corrections",
-                                                checked ? true : undefined
-                                            )
-                                        }
-                                    />
-                                    <span className="text-sm">Nur mit Korrekturen</span>
-                                </label>
-                            </div>
+                                <span className="text-sm">Nur mit Korrekturen</span>
+                            </label>
                         </div>
-                    )}
+                    </div>
+                )}
             </div>
 
             {/* Bulk Actions - SimpleDocs Style */}
             {selectedIds.length > 0 && (
-                <div className="bg-primary/5 border border-primary/20 rounded-lg px-4 py-3">
+                <div className="bg-primary/5 border border-primary/20 rounded-xl px-4 py-3 animate-in fade-in slide-in-from-bottom-2">
                     <div className="flex items-center justify-between">
                         <span className="text-sm font-medium text-gray-900">
                             {selectedIds.length} ausgewählt
@@ -470,7 +470,7 @@ export const RepositoryPage = () => {
             )}
 
             {/* Document List - SimpleDocs Style */}
-            <div className="bg-white border border-gray-200 rounded-lg">
+            <div className="card-soft">
                 <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
                     <h3 className="font-medium text-gray-900">
                         {unifiedItems.length} Einträge
@@ -526,11 +526,10 @@ export const RepositoryPage = () => {
                             {unifiedItems.map((item) => (
                                 <div
                                     key={`${item.type}-${item.id}`}
-                                    className={`flex items-center gap-4 p-4 rounded-lg border transition-all cursor-pointer group ${
-                                        item.type === "draft"
+                                    className={`flex items-center gap-4 p-4 rounded-lg border transition-all cursor-pointer group ${item.type === "draft"
                                             ? "border-amber-200 bg-amber-50/30 hover:bg-amber-50 hover:border-amber-300"
                                             : "hover:bg-muted/50 hover:border-primary/30"
-                                    }`}
+                                        }`}
                                     onClick={() =>
                                         item.type === "draft"
                                             ? navigate(`/generate?draft=${item.id}`)
@@ -550,11 +549,10 @@ export const RepositoryPage = () => {
                                     )}
 
                                     {/* Status-Icon */}
-                                    <div className={`p-2 rounded-lg transition-colors ${
-                                        item.type === "draft"
+                                    <div className={`p-2 rounded-lg transition-colors ${item.type === "draft"
                                             ? "bg-amber-100 group-hover:bg-amber-200"
                                             : "bg-green-50 group-hover:bg-green-100"
-                                    }`}>
+                                        }`}>
                                         {item.type === "draft" ? (
                                             <Edit3 className="w-5 h-5 text-amber-600" />
                                         ) : (
@@ -566,11 +564,10 @@ export const RepositoryPage = () => {
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-2">
                                             {/* Status Badge */}
-                                            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                                                item.type === "draft"
+                                            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${item.type === "draft"
                                                     ? "bg-amber-100 text-amber-700"
                                                     : "bg-green-100 text-green-700"
-                                            }`}>
+                                                }`}>
                                                 {item.type === "draft" ? "Entwurf" : "Fertig"}
                                             </span>
                                             <p className="font-medium truncate">{item.name}</p>

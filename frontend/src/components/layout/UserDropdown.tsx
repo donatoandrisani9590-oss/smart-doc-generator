@@ -103,8 +103,7 @@ export const UserDropdown = ({ className }: UserDropdownProps) => {
 
     const handleProfileClick = () => {
         setOpen(false);
-        // TODO: Navigate to profile page when implemented
-        // navigate("/profile");
+        navigate("/settings?tab=account");
     };
 
     const handleSettingsClick = () => {

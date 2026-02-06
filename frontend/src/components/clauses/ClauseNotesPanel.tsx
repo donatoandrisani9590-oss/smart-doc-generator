@@ -8,6 +8,7 @@
  */
 
 import { useState, useEffect } from "react";
+import { apiFetch } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
@@ -81,7 +82,7 @@ export function ClauseNotesPanel({ clauseId, onNotesCountChange }: ClauseNotesPa
         setIsLoading(true);
         setError(null);
         try {
-            const response = await fetch(`/api/v1/clauses/${clauseId}/notes`);
+            const response = await apiFetch(`/api/v1/clauses/${clauseId}/notes`);
             if (!response.ok) throw new Error("Notizen konnten nicht geladen werden");
             const data = await response.json();
             setNotes(data);
@@ -97,7 +98,7 @@ export function ClauseNotesPanel({ clauseId, onNotesCountChange }: ClauseNotesPa
 
         setIsSubmitting(true);
         try {
-            const response = await fetch(`/api/v1/clauses/${clauseId}/notes`, {
+            const response = await apiFetch(`/api/v1/clauses/${clauseId}/notes`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -123,7 +124,7 @@ export function ClauseNotesPanel({ clauseId, onNotesCountChange }: ClauseNotesPa
 
     const togglePin = async (note: ClauseNote) => {
         try {
-            await fetch(`/api/v1/clauses/${clauseId}/notes/${note.id}`, {
+            await apiFetch(`/api/v1/clauses/${clauseId}/notes/${note.id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ is_pinned: !note.is_pinned }),
@@ -138,7 +139,7 @@ export function ClauseNotesPanel({ clauseId, onNotesCountChange }: ClauseNotesPa
         if (!confirm("Notiz wirklich löschen?")) return;
 
         try {
-            await fetch(`/api/v1/clauses/${clauseId}/notes/${noteId}`, {
+            await apiFetch(`/api/v1/clauses/${clauseId}/notes/${noteId}`, {
                 method: "DELETE",
             });
             await fetchNotes();

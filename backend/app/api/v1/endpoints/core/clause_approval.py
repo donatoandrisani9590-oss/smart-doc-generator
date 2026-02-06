@@ -312,7 +312,7 @@ async def approve_clause(
     # Benachrichtigung an Einreicher senden
     if submitter_info:
         try:
-            from app.api.v1.endpoints.notifications import notify_clause_decision
+            from app.api.v1.endpoints.user.notifications import notify_clause_decision
             # Versuche User-ID zu finden (vereinfacht: nutze E-Mail als ID)
             await notify_clause_decision(
                 db=db,
@@ -364,7 +364,7 @@ async def reject_clause(
     # Benachrichtigung an Einreicher senden
     if submitter_info:
         try:
-            from app.api.v1.endpoints.notifications import notify_clause_decision
+            from app.api.v1.endpoints.user.notifications import notify_clause_decision
             await notify_clause_decision(
                 db=db,
                 user_id=submitter_info,

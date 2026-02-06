@@ -45,6 +45,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
+import { apiFetch } from "@/lib/api-client";
 
 // Types
 interface TextPosition {
@@ -117,12 +118,9 @@ interface SideBySideMappingEditorProps {
     onCancel: () => void;
 }
 
-// API URL
-const API_BASE = import.meta.env.VITE_API_URL || "";
-
 // Fetch functions
 async function fetchPlaceholders(): Promise<PlaceholdersResponse> {
-    const response = await fetch(`${API_BASE}/api/v1/word-import/magic/placeholders`);
+    const response = await apiFetch("/api/v1/word-import/magic/placeholders");
     if (!response.ok) throw new Error("Failed to fetch placeholders");
     return response.json();
 }
@@ -151,7 +149,7 @@ async function confirmMappings(
     documentId: string,
     confirmations: Array<{ value_id: string; placeholder_name: string; apply_to_similar: boolean }>
 ) {
-    const response = await fetch(`${API_BASE}/api/v1/word-import/magic/confirm`, {
+    const response = await apiFetch("/api/v1/word-import/magic/confirm", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

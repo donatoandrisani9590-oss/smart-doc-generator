@@ -6,133 +6,78 @@ export default {
     ],
     theme: {
         extend: {
-            // ═══════════════════════════════════════════════════════════════
-            // NIEDERWIESER CORPORATE COLORS
-            // ═══════════════════════════════════════════════════════════════
             colors: {
-                // Primary: Niederwieser Blau #243186
                 primary: {
-                    DEFAULT: "var(--color-primary)",
-                    foreground: "var(--color-primary-foreground)",
-                    50: "var(--color-primary-50)",
-                    100: "var(--color-primary-100)",
-                    200: "var(--color-primary-200)",
-                    300: "var(--color-primary-300)",
-                    400: "var(--color-primary-400)",
-                    500: "var(--color-primary-500)",
-                    600: "var(--color-primary-600)",
-                    700: "var(--color-primary-700)",
-                    800: "var(--color-primary-800)",
-                    900: "var(--color-primary-900)",
+                    DEFAULT: "hsl(228 58% 33%)", // #243186
+                    foreground: "hsl(0 0% 100%)",
+                    50: "hsl(228 58% 97%)",
+                    100: "hsl(228 58% 94%)",
+                    200: "hsl(228 58% 86%)",
+                    300: "hsl(228 58% 74%)",
+                    400: "hsl(228 58% 60%)",
+                    500: "hsl(228 58% 45%)",
+                    600: "hsl(228 58% 33%)", // Brand base
+                    700: "hsl(228 58% 27%)",
+                    800: "hsl(228 58% 20%)",
+                    900: "hsl(228 58% 12%)",
                 },
-                // Secondary: Niederwieser Grün #6EBD84 (Success/Checkbox)
                 secondary: {
-                    DEFAULT: "var(--color-secondary)",
-                    foreground: "var(--color-secondary-foreground)",
-                    50: "var(--color-secondary-50)",
-                    100: "var(--color-secondary-100)",
-                    200: "var(--color-secondary-200)",
-                    300: "var(--color-secondary-300)",
-                    400: "var(--color-secondary-400)",
-                    500: "var(--color-secondary-500)",
-                    600: "var(--color-secondary-600)",
-                    700: "var(--color-secondary-700)",
-                    800: "var(--color-secondary-800)",
-                    900: "var(--color-secondary-900)",
+                    DEFAULT: "hsl(137 40% 58%)", // #6EBD84
+                    foreground: "hsl(0 0% 100%)",
                 },
-                // Success: Alias für Secondary
-                success: {
-                    DEFAULT: "var(--color-success)",
-                    foreground: "var(--color-success-foreground)",
-                },
-                // Warning
-                warning: {
-                    DEFAULT: "var(--color-warning)",
-                    foreground: "var(--color-warning-foreground)",
-                },
-                // Neutral: Niederwieser Grau/Beige #D7CFC5 (Borders, Muted)
-                border: "var(--color-border)",
-                input: "var(--color-input)",
-                ring: "var(--color-ring)",
-                // Backgrounds (Apple-Style)
-                background: "var(--color-background)",
-                foreground: "var(--color-foreground)",
-                surface: "var(--color-surface)",
-                // Muted
-                muted: {
-                    DEFAULT: "var(--color-muted)",
-                    foreground: "var(--color-muted-foreground)",
-                },
-                // Accent
-                accent: {
-                    DEFAULT: "var(--color-accent)",
-                    foreground: "var(--color-accent-foreground)",
-                },
-                // Destructive
                 destructive: {
-                    DEFAULT: "var(--color-destructive)",
-                    foreground: "var(--color-destructive-foreground)",
+                    DEFAULT: "hsl(0 84.2% 60.2%)",
+                    foreground: "hsl(0 0% 98%)",
                 },
-                // Card/Popover (Surface-based)
+                muted: {
+                    DEFAULT: "hsl(220 14% 96%)",
+                    foreground: "hsl(220 8% 46%)",
+                },
+                accent: {
+                    DEFAULT: "hsl(220 14% 96%)",
+                    foreground: "hsl(228 58% 33%)",
+                },
                 popover: {
-                    DEFAULT: "var(--color-popover)",
-                    foreground: "var(--color-popover-foreground)",
+                    DEFAULT: "hsl(0 0% 100%)",
+                    foreground: "hsl(224 71.4% 4.1%)",
                 },
                 card: {
-                    DEFAULT: "var(--color-card)",
-                    foreground: "var(--color-card-foreground)",
+                    DEFAULT: "hsl(0 0% 100%)",
+                    foreground: "hsl(224 71.4% 4.1%)",
                 },
+                background: "hsl(220 33% 98%)", // Cool gray/blue tint typical of SaaS
+                foreground: "hsl(224 71.4% 4.1%)",
+                border: "hsl(220 13% 91%)",
+                input: "hsl(220 13% 91%)",
+                ring: "hsl(228 58% 33%)",
             },
-            // ═══════════════════════════════════════════════════════════════
-            // TYPOGRAPHY: Inter (or SF Pro as fallback)
-            // ═══════════════════════════════════════════════════════════════
+            borderRadius: {
+                lg: "var(--radius)",
+                md: "calc(var(--radius) - 2px)",
+                sm: "calc(var(--radius) - 4px)",
+            },
             fontFamily: {
                 sans: [
                     "Inter",
                     "-apple-system",
                     "BlinkMacSystemFont",
-                    "SF Pro Display",
                     "Segoe UI",
                     "Roboto",
                     "sans-serif",
                 ],
             },
-            // ═══════════════════════════════════════════════════════════════
-            // BORDER RADIUS: Apple-style rounded corners
-            // ═══════════════════════════════════════════════════════════════
-            borderRadius: {
-                lg: "var(--radius-lg)",
-                md: "var(--radius-md)",
-                sm: "var(--radius-sm)",
-                xl: "var(--radius-xl)",
-                "2xl": "var(--radius-2xl)",
-            },
-            // ═══════════════════════════════════════════════════════════════
-            // SHADOWS: Soft, layered (Apple-inspired)
-            // ═══════════════════════════════════════════════════════════════
             boxShadow: {
-                // Subtle elevation
-                "soft-sm": "0 1px 2px 0 rgba(0, 0, 0, 0.03)",
-                // Card/Container shadow
-                "soft-md": "0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05)",
-                // Elevated elements (Modals, Dropdowns)
-                "soft-lg": "0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.05)",
-                // DIN A4 Preview "floating paper" effect
-                "paper": "0 8px 30px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06)",
+                // "Soft & Simple" system
+                'soft-xs': '0 1px 2px 0 rgba(0, 0, 0, 0.02)',
+                'soft-sm': '0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05)',
+                'soft-md': '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05)',
+                'soft-lg': '0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -4px rgba(0, 0, 0, 0.025)',
+                'soft-xl': '0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.025)',
+                // Specialty shadows
+                'float': '0 8px 30px rgba(0, 0, 0, 0.06)',
+                'paper': '0 4px 24px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0,0,0,0.04)',
+                'glow': '0 0 15px rgba(36, 49, 134, 0.15)',
             },
-            // ═══════════════════════════════════════════════════════════════
-            // BACKDROP BLUR: macOS-style frosted glass
-            // ═══════════════════════════════════════════════════════════════
-            backdropBlur: {
-                xs: "2px",
-                sm: "4px",
-                md: "8px",
-                lg: "12px",
-                xl: "16px",
-            },
-            // ═══════════════════════════════════════════════════════════════
-            // ANIMATIONS
-            // ═══════════════════════════════════════════════════════════════
             keyframes: {
                 "accordion-down": {
                     from: { height: "0" },
@@ -142,10 +87,23 @@ export default {
                     from: { height: "var(--radix-accordion-content-height)" },
                     to: { height: "0" },
                 },
+                "fade-in": {
+                    from: { opacity: 0, transform: 'translateY(5px)' },
+                    to: { opacity: 1, transform: 'translateY(0)' },
+                },
+                "scale-in": {
+                    from: { opacity: 0, transform: 'scale(0.95)' },
+                    to: { opacity: 1, transform: 'scale(1)' },
+                },
             },
             animation: {
                 "accordion-down": "accordion-down 0.2s ease-out",
                 "accordion-up": "accordion-up 0.2s ease-out",
+                "fade-in": "fade-in 0.4s ease-out forwards",
+                "scale-in": "scale-in 0.2s ease-out forwards",
+            },
+            backdropBlur: {
+                xs: '2px',
             },
         },
     },

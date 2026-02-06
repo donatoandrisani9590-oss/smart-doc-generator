@@ -1,951 +1,258 @@
 /**
- * useDocumentWizard - Custom Hook für Document Generator Wizard State Management
+ * useDocumentWizard - Custom Hook fuer Document Generator Wizard State Management
  *
- * Extrahiert und verwaltet alle Logik für den schrittweisen Dokumenten-Workflow:
- * - Formulardaten mit Undo/Redo
- * - Draft-Laden und Speichern
- * - Klausel-Verwaltung
- * - Preview-Generierung
- * - Schritt-Navigation
+ * Thin orchestrator that composes sub-hooks from ./wizard/ into the
+ * unified WizardContextValue interface. Each sub-hook manages one
+ * concern (navigation, form data, clauses, preview, drafts, comments, export).
+ *
+ * The return type (WizardContextValue) is unchanged -- all existing
+ * consumers continue to work without modification.
  */
 
-import { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { useDebounce } from "use-debounce";
-import { useNavigate } from "react-router-dom";
-import { useUndoRedo } from "@/hooks/useUndoRedo";
-import { useAutoSave } from "@/hooks/useAutoSave";
-import { useToast } from "@/components/ui/toast";
-import { api, getApiBaseUrl } from "@/lib/api-client";
-import { logError } from "@/lib/logger";
+import { useState, useCallback, useEffect } from "react";
 import {
     type WizardState,
     type WizardActions,
     type WizardContextValue,
-    type FormData,
-    type DocumentClause,
-    type VariantGroup,
-    type Comment,
-    type AddCommentParams,
-    type AutoSaveStatus,
     initialFormData,
-    STANDARD_STEP_ORDER,
-    FULL_STEP_ORDER,
 } from "@/components/generator/WizardContext";
-
-// ══════════════════════════════════════════════════════════════════════════════
-// API RESPONSE TYPES
-// ══════════════════════════════════════════════════════════════════════════════
-
-interface DocumentTypeResponse {
-    id: number;
-    name: string;
-    country_code: string;
-    category?: string;
-    is_active: boolean;
-    default_probation_months?: number;
-    default_notice_period?: string;
-    default_vacation_days?: number;
-    default_weekly_hours?: number;
-}
-
-interface ClauseResponse {
-    id: number;
-    title: string;
-    display_order: number;
-    is_mandatory: boolean;
-    is_default_selected?: boolean;
-    clause_type: string;
-    is_order_locked?: boolean;
-    variant_group_id?: number;
-    variant_group_name?: string;
-}
-
-interface DraftResponse {
-    id: number;
-    document_type_id: number;
-    document_type_name: string;
-    name: string | null;
-    form_data: Record<string, unknown>;
-    custom_clauses: number[] | null;
-}
-
-// ══════════════════════════════════════════════════════════════════════════════
-// LOCALSTORAGE KEYS
-// ══════════════════════════════════════════════════════════════════════════════
-
-const STORAGE_KEY_PREFIX = "doc_wizard_";
-const getStorageKey = (typeId: number) => `${STORAGE_KEY_PREFIX}${typeId}`;
+import { getStorageKey } from "./wizard/types";
+import {
+    useWizardNavigation,
+    useWizardFormData,
+    useWizardClauses,
+    useWizardPreview,
+    useWizardDrafts,
+    useWizardComments,
+    useWizardExport,
+} from "./wizard";
 
 // ══════════════════════════════════════════════════════════════════════════════
 // HOOK
 // ══════════════════════════════════════════════════════════════════════════════
 
 export function useDocumentWizard(initialDraftId?: number): WizardContextValue {
-    const toast = useToast();
-    const navigate = useNavigate();
 
-    // ══════════════════════════════════════════════════════════════════════════
-    // STATE
-    // ══════════════════════════════════════════════════════════════════════════
+    // ── 1. Form Data (incl. undo/redo, document types) ──────────────────────
 
-    // Navigation State
-    const [currentStep, setCurrentStep] = useState(0);
-    const [mode, setMode] = useState<"wizard" | "editor" | "split-screen">("wizard");
-    const [showClausesStep, setShowClausesStep] = useState(false);
+    const form = useWizardFormData();
 
-    // Document Type State
-    const [documentTypeId, setDocumentTypeIdState] = useState<number | null>(null);
-    const [documentTypes, setDocumentTypes] = useState<DocumentTypeResponse[]>([]);
-    const [documentTitle, setDocumentTitle] = useState("");
-    const [loadedDraftId, setLoadedDraftId] = useState<number | null>(initialDraftId ?? null);
+    // ── 2. Comments ─────────────────────────────────────────────────────────
 
-    // Form Data with Undo/Redo
-    const {
-        state: formData,
-        setState: setFormDataRaw,
-        undo,
-        redo,
-        canUndo,
-        canRedo,
-    } = useUndoRedo<FormData>(initialFormData, {
-        maxHistory: 30,
-        debounceMs: 500,
+    const commentsHook = useWizardComments({
+        markUnsaved: () => form.setHasUnsavedChanges(true),
     });
 
-    const [dynamicFormValues, setDynamicFormValues] = useState<Record<string, string | number | boolean>>({});
-    const [debouncedFormData] = useDebounce(formData, 150);
+    // ── 3. Navigation (needs form state for validation + localStorage) ──────
 
-    // Clauses State
-    const [documentClauses, setDocumentClauses] = useState<DocumentClause[]>([]);
-    const [selectedVariants, setSelectedVariants] = useState<Record<number, { variantId: number; clauseId: number }>>({});
-    const [variantGroups, setVariantGroups] = useState<VariantGroup[]>([]);
+    const nav = useWizardNavigation({
+        documentTypeId: form.documentTypeId,
+        formData: form.formData,
+        dynamicFormValues: form.dynamicFormValues,
+        documentTitle: form.documentTitle,
+        comments: commentsHook.comments,
+    });
 
-    // Attachments
-    const [selectedAttachmentIds, setSelectedAttachmentIds] = useState<number[]>([]);
+    // ── 4. Clauses ──────────────────────────────────────────────────────────
 
-    // Preview State
-    const [previewHtml, setPreviewHtml] = useState("");
-    const [isPreviewLoading, setIsPreviewLoading] = useState(false);
+    const clauses = useWizardClauses({
+        documentTypeId: form.documentTypeId,
+        markUnsaved: () => form.setHasUnsavedChanges(true),
+    });
 
-    // Split-Screen Editor State
+    // ── 5. Preview ──────────────────────────────────────────────────────────
+
+    const preview = useWizardPreview({
+        documentTypeId: form.documentTypeId,
+        formData: form.formData,
+        dynamicFormValues: form.dynamicFormValues,
+        documentClauses: clauses.documentClauses,
+        selectedVariants: clauses.selectedVariants,
+    });
+
+    // ── 6. Drafts + Auto-Save ───────────────────────────────────────────────
+
+    const drafts = useWizardDrafts({
+        initialDraftId,
+        documentTypeId: form.documentTypeId,
+        documentTitle: form.documentTitle,
+        formData: form.formData,
+        dynamicFormValues: form.dynamicFormValues,
+        comments: commentsHook.comments,
+        documentClauses: clauses.documentClauses,
+        selectedVariants: clauses.selectedVariants,
+        selectedAttachmentIds: clauses.selectedAttachmentIds,
+        currentStep: nav.currentStep,
+        hasUnsavedChanges: form.hasUnsavedChanges,
+        setDocumentTypeIdState: form.setDocumentTypeIdState,
+        setDocumentTitle: form.setDocumentTitle,
+        setFormDataRaw: form.setFormDataRaw,
+        setDynamicFormValues: form.setDynamicFormValues,
+        setComments: commentsHook.setComments,
+        setCurrentStep: nav.setCurrentStep,
+        setHasUnsavedChanges: form.setHasUnsavedChanges,
+        setIsLoading: form.setIsLoading,
+    });
+
+    // ── 7. Export ───────────────────────────────────────────────────────────
+
+    const exportHook = useWizardExport({
+        documentTypeId: form.documentTypeId,
+        documentTitle: form.documentTitle,
+        formData: form.formData,
+        dynamicFormValues: form.dynamicFormValues,
+        documentClauses: clauses.documentClauses,
+        selectedVariants: clauses.selectedVariants,
+        selectedAttachmentIds: clauses.selectedAttachmentIds,
+        validateStep: nav.validateStep,
+    });
+
+    // ── 8. Split-Screen Editor State ────────────────────────────────────────
+    //    Kept here because it is small and tightly coupled to previewHtml.
+
     const [editorContent, setEditorContentState] = useState("");
     const [hasLocalEdits, setHasLocalEdits] = useState(false);
     const [showCommentSidebar, setShowCommentSidebar] = useState(false);
 
-    // Comments State (Apple Pages Style)
-    const [comments, setComments] = useState<Comment[]>([]);
-
-    // Loading States
-    const [isLoading, setIsLoading] = useState(true);
-    const [isSaving, setIsSaving] = useState(false);
-    const [isGenerating, setIsGenerating] = useState(false);
-    const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-
-    // Validation
-    const [validationErrors, setValidationErrors] = useState<Array<{ field: string; message: string }>>([]);
-
-    // Refs
-    const exportLockRef = useRef(false);
-
-    // ══════════════════════════════════════════════════════════════════════════
-    // AUTO-SAVE DATA STRUCTURE
-    // ══════════════════════════════════════════════════════════════════════════
-
-    // Combine all wizard data for auto-save
-    const autoSaveData = useMemo(() => ({
-        formData,
-        dynamicFormValues,
-        documentTitle,
-        documentTypeId,
-        comments,
-        documentClauses: documentClauses.filter(c => c.is_enabled).map(c => c.id),
-        selectedVariants,
-        selectedAttachmentIds,
-        currentStep,
-        timestamp: new Date().toISOString(),
-    }), [formData, dynamicFormValues, documentTitle, documentTypeId, comments, documentClauses, selectedVariants, selectedAttachmentIds, currentStep]);
-
-    // Auto-save callback - save to server if possible
-    const performAutoSave = useCallback(async (data: typeof autoSaveData): Promise<void> => {
-        // Only auto-save if we have a document type and some meaningful data
-        if (!data.documentTypeId) return;
-
-        // If we have a loaded draft ID, update it
-        if (loadedDraftId && data.documentTitle?.trim()) {
-            const draftData = {
-                document_type_id: data.documentTypeId,
-                name: data.documentTitle.trim(),
-                form_data: {
-                    ...data.formData,
-                    ...data.dynamicFormValues,
-                },
-                custom_clauses: data.documentClauses,
-            };
-            await api.put(`/api/v1/drafts/${loadedDraftId}`, draftData);
-        }
-        // Note: If no loadedDraftId, data is only saved to localStorage by useAutoSave
-    }, [loadedDraftId]);
-
-    // Auto-Save Hook
-    const autoSaveKey = useMemo(() =>
-        documentTypeId ? `wizard_${documentTypeId}` : 'wizard_new',
-    [documentTypeId]);
-
-    const {
-        lastSaved,
-        isSaving: isAutoSaving,
-        error: autoSaveError,
-        forceSave,
-        clearError: clearAutoSaveError,
-        hasUnsavedChanges: autoSaveHasUnsavedChanges,
-        lastSavedText,
-        hasRecoverableDraft,
-        recoverDraft: recoverDraftFromStorage,
-        discardDraft: discardDraftFromStorage,
-        saveStatus: autoSaveStatus,
-    } = useAutoSave(
-        autoSaveKey,
-        autoSaveData,
-        performAutoSave,
-        {
-            interval: 30000, // 30 seconds
-            debounce: 1000,  // 1 second debounce
-            enabled: !!documentTypeId && hasUnsavedChanges,
-            storagePrefix: 'docgen_autosave_',
-            onSaveStart: () => {
-                // Optional: Could show a subtle indicator
-            },
-            onSaveSuccess: () => {
-                setHasUnsavedChanges(false);
-            },
-            onSaveError: (error) => {
-                logError("Auto-save failed", { error });
-            },
-        }
-    );
-
-    // Recover draft function
-    const recoverDraft = useCallback(() => {
-        const recovered = recoverDraftFromStorage();
-        if (recovered) {
-            // Restore form data
-            if (recovered.formData) {
-                setFormDataRaw({
-                    ...initialFormData,
-                    ...(recovered.formData as Partial<FormData>),
-                });
-            }
-            if (recovered.dynamicFormValues) {
-                setDynamicFormValues(recovered.dynamicFormValues as Record<string, string | number | boolean>);
-            }
-            if (recovered.documentTitle) {
-                setDocumentTitle(recovered.documentTitle as string);
-            }
-            if (recovered.documentTypeId) {
-                setDocumentTypeIdState(recovered.documentTypeId as number);
-            }
-            if (recovered.comments) {
-                setComments(recovered.comments as Comment[]);
-            }
-            if (typeof recovered.currentStep === 'number') {
-                setCurrentStep(recovered.currentStep);
-            }
-
-            toast.success("Entwurf wiederhergestellt", "Ihre nicht gespeicherten Änderungen wurden wiederhergestellt");
-        }
-    }, [recoverDraftFromStorage, setFormDataRaw, toast]);
-
-    // Discard draft function
-    const discardDraft = useCallback(() => {
-        discardDraftFromStorage();
-        toast.info("Entwurf verworfen", "Der gespeicherte Entwurf wurde gelöscht");
-    }, [discardDraftFromStorage, toast]);
-
-    // ══════════════════════════════════════════════════════════════════════════
-    // COMPUTED VALUES
-    // ══════════════════════════════════════════════════════════════════════════
-
-    const stepOrder = useMemo(() => {
-        return showClausesStep ? FULL_STEP_ORDER : STANDARD_STEP_ORDER;
-    }, [showClausesStep]);
-
-    const actualStepIndex = useMemo(() => {
-        return stepOrder[currentStep] ?? currentStep;
-    }, [stepOrder, currentStep]);
-
-    // ══════════════════════════════════════════════════════════════════════════
-    // LOAD DOCUMENT TYPES
-    // ══════════════════════════════════════════════════════════════════════════
-
-    useEffect(() => {
-        const loadDocumentTypes = async () => {
-            setIsLoading(true);
-            try {
-                const response = await api.get<DocumentTypeResponse[]>("/api/v1/document-types/");
-                const activeTypes = response.data.filter(t => t.is_active);
-                setDocumentTypes(activeTypes);
-            } catch (error) {
-                logError("Failed to load document types", { error });
-                toast.error("Fehler", "Dokumenttypen konnten nicht geladen werden");
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        loadDocumentTypes();
-    }, [toast]);
-
-    // ══════════════════════════════════════════════════════════════════════════
-    // LOAD DRAFT
-    // ══════════════════════════════════════════════════════════════════════════
-
-    const loadDraft = useCallback(async (draftId: number) => {
-        setIsLoading(true);
-        try {
-            const response = await api.get<DraftResponse>(`/api/v1/drafts/${draftId}`);
-            const draft = response.data;
-
-            setDocumentTypeIdState(draft.document_type_id);
-            setDocumentTitle(draft.name || "");
-            setLoadedDraftId(draftId);
-
-            if (draft.form_data) {
-                setFormDataRaw({
-                    ...initialFormData,
-                    ...(draft.form_data as Partial<FormData>),
-                });
-            }
-
-            // Calculate which step to jump to based on draft completeness
-            const jumpToStep = calculateDraftStep(draft.form_data as Partial<FormData>);
-            setCurrentStep(jumpToStep);
-
-            toast.success("Entwurf geladen", `"${draft.name || draft.document_type_name}" wurde geladen`);
-        } catch (error) {
-            logError("Failed to load draft", { error });
-            toast.error("Fehler", "Entwurf konnte nicht geladen werden");
-            navigate("/generate", { replace: true });
-        } finally {
-            setIsLoading(false);
-        }
-    }, [navigate, setFormDataRaw, toast]);
-
-    // Load draft on mount if ID provided
-    useEffect(() => {
-        if (initialDraftId) {
-            loadDraft(initialDraftId);
-        }
-    }, [initialDraftId, loadDraft]);
-
-    // ══════════════════════════════════════════════════════════════════════════
-    // LOAD CLAUSES WHEN DOCUMENT TYPE CHANGES
-    // ══════════════════════════════════════════════════════════════════════════
-
-    useEffect(() => {
-        if (!documentTypeId) return;
-
-        const loadClauses = async () => {
-            try {
-                const response = await api.get<ClauseResponse[]>(
-                    `/api/v1/document-types/${documentTypeId}/clauses`
-                );
-
-                // Extract unique variant groups with their clauses
-                const groupsMap = new Map<number, VariantGroup>();
-
-                response.data.forEach((clause) => {
-                    if (clause.clause_type === "variant" && clause.variant_group_id) {
-                        if (!groupsMap.has(clause.variant_group_id)) {
-                            groupsMap.set(clause.variant_group_id, {
-                                id: clause.variant_group_id,
-                                name: clause.variant_group_name || `Variante ${clause.variant_group_id}`,
-                                clauses: [],
-                            });
-                        }
-                        groupsMap.get(clause.variant_group_id)!.clauses.push({
-                            id: clause.id,
-                            name: clause.title,
-                        });
-                    }
-                });
-                setVariantGroups(Array.from(groupsMap.values()));
-
-                // Set clauses (filter out variant clauses)
-                setDocumentClauses(response.data
-                    .filter((clause) => clause.clause_type !== "variant")
-                    .map((clause) => ({
-                        id: clause.id,
-                        unique_id: `clause-${clause.id}`,
-                        name: clause.title,
-                        content: "",
-                        is_required: clause.is_mandatory,
-                        is_enabled: clause.is_mandatory || clause.is_default_selected || false,
-                        order_index: clause.display_order,
-                        has_variants: false,
-                        variant_group_id: clause.variant_group_id,
-                    })));
-            } catch (error) {
-                logError("Failed to load clauses", { error });
-                setDocumentClauses([]);
-                setVariantGroups([]);
-            }
-        };
-
-        loadClauses();
-    }, [documentTypeId]);
-
-    // ══════════════════════════════════════════════════════════════════════════
-    // PREVIEW GENERATION
-    // ══════════════════════════════════════════════════════════════════════════
-
-    const refreshPreview = useCallback(async () => {
-        if (!documentTypeId) return;
-
-        const enabledClauseIds = documentClauses
-            .filter((clause) => clause.is_enabled)
-            .sort((a, b) => a.order_index - b.order_index)
-            .map((clause) => clause.id);
-
-        const variantClauseIds = Object.values(selectedVariants).map((v) => v.clauseId);
-        const allClauseIds = [...enabledClauseIds, ...variantClauseIds];
-
-        setIsPreviewLoading(true);
-        try {
-            const mergedFormData = {
-                ...debouncedFormData,
-                ...dynamicFormValues,
-            };
-
-            const response = await api.post<string>("/api/v1/preview/html", {
-                document_type_id: documentTypeId,
-                form_data: mergedFormData,
-                clause_ids: allClauseIds,
-            });
-            setPreviewHtml(response.data);
-        } catch (error) {
-            logError("Preview fetch failed", { error });
-        } finally {
-            setIsPreviewLoading(false);
-        }
-    }, [documentTypeId, documentClauses, selectedVariants, debouncedFormData, dynamicFormValues]);
-
-    // Auto-refresh preview when data changes
-    useEffect(() => {
-        refreshPreview();
-    }, [refreshPreview]);
-
-    // ══════════════════════════════════════════════════════════════════════════
-    // VALIDATION
-    // ══════════════════════════════════════════════════════════════════════════
-
-    const validateStep = useCallback((step: number): boolean => {
-        const errors: Array<{ field: string; message: string }> = [];
-
-        switch (step) {
-            case 0: // Document Type
-                if (!documentTypeId) {
-                    errors.push({ field: "documentType", message: "Dokumenttyp ist erforderlich" });
-                }
-                break;
-
-            case 1: // Employee Info
-                if (!formData.vorname.trim()) {
-                    errors.push({ field: "vorname", message: "Vorname ist erforderlich" });
-                }
-                if (!formData.nachname.trim()) {
-                    errors.push({ field: "nachname", message: "Nachname ist erforderlich" });
-                }
-                break;
-
-            case 2: // Contract Details
-                if (!formData.position.trim()) {
-                    errors.push({ field: "position", message: "Position ist erforderlich" });
-                }
-                if (!formData.gehalt || parseFloat(formData.gehalt) <= 0) {
-                    errors.push({ field: "gehalt", message: "Gültiges Gehalt ist erforderlich" });
-                }
-                if (!formData.eintrittsdatum) {
-                    errors.push({ field: "eintrittsdatum", message: "Eintrittsdatum ist erforderlich" });
-                }
-                break;
-
-            case 3: // Clauses - optional, no validation needed
-                break;
-
-            case 4: // Review
-                if (!formData.signatory_name.trim()) {
-                    errors.push({ field: "signatory_name", message: "Unterzeichner ist erforderlich" });
-                }
-                break;
-        }
-
-        setValidationErrors(errors);
-        return errors.length === 0;
-    }, [documentTypeId, formData]);
-
-    // ══════════════════════════════════════════════════════════════════════════
-    // NAVIGATION ACTIONS
-    // ══════════════════════════════════════════════════════════════════════════
-
-    const goToStep = useCallback(async (targetStep: number): Promise<boolean> => {
-        // Validate current step before moving forward
-        if (targetStep > currentStep) {
-            if (!validateStep(actualStepIndex)) {
-                return false;
-            }
-        }
-
-        // Save to localStorage on step change (including comments)
-        if (documentTypeId) {
-            try {
-                localStorage.setItem(getStorageKey(documentTypeId), JSON.stringify({
-                    formData,
-                    dynamicFormValues,
-                    documentTitle,
-                    comments,
-                    timestamp: new Date().toISOString(),
-                }));
-            } catch (e) {
-                logError("Failed to save to localStorage", { error: e });
-            }
-        }
-
-        setCurrentStep(targetStep);
-        return true;
-    }, [currentStep, actualStepIndex, validateStep, documentTypeId, formData, dynamicFormValues, documentTitle, comments]);
-
-    const nextStep = useCallback(async (): Promise<boolean> => {
-        const maxStep = stepOrder.length - 1;
-        if (currentStep >= maxStep) return false;
-        return goToStep(currentStep + 1);
-    }, [currentStep, stepOrder.length, goToStep]);
-
-    const prevStep = useCallback(() => {
-        if (currentStep > 0) {
-            setCurrentStep(currentStep - 1);
-        }
-    }, [currentStep]);
-
-    const enterEditorMode = useCallback(() => {
-        setMode("editor");
-    }, []);
-
-    const exitEditorMode = useCallback(() => {
-        setMode("wizard");
-    }, []);
-
-    const toggleClausesStep = useCallback(() => {
-        setShowClausesStep(prev => !prev);
-    }, []);
-
-    // ══════════════════════════════════════════════════════════════════════════
-    // FORM ACTIONS
-    // ══════════════════════════════════════════════════════════════════════════
-
-    const setDocumentType = useCallback((id: number) => {
-        setDocumentTypeIdState(id);
-        setHasUnsavedChanges(true);
-
-        // Apply defaults from document type
-        const selectedDocType = documentTypes.find(dt => dt.id === id);
-        if (selectedDocType) {
-            setFormDataRaw(prev => ({
-                ...prev,
-                wochenstunden: String(selectedDocType.default_weekly_hours ?? 40),
-                probezeit: String(selectedDocType.default_probation_months ?? 6) + " Monate",
-            }));
-        }
-    }, [documentTypes, setFormDataRaw]);
-
-    const updateFormField = useCallback(<K extends keyof FormData>(field: K, value: FormData[K]) => {
-        setFormDataRaw(prev => ({ ...prev, [field]: value }));
-        setHasUnsavedChanges(true);
-    }, [setFormDataRaw]);
-
-    const updateDynamicField = useCallback((name: string, value: string | number | boolean) => {
-        setDynamicFormValues(prev => ({ ...prev, [name]: value }));
-        setHasUnsavedChanges(true);
-    }, []);
-
-    const setFormData = useCallback((data: Partial<FormData>) => {
-        setFormDataRaw(prev => ({ ...prev, ...data }));
-        setHasUnsavedChanges(true);
-    }, [setFormDataRaw]);
-
-    // ══════════════════════════════════════════════════════════════════════════
-    // CLAUSE ACTIONS
-    // ══════════════════════════════════════════════════════════════════════════
-
-    const toggleClause = useCallback((uniqueId: string) => {
-        setDocumentClauses(prev => prev.map(clause =>
-            clause.unique_id === uniqueId && !clause.is_required
-                ? { ...clause, is_enabled: !clause.is_enabled }
-                : clause
-        ));
-        setHasUnsavedChanges(true);
-    }, []);
-
-    const reorderClauses = useCallback((clauses: DocumentClause[]) => {
-        setDocumentClauses(clauses);
-        setHasUnsavedChanges(true);
-    }, []);
-
-    const selectVariant = useCallback((groupId: number, variantId: number, clauseId: number) => {
-        setSelectedVariants(prev => ({
-            ...prev,
-            [groupId]: { variantId, clauseId },
-        }));
-        setHasUnsavedChanges(true);
-    }, []);
-
-    // ══════════════════════════════════════════════════════════════════════════
-    // ATTACHMENT ACTIONS
-    // ══════════════════════════════════════════════════════════════════════════
-
-    const toggleAttachment = useCallback((id: number) => {
-        setSelectedAttachmentIds(prev =>
-            prev.includes(id)
-                ? prev.filter(a => a !== id)
-                : [...prev, id]
-        );
-        setHasUnsavedChanges(true);
-    }, []);
-
-    // ══════════════════════════════════════════════════════════════════════════
-    // DRAFT ACTIONS
-    // ══════════════════════════════════════════════════════════════════════════
-
-    const saveDraft = useCallback(async () => {
-        if (!documentTypeId) {
-            toast.error("Fehler", "Bitte wählen Sie einen Dokumenttyp");
-            return;
-        }
-
-        if (!documentTitle.trim()) {
-            toast.error("Titel erforderlich", "Bitte geben Sie einen Titel für den Entwurf ein");
-            return;
-        }
-
-        setIsSaving(true);
-        try {
-            const mergedFormData = {
-                ...formData,
-                ...dynamicFormValues,
-            };
-
-            const draftData = {
-                document_type_id: documentTypeId,
-                name: documentTitle.trim(),
-                form_data: mergedFormData,
-                custom_clauses: documentClauses.filter(c => c.is_enabled).map(c => c.id),
-            };
-
-            if (loadedDraftId) {
-                await api.put(`/api/v1/drafts/${loadedDraftId}`, draftData);
-                toast.success("Entwurf aktualisiert", `"${documentTitle}" wurde gespeichert`);
-            } else {
-                const response = await api.post<{ id: number }>("/api/v1/drafts", draftData);
-                setLoadedDraftId(response.data.id);
-                toast.success("Entwurf gespeichert", `"${documentTitle}" wurde erstellt`);
-            }
-
-            // Clear localStorage
-            if (documentTypeId) {
-                localStorage.removeItem(getStorageKey(documentTypeId));
-            }
-            setHasUnsavedChanges(false);
-            // Benutzer bleibt auf der Seite - kein automatisches Weiterleiten
-        } catch (error) {
-            logError("Failed to save draft", { error });
-            toast.error("Fehler", "Entwurf konnte nicht gespeichert werden");
-        } finally {
-            setIsSaving(false);
-        }
-    }, [documentTypeId, documentTitle, formData, dynamicFormValues, documentClauses, loadedDraftId, toast]);
-
-    // ══════════════════════════════════════════════════════════════════════════
-    // EXPORT ACTIONS
-    // ══════════════════════════════════════════════════════════════════════════
-
-    const exportDocument = useCallback(async (format: "pdf" | "docx") => {
-        if (exportLockRef.current) return;
-
-        // Validate all required fields
-        const allValid = [0, 1, 2, 4].every(step => validateStep(step));
-        if (!allValid) {
-            toast.error("Validierungsfehler", "Bitte füllen Sie alle Pflichtfelder aus");
-            return;
-        }
-
-        exportLockRef.current = true;
-        setIsGenerating(true);
-
-        try {
-            const enabledClauseIds = documentClauses
-                .filter((clause) => clause.is_enabled)
-                .sort((a, b) => a.order_index - b.order_index)
-                .map((clause) => clause.id);
-
-            const variantClauseIds = Object.values(selectedVariants).map((v) => v.clauseId);
-            const allClauseIds = [...enabledClauseIds, ...variantClauseIds];
-
-            const mergedFormData = {
-                ...formData,
-                ...dynamicFormValues,
-            };
-
-            // Use native fetch for blob download
-            const token = localStorage.getItem("auth_token");
-            const apiBase = getApiBaseUrl();
-            const response = await fetch(`${apiBase}/api/v1/documents/generate/${documentTypeId}`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    ...(token ? { "Authorization": `Bearer ${token}` } : {}),
-                },
-                body: JSON.stringify({
-                    ...mergedFormData,
-                    output_format: format,
-                    attachment_ids: selectedAttachmentIds,
-                    clause_ids: allClauseIds,
-                }),
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.detail || "Export fehlgeschlagen");
-            }
-
-            const blob = await response.blob();
-
-            // Download file
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.href = url;
-            link.download = `${documentTitle || "Dokument"}.${format}`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            window.URL.revokeObjectURL(url);
-
-            toast.success("Dokument erstellt", `${format.toUpperCase()}-Datei wurde heruntergeladen`);
-        } catch (error) {
-            logError("Export failed", { error });
-            toast.error("Export fehlgeschlagen", "Bitte versuchen Sie es erneut.");
-        } finally {
-            setIsGenerating(false);
-            exportLockRef.current = false;
-        }
-    }, [documentTypeId, documentClauses, selectedVariants, formData, dynamicFormValues, selectedAttachmentIds, documentTitle, validateStep, toast]);
-
-    // ══════════════════════════════════════════════════════════════════════════
-    // UTILITY ACTIONS
-    // ══════════════════════════════════════════════════════════════════════════
-
-    const clearForm = useCallback(() => {
-        setFormDataRaw(initialFormData);
-        setDynamicFormValues({});
-        setDocumentTitle("");
-        setLoadedDraftId(null);
-        setCurrentStep(0);
-        setHasUnsavedChanges(false);
-        setEditorContentState("");
-        setHasLocalEdits(false);
-        setComments([]); // Clear comments
-
-        if (documentTypeId) {
-            localStorage.removeItem(getStorageKey(documentTypeId));
-        }
-    }, [documentTypeId, setFormDataRaw]);
-
-    // ══════════════════════════════════════════════════════════════════════════
-    // SPLIT-SCREEN EDITOR ACTIONS
-    // ══════════════════════════════════════════════════════════════════════════
-
     const setEditorContent = useCallback((content: string, isManualEdit: boolean = true) => {
         setEditorContentState(content);
-        // Nur als lokale Änderung markieren wenn es eine echte manuelle Bearbeitung ist
         if (isManualEdit) {
             setHasLocalEdits(true);
-            setHasUnsavedChanges(true);
+            form.setHasUnsavedChanges(true);
         }
-    }, []);
+    }, [form]);
 
     const resetEditorToPreview = useCallback(() => {
-        setEditorContentState(previewHtml);
+        setEditorContentState(preview.previewHtml);
         setHasLocalEdits(false);
-    }, [previewHtml]);
+    }, [preview.previewHtml]);
 
-    // Synchronisiere previewHtml mit editorContent, wenn keine manuellen Änderungen vorliegen
+    // Sync previewHtml -> editorContent when no manual edits
     useEffect(() => {
-        if (previewHtml && !hasLocalEdits) {
-            setEditorContentState(previewHtml);
+        if (preview.previewHtml && !hasLocalEdits) {
+            setEditorContentState(preview.previewHtml);
         }
-    }, [previewHtml, hasLocalEdits]);
+    }, [preview.previewHtml, hasLocalEdits]);
 
     const toggleCommentSidebar = useCallback(() => {
         setShowCommentSidebar(prev => !prev);
     }, []);
 
-    const enterSplitScreenMode = useCallback(() => {
-        setMode("split-screen");
-    }, []);
+    // ── 9. Utility: clearForm ───────────────────────────────────────────────
+
+    const clearForm = useCallback(() => {
+        form.setFormDataRaw(initialFormData);
+        form.setDynamicFormValues({});
+        form.setDocumentTitle("");
+        nav.setCurrentStep(0);
+        form.setHasUnsavedChanges(false);
+        setEditorContentState("");
+        setHasLocalEdits(false);
+        commentsHook.setComments([]);
+
+        if (form.documentTypeId) {
+            localStorage.removeItem(getStorageKey(form.documentTypeId));
+        }
+    }, [form, nav, commentsHook]);
 
     // ══════════════════════════════════════════════════════════════════════════
-    // COMMENT ACTIONS (Apple Pages Style)
-    // ══════════════════════════════════════════════════════════════════════════
-
-    const addComment = useCallback((params: AddCommentParams) => {
-        const newComment: Comment = {
-            id: `comment-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-            anchorId: "",
-            content: params.content,
-            author: "Aktueller Benutzer", // TODO: echten Benutzer aus Auth
-            authorId: 1,
-            createdAt: new Date().toISOString(),
-            resolved: false,
-            textSelection: params.textSelection,
-            replies: [],
-        };
-        setComments(prev => [newComment, ...prev]);
-        setHasUnsavedChanges(true);
-    }, []);
-
-    const deleteComment = useCallback((commentId: string) => {
-        setComments(prev => prev.filter(c => c.id !== commentId));
-        setHasUnsavedChanges(true);
-    }, []);
-
-    const resolveComment = useCallback((commentId: string) => {
-        setComments(prev => prev.map(c =>
-            c.id === commentId ? { ...c, resolved: true } : c
-        ));
-        setHasUnsavedChanges(true);
-    }, []);
-
-    const reopenComment = useCallback((commentId: string) => {
-        setComments(prev => prev.map(c =>
-            c.id === commentId ? { ...c, resolved: false } : c
-        ));
-        setHasUnsavedChanges(true);
-    }, []);
-
-    const addReply = useCallback((commentId: string, content: string) => {
-        const newReply = {
-            id: `reply-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-            content,
-            author: "Aktueller Benutzer", // TODO: echten Benutzer aus Auth
-            authorId: 1,
-            createdAt: new Date().toISOString(),
-            mentions: [],
-        };
-        setComments(prev => prev.map(c =>
-            c.id === commentId
-                ? { ...c, replies: [...c.replies, newReply] }
-                : c
-        ));
-        setHasUnsavedChanges(true);
-    }, []);
-
-    // ══════════════════════════════════════════════════════════════════════════
-    // STATE OBJECT
+    // COMPOSE STATE + ACTIONS
     // ══════════════════════════════════════════════════════════════════════════
 
     const state: WizardState = {
-        currentStep,
-        mode,
-        showClausesStep,
-        documentTypeId,
-        documentTitle,
-        loadedDraftId,
-        formData,
-        dynamicFormValues,
-        documentClauses,
-        selectedVariants,
-        variantGroups,
-        selectedAttachmentIds,
-        previewHtml,
-        isPreviewLoading,
+        // Navigation
+        currentStep: nav.currentStep,
+        mode: nav.mode,
+        showClausesStep: nav.showClausesStep,
+        // Document
+        documentTypeId: form.documentTypeId,
+        documentTitle: form.documentTitle,
+        loadedDraftId: drafts.loadedDraftId,
+        // Form
+        formData: form.formData,
+        dynamicFormValues: form.dynamicFormValues,
+        // Clauses
+        documentClauses: clauses.documentClauses,
+        selectedVariants: clauses.selectedVariants,
+        variantGroups: clauses.variantGroups,
+        selectedAttachmentIds: clauses.selectedAttachmentIds,
+        // Preview
+        previewHtml: preview.previewHtml,
+        isPreviewLoading: preview.isPreviewLoading,
+        // Editor
         editorContent,
         hasLocalEdits,
         showCommentSidebar,
-        comments,
-        isLoading,
-        isSaving: isSaving || isAutoSaving,
-        isGenerating,
-        hasUnsavedChanges: hasUnsavedChanges || autoSaveHasUnsavedChanges,
-        validationErrors,
-        // Auto-Save State
-        autoSaveStatus: autoSaveStatus as AutoSaveStatus,
-        lastSaved,
-        lastSavedText,
-        hasRecoverableDraft,
-        autoSaveError,
+        // Comments
+        comments: commentsHook.comments,
+        // Status
+        isLoading: form.isLoading,
+        isSaving: drafts.isSaving || drafts.isAutoSaving,
+        isGenerating: exportHook.isGenerating,
+        hasUnsavedChanges: form.hasUnsavedChanges || drafts.autoSaveHasUnsavedChanges,
+        validationErrors: nav.validationErrors,
+        // Auto-Save
+        autoSaveStatus: drafts.autoSaveStatus,
+        lastSaved: drafts.lastSaved,
+        lastSavedText: drafts.lastSavedText,
+        hasRecoverableDraft: drafts.hasRecoverableDraft,
+        autoSaveError: drafts.autoSaveError,
     };
 
     const actions: WizardActions = {
-        goToStep,
-        nextStep,
-        prevStep,
-        enterEditorMode,
-        exitEditorMode,
-        toggleClausesStep,
-        setDocumentType,
-        setDocumentTitle,
-        updateFormField,
-        updateDynamicField,
-        setFormData,
-        toggleClause,
-        reorderClauses,
-        selectVariant,
-        toggleAttachment,
-        loadDraft,
-        saveDraft,
-        exportDocument,
-        undo,
-        redo,
-        refreshPreview,
+        // Navigation
+        goToStep: nav.goToStep,
+        nextStep: nav.nextStep,
+        prevStep: nav.prevStep,
+        enterEditorMode: nav.enterEditorMode,
+        exitEditorMode: nav.exitEditorMode,
+        toggleClausesStep: nav.toggleClausesStep,
+        // Document / Form
+        setDocumentType: form.setDocumentType,
+        setDocumentTitle: form.setDocumentTitle,
+        updateFormField: form.updateFormField,
+        updateDynamicField: form.updateDynamicField,
+        setFormData: form.setFormData,
+        // Clauses
+        toggleClause: clauses.toggleClause,
+        reorderClauses: clauses.reorderClauses,
+        selectVariant: clauses.selectVariant,
+        toggleAttachment: clauses.toggleAttachment,
+        // Drafts
+        loadDraft: drafts.loadDraft,
+        saveDraft: drafts.saveDraft,
+        // Export
+        exportDocument: exportHook.exportDocument,
+        // Undo/Redo
+        undo: form.undo,
+        redo: form.redo,
+        // Utilities
+        refreshPreview: preview.refreshPreview,
         clearForm,
+        // Editor
         setEditorContent,
         resetEditorToPreview,
         toggleCommentSidebar,
-        enterSplitScreenMode,
-        addComment,
-        deleteComment,
-        resolveComment,
-        reopenComment,
-        addReply,
-        // Auto-Save Actions
-        forceSave,
-        recoverDraft,
-        discardDraft,
-        clearAutoSaveError,
+        enterSplitScreenMode: nav.enterSplitScreenMode,
+        // Comments
+        addComment: commentsHook.addComment,
+        deleteComment: commentsHook.deleteComment,
+        resolveComment: commentsHook.resolveComment,
+        reopenComment: commentsHook.reopenComment,
+        addReply: commentsHook.addReply,
+        // Auto-Save
+        forceSave: drafts.forceSave,
+        recoverDraft: drafts.recoverDraft,
+        discardDraft: drafts.discardDraft,
+        clearAutoSaveError: drafts.clearAutoSaveError,
     };
 
     return {
         state,
         actions,
-        canUndo,
-        canRedo,
+        canUndo: form.canUndo,
+        canRedo: form.canRedo,
     };
-}
-
-// ══════════════════════════════════════════════════════════════════════════════
-// HELPER FUNCTIONS
-// ══════════════════════════════════════════════════════════════════════════════
-
-function calculateDraftStep(formData: Partial<FormData> | null): number {
-    if (!formData) return 0;
-
-    // Has employee data? -> Step 2
-    if (formData.vorname && formData.nachname) {
-        // Has contract data? -> Step 3 (or 4 for review)
-        if (formData.position && formData.gehalt && formData.eintrittsdatum) {
-            return 3; // Jump to review step (index 3 in STANDARD_STEP_ORDER = step 5)
-        }
-        return 2; // Contract details step
-    }
-
-    return 1; // Employee info step
 }
 
 export default useDocumentWizard;

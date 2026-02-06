@@ -9,6 +9,7 @@
  */
 
 import { useState } from "react";
+import { apiFetch } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
@@ -115,7 +116,7 @@ export function ClauseApprovalWorkflow({
         setIsLoading(true);
         setError(null);
         try {
-            const response = await fetch(`/api/v1/clause-approval/${clauseId}/request-approval`, {
+            const response = await apiFetch(`/api/v1/clause-approval/${clauseId}/request-approval`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ comment }),
@@ -138,7 +139,7 @@ export function ClauseApprovalWorkflow({
         setIsLoading(true);
         setError(null);
         try {
-            const response = await fetch(`/api/v1/clause-approval/${clauseId}/review`, {
+            const response = await apiFetch(`/api/v1/clause-approval/${clauseId}/review`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ approved, comment }),
@@ -160,7 +161,7 @@ export function ClauseApprovalWorkflow({
     const resetToDraft = async () => {
         setIsLoading(true);
         try {
-            await fetch(`/api/v1/clause-approval/${clauseId}/reset-to-draft`, {
+            await apiFetch(`/api/v1/clause-approval/${clauseId}/reset-to-draft`, {
                 method: "POST",
             });
             onStatusChange?.();

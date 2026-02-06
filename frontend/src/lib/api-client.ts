@@ -1,15 +1,17 @@
 /**
- * API Client - Zentralisierte HTTP-Anfragen
+ * API Client - Centralized HTTP requests
  *
- * Bietet:
- * - Automatische Fehlerbehandlung
- * - Request/Response Interceptors
- * - Retry-Logik
- * - Timeout-Handling
- * - Offline-Erkennung
+ * Features:
+ * - Automatic error handling
+ * - Request/Response interceptors
+ * - Retry logic
+ * - Timeout handling
+ * - Offline detection
  */
 
 import { logApiError, logWarn } from "./logger";
+import { API_DEFAULTS } from "@/config/api.config";
+import { getAuthToken } from "@/contexts/AuthContext";
 
 // Types
 export interface ApiError {
@@ -44,9 +46,9 @@ export interface RequestConfig {
 
 // Default configuration
 const DEFAULT_CONFIG: Required<Omit<RequestConfig, "signal" | "skipErrorHandling" | "params">> = {
-    timeout: 30000, // 30 seconds
-    retries: 2,
-    retryDelay: 1000, // 1 second
+    timeout: API_DEFAULTS.timeout,
+    retries: API_DEFAULTS.retries,
+    retryDelay: API_DEFAULTS.retryDelay,
     headers: {},
 };
 
@@ -177,7 +179,7 @@ async function request<T>(
     };
 
     // Get auth token if available
-    const token = localStorage.getItem("auth_token");
+    const token = getAuthToken();
     if (token) {
         requestHeaders["Authorization"] = `Bearer ${token}`;
     }
@@ -349,6 +351,72 @@ export function isApiError(error: unknown): error is ApiError {
         "message" in error
     );
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Raw fetch wrapper (drop-in replacement for authFetch)
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * Authenticated fetch wrapper that returns a raw Response.
+ *
+ * Use this in TanStack Query hooks where you need the raw Response
+ * for fine-grained control (status checks, streaming, etc.).
+ * For simpler use cases prefer the `api` object above.
+ */
+export async function apiFetch(
+    input: string,
+    init?: RequestInit
+): Promise<Response> {
+    // Prepend base URL for /api paths
+    const url = input.startsWith("/api") ? `${BASE_URL}${input}` : input;
+
+    const headers = new Headers(init?.headers);
+
+    // Inject auth token
+    const token = getAuthToken();
+    if (token) {
+        headers.set("Authorization", `Bearer ${token}`);
+    }
+
+    // Auto-set Content-Type for JSON bodies
+    if (init?.body && !headers.has("Content-Type") && !(init.body instanceof FormData)) {
+        headers.set("Content-Type", "application/json");
+    }
+
+    return fetch(url, { ...init, headers });
+}
+
+/**
+ * Convenience methods wrapping apiFetch for common HTTP verbs.
+ */
+export const fetchApi = {
+    get: (url: string, options?: RequestInit) =>
+        apiFetch(url, { ...options, method: "GET" }),
+
+    post: (url: string, body?: unknown, options?: RequestInit) =>
+        apiFetch(url, {
+            ...options,
+            method: "POST",
+            body: body ? JSON.stringify(body) : undefined,
+        }),
+
+    put: (url: string, body?: unknown, options?: RequestInit) =>
+        apiFetch(url, {
+            ...options,
+            method: "PUT",
+            body: body ? JSON.stringify(body) : undefined,
+        }),
+
+    patch: (url: string, body?: unknown, options?: RequestInit) =>
+        apiFetch(url, {
+            ...options,
+            method: "PATCH",
+            body: body ? JSON.stringify(body) : undefined,
+        }),
+
+    delete: (url: string, options?: RequestInit) =>
+        apiFetch(url, { ...options, method: "DELETE" }),
+};
 
 /**
  * Get user-friendly error message

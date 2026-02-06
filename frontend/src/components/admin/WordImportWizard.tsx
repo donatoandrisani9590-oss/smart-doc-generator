@@ -9,6 +9,7 @@
  */
 
 import { useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -44,6 +45,7 @@ import {
     Info,
     Sparkles,
 } from "lucide-react";
+import { apiFetch } from "@/lib/api-client";
 
 interface ExtractedSection {
     index: number;
@@ -83,6 +85,7 @@ export function WordImportWizard({
     onImportComplete,
     countryCode = "DE",
 }: WordImportWizardProps) {
+    const navigate = useNavigate();
     const [step, setStep] = useState<WizardStep>("upload");
     const [isLoading, setIsLoading] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
@@ -155,7 +158,7 @@ export function WordImportWizard({
             const formData = new FormData();
             formData.append("file", file);
 
-            const response = await fetch(
+            const response = await apiFetch(
                 `/api/v1/word-import/analyze?country_code=${countryCode}`,
                 {
                     method: "POST",
@@ -225,7 +228,7 @@ export function WordImportWizard({
         setError(null);
 
         try {
-            const response = await fetch("/api/v1/word-import/import", {
+            const response = await apiFetch("/api/v1/word-import/import", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -576,7 +579,7 @@ export function WordImportWizard({
                                 </ul>
                             </div>
 
-                            <Button onClick={() => window.location.href = "/admin/clauses"}>
+                            <Button onClick={() => { handleClose(); navigate("/settings?tab=clauses"); }}>
                                 <Sparkles className="w-4 h-4 mr-2" />
                                 Zur Klausel-Bibliothek
                             </Button>

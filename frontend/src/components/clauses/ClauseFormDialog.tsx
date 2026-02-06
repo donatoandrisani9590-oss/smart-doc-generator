@@ -70,8 +70,19 @@ import {
     Info,
     Lightbulb,
     AlertTriangle,
+    MessageSquare,
+    BarChart3,
+    User,
+    Calendar as CalendarIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+    useClauseImpact,
+    useClauseNotes,
+    useAddClauseNote,
+} from "@/hooks/useClauseExtras";
 
 interface ClauseFormDialogProps {
     open: boolean;
@@ -125,6 +136,15 @@ export const ClauseFormDialog = ({
     const [countryCode, setCountryCode] = useState(defaultCountryCode);
     const [content, setContent] = useState("");
     const [isActive, setIsActive] = useState(true);
+
+    // Tab State (Edit Mode)
+    const [activeTab, setActiveTab] = useState("editor");
+    const [newNote, setNewNote] = useState("");
+
+    // Hook Data
+    const { data: impactData, isLoading: isLoadingImpact } = useClauseImpact(editClause?.id || 0);
+    const { data: notes, isLoading: isLoadingNotes } = useClauseNotes(editClause?.id || 0);
+    const addNoteMutation = useAddClauseNote();
 
     // Validation State
     const [errors, setErrors] = useState<Record<string, string>>({});
@@ -199,6 +219,7 @@ export const ClauseFormDialog = ({
             setContent("");
             setIsActive(true);
             setCurrentStep("basics");
+            setActiveTab("editor");
             setErrors({});
             setTouched({});
             // Store initial values (empty)
@@ -209,6 +230,19 @@ export const ClauseFormDialog = ({
             };
         }
     }, [editClause, defaultCountryCode, open]);
+
+    const handleAddNote = async () => {
+        if (!newNote.trim() || !editClause) return;
+        try {
+            await addNoteMutation.mutateAsync({
+                clauseId: editClause.id,
+                data: { content: newNote, note_type: "info" }
+            });
+            setNewNote("");
+        } catch (e) {
+            console.error("Failed to add note", e);
+        }
+    };
 
     // Validation
     const validateBasics = useCallback(() => {
@@ -681,6 +715,129 @@ export const ClauseFormDialog = ({
         );
     };
 
+    // Tab: Impact Analysis
+    const renderImpactTab = () => {
+        if (!editClause) return null;
+        if (isLoadingImpact) return <div className="p-8 flex justify-center"><Loader2 className="animate-spin text-primary" /></div>;
+
+        return (
+            <div className="space-y-6 pt-4">
+                <div className="grid grid-cols-2 gap-4">
+                    <Card>
+                        <CardContent className="pt-6">
+                            <div className="text-3xl font-bold text-primary">{impactData?.total_document_types || 0}</div>
+                            <p className="text-sm text-muted-foreground font-medium mt-1">Verwendet in Dokumenttypen</p>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardContent className="pt-6">
+                            <div className="text-3xl font-bold text-blue-600">{impactData?.total_usage_30_days || 0}</div>
+                            <p className="text-sm text-muted-foreground font-medium mt-1">Generierte Dokumente (30 Tage)</p>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                <div className="space-y-4">
+                    <h4 className="font-medium flex items-center gap-2">
+                        <FileText className="w-4 h-4 text-primary" />
+                        Verwendung in Dokumenttypen
+                    </h4>
+                    {impactData?.affected_document_types.length === 0 ? (
+                        <div className="text-center p-8 border rounded-lg bg-muted/10 border-dashed">
+                            <p className="text-muted-foreground">Diese Klausel wird aktuell in keinem Dokumenttyp verwendet.</p>
+                        </div>
+                    ) : (
+                        <div className="space-y-2">
+                            {impactData?.affected_document_types.map((dt) => (
+                                <div key={dt.id} className="flex items-center justify-between p-4 bg-white rounded-lg border shadow-sm hover:shadow-md transition-all">
+                                    <div>
+                                        <div className="font-medium">{dt.name}</div>
+                                        {dt.category && <Badge variant="outline" className="mt-1 text-xs">{dt.category}</Badge>}
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <Badge variant={dt.is_mandatory ? "default" : "secondary"}>
+                                            {dt.is_mandatory ? "Pflicht" : "Optional"}
+                                        </Badge>
+                                        <div className="text-xs text-muted-foreground flex items-center gap-1 bg-muted px-2 py-1 rounded">
+                                            <BarChart3 className="w-3 h-3" />
+                                            {dt.usage_count_30_days} Verwendungen
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
+    };
+
+    // Tab: Internal Notes
+    const renderNotesTab = () => {
+        if (!editClause) return null;
+
+        return (
+            <div className="flex flex-col h-[500px] pt-4">
+                <ScrollArea className="flex-1 pr-4 mb-4 border rounded-lg bg-muted/10 p-4">
+                    {isLoadingNotes ? (
+                        <div className="p-8 flex justify-center"><Loader2 className="animate-spin text-primary" /></div>
+                    ) : notes?.length === 0 ? (
+                        <div className="text-center text-muted-foreground py-12 flex flex-col items-center">
+                            <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-3">
+                                <MessageSquare className="w-6 h-6 opacity-30" />
+                            </div>
+                            <p>Noch keine internen Notizen vorhanden</p>
+                            <p className="text-xs mt-1">Nutzen Sie Notizen für die Kommunikation zwischen HR und Legal.</p>
+                        </div>
+                    ) : (
+                        <div className="space-y-4">
+                            {notes?.map((note) => (
+                                <div key={note.id} className="flex gap-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 border border-primary/20">
+                                        <User className="w-4 h-4 text-primary" />
+                                    </div>
+                                    <div className="flex-1 space-y-1">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-sm font-semibold text-foreground">{note.created_by_user_name}</span>
+                                            <span className="text-xs text-muted-foreground flex items-center gap-1">
+                                                <CalendarIcon className="w-3 h-3" />
+                                                {new Date(note.created_at).toLocaleDateString("de-DE", {
+                                                    day: "2-digit",
+                                                    month: "2-digit",
+                                                    year: "numeric",
+                                                    hour: "2-digit",
+                                                    minute: "2-digit"
+                                                })} Uhr
+                                            </span>
+                                        </div>
+                                        <div className="p-3 bg-white rounded-lg text-sm border shadow-sm relative before:content-[''] before:absolute before:top-3 before:-left-1.5 before:w-3 before:h-3 before:bg-white before:border-l before:border-b before:rotate-45 before:border-border">
+                                            {note.content}
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </ScrollArea>
+                <div className="flex gap-2 items-end bg-white p-3 border rounded-lg shadow-sm">
+                    <div className="flex-1 space-y-2">
+                        <Label htmlFor="note">Neue Notiz</Label>
+                        <Input
+                            id="note"
+                            value={newNote}
+                            onChange={(e) => setNewNote(e.target.value)}
+                            placeholder="Z.B. Freigabe durch RA Müller am 12.10. erfolgt..."
+                            onKeyDown={(e) => e.key === "Enter" && handleAddNote()}
+                        />
+                    </div>
+                    <Button onClick={handleAddNote} disabled={!newNote.trim() || addNoteMutation.isPending} className="mb-0.5">
+                        {addNoteMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Senden"}
+                    </Button>
+                </div>
+            </div>
+        );
+    };
+
     return (
         <>
             <Dialog open={open} onOpenChange={handleCloseAttempt}>
@@ -706,68 +863,93 @@ export const ClauseFormDialog = ({
                         </DialogDescription>
                     </DialogHeader>
 
-                {!isEditMode && renderStepIndicator()}
+                    {!isEditMode && renderStepIndicator()}
 
-                <div className="py-2">
-                    {currentStep === "basics" && renderBasicsStep()}
-                    {currentStep === "content" && renderContentStep()}
-                    {currentStep === "preview" && renderPreviewStep()}
-                </div>
+                    <div className="py-2">
+                        {isEditMode ? (
+                            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                                <TabsList className="grid w-full grid-cols-4 mb-4">
+                                    <TabsTrigger value="editor">Editor</TabsTrigger>
+                                    <TabsTrigger value="details">Details</TabsTrigger>
+                                    <TabsTrigger value="impact">Auswirkung</TabsTrigger>
+                                    <TabsTrigger value="notes">Notizen</TabsTrigger>
+                                </TabsList>
+                                <TabsContent value="editor" className="mt-0">
+                                    {renderContentStep()}
+                                </TabsContent>
+                                <TabsContent value="details" className="mt-0">
+                                    {renderBasicsStep()}
+                                </TabsContent>
+                                <TabsContent value="impact" className="mt-0">
+                                    {renderImpactTab()}
+                                </TabsContent>
+                                <TabsContent value="notes" className="mt-0">
+                                    {renderNotesTab()}
+                                </TabsContent>
+                            </Tabs>
+                        ) : (
+                            <>
+                                {currentStep === "basics" && renderBasicsStep()}
+                                {currentStep === "content" && renderContentStep()}
+                                {currentStep === "preview" && renderPreviewStep()}
+                            </>
+                        )}
+                    </div>
 
-                <DialogFooter className="flex-col sm:flex-row gap-2 pt-4 border-t">
-                    {/* Cancel */}
-                    <Button
-                        variant="ghost"
-                        onClick={() => handleCloseAttempt(false)}
-                        disabled={isSaving}
-                        className="sm:mr-auto"
-                    >
-                        <X className="w-4 h-4 mr-2" />
-                        Abbrechen
-                    </Button>
-
-                    {/* Back */}
-                    {(currentStep !== "basics" || isEditMode) && (
+                    <DialogFooter className="flex-col sm:flex-row gap-2 pt-4 border-t">
+                        {/* Cancel */}
                         <Button
-                            variant="outline"
-                            onClick={handleBack}
-                            disabled={isSaving || (currentStep === "basics" && !isEditMode)}
-                        >
-                            <ChevronLeft className="w-4 h-4 mr-2" />
-                            Zurück
-                        </Button>
-                    )}
-
-                    {/* Next / Save */}
-                    {currentStep === "preview" || isEditMode ? (
-                        <Button
-                            onClick={handleSave}
+                            variant="ghost"
+                            onClick={() => handleCloseAttempt(false)}
                             disabled={isSaving}
-                            className="bg-primary hover:bg-primary/90"
+                            className="sm:mr-auto"
                         >
-                            {isSaving ? (
-                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            ) : (
-                                <Save className="w-4 h-4 mr-2" />
-                            )}
-                            {isEditMode ? "Änderungen speichern" : "Klausel erstellen"}
+                            <X className="w-4 h-4 mr-2" />
+                            Abbrechen
                         </Button>
-                    ) : (
-                        <Button
-                            onClick={handleNext}
-                            disabled={
-                                (currentStep === "basics" && !canProceedToContent) ||
-                                (currentStep === "content" && !canProceedToPreview)
-                            }
-                            className="bg-primary hover:bg-primary/90"
-                        >
-                            Weiter
-                            <ChevronRight className="w-4 h-4 ml-2" />
-                        </Button>
-                    )}
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+
+                        {/* Back */}
+                        {(currentStep !== "basics" || isEditMode) && (
+                            <Button
+                                variant="outline"
+                                onClick={handleBack}
+                                disabled={isSaving || (currentStep === "basics" && !isEditMode)}
+                            >
+                                <ChevronLeft className="w-4 h-4 mr-2" />
+                                Zurück
+                            </Button>
+                        )}
+
+                        {/* Next / Save */}
+                        {currentStep === "preview" || isEditMode ? (
+                            <Button
+                                onClick={handleSave}
+                                disabled={isSaving}
+                                className="bg-primary hover:bg-primary/90"
+                            >
+                                {isSaving ? (
+                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                ) : (
+                                    <Save className="w-4 h-4 mr-2" />
+                                )}
+                                {isEditMode ? "Änderungen speichern" : "Klausel erstellen"}
+                            </Button>
+                        ) : (
+                            <Button
+                                onClick={handleNext}
+                                disabled={
+                                    (currentStep === "basics" && !canProceedToContent) ||
+                                    (currentStep === "content" && !canProceedToPreview)
+                                }
+                                className="bg-primary hover:bg-primary/90"
+                            >
+                                Weiter
+                                <ChevronRight className="w-4 h-4 ml-2" />
+                            </Button>
+                        )}
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
 
             {/* Discard Changes Confirmation Dialog */}
             <AlertDialog open={showDiscardDialog} onOpenChange={setShowDiscardDialog}>

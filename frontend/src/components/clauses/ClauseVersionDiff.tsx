@@ -9,6 +9,7 @@
  */
 
 import { useState, useMemo, useEffect } from "react";
+import { apiFetch } from "@/lib/api-client";
 import {
     Dialog,
     DialogContent,
@@ -146,7 +147,7 @@ export function ClauseVersionDiff({
     useEffect(() => {
         if (open && clauseId && !propVersions?.length) {
             setIsLoading(true);
-            fetch(`/api/v1/clauses/${clauseId}/versions`)
+            apiFetch(`/api/v1/clauses/${clauseId}/versions`)
                 .then((res) => res.json())
                 .then((data) => {
                     setLoadedVersions(data || []);

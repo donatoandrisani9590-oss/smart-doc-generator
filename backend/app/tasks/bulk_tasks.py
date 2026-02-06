@@ -101,7 +101,7 @@ def process_bulk_job(
     """
     from app.models.core import DocumentType, DesignSetting
     from app.models.documents import Clause, DocumentTypeClause
-    from app.api.v1.endpoints.generation import create_document_from_clauses
+    from app.api.v1.endpoints.documents.generation import create_document_from_clauses
     from app.services.template_engine import TemplateEngine
     from sqlalchemy import create_engine, select
     from sqlalchemy.orm import sessionmaker

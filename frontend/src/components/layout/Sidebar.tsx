@@ -1,49 +1,50 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
-    FileText,
     Keyboard,
     FolderOpen,
     Settings2,
     Globe,
-    ChevronDown
+    ChevronDown,
+    PlusCircle,
+    LayoutTemplate
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { FavoritesList } from "./FavoritesList";
 import { KeyboardShortcutsDialog } from "./KeyboardShortcutsDialog";
 import { UserDropdown } from "./UserDropdown";
 
-/**
- * SimpleDocs-inspired Sidebar
- * - Clean, minimal design
- * - Category headers in accent color
- * - Simple hover states without animations
- * - Clear visual hierarchy
- */
-
 interface SidebarItemProps {
     icon: React.ComponentType<{ className?: string }>;
     label: string;
     href: string;
     active: boolean;
+    badge?: string;
 }
 
-const SidebarItem = ({ icon: Icon, label, href, active }: SidebarItemProps) => (
+const SidebarItem = ({ icon: Icon, label, href, active, badge }: SidebarItemProps) => (
     <Link
         to={href}
         className={cn(
-            "flex items-center gap-3 px-3 py-2 text-sm transition-colors rounded-md",
+            "group flex items-center justify-between px-3 py-2.5 text-sm transition-all rounded-lg mx-1",
             active
-                ? "bg-primary/10 text-primary font-medium"
-                : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                ? "bg-primary/5 text-primary font-medium"
+                : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
         )}
         aria-current={active ? "page" : undefined}
     >
-        <Icon className={cn(
-            "w-4 h-4 shrink-0",
-            active ? "text-primary" : "text-gray-400"
-        )} aria-hidden="true" />
-        <span>{label}</span>
+        <div className="flex items-center gap-3">
+            <Icon className={cn(
+                "w-[18px] h-[18px] shrink-0 transition-colors",
+                active ? "text-primary bg-primary/10 rounded-md p-0.5 w-5 h-5" : "text-muted-foreground group-hover:text-foreground"
+            )} aria-hidden="true" />
+            <span>{label}</span>
+        </div>
+        {badge && (
+            <span className="text-[10px] font-medium bg-muted px-1.5 py-0.5 rounded-full text-muted-foreground">
+                {badge}
+            </span>
+        )}
     </Link>
 );
 
@@ -57,19 +58,19 @@ const SidebarSection = ({ title, children, defaultOpen = true }: SidebarSectionP
     const [isOpen, setIsOpen] = useState(defaultOpen);
 
     return (
-        <div className="space-y-1">
+        <div className="space-y-1 pt-4 first:pt-0">
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center justify-between w-full px-3 py-1.5 text-xs font-semibold text-primary uppercase tracking-wider hover:bg-gray-50 rounded transition-colors"
+                className="flex items-center justify-between w-full px-4 py-1.5 text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-widest hover:text-primary transition-colors"
             >
                 {title}
                 <ChevronDown className={cn(
-                    "w-3 h-3 text-gray-400 transition-transform",
+                    "w-3 h-3 text-muted-foreground/50 transition-transform",
                     isOpen && "rotate-180"
                 )} />
             </button>
             {isOpen && (
-                <div className="space-y-0.5 pl-1">
+                <div className="space-y-0.5">
                     {children}
                 </div>
             )}
@@ -102,43 +103,39 @@ export const Sidebar = () => {
     return (
         <>
             <KeyboardShortcutsDialog open={showShortcuts} onOpenChange={setShowShortcuts} />
-            <div className="w-60 h-screen flex flex-col bg-white border-r border-gray-200">
-                {/* Logo Section */}
-                <div className="p-5 border-b border-gray-100">
+            <div className="w-[260px] h-screen flex flex-col font-sans glass-sidebar">
+                {/* Logo Section - Clean & Modern */}
+                <div className="h-16 flex items-center px-6">
                     <div className="flex flex-col">
-                        <h1
-                            className="text-lg font-bold tracking-tight"
-                            style={{
-                                fontFamily: 'system-ui, -apple-system, sans-serif',
-                                color: '#1a2b6b'
-                            }}
-                        >
-                            nıederwıeser
-                        </h1>
-                        <p
-                            className="text-[9px] font-medium tracking-widest uppercase mt-0.5"
-                            style={{ color: '#3eb489' }}
-                        >
-                            Flexible Food Packaging
-                        </p>
+                        <span className="text-lg font-bold tracking-tight text-primary flex items-center gap-2">
+                            Docs<span className="font-light text-foreground">Gen</span>
+                        </span>
+                        <span className="text-[10px] text-muted-foreground tracking-widest uppercase">
+                            Niederwieser
+                        </span>
                     </div>
                 </div>
 
+                {/* Primary Action Button */}
+                <div className="px-4 mb-2">
+                    <Link
+                        to="/generate"
+                        className="flex items-center justify-center gap-2 w-full bg-primary text-primary-foreground hover:bg-primary/90 transition-all shadow-soft-md hover:shadow-soft-lg py-2.5 rounded-lg text-sm font-medium active:scale-95"
+                    >
+                        <PlusCircle className="w-4 h-4" />
+                        <span>Neues Dokument</span>
+                    </Link>
+                </div>
+
                 {/* Navigation */}
-                <nav className="flex-1 p-4 space-y-6 overflow-y-auto">
+                <nav className="flex-1 px-2 space-y-6 overflow-y-auto scrollbar-hide py-4">
                     {/* Main Navigation */}
-                    <SidebarSection title="Navigation">
+                    <SidebarSection title="Workspace">
                         <SidebarItem
                             icon={Globe}
-                            label="Dashboard"
+                            label="Übersicht"
                             href="/"
                             active={pathname === "/" || pathname === "/deadlines" || pathname === "/teams"}
-                        />
-                        <SidebarItem
-                            icon={FileText}
-                            label="Neues Dokument"
-                            href="/generate"
-                            active={pathname === "/generate" || pathname.startsWith("/composer")}
                         />
                         <SidebarItem
                             icon={FolderOpen}
@@ -148,8 +145,17 @@ export const Sidebar = () => {
                         />
                     </SidebarSection>
 
+                    <SidebarSection title="Tools">
+                        <SidebarItem
+                            icon={LayoutTemplate}
+                            label="Vorlagen"
+                            href="/settings?tab=templates"
+                            active={pathname === "/settings" && location.search.includes("tab=templates")}
+                        />
+                    </SidebarSection>
+
                     {/* Settings Section */}
-                    <SidebarSection title="Verwaltung">
+                    <SidebarSection title="System">
                         <SidebarItem
                             icon={Settings2}
                             label="Einstellungen"
@@ -159,28 +165,29 @@ export const Sidebar = () => {
                     </SidebarSection>
 
                     {/* Favorites */}
-                    <div className="pt-2">
+                    <div className="pt-2 px-2">
                         <FavoritesList />
                     </div>
                 </nav>
 
                 {/* Bottom Section */}
-                <div className="border-t border-gray-100">
+                <div className="mt-auto">
                     {/* Keyboard Shortcuts Hint */}
-                    <div className="px-4 py-2">
+                    <div className="px-4 py-2 border-t border-border/50">
                         <button
                             onClick={() => setShowShortcuts(true)}
-                            className="w-full flex items-center justify-center gap-2 py-2 text-xs text-gray-500 hover:text-primary hover:bg-gray-50 rounded-md transition-colors"
-                            aria-label="Tastaturkürzel anzeigen"
+                            className="w-full flex items-center justify-between py-2 text-xs text-muted-foreground hover:text-primary transition-colors"
                         >
-                            <Keyboard className="w-3.5 h-3.5" aria-hidden="true" />
-                            <span>Tastaturkürzel</span>
-                            <kbd className="px-1.5 py-0.5 bg-gray-100 rounded text-[10px] font-mono text-gray-500">?</kbd>
+                            <div className="flex items-center gap-2">
+                                <Keyboard className="w-3.5 h-3.5" />
+                                <span>Shortcuts</span>
+                            </div>
+                            <kbd className="px-1.5 py-0.5 bg-muted rounded-[4px] text-[10px] font-mono border border-border">?</kbd>
                         </button>
                     </div>
 
                     {/* User Dropdown */}
-                    <div className="p-3 border-t border-gray-100">
+                    <div className="p-3 border-t border-border/50 bg-muted/20">
                         <UserDropdown />
                     </div>
                 </div>

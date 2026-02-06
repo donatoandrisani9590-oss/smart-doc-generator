@@ -3,6 +3,7 @@
  */
 
 import { useState, useEffect } from "react";
+import { apiFetch } from "@/lib/api-client";
 import {
     Dialog,
     DialogContent,
@@ -86,7 +87,7 @@ export const ShareWithTeamDialog = ({
     const fetchTeams = async () => {
         try {
             setLoading(true);
-            const response = await fetch("/api/v1/teams");
+            const response = await apiFetch("/api/v1/teams");
             if (response.ok) {
                 const data = await response.json();
                 setTeams(data);
@@ -110,7 +111,7 @@ export const ShareWithTeamDialog = ({
             setSubmitting(true);
             setError(null);
 
-            const response = await fetch(`/api/v1/teams/${selectedTeamId}/shares`, {
+            const response = await apiFetch(`/api/v1/teams/${selectedTeamId}/shares`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({

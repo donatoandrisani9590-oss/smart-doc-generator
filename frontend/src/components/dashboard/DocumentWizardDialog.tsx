@@ -94,9 +94,8 @@ export const DocumentWizardDialog = ({
     const handleSelectType = (typeId: number) => {
         // Speichere in Recently Used
         addRecentTypeId(typeId);
-        // Navigate to Composer with pre-selected type
-        // The Composer will handle the actual draft creation / variant selection
-        navigate(`/composer?type=${typeId}`);
+        // Navigate to generator with pre-selected type
+        navigate(`/generate?type=${typeId}`);
         onOpenChange(false);
     };
 

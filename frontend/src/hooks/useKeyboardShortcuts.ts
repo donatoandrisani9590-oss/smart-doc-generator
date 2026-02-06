@@ -56,7 +56,7 @@ export function useKeyboardShortcuts(options: UseKeyboardShortcutsOptions = {}) 
             ctrl: true,
             description: "Entwürfe anzeigen",
             category: "Navigation",
-            action: () => navigate("/drafts"),
+            action: () => navigate("/documents"),
         },
 
         // Actions
@@ -65,7 +65,7 @@ export function useKeyboardShortcuts(options: UseKeyboardShortcutsOptions = {}) 
             ctrl: true,
             description: "Neues Dokument",
             category: "Aktionen",
-            action: () => options.onNewDocument?.() || navigate("/generator"),
+            action: () => options.onNewDocument?.() || navigate("/generate"),
         },
         {
             key: "s",

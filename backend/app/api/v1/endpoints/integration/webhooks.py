@@ -460,7 +460,7 @@ async def trigger_webhooks(
 
     Verwendung in anderen Endpoints:
     ```python
-    from app.api.v1.endpoints.webhooks import trigger_webhooks
+    from app.api.v1.endpoints.integration.webhooks import trigger_webhooks
 
     # Nach Dokumenterstellung:
     await trigger_webhooks(

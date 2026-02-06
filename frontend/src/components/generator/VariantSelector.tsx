@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Star, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { apiFetch } from "@/lib/api-client";
 
 // ══════════════════════════════════════════════════════════════════════════════
 // TYPES
@@ -60,7 +61,7 @@ const API_BASE = "/api/v1";
 
 const fetchVariantGroup = async (groupId: number): Promise<VariantGroup | null> => {
     try {
-        const res = await fetch(`${API_BASE}/clause-variants/groups/${groupId}`);
+        const res = await apiFetch(`${API_BASE}/clause-variants/groups/${groupId}`);
         if (!res.ok) return null;
         return await res.json();
     } catch {

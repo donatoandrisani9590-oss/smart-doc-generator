@@ -86,11 +86,11 @@ const getIconForType = (name: string) => {
     return FileText;
 };
 
-// SimpleDocs-Style: Neutrale Cards mit farbigen Icons
+// SimpleDocs-Style: Soft Cards mit farbigen Icons
 const TILE_COLORS = [
-    { bg: "bg-white hover:bg-gray-50", icon: "text-blue-600", border: "border-gray-200 hover:border-primary/30" },
-    { bg: "bg-white hover:bg-gray-50", icon: "text-purple-600", border: "border-gray-200 hover:border-primary/30" },
-    { bg: "bg-white hover:bg-gray-50", icon: "text-emerald-600", border: "border-gray-200 hover:border-primary/30" },
+    { bg: "hover:bg-blue-50/50", icon: "text-blue-600" },
+    { bg: "hover:bg-purple-50/50", icon: "text-purple-600" },
+    { bg: "hover:bg-emerald-50/50", icon: "text-emerald-600" },
 ];
 
 interface QuickTemplatesProps {
@@ -164,8 +164,8 @@ export const QuickTemplates = ({ className }: QuickTemplatesProps) => {
                         <div
                             key={type.id}
                             className={`
-                                relative flex items-center gap-3 p-4 rounded-lg border transition-all text-left group
-                                ${colors.bg} ${colors.border}
+                                relative flex items-center gap-3 p-4 card-soft text-left group
+                                ${colors.bg}
                             `}
                         >
                             <button

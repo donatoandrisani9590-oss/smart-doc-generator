@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, FileText, Upload, Download, Trash2 } from "lucide-react";
 import { useMasterTemplates } from "@/hooks/useApi";
+import { apiFetch } from "@/lib/api-client";
 
 interface TemplateManagerProps {
     countryCode?: string;
@@ -43,7 +44,7 @@ export const TemplateManager = ({ countryCode: initialCountry = "DE" }: Template
             const formData = new FormData();
             formData.append("file", file);
 
-            const response = await fetch(
+            const response = await apiFetch(
                 `/api/v1/admin/templates?country_code=${countryCode}&category=${selectedCategory}`,
                 { method: "POST", body: formData }
             );
@@ -75,7 +76,7 @@ export const TemplateManager = ({ countryCode: initialCountry = "DE" }: Template
         if (!confirm("Template wirklich löschen?")) return;
 
         try {
-            const response = await fetch(
+            const response = await apiFetch(
                 `/api/v1/admin/templates/${template.country_code}/${template.category}`,
                 { method: "DELETE" }
             );

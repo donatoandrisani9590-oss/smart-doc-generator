@@ -10,6 +10,7 @@
  * - Rechts (60%): Live WYSIWYG Editor (TinyMCE)
  */
 
+import { useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { WizardProvider } from "./WizardContext";
@@ -39,9 +40,20 @@ interface DocumentWizardProps {
 const WizardContent = ({ documentTypes }: DocumentWizardProps) => {
     const [searchParams] = useSearchParams();
     const draftId = searchParams.get("draft");
+    const typeIdParam = searchParams.get("type");
 
     const wizardContext = useDocumentWizard(draftId ? parseInt(draftId, 10) : undefined);
-    const { state } = wizardContext;
+    const { state, actions } = wizardContext;
+
+    // Auto-select document type from ?type=X query parameter
+    useEffect(() => {
+        if (typeIdParam && !state.documentTypeId && !draftId) {
+            const typeId = parseInt(typeIdParam, 10);
+            if (!isNaN(typeId) && typeId > 0) {
+                actions.setDocumentType(typeId);
+            }
+        }
+    }, [typeIdParam, state.documentTypeId, draftId, actions]);
 
     // Loading state
     if (state.isLoading && !state.documentTypeId) {

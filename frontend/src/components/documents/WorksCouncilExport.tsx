@@ -8,6 +8,7 @@
  */
 
 import { useState, useEffect } from "react";
+import { apiFetch } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import {
     Dialog,
@@ -130,7 +131,7 @@ export function WorksCouncilExport({
     const loadTemplates = async () => {
         setIsLoading(true);
         try {
-            const response = await fetch("/api/v1/works-council/templates?template_type=einstellung");
+            const response = await apiFetch("/api/v1/works-council/templates?template_type=einstellung");
             if (response.ok) {
                 const data = await response.json();
                 setTemplates(data);
@@ -174,7 +175,7 @@ export function WorksCouncilExport({
     const generatePreview = async () => {
         setIsLoading(true);
         try {
-            const response = await fetch("/api/v1/works-council/generate", {
+            const response = await apiFetch("/api/v1/works-council/generate", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -205,7 +206,7 @@ export function WorksCouncilExport({
 
         setIsGenerating(true);
         try {
-            await fetch(`/api/v1/works-council/notifications/${generatedId}/status?status=versendet`, {
+            await apiFetch(`/api/v1/works-council/notifications/${generatedId}/status?status=versendet`, {
                 method: "PATCH",
             });
             onOpenChange(false);

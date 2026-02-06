@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { apiFetch } from "@/lib/api-client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -45,7 +46,7 @@ export const CustomClauseTemplates = ({ countryCode, onInsert }: CustomClauseTem
 
     const handleUse = async (template: { id: number; content: string }) => {
         // Increment usage count
-        await fetch(`/api/v1/custom-clauses/templates/${template.id}/use`, {
+        await apiFetch(`/api/v1/custom-clauses/templates/${template.id}/use`, {
             method: "POST",
         });
 
@@ -57,7 +58,7 @@ export const CustomClauseTemplates = ({ countryCode, onInsert }: CustomClauseTem
     const handleDelete = async (id: number) => {
         if (!confirm("Vorlage wirklich löschen?")) return;
 
-        await fetch(`/api/v1/custom-clauses/templates/${id}`, {
+        await apiFetch(`/api/v1/custom-clauses/templates/${id}`, {
             method: "DELETE",
         });
 

@@ -689,7 +689,7 @@ async def promote_to_library(
 
     # Benachrichtige Admins über ausstehende Freigabe
     try:
-        from app.api.v1.endpoints.notifications import notify_admins_clause_pending
+        from app.api.v1.endpoints.user.notifications import notify_admins_clause_pending
         await notify_admins_clause_pending(
             db=db,
             clause_id=new_clause.id,

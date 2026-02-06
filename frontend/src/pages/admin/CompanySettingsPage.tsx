@@ -30,6 +30,7 @@ import {
     CheckCircle,
     AlertCircle,
 } from "lucide-react";
+import { apiFetch } from "@/lib/api-client";
 
 interface CompanySettings {
     id: number;
@@ -73,10 +74,7 @@ export default function CompanySettingsPage() {
         setIsLoading(true);
         setError(null);
         try {
-            const token = localStorage.getItem("auth_token");
-            const response = await fetch(`/api/v1/company-settings/${country}`, {
-                headers: token ? { "Authorization": `Bearer ${token}` } : {},
-            });
+            const response = await apiFetch(`/api/v1/company-settings/${country}`);
             if (!response.ok) throw new Error("Einstellungen konnten nicht geladen werden");
             const data: CompanySettings = await response.json();
             setSettings(data);
@@ -100,7 +98,7 @@ export default function CompanySettingsPage() {
         setIsSaving(true);
         setSaveStatus("idle");
         try {
-            const response = await fetch(`/api/v1/company-settings/${country}`, {
+            const response = await apiFetch(`/api/v1/company-settings/${country}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(formData),

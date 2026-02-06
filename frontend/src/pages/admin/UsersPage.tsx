@@ -54,6 +54,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/components/ui/toast";
+import { apiFetch } from "@/lib/api-client";
 
 interface User {
     id: number;
@@ -107,12 +108,7 @@ export const UsersPage = () => {
             if (roleFilter !== "all") params.append("role", roleFilter);
             if (statusFilter !== "all") params.append("is_active", statusFilter === "active" ? "true" : "false");
 
-            const token = localStorage.getItem("auth_token");
-            const response = await fetch(`/api/v1/users?${params.toString()}`, {
-                headers: {
-                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-                },
-            });
+            const response = await apiFetch(`/api/v1/users?${params.toString()}`);
             if (!response.ok) throw new Error("Fehler beim Laden der Benutzer");
 
             const data = await response.json();
@@ -127,12 +123,7 @@ export const UsersPage = () => {
     // Fetch stats
     const fetchStats = async () => {
         try {
-            const token = localStorage.getItem("auth_token");
-            const response = await fetch("/api/v1/users/stats/summary", {
-                headers: {
-                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-                },
-            });
+            const response = await apiFetch("/api/v1/users/stats/summary");
             if (response.ok) {
                 const data = await response.json();
                 setStats(data);
@@ -151,12 +142,10 @@ export const UsersPage = () => {
     const handleCreateUser = async () => {
         try {
             setSubmitting(true);
-            const token = localStorage.getItem("auth_token");
-            const response = await fetch("/api/v1/users", {
+            const response = await apiFetch("/api/v1/users", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
                 },
                 body: JSON.stringify(formData),
             });
@@ -186,12 +175,10 @@ export const UsersPage = () => {
 
         try {
             setSubmitting(true);
-            const token = localStorage.getItem("auth_token");
-            const response = await fetch(`/api/v1/users/${selectedUser.id}`, {
+            const response = await apiFetch(`/api/v1/users/${selectedUser.id}`, {
                 method: "PATCH",
                 headers: {
                     "Content-Type": "application/json",
-                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
                 },
                 body: JSON.stringify({
                     role: formData.role,
@@ -221,12 +208,10 @@ export const UsersPage = () => {
     // Toggle user active status
     const handleToggleActive = async (user: User) => {
         try {
-            const token = localStorage.getItem("auth_token");
-            const response = await fetch(`/api/v1/users/${user.id}`, {
+            const response = await apiFetch(`/api/v1/users/${user.id}`, {
                 method: "PATCH",
                 headers: {
                     "Content-Type": "application/json",
-                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
                 },
                 body: JSON.stringify({ is_active: !user.is_active }),
             });
@@ -255,12 +240,10 @@ export const UsersPage = () => {
 
         try {
             setSubmitting(true);
-            const token = localStorage.getItem("auth_token");
-            const response = await fetch(`/api/v1/users/${selectedUser.id}/reset-password`, {
+            const response = await apiFetch(`/api/v1/users/${selectedUser.id}/reset-password`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
                 },
                 body: JSON.stringify({ new_password: newPassword }),
             });

@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { apiFetch } from "@/lib/api-client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,7 +32,7 @@ export const ChatAssistent = ({ context, countryCode = "DE", onInsertText }: Cha
         setIsLoading(true);
 
         try {
-            const response = await fetch("/api/v1/chat", {
+            const response = await apiFetch("/api/v1/chat", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({

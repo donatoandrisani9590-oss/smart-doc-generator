@@ -8,6 +8,7 @@
  */
 
 import { useState, useEffect } from "react";
+import { apiFetch } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -117,7 +118,7 @@ export default function DeadlinesCalendar() {
 
     const fetchSummary = async () => {
         try {
-            const response = await fetch("/api/v1/deadlines/summary");
+            const response = await apiFetch("/api/v1/deadlines/summary");
             if (response.ok) {
                 const data = await response.json();
                 setSummary(data);
@@ -135,7 +136,7 @@ export default function DeadlinesCalendar() {
             if (statusFilter !== "all") url += `&status=${statusFilter}`;
             if (typeFilter !== "all") url += `&deadline_type=${typeFilter}`;
 
-            const response = await fetch(url);
+            const response = await apiFetch(url);
             if (!response.ok) throw new Error("Fristen konnten nicht geladen werden");
             const data = await response.json();
             setDeadlines(data);
@@ -151,7 +152,7 @@ export default function DeadlinesCalendar() {
 
         setIsSubmitting(true);
         try {
-            const response = await fetch("/api/v1/deadlines", {
+            const response = await apiFetch("/api/v1/deadlines", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(newDeadline),
@@ -181,7 +182,7 @@ export default function DeadlinesCalendar() {
 
     const updateStatus = async (id: number, status: string) => {
         try {
-            await fetch(`/api/v1/deadlines/${id}`, {
+            await apiFetch(`/api/v1/deadlines/${id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ status }),
@@ -211,7 +212,7 @@ export default function DeadlinesCalendar() {
 
         setIsSubmitting(true);
         try {
-            await fetch(`/api/v1/deadlines/${editingDeadline.id}`, {
+            await apiFetch(`/api/v1/deadlines/${editingDeadline.id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ notes: editedNotes }),

@@ -22,18 +22,41 @@ from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.core.config import settings
 from app.middleware.rate_limit import RateLimitMiddleware
-from app.api.v1.endpoints import auth, clauses, document_types, generation, guest
-from app.api.v1.endpoints import preview, drafts, attachments, bulk
-from app.api.v1.endpoints import logo, chat, templates, clause_versions, custom_clauses, history
-from app.api.v1.endpoints import placeholders, statistics, favorites, search, teams, form_fields
-from app.api.v1.endpoints import corrections, repository, audit, notifications, export
-from app.api.v1.endpoints import clause_notes, company_settings, clause_approval, deadlines, works_council
-from app.api.v1.endpoints import word_import, document_type_import, clause_variants, users
-from app.api.v1.endpoints import composer, setup, compliance, smart_mode, feature_settings, document_upload
-from app.api.v1.endpoints import actions, webhooks, copilot_studio
-from app.api.v1.endpoints import comments
-from app.api.v1.endpoints import countries
-from app.api.v1.endpoints import locations
+# Auth
+from app.api.v1.endpoints.auth import auth, guest
+
+# Core Resources
+from app.api.v1.endpoints.core import (
+    clauses, clause_versions, clause_variants, clause_notes,
+    clause_approval, custom_clauses, document_types, placeholders, form_fields,
+)
+
+# Documents
+from app.api.v1.endpoints.documents import (
+    generation, preview, history, drafts, corrections,
+    export, repository, document_upload,
+)
+
+# User Features
+from app.api.v1.endpoints.user import (
+    users, teams, favorites, search, statistics,
+    notifications, comments, deadlines, chat,
+)
+
+# Admin Features
+from app.api.v1.endpoints.admin import (
+    company_settings, logo, templates, attachments, audit,
+    works_council, bulk, word_import, document_type_import, feature_settings,
+)
+
+# Smart UX
+from app.api.v1.endpoints.smart import composer, smart_mode, compliance
+
+# Integration (Copilot Studio, Power Platform)
+from app.api.v1.endpoints.integration import actions, webhooks, copilot_studio
+
+# Configuration
+from app.api.v1.endpoints.config import setup, countries, locations
 
 # ═══════════════════════════════════════════════════════════════════════════
 # LOGGING CONFIGURATION
@@ -92,6 +115,27 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
                 f"Failed after {duration:.3f}s: {str(exc)}"
             )
             raise
+
+
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    """Add security headers to all responses."""
+
+    async def dispatch(self, request: Request, call_next: Callable):
+        response = await call_next(request)
+        # Prevent clickjacking
+        response.headers["X-Frame-Options"] = "DENY"
+        # Prevent MIME-type sniffing
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        # Disable referrer leaking
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        # Block browser features not needed
+        response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+        # XSS protection (legacy browsers)
+        response.headers["X-XSS-Protection"] = "1; mode=block"
+        # HSTS only in production (non-debug)
+        if not settings.DEBUG:
+            response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+        return response
 
 
 class ErrorHandlingMiddleware(BaseHTTPMiddleware):
@@ -203,6 +247,7 @@ app = FastAPI(
 
 # Add middlewares (order matters - first added = outermost)
 app.add_middleware(ErrorHandlingMiddleware)
+app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(RequestLoggingMiddleware)
 
 # Rate Limiting - Redis-based in production
@@ -392,9 +437,13 @@ async def readiness_check():
     # Determine overall status
     all_healthy = all(v == "healthy" for v in checks.values())
 
-    return {
+    # In production, return minimal info; in debug, return details
+    result = {
         "status": "ok" if all_healthy else "degraded",
-        "checks": checks,
-        "version": "1.0.0",  # TODO: Read from version file
-        "debug": settings.DEBUG,
+        "version": "1.0.0",
     }
+    if settings.DEBUG:
+        result["checks"] = checks
+        result["debug"] = True
+
+    return result

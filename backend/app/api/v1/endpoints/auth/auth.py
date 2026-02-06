@@ -79,11 +79,23 @@ async def register_user(
     Creates a new user with the provided email and password.
     Returns user data and access token for immediate login.
     """
-    # Validate password length
-    if len(register_data.password) < 8:
+    # Validate password strength (min 12 chars + complexity)
+    password = register_data.password
+    password_errors = []
+    if len(password) < 12:
+        password_errors.append("mindestens 12 Zeichen")
+    if not any(c.isupper() for c in password):
+        password_errors.append("mindestens einen Großbuchstaben")
+    if not any(c.islower() for c in password):
+        password_errors.append("mindestens einen Kleinbuchstaben")
+    if not any(c.isdigit() for c in password):
+        password_errors.append("mindestens eine Ziffer")
+    if not any(c in "!@#$%^&*()_+-=[]{}|;:,.<>?/~`" for c in password):
+        password_errors.append("mindestens ein Sonderzeichen")
+    if password_errors:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Passwort muss mindestens 8 Zeichen lang sein"
+            detail=f"Passwort benötigt: {', '.join(password_errors)}"
         )
 
     # Check if email already exists (case-insensitive)

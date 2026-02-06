@@ -36,6 +36,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { apiFetch } from "@/lib/api-client";
 import { SideBySideMappingEditor } from "./SideBySideMappingEditor";
 
 // Types
@@ -71,9 +72,6 @@ interface MagicWordImportProps {
     onCancel?: () => void;
 }
 
-// API URL
-const API_BASE = import.meta.env.VITE_API_URL || "";
-
 // API Functions
 async function analyzeDocument(
     file: File,
@@ -82,9 +80,7 @@ async function analyzeDocument(
     const formData = new FormData();
     formData.append("file", file);
 
-    const url = `${API_BASE}/api/v1/word-import/magic/analyze?generate_pdf=${generatePdf}`;
-
-    const response = await fetch(url, {
+    const response = await apiFetch(`/api/v1/word-import/magic/analyze?generate_pdf=${generatePdf}`, {
         method: "POST",
         body: formData,
     });
@@ -104,20 +100,17 @@ async function generateClause(
     category: string,
     countryCode: string
 ): Promise<GenerateClausesResponse> {
-    const response = await fetch(
-        `${API_BASE}/api/v1/word-import/magic/generate-clause`,
-        {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                document_id: documentId,
-                placeholder_mapping: placeholderMapping,
-                clause_title: clauseTitle,
-                category,
-                country_code: countryCode,
-            }),
-        }
-    );
+    const response = await apiFetch("/api/v1/word-import/magic/generate-clause", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            document_id: documentId,
+            placeholder_mapping: placeholderMapping,
+            clause_title: clauseTitle,
+            category,
+            country_code: countryCode,
+        }),
+    });
 
     if (!response.ok) {
         const error = await response.json();
@@ -128,7 +121,7 @@ async function generateClause(
 }
 
 async function clearCache(documentId: string) {
-    await fetch(`${API_BASE}/api/v1/word-import/magic/cache/${documentId}`, {
+    await apiFetch(`/api/v1/word-import/magic/cache/${documentId}`, {
         method: "DELETE",
     });
 }

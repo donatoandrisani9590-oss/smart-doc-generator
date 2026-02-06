@@ -1,14 +1,15 @@
 /**
- * Layout - SimpleDocs-inspired Layout
+ * Layout - Soft & Simple Design
  *
- * Clean, minimal design:
- * - Fixed sidebar (w-60)
- * - Simple header without sticky behavior
- * - Content area with proper padding
+ * - Glassmorphism Sidebar
+ * - Clean, detached Header
+ * - Soft/Muted Content Background (Airy feel)
+ * - Framer Motion Page Transitions
  */
 
 import { useState, useEffect } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { AnimatePresence, motion } from "framer-motion";
 import { Sidebar } from "./Sidebar";
 import { NotificationDropdown } from "@/components/notifications/NotificationDropdown";
 import { CountrySelector } from "./CountrySelector";
@@ -19,30 +20,18 @@ import { SkipLink, LiveRegion } from "@/hooks/useAccessibility";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-// Page titles based on route - UX-optimiert für HR-Mitarbeiter
+// Page titles based on route
 const getPageTitle = (pathname: string): string => {
     if (pathname === "/") return "Übersicht";
-    if (pathname.startsWith("/generate")) return "Neues Dokument erstellen";
-    if (pathname.startsWith("/documents")) return "Dokumentarchiv";
+    if (pathname.startsWith("/generate")) return "Neues Dokument";
+    if (pathname.startsWith("/documents")) return "Dokumente";
     if (pathname.startsWith("/bulk")) return "Massen-Import";
     if (pathname.startsWith("/search")) return "Suche";
     if (pathname.startsWith("/teams")) return "Teams";
     if (pathname.startsWith("/deadlines")) return "Fristen";
-    if (pathname.startsWith("/composer")) return "Dokument-Designer";
     if (pathname.startsWith("/notifications")) return "Benachrichtigungen";
-    if (pathname.startsWith("/admin/company-settings")) return "Firmendaten";
-    if (pathname.startsWith("/admin/settings")) return "Design";
-    if (pathname.startsWith("/admin/clauses")) return "Textbausteine";
-    if (pathname.startsWith("/admin/attachments")) return "Anlagen";
-    if (pathname.startsWith("/admin/types")) return "Dokumentvorlagen";
-    if (pathname.startsWith("/admin/form-fields")) return "Formularfelder";
-    if (pathname.startsWith("/admin/template-preview")) return "Vorschau testen";
-    if (pathname.startsWith("/admin/document-designer")) return "Layout-Editor";
-    if (pathname.startsWith("/admin/works-council")) return "Betriebsrat";
-    if (pathname.startsWith("/admin/retention")) return "Aufbewahrung";
-    if (pathname.startsWith("/admin/audit")) return "Protokoll";
-    if (pathname.startsWith("/admin/users")) return "Benutzer";
-    if (pathname.startsWith("/admin/clause-approvals")) return "Freigaben";
+    if (pathname.startsWith("/settings")) return "Einstellungen";
+    if (pathname.startsWith("/admin")) return "Einstellungen";
     return "Übersicht";
 };
 
@@ -79,7 +68,6 @@ export const Layout = () => {
     // Global keyboard shortcuts
     useKeyboardShortcuts({
         onSearch: () => {
-            // Trigger global search (could emit event or set state)
             const searchInput = document.querySelector('[data-global-search]') as HTMLInputElement;
             searchInput?.focus();
         },
@@ -88,35 +76,32 @@ export const Layout = () => {
     });
 
     return (
-        <div className="flex min-h-screen bg-background font-sans text-foreground">
+        <div className="flex min-h-screen bg-background font-sans text-foreground overflow-hidden">
             {/* Skip to main content link for keyboard users */}
             <SkipLink targetId="main-content" />
 
             {/* Live region for page announcements */}
             <LiveRegion message={pageAnnouncement} priority="polite" />
 
-            {/* Desktop Sidebar - hidden on mobile */}
-            <div className="hidden lg:block">
+            {/* Desktop Sidebar - Fixed width */}
+            <div className="hidden lg:block shrink-0 z-20">
                 <Sidebar />
             </div>
 
             {/* Mobile Sidebar Overlay */}
             {mobileMenuOpen && (
                 <div className="lg:hidden fixed inset-0 z-50">
-                    {/* Backdrop */}
                     <div
-                        className="absolute inset-0 bg-black/50"
+                        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
                         onClick={() => setMobileMenuOpen(false)}
                         aria-hidden="true"
                     />
-                    {/* Sidebar */}
-                    <div className="relative w-64 h-full">
+                    <div className="relative w-[280px] h-full shadow-2xl">
                         <Sidebar />
-                        {/* Close button */}
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="absolute top-4 right-4 lg:hidden"
+                            className="absolute top-4 right-4 lg:hidden text-muted-foreground"
                             onClick={() => setMobileMenuOpen(false)}
                             aria-label="Menü schließen"
                         >
@@ -127,13 +112,14 @@ export const Layout = () => {
             )}
 
             {/* Main Content Area */}
-            <main className="flex-1 flex flex-col min-h-screen overflow-hidden" role="main">
-                {/* Header - Clean, simple, no sticky */}
+            <main className="flex-1 flex flex-col min-h-screen relative" role="main">
+                {/* Header - Detached & Airy */}
                 <header
-                    className="h-14 px-6 flex items-center justify-between bg-white border-b border-gray-200 shrink-0"
+                    className="h-16 px-8 flex items-center justify-between glass-header z-10 sticky top-0"
                     role="banner"
+                    style={{ backdropFilter: 'blur(12px)', backgroundColor: 'rgba(255, 255, 255, 0.8)' }}
                 >
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-4">
                         {/* Mobile menu button */}
                         <Button
                             variant="ghost"
@@ -145,21 +131,40 @@ export const Layout = () => {
                         >
                             <Menu className="w-5 h-5" />
                         </Button>
-                        <h1 className="text-base font-semibold text-gray-900" aria-live="polite">
+                        <h1 className="text-lg font-semibold text-gray-900 tracking-tight" aria-live="polite">
                             {pageTitle}
                         </h1>
                     </div>
-                    <nav className="flex items-center gap-1" aria-label="Schnellaktionen">
+
+                    <nav className="flex items-center gap-2" aria-label="Schnellaktionen">
                         <CountrySelector />
+                        <div className="w-px h-6 bg-border mx-1" />
                         <NotificationDropdown />
                     </nav>
                 </header>
 
-                {/* Content Area - Scrollable */}
-                <div id="main-content" className="flex-1 overflow-y-auto bg-gray-50/50" tabIndex={-1}>
-                    <div className="p-6 max-w-6xl mx-auto">
-                        <Outlet />
+                {/* Content Area with Transitions */}
+                <div
+                    id="main-content"
+                    className="flex-1 overflow-y-auto overflow-x-hidden bg-muted/30 scroll-smooth"
+                    tabIndex={-1}
+                >
+                    <div className="p-8 max-w-7xl mx-auto w-full">
+                        <AnimatePresence mode="wait">
+                            <motion.div
+                                key={location.pathname}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                                transition={{ duration: 0.2, ease: "easeOut" }}
+                                className="w-full"
+                            >
+                                <Outlet />
+                            </motion.div>
+                        </AnimatePresence>
                     </div>
+                    {/* Bottom spacer for comfortable scrolling */}
+                    <div className="h-12" />
                 </div>
             </main>
 

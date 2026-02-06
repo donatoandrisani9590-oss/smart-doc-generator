@@ -30,11 +30,20 @@ class Settings(BaseSettings):
     @field_validator("SECRET_KEY")
     @classmethod
     def validate_secret_key(cls, v: str) -> str:
-        if not v or v == "" or len(v) < 32:
+        if not v or v == "" or len(v) < 43:
             raise ValueError(
-                "SECRET_KEY muss als Environment Variable gesetzt werden (min. 32 Zeichen). "
+                "SECRET_KEY muss als Environment Variable gesetzt werden (min. 43 Zeichen / 256-bit). "
                 "Generiere einen mit: python -c \"import secrets; print(secrets.token_urlsafe(64))\""
             )
+        # Reject obvious development/placeholder keys in production
+        weak_patterns = ["dev_", "test_", "local_", "changeme", "password", "example"]
+        if any(pattern in v.lower() for pattern in weak_patterns):
+            import os
+            if os.environ.get("DEBUG", "").lower() != "true":
+                raise ValueError(
+                    "SECRET_KEY enthält unsichere Muster und darf in Production nicht verwendet werden. "
+                    "Generiere einen mit: python -c \"import secrets; print(secrets.token_urlsafe(64))\""
+                )
         return v
 
     class Config:

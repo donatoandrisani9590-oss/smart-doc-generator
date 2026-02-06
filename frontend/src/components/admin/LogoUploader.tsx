@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Upload, Trash2, ImageIcon, Loader2 } from "lucide-react";
+import { apiFetch } from "@/lib/api-client";
 
 interface LogoUploaderProps {
     countryCode: string;
@@ -40,7 +41,7 @@ export const LogoUploader = ({ countryCode, currentLogoPath, onUploadComplete }:
             const formData = new FormData();
             formData.append("file", file);
 
-            const response = await fetch(`/api/v1/admin/logo/${countryCode}`, {
+            const response = await apiFetch(`/api/v1/admin/logo/${countryCode}`, {
                 method: "POST",
                 body: formData,
             });
@@ -65,7 +66,7 @@ export const LogoUploader = ({ countryCode, currentLogoPath, onUploadComplete }:
 
         setIsDeleting(true);
         try {
-            const response = await fetch(`/api/v1/admin/logo/${countryCode}`, {
+            const response = await apiFetch(`/api/v1/admin/logo/${countryCode}`, {
                 method: "DELETE",
             });
 

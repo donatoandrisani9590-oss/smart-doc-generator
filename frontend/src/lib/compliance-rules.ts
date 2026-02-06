@@ -1,11 +1,11 @@
 /**
  * Compliance Rules for Document Generation
  *
- * Dieses Modul enthält die Regeln für Compliance-Prüfungen
- * basierend auf Ländercode und Dokumenttyp.
+ * This module contains compliance check rules based on
+ * country code and document type.
  *
- * HINWEIS: Dies ist keine Rechtsberatung. Die Regeln dienen
- * nur als Orientierungshilfe.
+ * NOTE: This is not legal advice. The rules serve only
+ * as a guideline / orientation aid.
  */
 
 // ============================================================================
@@ -17,15 +17,15 @@ export interface ComplianceRule {
   name: string;
   description: string;
   severity: 'error' | 'warning' | 'info';
-  /** Klausel-Namen die diese Regel erfüllen können */
+  /** Clause names that can satisfy this rule */
   satisfiedByClauseNames: string[];
-  /** Optionale Klausel-IDs die diese Regel erfüllen können */
+  /** Optional clause IDs that can satisfy this rule */
   satisfiedByClauseIds?: number[];
-  /** Gesetzliche Grundlage */
+  /** Legal basis reference */
   legalBasis?: string;
-  /** Gilt nur für bestimmte Dokumenttypen (leer = alle) */
+  /** Only applies to specific document types (empty = all) */
   applicableDocumentTypes?: string[];
-  /** Funktion zur Prüfung basierend auf Formulardaten */
+  /** Condition function based on form data */
   condition?: (formData: Record<string, unknown>) => boolean;
 }
 
@@ -54,11 +54,11 @@ export interface ComplianceCheckResult {
 // ============================================================================
 
 /**
- * Deutsche Compliance-Regeln (DE)
- * Basierend auf BGB, NachwG, BUrlG, ArbZG, BDSG/DSGVO
+ * German compliance rules (DE)
+ * Based on BGB, NachwG, BUrlG, ArbZG, BDSG/DSGVO
  */
 export const complianceRulesDE: ComplianceRule[] = [
-  // --- Arbeitsvertrag Pflichtangaben nach NachwG ---
+  // --- Employment contract mandatory fields per NachwG ---
   {
     id: 'de-nachwg-kuendigung',
     name: 'Kündigungsfrist',
@@ -105,7 +105,7 @@ export const complianceRulesDE: ComplianceRule[] = [
     applicableDocumentTypes: ['arbeitsvertrag', 'employment_contract', 'anstellungsvertrag', 'arbeitsvertrag vollzeit', 'arbeitsvertrag teilzeit', 'arbeitsvertrag minijob', 'arbeitsvertrag befristet'],
   },
 
-  // --- DSGVO/BDSG ---
+  // --- GDPR/BDSG ---
   {
     id: 'de-dsgvo-datenschutz',
     name: 'Datenschutz-Klausel',
@@ -116,7 +116,7 @@ export const complianceRulesDE: ComplianceRule[] = [
     applicableDocumentTypes: ['arbeitsvertrag', 'employment_contract', 'anstellungsvertrag', 'dienstleistungsvertrag'],
   },
 
-  // --- Empfohlene Klauseln ---
+  // --- Recommended clauses ---
   {
     id: 'de-recommend-probezeit',
     name: 'Probezeit',
@@ -143,7 +143,7 @@ export const complianceRulesDE: ComplianceRule[] = [
     applicableDocumentTypes: ['arbeitsvertrag', 'employment_contract', 'anstellungsvertrag', 'dienstleistungsvertrag'],
   },
 
-  // --- Spezielle Regeln basierend auf Formulardaten ---
+  // --- Special rules based on form data ---
   {
     id: 'de-fuehrung-wettbewerb',
     name: 'Wettbewerbsverbot',
@@ -190,8 +190,8 @@ export const complianceRulesDE: ComplianceRule[] = [
 ];
 
 /**
- * Italienische Compliance-Regeln (IT)
- * Basierend auf Codice Civile, Jobs Act, D.Lgs. 81/2015
+ * Italian compliance rules (IT)
+ * Based on Codice Civile, Jobs Act, D.Lgs. 81/2015
  */
 export const complianceRulesIT: ComplianceRule[] = [
   {
@@ -242,7 +242,7 @@ export const complianceRulesIT: ComplianceRule[] = [
 ];
 
 /**
- * Österreichische Compliance-Regeln (AT)
+ * Austrian compliance rules (AT)
  */
 export const complianceRulesAT: ComplianceRule[] = [
   {
@@ -284,7 +284,7 @@ export const complianceRulesAT: ComplianceRule[] = [
 ];
 
 /**
- * Schweizer Compliance-Regeln (CH)
+ * Swiss compliance rules (CH)
  */
 export const complianceRulesCH: ComplianceRule[] = [
   {
@@ -328,7 +328,7 @@ export const complianceRulesByCountry: Record<string, ComplianceRule[]> = {
 };
 
 /**
- * Holt die Compliance-Regeln für ein Land
+ * Returns compliance rules for a given country code.
  */
 export function getComplianceRules(countryCode: string): ComplianceRule[] {
   return complianceRulesByCountry[countryCode.toUpperCase()] || complianceRulesDE;
@@ -340,23 +340,23 @@ export function getComplianceRules(countryCode: string): ComplianceRule[] {
 
 export interface ClauseSuggestionRule {
   id: string;
-  /** Welche Klausel-Namen werden vorgeschlagen */
+  /** Clause names to suggest */
   suggestedClauseNames: string[];
-  /** Kurzer Grund für die Empfehlung */
+  /** Short reason for the recommendation */
   reason: string;
-  /** Detaillierte Erklärung */
+  /** Detailed explanation */
   explanation: string;
-  /** Priorität (höher = wichtiger) */
+  /** Priority (higher = more important) */
   priority: number;
-  /** Bedingung die erfüllt sein muss */
+  /** Condition that must be met */
   condition: (formData: Record<string, unknown>) => boolean;
 }
 
 /**
- * Regeln für KI-gesteuerte Klausel-Vorschläge
+ * Rules for AI-driven clause suggestions
  */
 export const clauseSuggestionRules: ClauseSuggestionRule[] = [
-  // --- Beschäftigungsart ---
+  // --- Employment type ---
   {
     id: 'vollzeit-urlaub',
     suggestedClauseNames: ['urlaub', 'urlaubsanspruch', 'jahresurlaub', 'erholungsurlaub'],
@@ -380,7 +380,7 @@ export const clauseSuggestionRules: ClauseSuggestionRule[] = [
     },
   },
 
-  // --- Führungsposition ---
+  // --- Management position ---
   {
     id: 'fuehrung-wettbewerb',
     suggestedClauseNames: ['wettbewerbsverbot', 'konkurrenzverbot', 'wettbewerbsklausel'],
@@ -420,7 +420,7 @@ export const clauseSuggestionRules: ClauseSuggestionRule[] = [
     },
   },
 
-  // --- IT-Bereich ---
+  // --- IT department ---
   {
     id: 'it-geheimhaltung',
     suggestedClauseNames: ['geheimhaltung', 'verschwiegenheit', 'vertraulichkeit', 'nda'],
@@ -458,7 +458,7 @@ export const clauseSuggestionRules: ClauseSuggestionRule[] = [
     },
   },
 
-  // --- Hohes Gehalt ---
+  // --- High salary ---
   {
     id: 'hohes-gehalt-dienstwagen',
     suggestedClauseNames: ['dienstwagen', 'firmenwagen', 'company_car'],
@@ -493,17 +493,17 @@ export const clauseSuggestionRules: ClauseSuggestionRule[] = [
     },
   },
 
-  // --- Befristung ---
+  // --- Fixed-term contracts ---
   {
     id: 'befristet-probezeit',
     suggestedClauseNames: ['probezeit', 'probezeitregelung'],
     reason: 'Neuer Mitarbeiter',
     explanation: 'Eine Probezeit ermöglicht beiden Seiten, die Zusammenarbeit zu testen. Die verkürzte Kündigungsfrist während der Probezeit bietet Flexibilität.',
     priority: 80,
-    condition: () => true, // Immer empfohlen für neue Verträge
+    condition: () => true, // Always recommended for new contracts
   },
 
-  // --- Vertrieb ---
+  // --- Sales ---
   {
     id: 'vertrieb-provision',
     suggestedClauseNames: ['provision', 'provisionsregelung', 'vertriebsprovision', 'sales_commission'],
@@ -535,7 +535,7 @@ export const clauseSuggestionRules: ClauseSuggestionRule[] = [
 // ============================================================================
 
 /**
- * Normalisiert einen Klausel-Namen für Vergleiche
+ * Normalizes a clause name for comparison (lowercase, umlaut replacement, underscore separation).
  */
 export function normalizeClauseName(name: string): string {
   return name
@@ -549,7 +549,7 @@ export function normalizeClauseName(name: string): string {
 }
 
 /**
- * Prüft ob eine Klausel eine Regel erfüllt
+ * Checks whether a clause satisfies a compliance rule (by ID or normalized name).
  */
 export function clauseSatisfiesRule(
   clauseName: string,
@@ -571,7 +571,7 @@ export function clauseSatisfiesRule(
 }
 
 /**
- * Berechnet den Compliance-Score
+ * Calculates the compliance score as a weighted percentage.
  */
 export function calculateComplianceScore(results: ComplianceResult[]): number {
   const weights = {

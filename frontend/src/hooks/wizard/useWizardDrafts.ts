@@ -1,0 +1,340 @@
+/**
+ * useWizardDrafts - Draft loading, saving, auto-save, and recovery
+ *
+ * Handles loading drafts from the API, manual save, and integrates
+ * with useAutoSave for automatic persistence. Also manages the
+ * "recover draft from localStorage" flow.
+ */
+
+import { useState, useCallback, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAutoSave } from "@/hooks/useAutoSave";
+import { useToast } from "@/components/ui/toast";
+import { api } from "@/lib/api-client";
+import { logError } from "@/lib/logger";
+import { AUTO_SAVE } from "@/config/api.config";
+import {
+    type FormData,
+    type Comment,
+    type DocumentClause,
+    type AutoSaveStatus,
+    initialFormData,
+} from "@/components/generator/WizardContext";
+import { type DraftResponse, getStorageKey } from "./types";
+
+// ══════════════════════════════════════════════════════════════════════════════
+// HELPER
+// ══════════════════════════════════════════════════════════════════════════════
+
+function calculateDraftStep(formData: Partial<FormData> | null): number {
+    if (!formData) return 0;
+
+    // Has employee data? -> Step 2
+    if (formData.vorname && formData.nachname) {
+        // Has contract data? -> Step 3 (or 4 for review)
+        if (formData.position && formData.gehalt && formData.eintrittsdatum) {
+            return 3; // Jump to review step (index 3 in STANDARD_STEP_ORDER = step 5)
+        }
+        return 2; // Contract details step
+    }
+
+    return 1; // Employee info step
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// PARAMS
+// ══════════════════════════════════════════════════════════════════════════════
+
+export interface UseWizardDraftsParams {
+    initialDraftId?: number;
+    // Shared state accessors
+    documentTypeId: number | null;
+    documentTitle: string;
+    formData: FormData;
+    dynamicFormValues: Record<string, string | number | boolean>;
+    comments: Comment[];
+    documentClauses: DocumentClause[];
+    selectedVariants: Record<number, { variantId: number; clauseId: number }>;
+    selectedAttachmentIds: number[];
+    currentStep: number;
+    hasUnsavedChanges: boolean;
+    // Setters the draft hook needs to call
+    setDocumentTypeIdState: (id: number | null) => void;
+    setDocumentTitle: (title: string) => void;
+    setFormDataRaw: (newState: FormData | ((prev: FormData) => FormData)) => void;
+    setDynamicFormValues: React.Dispatch<React.SetStateAction<Record<string, string | number | boolean>>>;
+    setComments: React.Dispatch<React.SetStateAction<Comment[]>>;
+    setCurrentStep: (step: number) => void;
+    setHasUnsavedChanges: (value: boolean) => void;
+    setIsLoading: (value: boolean) => void;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// RETURN TYPE
+// ══════════════════════════════════════════════════════════════════════════════
+
+export interface UseWizardDraftsReturn {
+    loadedDraftId: number | null;
+    isSaving: boolean;
+    // Auto-save state
+    autoSaveStatus: AutoSaveStatus;
+    lastSaved: Date | null;
+    lastSavedText: string;
+    hasRecoverableDraft: boolean;
+    autoSaveError: Error | null;
+    isAutoSaving: boolean;
+    autoSaveHasUnsavedChanges: boolean;
+    // Actions
+    loadDraft: (draftId: number) => Promise<void>;
+    saveDraft: () => Promise<void>;
+    forceSave: () => Promise<void>;
+    recoverDraft: () => void;
+    discardDraft: () => void;
+    clearAutoSaveError: () => void;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// HOOK
+// ══════════════════════════════════════════════════════════════════════════════
+
+export function useWizardDrafts(params: UseWizardDraftsParams): UseWizardDraftsReturn {
+    const {
+        initialDraftId,
+        documentTypeId,
+        documentTitle,
+        formData,
+        dynamicFormValues,
+        comments,
+        documentClauses,
+        selectedVariants,
+        selectedAttachmentIds,
+        currentStep,
+        hasUnsavedChanges,
+        setDocumentTypeIdState,
+        setDocumentTitle,
+        setFormDataRaw,
+        setDynamicFormValues,
+        setComments,
+        setCurrentStep,
+        setHasUnsavedChanges,
+        setIsLoading,
+    } = params;
+
+    const toast = useToast();
+    const navigate = useNavigate();
+
+    const [loadedDraftId, setLoadedDraftId] = useState<number | null>(initialDraftId ?? null);
+    const [isSaving, setIsSaving] = useState(false);
+
+    // ── Auto-Save Data Structure ────────────────────────────────────────────
+
+    const autoSaveData = useMemo(() => ({
+        formData,
+        dynamicFormValues,
+        documentTitle,
+        documentTypeId,
+        comments,
+        documentClauses: documentClauses.filter(c => c.is_enabled).map(c => c.id),
+        selectedVariants,
+        selectedAttachmentIds,
+        currentStep,
+        timestamp: new Date().toISOString(),
+    }), [formData, dynamicFormValues, documentTitle, documentTypeId, comments, documentClauses, selectedVariants, selectedAttachmentIds, currentStep]);
+
+    // Auto-save callback - save to server if possible
+    const performAutoSave = useCallback(async (data: typeof autoSaveData): Promise<void> => {
+        if (!data.documentTypeId) return;
+
+        if (loadedDraftId && data.documentTitle?.trim()) {
+            const draftData = {
+                document_type_id: data.documentTypeId,
+                name: data.documentTitle.trim(),
+                form_data: {
+                    ...data.formData,
+                    ...data.dynamicFormValues,
+                },
+                custom_clauses: data.documentClauses,
+            };
+            await api.put(`/api/v1/drafts/${loadedDraftId}`, draftData);
+        }
+    }, [loadedDraftId]);
+
+    const autoSaveKey = useMemo(() =>
+        documentTypeId ? `wizard_${documentTypeId}` : 'wizard_new',
+    [documentTypeId]);
+
+    const {
+        lastSaved,
+        isSaving: isAutoSaving,
+        error: autoSaveError,
+        forceSave,
+        clearError: clearAutoSaveError,
+        hasUnsavedChanges: autoSaveHasUnsavedChanges,
+        lastSavedText,
+        hasRecoverableDraft,
+        recoverDraft: recoverDraftFromStorage,
+        discardDraft: discardDraftFromStorage,
+        saveStatus: autoSaveStatus,
+    } = useAutoSave(
+        autoSaveKey,
+        autoSaveData,
+        performAutoSave,
+        {
+            interval: AUTO_SAVE.interval,
+            debounce: AUTO_SAVE.debounce,
+            enabled: !!documentTypeId && hasUnsavedChanges,
+            storagePrefix: AUTO_SAVE.storagePrefix,
+            onSaveStart: () => {
+                // Optional: Could show a subtle indicator
+            },
+            onSaveSuccess: () => {
+                setHasUnsavedChanges(false);
+            },
+            onSaveError: (error) => {
+                logError("Auto-save failed", { error: error as unknown as Record<string, unknown> });
+            },
+        }
+    );
+
+    // ── Recover / Discard Draft ─────────────────────────────────────────────
+
+    const recoverDraft = useCallback(() => {
+        const recovered = recoverDraftFromStorage();
+        if (recovered) {
+            if (recovered.formData) {
+                setFormDataRaw({
+                    ...initialFormData,
+                    ...(recovered.formData as Partial<FormData>),
+                });
+            }
+            if (recovered.dynamicFormValues) {
+                setDynamicFormValues(recovered.dynamicFormValues as Record<string, string | number | boolean>);
+            }
+            if (recovered.documentTitle) {
+                setDocumentTitle(recovered.documentTitle as string);
+            }
+            if (recovered.documentTypeId) {
+                setDocumentTypeIdState(recovered.documentTypeId as number);
+            }
+            if (recovered.comments) {
+                setComments(recovered.comments as Comment[]);
+            }
+            if (typeof recovered.currentStep === 'number') {
+                setCurrentStep(recovered.currentStep);
+            }
+
+            toast.success("Entwurf wiederhergestellt", "Ihre nicht gespeicherten Aenderungen wurden wiederhergestellt");
+        }
+    }, [recoverDraftFromStorage, setFormDataRaw, setDynamicFormValues, setDocumentTitle, setDocumentTypeIdState, setComments, setCurrentStep, toast]);
+
+    const discardDraft = useCallback(() => {
+        discardDraftFromStorage();
+        toast.info("Entwurf verworfen", "Der gespeicherte Entwurf wurde geloescht");
+    }, [discardDraftFromStorage, toast]);
+
+    // ── Load Draft ──────────────────────────────────────────────────────────
+
+    const loadDraft = useCallback(async (draftId: number) => {
+        setIsLoading(true);
+        try {
+            const response = await api.get<DraftResponse>(`/api/v1/drafts/${draftId}`);
+            const draft = response.data;
+
+            setDocumentTypeIdState(draft.document_type_id);
+            setDocumentTitle(draft.name || "");
+            setLoadedDraftId(draftId);
+
+            if (draft.form_data) {
+                setFormDataRaw({
+                    ...initialFormData,
+                    ...(draft.form_data as Partial<FormData>),
+                });
+            }
+
+            const jumpToStep = calculateDraftStep(draft.form_data as Partial<FormData>);
+            setCurrentStep(jumpToStep);
+
+            toast.success("Entwurf geladen", `"${draft.name || draft.document_type_name}" wurde geladen`);
+        } catch (error) {
+            logError("Failed to load draft", { error: error as unknown as Record<string, unknown> });
+            toast.error("Fehler", "Entwurf konnte nicht geladen werden");
+            navigate("/generate", { replace: true });
+        } finally {
+            setIsLoading(false);
+        }
+    }, [navigate, setFormDataRaw, setDocumentTypeIdState, setDocumentTitle, setCurrentStep, setIsLoading, toast]);
+
+    // Load draft on mount if ID provided
+    useEffect(() => {
+        if (initialDraftId) {
+            loadDraft(initialDraftId);
+        }
+    }, [initialDraftId, loadDraft]);
+
+    // ── Manual Save Draft ───────────────────────────────────────────────────
+
+    const saveDraft = useCallback(async () => {
+        if (!documentTypeId) {
+            toast.error("Fehler", "Bitte waehlen Sie einen Dokumenttyp");
+            return;
+        }
+
+        if (!documentTitle.trim()) {
+            toast.error("Titel erforderlich", "Bitte geben Sie einen Titel fuer den Entwurf ein");
+            return;
+        }
+
+        setIsSaving(true);
+        try {
+            const mergedFormData = {
+                ...formData,
+                ...dynamicFormValues,
+            };
+
+            const draftData = {
+                document_type_id: documentTypeId,
+                name: documentTitle.trim(),
+                form_data: mergedFormData,
+                custom_clauses: documentClauses.filter(c => c.is_enabled).map(c => c.id),
+            };
+
+            if (loadedDraftId) {
+                await api.put(`/api/v1/drafts/${loadedDraftId}`, draftData);
+                toast.success("Entwurf aktualisiert", `"${documentTitle}" wurde gespeichert`);
+            } else {
+                const response = await api.post<{ id: number }>("/api/v1/drafts", draftData);
+                setLoadedDraftId(response.data.id);
+                toast.success("Entwurf gespeichert", `"${documentTitle}" wurde erstellt`);
+            }
+
+            // Clear localStorage
+            if (documentTypeId) {
+                localStorage.removeItem(getStorageKey(documentTypeId));
+            }
+            setHasUnsavedChanges(false);
+        } catch (error) {
+            logError("Failed to save draft", { error: error as unknown as Record<string, unknown> });
+            toast.error("Fehler", "Entwurf konnte nicht gespeichert werden");
+        } finally {
+            setIsSaving(false);
+        }
+    }, [documentTypeId, documentTitle, formData, dynamicFormValues, documentClauses, loadedDraftId, setHasUnsavedChanges, toast]);
+
+    return {
+        loadedDraftId,
+        isSaving,
+        autoSaveStatus: autoSaveStatus as AutoSaveStatus,
+        lastSaved,
+        lastSavedText,
+        hasRecoverableDraft,
+        autoSaveError,
+        isAutoSaving,
+        autoSaveHasUnsavedChanges,
+        loadDraft,
+        saveDraft,
+        forceSave,
+        recoverDraft,
+        discardDraft,
+        clearAutoSaveError,
+    };
+}
