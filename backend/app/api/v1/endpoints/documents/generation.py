@@ -678,10 +678,13 @@ async def generate_document_by_type(
 
     # 6. Generate document
     try:
+        import uuid
         nachname = form_data.get('nachname', 'Dokument')
-        # Sanitize filename
+        # Sanitize filename with timestamp and UUID to prevent collisions
         safe_nachname = re.sub(r'[^\w\s-]', '', nachname).strip().replace(' ', '_')
-        output_filename = f"Vertrag_{safe_nachname}.docx"
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        unique_id = str(uuid.uuid4())[:8]
+        output_filename = f"Vertrag_{safe_nachname}_{timestamp}_{unique_id}.docx"
         output_path = OUTPUT_DIR / output_filename
 
         # Create DOCX from clauses

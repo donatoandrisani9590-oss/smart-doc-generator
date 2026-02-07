@@ -126,13 +126,23 @@ const UploadDialog = ({ open, onOpenChange, countryCode, onSuccess }: UploadDial
         }
     }, [name]);
 
+    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
         onDrop,
+        onDropRejected: (rejectedFiles) => {
+            const rejection = rejectedFiles[0];
+            if (rejection?.errors?.[0]?.code === "file-too-large") {
+                setErrorMessage("Datei zu gross. Maximum: 10 MB");
+                setUploadState("error");
+            }
+        },
         accept: {
             "application/pdf": [".pdf"],
             "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [".docx"],
         },
         maxFiles: 1,
+        maxSize: MAX_FILE_SIZE,
         multiple: false,
     });
 

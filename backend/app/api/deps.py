@@ -1,3 +1,5 @@
+import os
+import logging
 from typing import AsyncGenerator, Annotated, Optional
 from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordBearer
@@ -8,6 +10,8 @@ from sqlalchemy import select
 from app.db import get_db
 from app.core.config import settings
 from app.models.core import User
+
+logger = logging.getLogger(__name__)
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"{settings.API_V1_STR}/auth/login", auto_error=not settings.DEBUG)
 
@@ -27,8 +31,17 @@ async def get_current_user(
     db: Annotated[AsyncSession, Depends(get_db)] = None
 ) -> User:
     # DEBUG MODE: Return mock admin user without authentication
+    # SECURITY: Only allowed when DEBUG=True AND not in production environment
     if settings.DEBUG:
-        return MockUser()
+        env = os.environ.get("ENVIRONMENT", "development").lower()
+        if env in ("production", "prod", "staging"):
+            logger.critical(
+                "DEBUG mode is enabled in a production/staging environment! "
+                "Auth bypass is DISABLED. Set DEBUG=False in production."
+            )
+        else:
+            logger.warning("DEBUG mode active: returning mock admin user without authentication")
+            return MockUser()
 
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,

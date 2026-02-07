@@ -16,6 +16,7 @@ from sqlalchemy import select, func
 from pydantic import BaseModel
 
 from app.db import get_db
+from app.api.deps import get_current_active_admin
 from app.models.documents import Clause, DocumentType, DocumentTypeClause
 
 router = APIRouter()
@@ -393,6 +394,7 @@ async def analyze_document_for_import(
     file: UploadFile = File(...),
     country_code: str = Form("DE"),
     db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_active_admin),
 ):
     """
     Analysiert ein Word-Dokument für den Import als Dokumententyp.
@@ -462,6 +464,7 @@ async def analyze_document_for_import(
 async def import_as_document_type(
     request: DocumentTypeImportRequest,
     db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_active_admin),
 ):
     """
     Importiert das analysierte Dokument als neuen Dokumententyp.
@@ -581,7 +584,9 @@ async def import_as_document_type(
 
 
 @router.get("/placeholder-suggestions")
-async def get_placeholder_suggestions():
+async def get_placeholder_suggestions(
+    current_user=Depends(get_current_active_admin),
+):
     """Gibt bekannte Platzhalter-Muster und Tipps zurück."""
     return {
         "common_placeholders": [
@@ -610,6 +615,7 @@ async def find_similar_clauses_by_title(
     title: str,
     country_code: str = "DE",
     db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_active_admin),
 ):
     """Sucht ähnliche Klauseln für manuelles Matching."""
     similar = await find_similar_clauses(db, title, "", country_code)

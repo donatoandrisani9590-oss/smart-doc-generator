@@ -294,7 +294,7 @@ async def upload_and_extract(
     Uses pattern matching for fast extraction,
     optionally enhanced with AI (Mistral/Ollama).
     """
-    # Validate file type
+    # Validate file type by extension
     filename = file.filename or ""
     file_ext = filename.lower().split(".")[-1] if "." in filename else ""
 
@@ -304,14 +304,53 @@ async def upload_and_extract(
             detail="Nur PDF und DOCX Dateien werden unterstützt"
         )
 
+    # Validate MIME type
+    ALLOWED_MIME_TYPES = {
+        "application/pdf",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "application/octet-stream",  # Fallback for some clients
+    }
+    if file.content_type and file.content_type not in ALLOWED_MIME_TYPES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Ungueltiger MIME-Type: {file.content_type}. Nur PDF und DOCX erlaubt."
+        )
+
+    # Validate magic bytes (file signature)
+    first_bytes = await file.read(8)
+    await file.seek(0)  # Reset file position
+
+    PDF_MAGIC = b"%PDF"
+    DOCX_MAGIC = b"PK\x03\x04"  # ZIP/DOCX signature
+
+    if file_ext == "pdf" and not first_bytes.startswith(PDF_MAGIC):
+        raise HTTPException(
+            status_code=400,
+            detail="Datei ist keine gueltige PDF-Datei (ungueltige Dateisignatur)"
+        )
+    elif file_ext == "docx" and not first_bytes.startswith(DOCX_MAGIC):
+        raise HTTPException(
+            status_code=400,
+            detail="Datei ist keine gueltige DOCX-Datei (ungueltige Dateisignatur)"
+        )
+
     # Save to temp file using chunked streaming (prevents memory issues with large files)
+    MAX_FILE_SIZE = 50 * 1024 * 1024  # 50 MB
     tmp_path = None
     try:
         with tempfile.NamedTemporaryFile(delete=False, suffix=f".{file_ext}") as tmp:
             tmp_path = tmp.name
             # Stream in 1MB chunks to avoid loading entire file in memory
             chunk_size = 1024 * 1024  # 1MB
+            total_size = 0
             while chunk := await file.read(chunk_size):
+                total_size += len(chunk)
+                if total_size > MAX_FILE_SIZE:
+                    os.unlink(tmp_path)
+                    raise HTTPException(
+                        status_code=413,
+                        detail=f"Datei zu gross. Maximum: {MAX_FILE_SIZE // (1024 * 1024)} MB"
+                    )
                 tmp.write(chunk)
     except Exception as e:
         # Cleanup if temp file was created but writing failed

@@ -23,6 +23,7 @@ from sqlalchemy import select
 from pydantic import BaseModel, Field
 
 from app.db import get_db
+from app.api.deps import get_current_active_admin
 from app.models.documents import Clause
 from app.services.document_analyzer import (
     DocumentAnalyzerWithPositions,
@@ -259,6 +260,7 @@ async def analyze_word_document(
     file: UploadFile = File(...),
     country_code: str = "DE",
     db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_active_admin),
 ):
     """
     Analysiert ein Word-Dokument und extrahiert die Struktur.
@@ -337,6 +339,7 @@ async def analyze_word_document(
 async def import_clauses_from_word(
     request: ImportClauseRequest,
     db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_active_admin),
 ):
     """
     Importiert ausgewählte Abschnitte als neue Klauseln.
@@ -378,7 +381,9 @@ async def import_clauses_from_word(
 
 
 @router.get("/templates")
-async def get_import_tips():
+async def get_import_tips(
+    current_user=Depends(get_current_active_admin),
+):
     """
     Gibt Tipps für den Word-Import zurück.
     """
@@ -526,6 +531,7 @@ _analysis_cache: Dict[str, Dict[str, Any]] = {}
 async def magic_analyze_document(
     file: UploadFile = File(...),
     generate_pdf: bool = False,
+    current_user=Depends(get_current_active_admin),
 ):
     """
     🪄 Magic-Analyse: Analysiert ein Word-Dokument mit Position-Tracking.
@@ -638,7 +644,10 @@ async def magic_analyze_document(
 
 
 @router.get("/magic/preview/{document_id}")
-async def get_preview_html(document_id: str):
+async def get_preview_html(
+    document_id: str,
+    current_user=Depends(get_current_active_admin),
+):
     """
     Gibt das HTML-Preview für ein analysiertes Dokument zurück.
 
@@ -658,7 +667,10 @@ async def get_preview_html(document_id: str):
 
 
 @router.get("/magic/preview-pdf/{document_id}")
-async def get_preview_pdf(document_id: str):
+async def get_preview_pdf(
+    document_id: str,
+    current_user=Depends(get_current_active_admin),
+):
     """
     Gibt das PDF-Preview für ein analysiertes Dokument zurück.
 
@@ -685,7 +697,10 @@ async def get_preview_pdf(document_id: str):
 
 
 @router.post("/magic/find-similar", response_model=SimilarValuesResponse)
-async def find_similar_values(request: SimilarValuesRequest):
+async def find_similar_values(
+    request: SimilarValuesRequest,
+    current_user=Depends(get_current_active_admin),
+):
     """
     🔍 Findet ähnliche Werte für die "Für alle ersetzen" Funktion.
 
@@ -776,7 +791,10 @@ async def find_similar_values(request: SimilarValuesRequest):
 
 
 @router.post("/magic/confirm", response_model=ConfirmMappingsResponse)
-async def confirm_value_mappings(request: ConfirmMappingsRequest):
+async def confirm_value_mappings(
+    request: ConfirmMappingsRequest,
+    current_user=Depends(get_current_active_admin),
+):
     """
     ✅ Bestätigt Zuordnungen zwischen erkannten Werten und Platzhaltern.
 
@@ -864,6 +882,7 @@ async def confirm_value_mappings(request: ConfirmMappingsRequest):
 async def generate_clause_from_mapping(
     request: GenerateClausesRequest,
     db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_active_admin),
 ):
     """
     📝 Generiert eine neue Klausel aus dem bestätigten Mapping.
@@ -938,7 +957,9 @@ async def generate_clause_from_mapping(
 
 
 @router.get("/magic/placeholders")
-async def get_available_placeholders():
+async def get_available_placeholders(
+    current_user=Depends(get_current_active_admin),
+):
     """
     📋 Gibt alle verfügbaren System-Platzhalter zurück.
 
@@ -952,7 +973,10 @@ async def get_available_placeholders():
 
 
 @router.delete("/magic/cache/{document_id}")
-async def clear_analysis_cache(document_id: str):
+async def clear_analysis_cache(
+    document_id: str,
+    current_user=Depends(get_current_active_admin),
+):
     """
     🗑️ Löscht das gecachte Analyse-Ergebnis.
 
