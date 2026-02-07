@@ -141,21 +141,30 @@ export function useWizardDrafts(params: UseWizardDraftsParams): UseWizardDraftsR
         timestamp: new Date().toISOString(),
     }), [formData, dynamicFormValues, documentTitle, documentTypeId, comments, documentClauses, selectedVariants, selectedAttachmentIds, currentStep]);
 
-    // Auto-save callback - save to server if possible
+    // Auto-save callback - save to server (create or update)
     const performAutoSave = useCallback(async (data: typeof autoSaveData): Promise<void> => {
         if (!data.documentTypeId) return;
 
-        if (loadedDraftId && data.documentTitle?.trim()) {
-            const draftData = {
-                document_type_id: data.documentTypeId,
-                name: data.documentTitle.trim(),
-                form_data: {
-                    ...data.formData,
-                    ...data.dynamicFormValues,
-                },
-                custom_clauses: data.documentClauses,
-            };
+        const draftName = data.documentTitle?.trim() || "Unbenannter Entwurf";
+        const draftData = {
+            document_type_id: data.documentTypeId,
+            name: draftName,
+            form_data: {
+                ...data.formData,
+                ...data.dynamicFormValues,
+            },
+            custom_clauses: data.documentClauses,
+        };
+
+        if (loadedDraftId) {
+            // Update existing draft
             await api.put(`/api/v1/drafts/${loadedDraftId}`, draftData);
+        } else {
+            // Create new server-side draft on first auto-save
+            const response = await api.post<{ id: number }>("/api/v1/drafts", draftData);
+            if (response.data?.id) {
+                setLoadedDraftId(response.data.id);
+            }
         }
     }, [loadedDraftId]);
 
@@ -304,11 +313,11 @@ export function useWizardDrafts(params: UseWizardDraftsParams): UseWizardDraftsR
 
             if (loadedDraftId) {
                 await api.put(`/api/v1/drafts/${loadedDraftId}`, draftData);
-                toast.success("Entwurf aktualisiert", `"${draftName}" wurde gespeichert`);
+                toast.success("Entwurf aktualisiert", `"${draftName}" wurde in Meine Dokumente gespeichert`);
             } else {
                 const response = await api.post<{ id: number }>("/api/v1/drafts", draftData);
                 setLoadedDraftId(response.data.id);
-                toast.success("Entwurf gespeichert", `"${draftName}" wurde erstellt`);
+                toast.success("Entwurf erstellt", `"${draftName}" wurde in Meine Dokumente gespeichert`);
             }
 
             // Clear localStorage

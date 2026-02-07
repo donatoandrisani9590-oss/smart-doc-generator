@@ -2,18 +2,18 @@
  * ExportSuccessModal - Magic Moment nach erfolgreichem Export
  *
  * Feiert den Erfolg des Users mit:
- * - ✅ Animierter Checkmark
- * - 🎉 Subtle Celebration Animation
- * - 📊 Statistik "X Dokumente diesen Monat erstellt"
- * - Download-Buttons prominent
+ * - Animierter Checkmark
+ * - Subtle Celebration Animation
+ * - Hinweis auf automatische Speicherung in Meine Dokumente
+ * - "Zu Meine Dokumente" Button
+ * - Download-Buttons
  *
- * PandaDoc-inspiriert: Celebration Moment
- * v1.0: Initial implementation
+ * v2.0: "Zu Meine Dokumente" Navigation + Speicher-Feedback
  */
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { CheckCircle, Download, FileText, FileType2, X, Sparkles } from "lucide-react";
+import { CheckCircle, FileText, FileType2, X, Sparkles, FolderOpen, PlusCircle } from "lucide-react";
 import {
     Dialog,
     DialogContent,
@@ -28,7 +28,7 @@ interface ExportSuccessModalProps {
     documentTitle: string;
     exportFormat: "pdf" | "docx";
     onDownloadAgain?: (format: "pdf" | "docx") => void;
-    documentsThisMonth?: number;
+    onGoToDocuments?: () => void;
 }
 
 export const ExportSuccessModal = ({
@@ -37,13 +37,12 @@ export const ExportSuccessModal = ({
     documentTitle,
     exportFormat,
     onDownloadAgain,
-    documentsThisMonth = 1,
+    onGoToDocuments,
 }: ExportSuccessModalProps) => {
     const [showConfetti, setShowConfetti] = useState(false);
 
     useEffect(() => {
         if (isOpen) {
-            // Trigger confetti animation
             setShowConfetti(true);
             const timer = setTimeout(() => setShowConfetti(false), 2000);
             return () => clearTimeout(timer);
@@ -63,7 +62,7 @@ export const ExportSuccessModal = ({
                     className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                 >
                     <X className="h-4 w-4" />
-                    <span className="sr-only">Schließen</span>
+                    <span className="sr-only">Schliessen</span>
                 </button>
 
                 <div className="flex flex-col items-center text-center py-6">
@@ -72,7 +71,6 @@ export const ExportSuccessModal = ({
                         <AnimatePresence>
                             {showConfetti && (
                                 <>
-                                    {/* Sparkles Animation */}
                                     {[...Array(6)].map((_, i) => (
                                         <motion.div
                                             key={i}
@@ -130,31 +128,27 @@ export const ExportSuccessModal = ({
                         transition={{ delay: 0.4 }}
                     >
                         <h2 className="text-xl font-semibold text-foreground mb-2">
-                            Export erfolgreich!
+                            Dokument erstellt!
                         </h2>
                         <p className="text-sm text-muted-foreground mb-1">
-                            <span className="font-medium text-foreground">{documentTitle}</span>
+                            <span className="font-medium text-foreground">{documentTitle || "Dokument"}</span>
                         </p>
                         <p className="text-xs text-muted-foreground">
-                            wurde als {exportFormat.toUpperCase()} heruntergeladen
+                            wurde als {exportFormat.toUpperCase()} heruntergeladen und in Meine Dokumente gespeichert
                         </p>
                     </motion.div>
 
-                    {/* Stats Card */}
+                    {/* Saved confirmation */}
                     <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.6 }}
-                        className="mt-6 p-4 bg-muted/50 rounded-lg w-full"
+                        className="mt-4 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg w-full"
                     >
-                        <div className="flex items-center justify-center gap-2 text-sm">
-                            <Sparkles className="w-4 h-4 text-primary" />
-                            <span className="text-muted-foreground">
-                                Sie haben diesen Monat{" "}
-                                <span className="font-semibold text-foreground">
-                                    {documentsThisMonth} {documentsThisMonth === 1 ? "Dokument" : "Dokumente"}
-                                </span>{" "}
-                                erstellt
+                        <div className="flex items-center justify-center gap-2 text-sm text-green-700 dark:text-green-400">
+                            <FolderOpen className="w-4 h-4" />
+                            <span>
+                                Automatisch in <span className="font-medium">Meine Dokumente</span> gespeichert
                             </span>
                         </div>
                     </motion.div>
@@ -166,6 +160,19 @@ export const ExportSuccessModal = ({
                         transition={{ delay: 0.8 }}
                         className="mt-6 w-full space-y-3"
                     >
+                        {/* Primary: Zu Meine Dokumente */}
+                        {onGoToDocuments && (
+                            <Button
+                                variant="default"
+                                className="w-full gap-2"
+                                onClick={onGoToDocuments}
+                            >
+                                <FolderOpen className="w-4 h-4" />
+                                Zu Meine Dokumente
+                            </Button>
+                        )}
+
+                        {/* Secondary: Download in anderem Format */}
                         {onDownloadAgain && (
                             <div className="grid grid-cols-2 gap-2">
                                 <Button
@@ -187,13 +194,14 @@ export const ExportSuccessModal = ({
                             </div>
                         )}
 
+                        {/* Tertiary: Neues Dokument oder Schliessen */}
                         <Button
-                            variant="default"
-                            className="w-full gap-2"
+                            variant="ghost"
+                            className="w-full gap-2 text-muted-foreground"
                             onClick={onClose}
                         >
-                            <Download className="w-4 h-4" />
-                            Fertig
+                            <PlusCircle className="w-4 h-4" />
+                            Weiteres Dokument erstellen
                         </Button>
                     </motion.div>
                 </div>

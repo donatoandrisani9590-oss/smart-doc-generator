@@ -680,6 +680,7 @@ async def generate_document_by_type(
     try:
         import uuid
         nachname = form_data.get('nachname', 'Dokument')
+        vorname = form_data.get('vorname', '')
         # Sanitize filename with timestamp and UUID to prevent collisions
         safe_nachname = re.sub(r'[^\w\s-]', '', nachname).strip().replace(' ', '_')
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -726,6 +727,33 @@ async def generate_document_by_type(
         else:
             output_path = docx_path
             media_type = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+
+        # Save document record to repository ("Meine Dokumente")
+        try:
+            from app.models.enterprise import GeneratedDocument
+            employee_name = f"{vorname} {nachname}".strip() or None
+            doc_title = f"{doc_type.name} - {employee_name}" if employee_name else doc_type.name
+
+            generated_doc = GeneratedDocument(
+                document_type_id=document_type_id,
+                created_by_id=current_user.id,
+                created_by=str(current_user.id),
+                country_code=country_code,
+                title=doc_title,
+                employee_name=employee_name,
+                employee_id=form_data.get('personalnummer') or form_data.get('employee_id'),
+                form_data=json.dumps(form_data),
+                file_path=str(output_path),
+                file_format=request_data.output_format,
+                current_version=1,
+                is_correctable=True,
+            )
+            db.add(generated_doc)
+            await db.commit()
+            logger.info(f"Document saved to repository: id={generated_doc.id}, title={doc_title}")
+        except Exception as save_err:
+            logger.warning(f"Could not save document to repository: {save_err}")
+            # Don't fail the generation if repository save fails
 
         return FileResponse(
             output_path,
