@@ -129,12 +129,29 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         # Disable referrer leaking
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         # Block browser features not needed
-        response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+        response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=(), payment=()"
         # XSS protection (legacy browsers)
         response.headers["X-XSS-Protection"] = "1; mode=block"
+
+        # Content Security Policy (Phase 3)
+        # Restricts sources for scripts, styles, images, etc.
+        csp_directives = [
+            "default-src 'self'",
+            "script-src 'self'",
+            "style-src 'self' 'unsafe-inline'",  # Tailwind needs inline styles
+            "img-src 'self' data: blob:",  # Allow data URIs for previews
+            "font-src 'self'",
+            "connect-src 'self'",  # API calls
+            "frame-ancestors 'none'",  # Prevent embedding
+            "form-action 'self'",
+            "base-uri 'self'",
+            "object-src 'none'",  # Block Flash, Java, etc.
+        ]
+        response.headers["Content-Security-Policy"] = "; ".join(csp_directives)
+
         # HSTS only in production (non-debug)
         if not settings.DEBUG:
-            response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+            response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains; preload"
         return response
 
 
