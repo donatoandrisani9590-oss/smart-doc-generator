@@ -279,9 +279,13 @@ export function useWizardDrafts(params: UseWizardDraftsParams): UseWizardDraftsR
             return;
         }
 
-        if (!documentTitle.trim()) {
-            toast.error("Titel erforderlich", "Bitte geben Sie einen Titel fuer den Entwurf ein");
-            return;
+        // Auto-generate title if empty (instead of blocking save)
+        let draftName = documentTitle.trim();
+        if (!draftName) {
+            const nameParts = [formData.vorname, formData.nachname].filter(Boolean);
+            draftName = nameParts.length > 0
+                ? `Entwurf - ${nameParts.join(" ")}`
+                : `Entwurf - ${new Date().toLocaleDateString("de-DE")}`;
         }
 
         setIsSaving(true);
@@ -293,18 +297,18 @@ export function useWizardDrafts(params: UseWizardDraftsParams): UseWizardDraftsR
 
             const draftData = {
                 document_type_id: documentTypeId,
-                name: documentTitle.trim(),
+                name: draftName,
                 form_data: mergedFormData,
                 custom_clauses: documentClauses.filter(c => c.is_enabled).map(c => c.id),
             };
 
             if (loadedDraftId) {
                 await api.put(`/api/v1/drafts/${loadedDraftId}`, draftData);
-                toast.success("Entwurf aktualisiert", `"${documentTitle}" wurde gespeichert`);
+                toast.success("Entwurf aktualisiert", `"${draftName}" wurde gespeichert`);
             } else {
                 const response = await api.post<{ id: number }>("/api/v1/drafts", draftData);
                 setLoadedDraftId(response.data.id);
-                toast.success("Entwurf gespeichert", `"${documentTitle}" wurde erstellt`);
+                toast.success("Entwurf gespeichert", `"${draftName}" wurde erstellt`);
             }
 
             // Clear localStorage

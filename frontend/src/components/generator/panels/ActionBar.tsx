@@ -99,6 +99,8 @@ export const ActionBar = () => {
     }, []);
 
     const canExport = documentTypeId && validationState.isValid;
+    // Draft saving only requires a document type - title is optional (auto-generated if empty)
+    const canSaveDraft = !!documentTypeId;
 
     // Handler für Klick auf deaktivierte Export-Buttons (zeigt Toast mit fehlenden Feldern)
     const handleDisabledExportClick = useCallback(() => {
@@ -124,9 +126,9 @@ export const ActionBar = () => {
         }
     }, [validationState, documentTypeId, toast]);
 
-    // Entwurf speichern
+    // Entwurf speichern - less strict validation than export
     const handleSaveDraft = async () => {
-        if (!canExport) return;
+        if (!canSaveDraft) return;
         setIsSavingDraft(true);
         try {
             await actions.saveDraft();
@@ -187,7 +189,7 @@ export const ActionBar = () => {
                 variant="outline"
                 className="w-full gap-2"
                 onClick={handleSaveDraft}
-                disabled={!canExport || isAnyLoading}
+                disabled={!canSaveDraft || isAnyLoading}
             >
                 {isSavingDraft ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
