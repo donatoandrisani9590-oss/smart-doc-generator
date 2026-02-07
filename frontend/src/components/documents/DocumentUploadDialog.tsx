@@ -12,7 +12,7 @@
  * Privacy: Uses Mistral (EU) or Ollama (local)
  */
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDropzone } from "react-dropzone";
 import {
@@ -94,12 +94,45 @@ export function DocumentUploadDialog({
   const [result, setResult] = useState<ExtractionResult | null>(null);
   const [useAI, setUseAI] = useState(isAIEnabled);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const progressIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Simulate progress during upload/extraction
+  useEffect(() => {
+    if (isUploading) {
+      setUploadProgress(0);
+      progressIntervalRef.current = setInterval(() => {
+        setUploadProgress((prev) => {
+          // Accelerate to 30%, slow down approaching 90%, never reach 100% until done
+          if (prev < 30) return prev + 5;
+          if (prev < 60) return prev + 3;
+          if (prev < 85) return prev + 1;
+          if (prev < 95) return prev + 0.3;
+          return prev;
+        });
+      }, 200);
+    } else {
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+        progressIntervalRef.current = null;
+      }
+      if (result) {
+        setUploadProgress(100);
+      }
+    }
+    return () => {
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+      }
+    };
+  }, [isUploading, result]);
 
   // Reset state
   const reset = useCallback(() => {
     setResult(null);
     setUploadedFile(null);
     setIsUploading(false);
+    setUploadProgress(0);
   }, []);
 
   // Handle file upload
@@ -390,7 +423,8 @@ export function DocumentUploadDialog({
                 <div className="space-y-3">
                   <Loader2 className="w-10 h-10 mx-auto animate-spin text-primary" />
                   <p className="font-medium">Dokument wird analysiert...</p>
-                  <Progress value={66} className="w-48 mx-auto" />
+                  <Progress value={Math.round(uploadProgress)} className="w-48 mx-auto" />
+                  <p className="text-xs text-muted-foreground">{Math.round(uploadProgress)}%</p>
                 </div>
               ) : (
                 <div className="space-y-3">

@@ -156,10 +156,17 @@ export function DocumentTypeImportWizard({
         onOpenChange(false);
     };
 
+    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+
     // File upload
     const handleFileSelect = async (file: File) => {
         if (!file.name.toLowerCase().endsWith(".docx")) {
             setError("Nur .docx Dateien werden unterstützt.");
+            return;
+        }
+
+        if (file.size > MAX_FILE_SIZE) {
+            setError(`Datei zu gross. Maximum: ${MAX_FILE_SIZE / (1024 * 1024)} MB`);
             return;
         }
 
@@ -396,7 +403,7 @@ export function DocumentTypeImportWizard({
                                     <>
                                         <Upload className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
                                         <p className="text-lg font-medium mb-2">Word-Datei hier ablegen</p>
-                                        <p className="text-sm text-muted-foreground mb-4">oder klicken zum Auswählen</p>
+                                        <p className="text-sm text-muted-foreground mb-4">oder klicken zum Auswählen (max. 10 MB)</p>
                                         <Input
                                             type="file"
                                             accept=".docx"

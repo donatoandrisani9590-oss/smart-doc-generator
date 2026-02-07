@@ -34,6 +34,7 @@ import {
     FileText,
     Table,
 } from "lucide-react";
+import { toast } from "sonner";
 
 interface BulkUploadValidatorProps {
     documentTypeId: number;
@@ -54,8 +55,18 @@ export const BulkUploadValidator = ({
     const startGeneration = useStartBulkGeneration();
     const { data: jobStatus } = useBulkJobStatus(jobId || 0, !!jobId);
 
+    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+
     // Handle file selection
     const handleFileSelect = useCallback(async (selectedFile: File) => {
+        // File size validation
+        if (selectedFile.size > MAX_FILE_SIZE) {
+            toast.error("Datei zu gross", {
+                description: `Maximum: ${MAX_FILE_SIZE / (1024 * 1024)} MB`,
+            });
+            return;
+        }
+
         setFile(selectedFile);
         setValidationResult(null);
         setJobId(null);
@@ -275,7 +286,7 @@ export const BulkUploadValidator = ({
                                 Datei auswählen
                             </Button>
                             <p className="text-xs text-muted-foreground mt-4">
-                                Unterstützte Formate: CSV, Excel (.xlsx, .xls)
+                                Unterstützte Formate: CSV, Excel (.xlsx, .xls) - Max. 10 MB
                             </p>
                         </div>
                     ) : (
