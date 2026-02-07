@@ -10,6 +10,7 @@ from typing import Optional, Annotated
 import os
 import aiofiles
 import re
+import magic
 
 from app.db import get_db
 from app.models.enterprise import Attachment, DocumentTypeAttachment
@@ -116,6 +117,22 @@ async def create_attachment(
             status_code=400,
             detail=f"Datei zu groß. Maximale Größe: {MAX_FILE_SIZE // (1024*1024)} MB"
         )
+
+    # SECURITY: Validate MIME type via magic bytes (not file extension!)
+    mime = magic.from_buffer(content, mime=True)
+    allowed_mimes = {
+        'application/pdf': 'pdf',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx'
+    }
+
+    if mime not in allowed_mimes:
+        raise HTTPException(
+            status_code=415,
+            detail=f"File type not allowed: {mime}. Only PDF and DOCX files are accepted."
+        )
+
+    # Use MIME-detected extension (more secure than user-provided)
+    file_ext = allowed_mimes[mime]
 
     # Sanitize and prepare file path
     safe_name = sanitize_filename(name)
