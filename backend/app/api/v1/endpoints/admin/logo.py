@@ -39,16 +39,16 @@ async def upload_logo(
 ):
     """
     Upload a company logo for a specific country.
-    Supported formats: PNG, JPG, SVG
+    Supported formats: PNG, JPG (SVG disabled for security)
     Max size: 2MB
     Requires: admin role.
     """
-    # Validate file type
-    allowed_types = {"image/png", "image/jpeg", "image/svg+xml"}
+    # Validate file type (SVG disabled: can contain XSS via <script> tags)
+    allowed_types = {"image/png", "image/jpeg"}
     if file.content_type not in allowed_types:
         raise HTTPException(
             status_code=400,
-            detail="Nur PNG, JPG oder SVG erlaubt"
+            detail="Nur PNG oder JPG erlaubt (SVG nicht unterstützt aus Sicherheitsgründen)"
         )
 
     # Read and check size (2MB max)
@@ -73,7 +73,7 @@ async def upload_logo(
     storage_dir.mkdir(parents=True, exist_ok=True, mode=0o755)
 
     # Generate filename with timestamp
-    allowed_extensions = {"png", "jpg", "jpeg", "svg"}
+    allowed_extensions = {"png", "jpg", "jpeg"}
     ext = file.filename.split('.')[-1].lower() if '.' in file.filename else 'png'
     if ext not in allowed_extensions:
         ext = "png"
@@ -145,8 +145,7 @@ async def get_logo(country_code: str, filename: str):
     content_types = {
         "png": "image/png",
         "jpg": "image/jpeg",
-        "jpeg": "image/jpeg",
-        "svg": "image/svg+xml"
+        "jpeg": "image/jpeg"
     }
 
     return FileResponse(

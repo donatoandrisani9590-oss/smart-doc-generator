@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useDebounce } from "./hooks";
 import type { PreviewPanelProps, Clause } from "./types";
+import { sanitizeHtml } from "@/utils/sanitize";
 
 export const PreviewPanel = ({ sections, availableClauses }: PreviewPanelProps) => {
     // Create a map for quick clause content lookup
@@ -112,7 +113,7 @@ export const PreviewPanel = ({ sections, availableClauses }: PreviewPanelProps) 
                     `}</style>
                     <div
                         className="preview-content bg-white border rounded-lg p-6 shadow-sm"
-                        dangerouslySetInnerHTML={{ __html: previewHtml }}
+                        dangerouslySetInnerHTML={{ __html: sanitizeHtml(previewHtml) }}
                     />
                 </div>
             </ScrollArea>

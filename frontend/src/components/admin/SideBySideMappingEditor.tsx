@@ -46,6 +46,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { apiFetch } from "@/lib/api-client";
+import { sanitizeHtml } from "@/utils/sanitize";
 
 // Types
 interface TextPosition {
@@ -810,9 +811,9 @@ export function SideBySideMappingEditor({
                         <div
                             className="prose max-w-none"
                             dangerouslySetInnerHTML={{
-                                __html: analysisResult.preview_html
+                                __html: sanitizeHtml(analysisResult.preview_html
                                     .replace(/<html[^>]*>|<\/html>|<head[^>]*>[\s\S]*<\/head>|<body[^>]*>|<\/body>/gi, "")
-                                    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, ""),
+                                    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")),
                             }}
                             onClick={(e) => {
                                 const target = e.target as HTMLElement;

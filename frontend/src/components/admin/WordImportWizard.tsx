@@ -46,6 +46,7 @@ import {
     Sparkles,
 } from "lucide-react";
 import { apiFetch } from "@/lib/api-client";
+import { sanitizeHtml } from "@/utils/sanitize";
 
 interface ExtractedSection {
     index: number;
@@ -645,7 +646,7 @@ export function WordImportWizard({
                         <div className="border rounded-lg p-4 max-h-[400px] overflow-y-auto">
                             <div
                                 className="prose prose-sm dark:prose-invert max-w-none"
-                                dangerouslySetInnerHTML={{ __html: previewSection.content_html || previewSection.content }}
+                                dangerouslySetInnerHTML={{ __html: sanitizeHtml(previewSection.content_html || previewSection.content) }}
                             />
                         </div>
                         <DialogFooter>

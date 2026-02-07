@@ -57,6 +57,7 @@ import {
     X,
 } from "lucide-react";
 import { apiFetch } from "@/lib/api-client";
+import { sanitizeHtml } from "@/utils/sanitize";
 
 // Types
 interface PlaceholderSuggestion {
@@ -590,7 +591,7 @@ export function DocumentTypeImportWizard({
 
                                                 {/* Content Preview */}
                                                 <div className="bg-muted/50 rounded p-3 text-sm max-h-[150px] overflow-y-auto">
-                                                    <div dangerouslySetInnerHTML={{ __html: section.content_html }} />
+                                                    <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(section.content_html) }} />
                                                 </div>
                                             </div>
                                         </AccordionContent>

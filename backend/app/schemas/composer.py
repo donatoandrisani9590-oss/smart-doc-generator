@@ -33,7 +33,7 @@ class ClauseInstanceCreate(ClauseInstanceBase):
     source_clause_id: Optional[int] = None
 
     # Für lokale Klausel: content_html angeben
-    content_html: Optional[str] = None
+    content_html: Optional[str] = Field(None, max_length=10000, description="HTML content of local clause")
 
     # Optional: Position im Dokument (wenn nicht angegeben → ans Ende)
     position: Optional[int] = None
@@ -58,7 +58,7 @@ class ClauseInstanceCreate(ClauseInstanceBase):
 class ClauseInstanceUpdate(BaseModel):
     """Schema zum Aktualisieren einer Klausel-Instanz."""
     title: Optional[str] = Field(None, min_length=1, max_length=255)
-    content_html: Optional[str] = None
+    content_html: Optional[str] = Field(None, max_length=10000, description="HTML content of clause")
 
 
 class ClauseInstanceResponse(ClauseInstanceBase):
@@ -67,9 +67,9 @@ class ClauseInstanceResponse(ClauseInstanceBase):
     origin: ClauseOriginEnum
     source_clause_id: Optional[int] = None
     source_clause_version: Optional[int] = None
-    content_html: Optional[str] = None
+    content_html: Optional[str] = Field(None, max_length=10000, description="HTML content of clause")
     is_editable: bool
-    visual_style: str  # "green" oder "blue"
+    visual_style: str = Field(..., max_length=50, description="Visual style (green or blue)")
 
     # Varianten-Support
     variant_group_id: Optional[int] = None
@@ -81,8 +81,8 @@ class ClauseInstanceResponse(ClauseInstanceBase):
     # Deviation-Info (Phase 2)
     deviated_at: Optional[datetime] = None
     deviated_by_user_id: Optional[int] = None
-    deviated_reason: Optional[str] = None
-    original_content_snapshot: Optional[str] = None  # Original-Content vor Deviation
+    deviated_reason: Optional[str] = Field(None, max_length=500, description="Reason for deviation")
+    original_content_snapshot: Optional[str] = Field(None, max_length=10000, description="Original content before deviation")
 
     # Promotion-Info
     promoted_to_clause_id: Optional[int] = None
@@ -198,9 +198,9 @@ class PromoteResponse(BaseModel):
 class LibraryClauseResponse(BaseModel):
     """Schema für eine Klausel aus der Bibliothek (für Drag & Drop)."""
     id: int
-    title: str
-    category: Optional[str] = None
-    preview: str = Field(..., description="Erste 150 Zeichen des Contents")
+    title: str = Field(..., max_length=255, description="Clause title")
+    category: Optional[str] = Field(None, max_length=255, description="Clause category")
+    preview: str = Field(..., max_length=500, description="First 150 characters of content")
     version: int
     is_approved: bool
     has_variants: bool = False
@@ -220,9 +220,9 @@ class LibrarySearchResponse(BaseModel):
 
 class LibrarySearchParams(BaseModel):
     """Query-Parameter für Bibliothek-Suche."""
-    country_code: str = "DE"
-    category: Optional[str] = None
-    search: Optional[str] = None
+    country_code: str = Field(default="DE", max_length=2, description="Country code")
+    category: Optional[str] = Field(None, max_length=255, description="Clause category filter")
+    search: Optional[str] = Field(None, max_length=500, description="Search query")
     page: int = Field(default=1, ge=1)
     page_size: int = Field(default=50, ge=1, le=100)
 
@@ -254,9 +254,9 @@ class ComposerDraftResponse(BaseModel):
     """Response für einen Composer-Draft."""
     id: int
     document_type_id: int
-    document_type_name: str
-    country_code: str
-    name: Optional[str] = None
+    document_type_name: str = Field(..., max_length=255, description="Document type name")
+    country_code: str = Field(..., max_length=2, description="Country code")
+    name: Optional[str] = Field(None, max_length=255, description="Draft name")
     form_data: Optional[dict] = None
 
     # Klausel-Statistik

@@ -30,6 +30,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Star, AlertTriangle, Loader2, BookOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { sanitizeHtml } from "@/utils/sanitize";
 import type { ClauseInstance } from "./types";
 
 // Vordefinierte Kategorien für Klauseln
@@ -266,7 +267,7 @@ export const PromotionDialog = ({
                         <div
                             className="p-3 bg-muted rounded-lg text-sm prose prose-sm max-w-none max-h-32 overflow-auto"
                             dangerouslySetInnerHTML={{
-                                __html: clause.content_html || "<em>Kein Inhalt</em>",
+                                __html: sanitizeHtml(clause.content_html || "<em>Kein Inhalt</em>"),
                             }}
                         />
                     </div>

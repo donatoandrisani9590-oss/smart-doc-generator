@@ -13,6 +13,10 @@ class User(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     is_active = Column(Boolean, default=True)
 
+    # Brute-Force Protection (SEC-017)
+    failed_login_attempts = Column(Integer, default=0)
+    locked_until = Column(DateTime(timezone=True), nullable=True)
+
 class DesignSetting(Base):
     __tablename__ = "design_settings"
 
