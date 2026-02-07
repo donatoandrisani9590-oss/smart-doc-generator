@@ -35,6 +35,41 @@ import {
 import { cn } from "@/lib/utils";
 import { api } from "@/lib/api-client";
 
+// Quick-answer button configs for common fields (Lueckenschliesser UX)
+// Instead of free text, show clickable buttons for fields with typical values.
+const QUICK_ANSWERS: Record<string, { label: string; value: string }[]> = {
+  probezeit: [
+    { label: "Standard (6 Monate)", value: "6 Monate" },
+    { label: "3 Monate", value: "3 Monate" },
+    { label: "Keine", value: "Keine" },
+  ],
+  urlaubstage: [
+    { label: "30 Tage", value: "30" },
+    { label: "28 Tage", value: "28" },
+    { label: "Gesetzlich (20)", value: "20" },
+  ],
+  wochenstunden: [
+    { label: "Vollzeit (40h)", value: "40" },
+    { label: "Teilzeit (20h)", value: "20" },
+    { label: "Teilzeit (30h)", value: "30" },
+  ],
+  kuendigungsfrist: [
+    { label: "Gesetzlich", value: "Gesetzlich" },
+    { label: "4 Wochen", value: "4 Wochen zum Monatsende" },
+    { label: "3 Monate", value: "3 Monate zum Quartalsende" },
+  ],
+  befristung: [
+    { label: "Unbefristet", value: "Unbefristet" },
+    { label: "1 Jahr", value: "12 Monate" },
+    { label: "2 Jahre", value: "24 Monate" },
+  ],
+  arbeitszeitmodell: [
+    { label: "Vollzeit", value: "Vollzeit" },
+    { label: "Teilzeit", value: "Teilzeit" },
+    { label: "Gleitzeit", value: "Gleitzeit" },
+  ],
+};
+
 // Types
 interface SmartField {
   name: string;
@@ -265,6 +300,42 @@ export function SmartModeWizard({
     onComplete(formData, title);
   }, [config, formData, onComplete]);
 
+  // Handle quick-answer button click
+  const handleQuickAnswer = useCallback((value: string) => {
+    if (!currentField || isSending) return;
+    setInputValue(value);
+    // Auto-submit after setting value
+    setIsSending(true);
+    setConversation((prev) => [
+      ...prev,
+      { type: "answer", content: value, field: currentField.name },
+    ]);
+    const newFormData = { ...formData, [currentField.name]: value };
+    setFormData(newFormData);
+    setInputValue("");
+    const nextIndex = currentFieldIndex + 1;
+    setCurrentFieldIndex(nextIndex);
+    setTimeout(() => {
+      if (nextIndex < allFields.length) {
+        addQuestion(allFields[nextIndex]);
+      } else {
+        setConversation((prev) => [
+          ...prev,
+          {
+            type: "system",
+            content: "Perfekt! Alle Angaben sind vollständig. Klicken Sie auf 'Dokument erstellen' um fortzufahren.",
+          },
+        ]);
+      }
+      setIsSending(false);
+    }, 300);
+  }, [currentField, formData, currentFieldIndex, allFields, addQuestion, isSending]);
+
+  // Get quick answers for current field
+  const currentQuickAnswers = currentField
+    ? QUICK_ANSWERS[currentField.name] || []
+    : [];
+
   // Skip optional field
   const handleSkip = useCallback(() => {
     if (!currentField) return;
@@ -428,6 +499,24 @@ export function SmartModeWizard({
                   <Send className="w-5 h-5" />
                 )}
               </Button>
+            </div>
+          )}
+
+          {/* Quick-answer buttons (Lueckenschliesser) */}
+          {currentQuickAnswers.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {currentQuickAnswers.map((qa) => (
+                <Button
+                  key={qa.value}
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleQuickAnswer(qa.value)}
+                  disabled={isSending}
+                  className="h-8 text-xs hover:bg-primary/5 hover:border-primary/30"
+                >
+                  {qa.label}
+                </Button>
+              ))}
             </div>
           )}
 
