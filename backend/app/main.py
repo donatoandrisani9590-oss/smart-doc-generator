@@ -34,7 +34,7 @@ from app.api.v1.endpoints.core import (
 # Documents
 from app.api.v1.endpoints.documents import (
     generation, preview, history, drafts, corrections,
-    export, repository, document_upload,
+    export, repository, document_upload, approvals,
 )
 
 # User Features
@@ -187,7 +187,7 @@ async def lifespan(app: FastAPI):
     try:
         from app.db import engine, Base
         # Import all models to register them with Base
-        from app.models import core, documents, enterprise  # noqa: F401
+        from app.models import core, documents, enterprise, collaboration  # noqa: F401
 
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
@@ -321,6 +321,7 @@ app.include_router(users.router, prefix=f"{settings.API_V1_STR}/users", tags=["u
 app.include_router(clause_notes.router, prefix=f"{settings.API_V1_STR}/clause-notes", tags=["clause-notes"])
 app.include_router(company_settings.router, prefix=f"{settings.API_V1_STR}/company-settings", tags=["company-settings"])
 app.include_router(clause_approval.router, prefix=f"{settings.API_V1_STR}/clause-approval", tags=["clause-approval"])
+app.include_router(approvals.router, prefix=f"{settings.API_V1_STR}/document-approvals", tags=["document-approvals"])
 app.include_router(deadlines.router, prefix=f"{settings.API_V1_STR}/deadlines", tags=["deadlines"])
 app.include_router(works_council.router, prefix=f"{settings.API_V1_STR}/works-council", tags=["works-council"])
 app.include_router(word_import.router, prefix=f"{settings.API_V1_STR}/word-import", tags=["word-import"])

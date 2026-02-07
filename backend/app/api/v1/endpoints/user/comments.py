@@ -62,10 +62,19 @@ class CommentMentionResponse(BaseModel):
         from_attributes = True
 
 
+class SelectionRange(BaseModel):
+    """Textauswahl für kontextbezogene Kommentare."""
+    start: int
+    end: int
+    text: Optional[str] = None
+
+
 class CommentResponse(BaseModel):
     id: int
     anchor_type: str
     anchor_id: int
+    block_id: Optional[str] = None
+    selection_range: Optional[SelectionRange] = None
     parent_id: Optional[int] = None
     content: str
     content_html: Optional[str] = None
@@ -97,6 +106,8 @@ class CommentListResponse(BaseModel):
 class CreateCommentRequest(BaseModel):
     anchor_type: str = Field(..., description="document, draft, clause_instance, clause")
     anchor_id: int
+    block_id: Optional[str] = Field(None, description="Block/Absatz-ID für kontextbezogene Kommentare (z.B. 'clause_3', 'paragraph_5')")
+    selection_range: Optional[SelectionRange] = Field(None, description="Textauswahl für Inline-Kommentare")
     parent_id: Optional[int] = Field(None, description="ID des Parent-Kommentars für Antworten")
     content: str = Field(..., min_length=1, max_length=10000)
 
@@ -122,6 +133,17 @@ def escape_like_wildcards(value: str) -> str:
     SEC-004 Fix: Escape SQL LIKE wildcards to prevent DoS via expensive queries.
     """
     return value.replace('%', r'\%').replace('_', r'\_')
+
+
+def parse_selection_range(raw: Optional[str]) -> Optional[SelectionRange]:
+    """Parse selection_range JSON string from DB to SelectionRange model."""
+    if not raw:
+        return None
+    try:
+        data = json.loads(raw)
+        return SelectionRange(**data)
+    except (json.JSONDecodeError, TypeError, KeyError):
+        return None
 
 
 async def validate_anchor_access(
@@ -296,6 +318,7 @@ async def create_activity_event(
 async def get_comments(
     anchor_type: str,
     anchor_id: int,
+    block_id: Optional[str] = Query(None, description="Filter nach Block-ID für kontextbezogene Kommentare"),
     include_resolved: bool = Query(True, description="Auch gelöste Kommentare anzeigen"),
     limit: int = Query(50, ge=1, le=200, description="Max. Kommentare pro Seite"),
     offset: int = Query(0, ge=0, description="Offset für Pagination"),
@@ -321,14 +344,18 @@ async def get_comments(
 
     # PERF-001 Fix: Use eager loading for authors
     # First, get all user IDs we'll need
-    query = select(Comment).where(
-        and_(
-            Comment.anchor_type == anchor_type,
-            Comment.anchor_id == anchor_id,
-            Comment.parent_id.is_(None),
-            Comment.is_deleted == False
-        )
-    ).order_by(Comment.created_at.desc()).offset(offset).limit(limit)
+    filters = [
+        Comment.anchor_type == anchor_type,
+        Comment.anchor_id == anchor_id,
+        Comment.parent_id.is_(None),
+        Comment.is_deleted == False,
+    ]
+
+    # Block-basierter Filter: Nur Kommentare für einen bestimmten Block/Absatz
+    if block_id is not None:
+        filters.append(Comment.block_id == block_id)
+
+    query = select(Comment).where(and_(*filters)).order_by(Comment.created_at.desc()).offset(offset).limit(limit)
 
     if not include_resolved:
         query = query.where(Comment.is_resolved == False)
@@ -399,6 +426,8 @@ async def get_comments(
             id=root.id,
             anchor_type=root.anchor_type,
             anchor_id=root.anchor_id,
+            block_id=root.block_id,
+            selection_range=parse_selection_range(root.selection_range),
             parent_id=root.parent_id,
             content=root.content,
             content_html=root.content_html,
@@ -425,6 +454,8 @@ async def get_comments(
                 id=reply.id,
                 anchor_type=reply.anchor_type,
                 anchor_id=reply.anchor_id,
+                block_id=reply.block_id,
+                selection_range=parse_selection_range(reply.selection_range),
                 parent_id=reply.parent_id,
                 content=reply.content,
                 content_html=reply.content_html,
@@ -500,6 +531,8 @@ async def create_comment(
     comment = Comment(
         anchor_type=request.anchor_type,
         anchor_id=request.anchor_id,
+        block_id=request.block_id,
+        selection_range=json.dumps(request.selection_range.model_dump()) if request.selection_range else None,
         parent_id=request.parent_id,
         content=request.content,
         created_by_id=current_user.id
@@ -539,6 +572,8 @@ async def create_comment(
         id=comment.id,
         anchor_type=comment.anchor_type,
         anchor_id=comment.anchor_id,
+        block_id=comment.block_id,
+        selection_range=parse_selection_range(comment.selection_range),
         parent_id=comment.parent_id,
         content=comment.content,
         content_html=comment.content_html,
@@ -609,6 +644,8 @@ async def update_comment(
         id=comment.id,
         anchor_type=comment.anchor_type,
         anchor_id=comment.anchor_id,
+        block_id=comment.block_id,
+        selection_range=parse_selection_range(comment.selection_range),
         parent_id=comment.parent_id,
         content=comment.content,
         content_html=comment.content_html,

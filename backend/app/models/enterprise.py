@@ -69,6 +69,58 @@ class DocumentShare(Base):
 
 
 # ═══════════════════════════════════════════════════════════════════════════
+# DOCUMENT APPROVAL WORKFLOW
+# ═══════════════════════════════════════════════════════════════════════════
+
+class DocumentApproval(Base):
+    """
+    Genehmigungsworkflow für Dokumente auf Dokumentenebene.
+
+    State Machine:
+    - DRAFT (Erstellt, noch nicht eingereicht)
+    - PENDING_APPROVAL (Zur Genehmigung eingereicht)
+    - APPROVED (Genehmigt)
+    - CHANGES_REQUESTED (Änderungen angefordert – Dokument wird für Ersteller editierbar)
+    - REJECTED (Abgelehnt)
+
+    Ermöglicht:
+    - Ein Nutzer reicht ein Dokument aus "Meine Dokumente" zur Genehmigung ein
+    - Der Genehmiger erhält eine Notification
+    - Bei Ablehnung/Änderungsanforderung wird das Dokument wieder editierbar
+    - Unveränderliches Protokoll über AuditLog
+    """
+    __tablename__ = "document_approvals"
+
+    id = Column(Integer, primary_key=True, index=True)
+    document_id = Column(Integer, ForeignKey("generated_documents.id", ondelete="CASCADE"), nullable=False, index=True)
+
+    # Status
+    status = Column(String(30), default="pending_approval", nullable=False, index=True)
+    # Erlaubte Werte: pending_approval, approved, changes_requested, rejected
+
+    # Wer soll genehmigen?
+    approver_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
+
+    # Wer hat eingereicht?
+    requested_by_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
+    requested_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
+
+    # Entscheidung
+    decided_at = Column(DateTime(timezone=True), nullable=True)
+    decision_comment = Column(Text, nullable=True)
+
+    # Priorität
+    priority = Column(String(20), default="normal")  # low, normal, high, urgent
+
+    # Frist
+    due_date = Column(DateTime(timezone=True), nullable=True)
+
+    # Metadata
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now())
+
+
+# ═══════════════════════════════════════════════════════════════════════════
 # NEW MODELS FROM GAP ANALYSIS
 # ═══════════════════════════════════════════════════════════════════════════
 
