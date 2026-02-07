@@ -9,7 +9,7 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { motion } from "framer-motion";
-import { GripVertical, Lock, Edit3, Info, Trash2, Unlock } from "lucide-react";
+import { GripVertical, Lock, Edit3, Info, Trash2, Unlock, ArrowLeftRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,7 +20,16 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { sanitizeHtml } from "@/utils/sanitize";
+import { ClauseSwapButton } from "@/components/generator/ClauseSwapButton";
 import type { ClauseInstance } from "./types";
+
+interface ClauseAlternative {
+    id: number;
+    title: string;
+    category: string;
+    preview: string;
+    tone?: string;
+}
 
 interface ClauseBlockProps {
     clause: ClauseInstance;
@@ -28,6 +37,10 @@ interface ClauseBlockProps {
     onSelect: () => void;
     onDelete: () => void;
     onDeviate?: () => void;
+    onSwap?: (newClauseId: number) => void;
+    alternatives?: ClauseAlternative[];
+    onLoadAlternatives?: () => void;
+    isLoadingAlternatives?: boolean;
     disabled?: boolean;
 }
 
@@ -37,6 +50,10 @@ export const ClauseBlock = ({
     onSelect,
     onDelete,
     onDeviate,
+    onSwap,
+    alternatives = [],
+    onLoadAlternatives,
+    isLoadingAlternatives = false,
     disabled = false,
 }: ClauseBlockProps) => {
     const {
@@ -65,7 +82,7 @@ export const ClauseBlock = ({
             ref={setNodeRef}
             style={style}
             className={cn(
-                "clause-block relative p-4 rounded-lg border-2 cursor-pointer transition-all",
+                "clause-block group relative p-4 rounded-lg border-2 cursor-pointer transition-all",
                 "hover:shadow-md",
                 isDragging && "opacity-50 shadow-xl z-50",
                 isSelected && "ring-2 ring-primary ring-offset-2",
@@ -172,6 +189,19 @@ export const ClauseBlock = ({
                                 </TooltipContent>
                             </Tooltip>
                         </TooltipProvider>
+                    )}
+
+                    {/* Swap Button (appears on hover) */}
+                    {onSwap && (
+                        <ClauseSwapButton
+                            currentClauseId={clause.clause_id}
+                            currentClauseTitle={clause.title}
+                            category={clause.category || "Sonstiges"}
+                            alternatives={alternatives}
+                            isLoading={isLoadingAlternatives}
+                            onSwap={onSwap}
+                            onLoadAlternatives={onLoadAlternatives}
+                        />
                     )}
 
                     {/* Delete Button */}

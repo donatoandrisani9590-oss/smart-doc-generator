@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { sanitizeHtml } from "@/utils/sanitize";
 import { useWizardContext } from "../WizardContext";
+import { VariableHighlighter } from "../VariableHighlighter";
 import "@/styles/preview.css";
 
 interface DocumentType {
@@ -261,9 +262,10 @@ export const StepReview = ({ documentTypes }: StepReviewProps) => {
                                     <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
                                 </div>
                             ) : previewHtml ? (
-                                <div
+                                <VariableHighlighter
+                                    html={sanitizeHtml(previewHtml)}
+                                    formData={formData}
                                     className="preview-content p-6"
-                                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(previewHtml) }}
                                 />
                             ) : (
                                 <div className="flex items-center justify-center h-64 text-muted-foreground">

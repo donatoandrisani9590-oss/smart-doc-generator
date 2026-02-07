@@ -364,12 +364,59 @@ async def suggest_clause(
     title: str,
     description: str,
     country_code: str = "DE",
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_user),
 ):
     """
-    Generate a suggested clause based on title and description.
-    Uses Mistral/Ollama (privacy-first).
+    Suggest clauses from the user's library based on title and description.
+
+    v4.3: Uses clause_ai_bridge to select from EXISTING user-defined clauses
+    instead of generating new text. Falls back to LLM generation only if
+    no matching clauses are found.
     """
+    from app.services.clause_ai_bridge import select_clauses_with_ai, assemble_clauses
+
+    # Step 1: Try to find matching clauses from user's library
+    user_intent = f"Ich brauche eine Klausel zum Thema: {title}. {description}"
+    ai_result = await select_clauses_with_ai(
+        db=db,
+        user_id=current_user.id,
+        user_intent=user_intent,
+        country_code=country_code,
+    )
+
+    selected = ai_result.get("selected_clauses", [])
+
+    # If AI found matching clauses, return them from the library
+    if selected:
+        clause_ids = [s["clause_id"] for s in selected]
+        assembled = await assemble_clauses(
+            db=db,
+            clause_ids=clause_ids,
+            user_id=current_user.id,
+        )
+
+        return {
+            "title": title,
+            "source": "library",
+            "selected_clauses": [
+                {
+                    "id": c["id"],
+                    "title": c["title"],
+                    "content": c["content_html"],
+                    "reason": next(
+                        (s["reason"] for s in selected if s["clause_id"] == c["id"]),
+                        ""
+                    ),
+                }
+                for c in assembled
+            ],
+            "explanation": ai_result.get("explanation", ""),
+            "provider": ai_result.get("provider", "unknown"),
+            "disclaimer": "Diese Klauseln stammen aus Ihrer Bibliothek und wurden von der KI als passend ausgewählt.",
+        }
+
+    # Fallback: No matching clauses found, generate with LLM
     try:
         llm = await get_llm_service()
     except RuntimeError as e:
@@ -406,9 +453,13 @@ Die Klausel sollte:
 
         return {
             "title": title,
+            "source": "generated",
             "content": response.content,
             "provider": response.provider,
-            "disclaimer": "Diese Klausel wurde automatisch generiert. Bitte prüfen Sie den Inhalt vor der Verwendung."
+            "disclaimer": "Keine passende Klausel in Ihrer Bibliothek gefunden. Diese Klausel wurde automatisch generiert. Bitte prüfen und ggf. in die Bibliothek aufnehmen.",
+            "warnings": ai_result.get("warnings", []) + [
+                f"Es stehen {ai_result.get('clauses_available', 0)} Klauseln in Ihrer Bibliothek zur Verfügung, aber keine passte zum Thema '{title}'."
+            ],
         }
 
     except Exception as e:

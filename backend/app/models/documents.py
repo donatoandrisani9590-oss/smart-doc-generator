@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, Text, Enum, DateTime, Date, UniqueConstraint
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, Text, Enum, DateTime, Date, UniqueConstraint, JSON
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.db import Base
@@ -96,6 +96,21 @@ class Clause(Base):
     category = Column(String, nullable=True, index=True)
     version = Column(Integer, default=1)
     is_active = Column(Boolean, default=True, index=True)
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # AI-METADATEN (v4.3 Feature: KI-Klausel-Bridge)
+    # Ermöglicht semantisches Matching zwischen User-Intent und Klauseln.
+    # Ohne diese Felder kann die KI die Klauseln nicht intelligent auswählen.
+    # ══════════════════════════════════════════════════════════════════════════
+    tags = Column(JSON, nullable=True, default=list)  # ["kuendigung", "streng", "fristlos"]
+    description = Column(Text, nullable=True)  # "Strenge Kündigungsklausel mit kurzer Frist"
+    tone = Column(String(50), nullable=True)  # neutral, streng, arbeitnehmerfreundlich, moderat
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # TENANT ISOLATION (v4.3 Feature: Mandantentrennung)
+    # NULL = globale/geteilte Klausel, sonst gehört die Klausel diesem User.
+    # ══════════════════════════════════════════════════════════════════════════
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
 
     # ══════════════════════════════════════════════════════════════════════════
     # FREIGABE-WORKFLOW (v4.2 Feature: Kapitel 15.3)
