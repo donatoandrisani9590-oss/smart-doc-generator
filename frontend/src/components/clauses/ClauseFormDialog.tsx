@@ -136,6 +136,11 @@ export const ClauseFormDialog = ({
     const [countryCode, setCountryCode] = useState(defaultCountryCode);
     const [content, setContent] = useState("");
     const [isActive, setIsActive] = useState(true);
+    // AI metadata (v4.3 - enables AI to find and select this clause)
+    const [tags, setTags] = useState<string[]>([]);
+    const [tagInput, setTagInput] = useState("");
+    const [description, setDescription] = useState("");
+    const [tone, setTone] = useState<string>("neutral");
 
     // Tab State (Edit Mode)
     const [activeTab, setActiveTab] = useState("editor");
@@ -203,6 +208,9 @@ export const ClauseFormDialog = ({
             setCountryCode(editClause.country_code || "DE");
             setContent(editClause.content || "");
             setIsActive(editClause.is_active);
+            setTags((editClause as any).tags || []);
+            setDescription((editClause as any).description || "");
+            setTone((editClause as any).tone || "neutral");
             setCurrentStep("content"); // Skip to content in edit mode
             // Store initial values for change detection
             initialValuesRef.current = {
@@ -218,6 +226,10 @@ export const ClauseFormDialog = ({
             setCountryCode(defaultCountryCode);
             setContent("");
             setIsActive(true);
+            setTags([]);
+            setTagInput("");
+            setDescription("");
+            setTone("neutral");
             setCurrentStep("basics");
             setActiveTab("editor");
             setErrors({});
@@ -334,7 +346,10 @@ export const ClauseFormDialog = ({
             country_code: countryCode,
             category: effectiveCategory,
             is_active: isActive,
-        };
+            tags: tags.length > 0 ? tags : undefined,
+            description: description.trim() || undefined,
+            tone: tone || undefined,
+        } as ClauseCreateRequest;
 
         try {
             let result;
@@ -564,6 +579,92 @@ export const ClauseFormDialog = ({
                 </div>
             </div>
 
+            {/* AI Metadata Section (v4.3) */}
+            <div className="space-y-4 pt-2 border-t">
+                <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                    <Sparkles className="w-4 h-4" />
+                    KI-Metadaten (optional)
+                </div>
+
+                {/* Description for AI */}
+                <div className="space-y-2">
+                    <Label htmlFor="description" className="text-sm">
+                        Beschreibung (fuer KI-Auswahl)
+                    </Label>
+                    <Input
+                        id="description"
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value.slice(0, 500))}
+                        placeholder="z.B. Strenge Kuendigungsklausel mit kurzer Frist fuer Fuehrungskraefte"
+                        className="text-sm"
+                        maxLength={500}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                        Beschreiben Sie kurz den Zweck der Klausel. Die KI nutzt diese Beschreibung, um die richtige Klausel auszuwaehlen.
+                    </p>
+                </div>
+
+                {/* Tags for semantic matching */}
+                <div className="space-y-2">
+                    <Label className="text-sm">Tags</Label>
+                    <div className="flex gap-2">
+                        <Input
+                            value={tagInput}
+                            onChange={(e) => setTagInput(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter" || e.key === ",") {
+                                    e.preventDefault();
+                                    const newTag = tagInput.trim().toLowerCase();
+                                    if (newTag && !tags.includes(newTag) && tags.length < 20) {
+                                        setTags([...tags, newTag]);
+                                        setTagInput("");
+                                    }
+                                }
+                            }}
+                            placeholder="Tag eingeben + Enter"
+                            className="text-sm flex-1"
+                        />
+                    </div>
+                    {tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                            {tags.map((tag) => (
+                                <Badge
+                                    key={tag}
+                                    variant="secondary"
+                                    className="text-xs cursor-pointer hover:bg-destructive/20"
+                                    onClick={() => setTags(tags.filter(t => t !== tag))}
+                                >
+                                    {tag}
+                                    <X className="w-3 h-3 ml-1" />
+                                </Badge>
+                            ))}
+                        </div>
+                    )}
+                    <p className="text-xs text-muted-foreground">
+                        Tags helfen der KI, diese Klausel zu finden. z.B. "kuendigung", "streng", "fristlos"
+                    </p>
+                </div>
+
+                {/* Tone selector */}
+                <div className="space-y-2">
+                    <Label className="text-sm">Ton der Klausel</Label>
+                    <Select value={tone} onValueChange={setTone}>
+                        <SelectTrigger className="w-full">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="neutral">Neutral (Standard)</SelectItem>
+                            <SelectItem value="streng">Streng (arbeitgeberfreundlich)</SelectItem>
+                            <SelectItem value="arbeitnehmerfreundlich">Arbeitnehmerfreundlich</SelectItem>
+                            <SelectItem value="moderat">Moderat (ausgewogen)</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                        Bestimmt, wann die KI diese Klausel bevorzugt. "Wasserdicht" = streng, "Fair" = arbeitnehmerfreundlich.
+                    </p>
+                </div>
+            </div>
+
             {/* Tips */}
             <Card className="bg-primary/5 border-primary/20">
                 <CardContent className="py-3 px-4">
@@ -572,6 +673,8 @@ export const ClauseFormDialog = ({
                         <div className="text-sm text-foreground">
                             <strong>Tipp:</strong> Verwenden Sie eindeutige Titel, die den Inhalt
                             der Klausel beschreiben. Das erleichtert das spätere Auffinden.
+                            Die KI-Metadaten (Tags, Beschreibung, Ton) sind optional, verbessern
+                            aber die automatische Klausel-Auswahl erheblich.
                         </div>
                     </div>
                 </CardContent>
