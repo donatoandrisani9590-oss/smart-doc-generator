@@ -8,7 +8,7 @@ import re
 
 class UserBase(BaseModel):
     """Base schema for user data."""
-    email: EmailStr = Field(..., description="User email address")
+    email: EmailStr = Field(..., max_length=255, description="User email address")
     is_active: bool = Field(True, description="Whether user is active")
     role: Literal["admin", "user"] = Field("user", description="User role")
     country_code: Optional[str] = Field("DE", min_length=2, max_length=2, description="ISO country code")

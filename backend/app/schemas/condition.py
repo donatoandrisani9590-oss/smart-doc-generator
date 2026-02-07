@@ -13,8 +13,8 @@ class SimpleCondition(BaseModel):
     Example: {"type": "simple", "field": "firmenwagen", "operator": "=", "value": true}
     """
     type: Literal["simple"] = "simple"
-    id: Optional[str] = None  # Frontend-generated ID for UI tracking
-    field: str = Field(..., min_length=1, description="Form field name to evaluate")
+    id: Optional[str] = Field(None, max_length=255, description="Frontend-generated ID for UI tracking")
+    field: str = Field(..., min_length=1, max_length=255, description="Form field name to evaluate")
     operator: Literal[
         "=", "!=",  # Equality
         ">", ">=", "<", "<=",  # Numeric comparison
@@ -41,7 +41,7 @@ class ConditionGroup(BaseModel):
     }
     """
     type: Literal["group"] = "group"
-    id: Optional[str] = None  # Frontend-generated ID for UI tracking
+    id: Optional[str] = Field(None, max_length=255, description="Frontend-generated ID for UI tracking")
     logic: Literal["and", "or"] = Field(default="and", description="How to combine conditions")
     conditions: List[Union[SimpleCondition, "ConditionGroup"]] = Field(
         default_factory=list,
@@ -71,8 +71,8 @@ class LegacyCondition(BaseModel):
     Legacy condition format for backwards compatibility.
     Example: {"field": "firmenwagen", "operator": "=", "value": true}
     """
-    field: str
-    operator: str = "="
+    field: str = Field(..., min_length=1, max_length=255, description="Form field name")
+    operator: str = Field(default="=", max_length=50, description="Comparison operator")
     value: Any = None
 
 

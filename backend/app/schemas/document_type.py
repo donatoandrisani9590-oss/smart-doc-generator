@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional, List
 
 class DocumentTypeClauseLink(BaseModel):
@@ -27,8 +27,8 @@ class DocumentTypeVariantGroupResponse(BaseModel):
     default_variant_id: Optional[int] = None
 
     # Nested Daten für Frontend
-    variant_group_name: Optional[str] = None
-    variant_group_description: Optional[str] = None
+    variant_group_name: Optional[str] = Field(None, max_length=255, description="Variant group name")
+    variant_group_description: Optional[str] = Field(None, max_length=1000, description="Variant group description")
     variant_count: int = 0
     variants: List[dict] = []  # Liste der Varianten mit id, name, is_default
 
@@ -37,15 +37,15 @@ class DocumentTypeVariantGroupResponse(BaseModel):
 
 
 class DocumentTypeBase(BaseModel):
-    name: str
-    country_code: str = "DE"  # DE or IT
-    category: Optional[str] = None
+    name: str = Field(..., max_length=255, description="Document type name")
+    country_code: str = Field(default="DE", max_length=2, description="DE or IT")
+    category: Optional[str] = Field(None, max_length=255, description="Document category")
     is_active: bool = True
-    description: Optional[str] = None
+    description: Optional[str] = Field(None, max_length=1000, description="Document type description")
 
     # Standardwerte für diesen Dokumenttyp (v4.2 UX-Verbesserung)
     default_probation_months: int = 6
-    default_notice_period: str = "4 Wochen zum Monatsende"
+    default_notice_period: str = Field(default="4 Wochen zum Monatsende", max_length=500, description="Default notice period")
     default_vacation_days: int = 30
     default_weekly_hours: int = 40
 
@@ -54,17 +54,17 @@ class DocumentTypeCreate(DocumentTypeBase):
     variant_groups: List[DocumentTypeVariantGroupLink] = []  # Varianten-Gruppen zuordnen
 
 class DocumentTypeUpdate(BaseModel):
-    name: Optional[str] = None
-    country_code: Optional[str] = None
-    category: Optional[str] = None
+    name: Optional[str] = Field(None, max_length=255, description="Document type name")
+    country_code: Optional[str] = Field(None, max_length=2, description="DE or IT")
+    category: Optional[str] = Field(None, max_length=255, description="Document category")
     is_active: Optional[bool] = None
-    description: Optional[str] = None
+    description: Optional[str] = Field(None, max_length=1000, description="Document type description")
     clauses: Optional[List[DocumentTypeClauseLink]] = None
     variant_groups: Optional[List[DocumentTypeVariantGroupLink]] = None  # Varianten-Gruppen aktualisieren
 
     # Standardwerte optional aktualisierbar
     default_probation_months: Optional[int] = None
-    default_notice_period: Optional[str] = None
+    default_notice_period: Optional[str] = Field(None, max_length=500, description="Default notice period")
     default_vacation_days: Optional[int] = None
     default_weekly_hours: Optional[int] = None
 
