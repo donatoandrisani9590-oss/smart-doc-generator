@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2, History, RotateCcw, Eye, Clock } from "lucide-react";
 import { useClauseVersions, useRestoreClauseVersion } from "@/hooks/useApi";
+import { sanitizeHtml } from "@/utils/sanitize";
 import {
     Dialog,
     DialogContent,
@@ -112,7 +113,7 @@ export const ClauseVersionHistory = ({ clauseId, clauseTitle }: ClauseVersionHis
                                                 </DialogHeader>
                                                 <div
                                                     className="prose prose-sm max-w-none p-4 bg-muted rounded-lg"
-                                                    dangerouslySetInnerHTML={{ __html: version.content }}
+                                                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(version.content) }}
                                                 />
                                                 <Button
                                                     onClick={() => handleRestore(version.id)}

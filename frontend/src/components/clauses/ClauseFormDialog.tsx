@@ -78,6 +78,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { sanitizeHtml } from "@/utils/sanitize";
 import {
     useClauseImpact,
     useClauseNotes,
@@ -666,7 +667,7 @@ export const ClauseFormDialog = ({
                                 <div className="mt-2 p-4 bg-background rounded-lg">
                                     <div
                                         className="prose prose-sm max-w-none"
-                                        dangerouslySetInnerHTML={{ __html: content }}
+                                        dangerouslySetInnerHTML={{ __html: sanitizeHtml(content) }}
                                     />
                                 </div>
                             </div>

@@ -87,6 +87,7 @@ import { ClauseVariantManager } from "@/components/clauses/ClauseVariantManager"
 import { ClauseVersionDiff } from "@/components/clauses/ClauseVersionDiff";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/toast";
+import { sanitizeHtml } from "@/utils/sanitize";
 
 // Version History Dialog Component
 const VersionHistoryDialog = ({
@@ -329,7 +330,7 @@ const ClausePreviewDialog = ({
                     <div className="p-4 bg-background rounded-lg">
                         <div
                             className="prose prose-sm max-w-none"
-                            dangerouslySetInnerHTML={{ __html: clause.content || "" }}
+                            dangerouslySetInnerHTML={{ __html: sanitizeHtml(clause.content || "") }}
                         />
                     </div>
 

@@ -10,6 +10,7 @@
 
 import { useState, useMemo, useEffect } from "react";
 import { apiFetch } from "@/lib/api-client";
+import { sanitizeHtml } from "@/utils/sanitize";
 import {
     Dialog,
     DialogContent,
@@ -310,7 +311,7 @@ export function ClauseVersionDiff({
                                     {leftData && (
                                         <div
                                             className="prose prose-sm dark:prose-invert max-w-none"
-                                            dangerouslySetInnerHTML={{ __html: leftData.content_html }}
+                                            dangerouslySetInnerHTML={{ __html: sanitizeHtml(leftData.content_html) }}
                                         />
                                     )}
                                 </div>
@@ -330,7 +331,7 @@ export function ClauseVersionDiff({
                                     {rightData && (
                                         <div
                                             className="prose prose-sm dark:prose-invert max-w-none"
-                                            dangerouslySetInnerHTML={{ __html: rightData.content_html }}
+                                            dangerouslySetInnerHTML={{ __html: sanitizeHtml(rightData.content_html) }}
                                         />
                                     )}
                                 </div>

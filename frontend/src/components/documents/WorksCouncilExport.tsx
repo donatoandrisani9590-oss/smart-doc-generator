@@ -10,6 +10,7 @@
 import { useState, useEffect } from "react";
 import { apiFetch } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
+import { sanitizeHtml, printSanitizedHtml } from "@/utils/sanitize";
 import {
     Dialog,
     DialogContent,
@@ -222,7 +223,7 @@ export function WorksCouncilExport({
         // In Produktion: PDF generieren und herunterladen
         const printWindow = window.open("", "_blank");
         if (printWindow) {
-            printWindow.document.write(`
+            printSanitizedHtml(printWindow, `
                 <!DOCTYPE html>
                 <html>
                 <head>
@@ -364,7 +365,7 @@ export function WorksCouncilExport({
                             {previewHtml ? (
                                 <div
                                     className="prose prose-sm max-w-none bg-white p-6 border rounded-lg shadow-sm"
-                                    dangerouslySetInnerHTML={{ __html: previewHtml }}
+                                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(previewHtml) }}
                                 />
                             ) : (
                                 <div className="text-center py-8 text-muted-foreground">

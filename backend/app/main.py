@@ -227,7 +227,7 @@ app = FastAPI(
     """,
     version="1.0.0",
     # OpenAPI immer verfügbar für Copilot Studio / Power Platform Integration
-    openapi_url=f"{settings.API_V1_STR}/openapi.json",
+    openapi_url=f"{settings.API_V1_STR}/openapi.json" if settings.DEBUG else None,
     docs_url=f"{settings.API_V1_STR}/docs" if settings.DEBUG else None,
     redoc_url=f"{settings.API_V1_STR}/redoc" if settings.DEBUG else None,
     lifespan=lifespan,
