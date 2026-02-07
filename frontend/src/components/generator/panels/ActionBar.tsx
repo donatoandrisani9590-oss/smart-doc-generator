@@ -2,17 +2,19 @@
  * ActionBar - Export und Speichern Buttons für den Split-Screen Editor
  *
  * Fixiert am unteren Rand des linken Panels:
+ * - Auto-Save Status Anzeige
  * - ValidationProgress Ampel (zeigt Formular-Status)
- * - Entwurf speichern Button
+ * - Entwurf speichern Button (erlaubt partielle Daten)
  * - PDF Export Button
  * - DOCX Export Button
  *
  * Zeigt Loading-States während Export/Speichern.
- * v4.2.1: ValidationProgress Ampel integriert
+ * v5.1: Draft-Speichern ohne vollständige Validierung, Auto-Save Status
  */
 
 import { useState, useMemo, useCallback } from "react";
-import { Save, FileText, FileType2, Loader2, AlertCircle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Save, FileText, FileType2, Loader2, AlertCircle, CheckCircle2, Cloud, CloudOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
 import { useWizardContext } from "../WizardContext";
@@ -31,8 +33,9 @@ const REQUIRED_FIELDS = [
 
 export const ActionBar = () => {
     const { state, actions } = useWizardContext();
-    const { documentTypeId, documentTitle, formData, isGenerating } = state;
+    const { documentTypeId, documentTitle, formData, isGenerating, autoSaveStatus, lastSavedText } = state;
     const toast = useToast();
+    const navigate = useNavigate();
 
     const [isSavingDraft, setIsSavingDraft] = useState(false);
     const [isExportingPdf, setIsExportingPdf] = useState(false);
@@ -99,6 +102,8 @@ export const ActionBar = () => {
     }, []);
 
     const canExport = documentTypeId && validationState.isValid;
+    // Drafts only need a document type - partial data is explicitly allowed
+    const canSaveDraft = !!documentTypeId;
 
     // Handler für Klick auf deaktivierte Export-Buttons (zeigt Toast mit fehlenden Feldern)
     const handleDisabledExportClick = useCallback(() => {
@@ -124,9 +129,9 @@ export const ActionBar = () => {
         }
     }, [validationState, documentTypeId, toast]);
 
-    // Entwurf speichern
+    // Entwurf speichern (erlaubt partielle Daten)
     const handleSaveDraft = async () => {
-        if (!canExport) return;
+        if (!canSaveDraft) return;
         setIsSavingDraft(true);
         try {
             await actions.saveDraft();
@@ -171,10 +176,42 @@ export const ActionBar = () => {
         }
     };
 
+    // Navigate to "Meine Dokumente" from success modal
+    const handleGoToDocuments = () => {
+        setShowSuccessModal(false);
+        navigate("/documents");
+    };
+
     const isAnyLoading = isSavingDraft || isExportingPdf || isExportingDocx || isGenerating;
+
+    // Auto-Save Status Anzeige
+    const autoSaveIndicator = useMemo(() => {
+        switch (autoSaveStatus) {
+            case 'saving':
+                return { icon: <Cloud className="w-3 h-3 animate-pulse" />, text: "Speichert...", color: "text-blue-500" };
+            case 'saved':
+                return { icon: <CheckCircle2 className="w-3 h-3" />, text: lastSavedText || "Gespeichert", color: "text-green-600" };
+            case 'error':
+                return { icon: <CloudOff className="w-3 h-3" />, text: "Speichern fehlgeschlagen", color: "text-red-500" };
+            case 'offline':
+                return { icon: <CloudOff className="w-3 h-3" />, text: "Offline gespeichert", color: "text-amber-500" };
+            case 'pending':
+                return { icon: <Cloud className="w-3 h-3" />, text: "Änderungen...", color: "text-gray-400" };
+            default:
+                return null;
+        }
+    }, [autoSaveStatus, lastSavedText]);
 
     return (
         <div className="p-4 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 space-y-3">
+            {/* Auto-Save Status */}
+            {autoSaveIndicator && (
+                <div className={`flex items-center justify-center gap-1.5 text-xs ${autoSaveIndicator.color}`}>
+                    {autoSaveIndicator.icon}
+                    <span>{autoSaveIndicator.text}</span>
+                </div>
+            )}
+
             {/* ValidationProgress Ampel */}
             <ValidationProgress
                 validation={validationState}
@@ -182,12 +219,12 @@ export const ActionBar = () => {
                 className="w-full"
             />
 
-            {/* Entwurf speichern */}
+            {/* Entwurf speichern - erlaubt auch partielle Daten */}
             <Button
                 variant="outline"
                 className="w-full gap-2"
                 onClick={handleSaveDraft}
-                disabled={!canExport || isAnyLoading}
+                disabled={!canSaveDraft || isAnyLoading}
             >
                 {isSavingDraft ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -245,14 +282,14 @@ export const ActionBar = () => {
                 </p>
             )}
 
-            {/* Export Success Modal - Magic Moment! */}
+            {/* Export Success Modal */}
             <ExportSuccessModal
                 isOpen={showSuccessModal}
                 onClose={() => setShowSuccessModal(false)}
                 documentTitle={documentTitle}
                 exportFormat={lastExportFormat}
                 onDownloadAgain={handleDownloadAgain}
-                documentsThisMonth={1} // TODO: Aus Backend laden
+                onGoToDocuments={handleGoToDocuments}
             />
         </div>
     );
