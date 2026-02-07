@@ -44,6 +44,14 @@ class Comment(Base):
     anchor_type = Column(String(50), nullable=False, index=True)
     anchor_id = Column(Integer, nullable=False, index=True)
 
+    # Kontextbezogene Verankerung (Block-basierte Kommentare)
+    # Ermöglicht Kommentare an spezifischen Absätzen/Blöcken statt nur am Gesamtdokument.
+    # block_id: ID des Blocks/Absatzes (z.B. "clause_3", "paragraph_5", "section_header_2")
+    # selection_range: JSON mit Start/End-Position der markierten Textstelle
+    #   Format: {"start": 0, "end": 42, "text": "markierter Text..."}
+    block_id = Column(String(255), nullable=True, index=True)
+    selection_range = Column(Text, nullable=True)  # JSON: {"start": int, "end": int, "text": str}
+
     # Thread-Struktur (NULL = Root-Kommentar)
     parent_id = Column(Integer, ForeignKey("comments.id", ondelete="CASCADE"), nullable=True, index=True)
 
@@ -73,6 +81,7 @@ class Comment(Base):
     __table_args__ = (
         Index("ix_comments_anchor", "anchor_type", "anchor_id"),
         Index("ix_comments_created", "created_at", "is_deleted"),
+        Index("ix_comments_block", "anchor_type", "anchor_id", "block_id"),
     )
 
 

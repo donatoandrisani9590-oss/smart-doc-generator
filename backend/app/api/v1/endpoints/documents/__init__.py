@@ -8,6 +8,7 @@ from app.api.v1.endpoints.documents import (
     export,
     repository,
     document_upload,
+    approvals,
 )
 
 __all__ = [
@@ -19,4 +20,5 @@ __all__ = [
     "export",
     "repository",
     "document_upload",
+    "approvals",
 ]
