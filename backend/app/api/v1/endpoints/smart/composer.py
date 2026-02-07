@@ -726,7 +726,7 @@ async def search_library(
 
     Gibt nur aktive und freigegebene Klauseln zurück.
     """
-    # Base Query
+    # Base Query (Tenant-isoliert: nur eigene + globale Klauseln)
     query = select(Clause).where(
         and_(
             Clause.is_active == True,
@@ -734,7 +734,11 @@ async def search_library(
                 Clause.country_code == country_code,
                 Clause.country_code == None  # Länderübergreifende Klauseln
             ),
-            Clause.approval_status.in_(["active", "approved"])
+            Clause.approval_status.in_(["active", "approved"]),
+            or_(
+                Clause.user_id == current_user.id,
+                Clause.user_id == None,
+            ),
         )
     )
 
@@ -796,7 +800,7 @@ async def get_library_categories(
     db: AsyncSession = Depends(get_db),
     current_user=Depends(get_current_user)
 ):
-    """Gibt alle verfügbaren Kategorien in der Bibliothek zurück."""
+    """Gibt alle verfügbaren Kategorien in der Bibliothek zurück (Tenant-isoliert)."""
     result = await db.execute(
         select(Clause.category, func.count(Clause.id))
         .where(
@@ -806,7 +810,11 @@ async def get_library_categories(
                     Clause.country_code == country_code,
                     Clause.country_code == None
                 ),
-                Clause.category != None
+                Clause.category != None,
+                or_(
+                    Clause.user_id == current_user.id,
+                    Clause.user_id == None,
+                ),
             )
         )
         .group_by(Clause.category)

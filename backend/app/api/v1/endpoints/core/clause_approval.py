@@ -12,7 +12,7 @@ from typing import Any, List, Annotated, Optional
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, or_
 from pydantic import BaseModel
 
 from app.db import get_db
@@ -20,6 +20,12 @@ from app.api import deps
 from app.models.documents import Clause
 
 router = APIRouter()
+
+
+def _check_clause_access(clause: Clause, user) -> None:
+    """Verify user has access to this clause (own or global)."""
+    if clause.user_id is not None and clause.user_id != user.id:
+        raise HTTPException(status_code=403, detail="Zugriff verweigert")
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -98,7 +104,13 @@ async def get_pending_approvals(
     Query-Parameter:
     - status: "pending", "approved", "rejected" oder None für alle
     """
-    query = select(Clause)
+    # Tenant Isolation: Only own + global clauses
+    query = select(Clause).where(
+        or_(
+            Clause.user_id == current_user.id,
+            Clause.user_id == None,
+        )
+    )
 
     if status and status != "all":
         query = query.where(Clause.approval_status == status)
@@ -137,11 +149,12 @@ async def get_approval_status(
     current_user: Annotated[Any, Depends(deps.get_current_user)],
 ) -> Any:
     """
-    Freigabe-Status einer Klausel abrufen.
+    Freigabe-Status einer Klausel abrufen (Tenant-isoliert).
     """
     clause = await db.get(Clause, clause_id)
     if not clause:
         raise HTTPException(status_code=404, detail="Klausel nicht gefunden")
+    _check_clause_access(clause, current_user)
 
     return ClauseApprovalStatus(
         clause_id=clause.id,
@@ -163,13 +176,14 @@ async def request_approval(
     current_user: Annotated[Any, Depends(deps.get_current_user)],
 ) -> Any:
     """
-    Freigabe für eine Klausel anfordern.
+    Freigabe für eine Klausel anfordern (Tenant-isoliert).
 
     Status: draft → pending
     """
     clause = await db.get(Clause, clause_id)
     if not clause:
         raise HTTPException(status_code=404, detail="Klausel nicht gefunden")
+    _check_clause_access(clause, current_user)
 
     if clause.approval_status not in (None, "draft", "rejected", "active"):
         raise HTTPException(
@@ -201,7 +215,7 @@ async def review_clause(
     current_user: Annotated[Any, Depends(deps.get_current_active_admin)],
 ) -> Any:
     """
-    Klausel prüfen und freigeben/ablehnen.
+    Klausel prüfen und freigeben/ablehnen (Tenant-isoliert).
 
     Status: pending → approved/rejected
     Bei Freigabe: approved → active
@@ -211,6 +225,7 @@ async def review_clause(
     clause = await db.get(Clause, clause_id)
     if not clause:
         raise HTTPException(status_code=404, detail="Klausel nicht gefunden")
+    _check_clause_access(clause, current_user)
 
     if clause.approval_status != "pending":
         raise HTTPException(
@@ -246,13 +261,14 @@ async def reset_to_draft(
     current_user: Annotated[Any, Depends(deps.get_current_user)],
 ) -> Any:
     """
-    Abgelehnte Klausel zurück zu Entwurf setzen.
+    Abgelehnte Klausel zurück zu Entwurf setzen (Tenant-isoliert).
 
     Status: rejected → draft
     """
     clause = await db.get(Clause, clause_id)
     if not clause:
         raise HTTPException(status_code=404, detail="Klausel nicht gefunden")
+    _check_clause_access(clause, current_user)
 
     if clause.approval_status != "rejected":
         raise HTTPException(
@@ -283,11 +299,12 @@ async def approve_clause(
     current_user: Any = Depends(deps.get_current_active_admin),
 ) -> Any:
     """
-    Klausel direkt freigeben (vereinfachter Endpoint für Smart UX).
+    Klausel direkt freigeben (vereinfachter Endpoint für Smart UX, Tenant-isoliert).
     """
     clause = await db.get(Clause, clause_id)
     if not clause:
         raise HTTPException(status_code=404, detail="Klausel nicht gefunden")
+    _check_clause_access(clause, current_user)
 
     if clause.approval_status != "pending":
         raise HTTPException(
@@ -339,11 +356,12 @@ async def reject_clause(
     current_user: Annotated[Any, Depends(deps.get_current_active_admin)],
 ) -> Any:
     """
-    Klausel direkt ablehnen (vereinfachter Endpoint für Smart UX).
+    Klausel direkt ablehnen (vereinfachter Endpoint für Smart UX, Tenant-isoliert).
     """
     clause = await db.get(Clause, clause_id)
     if not clause:
         raise HTTPException(status_code=404, detail="Klausel nicht gefunden")
+    _check_clause_access(clause, current_user)
 
     if clause.approval_status != "pending":
         raise HTTPException(

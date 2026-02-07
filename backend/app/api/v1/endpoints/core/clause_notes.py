@@ -21,6 +21,18 @@ from app.models.documents import ClauseNote, Clause
 router = APIRouter()
 
 
+async def _get_clause_with_access_check(
+    clause_id: int, db, current_user
+) -> Clause:
+    """Load clause and verify tenant access."""
+    clause = await db.get(Clause, clause_id)
+    if not clause:
+        raise HTTPException(status_code=404, detail="Klausel nicht gefunden")
+    if clause.user_id is not None and clause.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Zugriff verweigert")
+    return clause
+
+
 # ══════════════════════════════════════════════════════════════════════════════
 # SCHEMAS
 # ══════════════════════════════════════════════════════════════════════════════
@@ -60,13 +72,11 @@ async def get_clause_notes(
     current_user: Annotated[Any, Depends(deps.get_current_user)],
 ) -> Any:
     """
-    Alle Notizen für eine Klausel abrufen.
+    Alle Notizen für eine Klausel abrufen (Tenant-isoliert).
     Sortiert: Angeheftete zuerst, dann nach Datum (neueste zuerst).
     """
-    # Prüfen ob Klausel existiert
-    clause = await db.get(Clause, clause_id)
-    if not clause:
-        raise HTTPException(status_code=404, detail="Klausel nicht gefunden")
+    # Prüfen ob Klausel existiert + Tenant-Check
+    clause = await _get_clause_with_access_check(clause_id, db, current_user)
 
     query = (
         select(ClauseNote)
@@ -85,12 +95,10 @@ async def create_clause_note(
     current_user: Annotated[Any, Depends(deps.get_current_user)],
 ) -> Any:
     """
-    Neue Notiz zu einer Klausel hinzufügen.
+    Neue Notiz zu einer Klausel hinzufügen (Tenant-isoliert).
     """
-    # Prüfen ob Klausel existiert
-    clause = await db.get(Clause, clause_id)
-    if not clause:
-        raise HTTPException(status_code=404, detail="Klausel nicht gefunden")
+    # Prüfen ob Klausel existiert + Tenant-Check
+    clause = await _get_clause_with_access_check(clause_id, db, current_user)
 
     # Notiz erstellen
     note = ClauseNote(
@@ -118,11 +126,19 @@ async def update_clause_note(
     current_user: Annotated[Any, Depends(deps.get_current_user)],
 ) -> Any:
     """
-    Notiz aktualisieren.
+    Notiz aktualisieren (nur eigene Notizen oder Admin).
     """
+    # Tenant-Check auf die Klausel
+    await _get_clause_with_access_check(clause_id, db, current_user)
+
     note = await db.get(ClauseNote, note_id)
     if not note or note.clause_id != clause_id:
         raise HTTPException(status_code=404, detail="Notiz nicht gefunden")
+
+    # Ownership-Check: Nur der Ersteller oder Admins dürfen Notizen ändern
+    note_owner = str(getattr(note, "created_by_user_id", ""))
+    if note_owner != str(current_user.id) and getattr(current_user, "role", "") != "admin":
+        raise HTTPException(status_code=403, detail="Nur der Ersteller oder Admins dürfen Notizen ändern")
 
     # Update-Felder
     if note_in.content is not None:
@@ -145,8 +161,11 @@ async def delete_clause_note(
     current_user: Annotated[Any, Depends(deps.get_current_active_admin)],
 ) -> Any:
     """
-    Notiz löschen (nur Admins).
+    Notiz löschen (nur Admins, Tenant-isoliert).
     """
+    # Tenant-Check auf die Klausel
+    await _get_clause_with_access_check(clause_id, db, current_user)
+
     note = await db.get(ClauseNote, note_id)
     if not note or note.clause_id != clause_id:
         raise HTTPException(status_code=404, detail="Notiz nicht gefunden")

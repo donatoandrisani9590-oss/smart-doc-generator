@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import Any, List, Annotated, Optional
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
+from sqlalchemy import select, func, or_
 from pydantic import BaseModel
 
 from app.db import get_db
@@ -43,7 +43,13 @@ async def read_clauses(
     limit: int = 100,
     country_code: Optional[str] = None
 ) -> Any:
-    query = select(models.Clause)
+    # Tenant Isolation: Only own clauses + global clauses (user_id IS NULL)
+    query = select(models.Clause).where(
+        or_(
+            models.Clause.user_id == current_user.id,
+            models.Clause.user_id == None,
+        )
+    )
     if country_code:
         query = query.where(models.Clause.country_code == country_code)
 
@@ -72,10 +78,12 @@ async def get_clause_impact_analysis(
     - "Diese Klausel wird in 4 Dokumenttypen verwendet"
     - Nutzung in den letzten 30 Tagen anzeigen
     """
-    # Klausel laden
+    # Klausel laden (mit Tenant-Prüfung)
     clause = await db.get(models.Clause, clause_id)
     if not clause:
         raise HTTPException(status_code=404, detail="Klausel nicht gefunden")
+    if clause.user_id is not None and clause.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Zugriff verweigert")
 
     # Alle Dokumenttypen finden, die diese Klausel verwenden
     query = (
@@ -143,10 +151,13 @@ async def read_clause(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[models.Base, Depends(deps.get_current_user)],
 ) -> Any:
-    """Einzelne Klausel abrufen."""
+    """Einzelne Klausel abrufen (Tenant-isoliert)."""
     clause = await db.get(models.Clause, clause_id)
     if not clause:
         raise HTTPException(status_code=404, detail="Klausel nicht gefunden")
+    # Tenant Isolation: Block access to other users' private clauses
+    if clause.user_id is not None and clause.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Zugriff verweigert")
     return clause
 
 
@@ -160,9 +171,11 @@ async def create_clause(
     """
     Neue Klausel erstellen.
 
-    Erfordert Admin-Rechte.
+    Erfordert Admin-Rechte. Setzt user_id für Tenant Isolation.
     """
-    clause = models.Clause(**clause_in.dict())
+    clause_data = clause_in.dict()
+    clause_data["user_id"] = current_user.id
+    clause = models.Clause(**clause_data)
     db.add(clause)
     await db.commit()
     await db.refresh(clause)
@@ -181,10 +194,14 @@ async def update_clause(
     Klausel aktualisieren.
 
     Erfordert Admin-Rechte. Die Versionsnummer wird automatisch erhöht.
+    Tenant-isoliert: Nur eigene oder globale Klauseln dürfen bearbeitet werden.
     """
     clause = await db.get(models.Clause, clause_id)
     if not clause:
         raise HTTPException(status_code=404, detail="Klausel nicht gefunden")
+    # Tenant Isolation: Only owner or global clauses
+    if clause.user_id is not None and clause.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Zugriff verweigert")
 
     # Update nur die Felder, die im Request enthalten sind
     update_data = clause_in.dict(exclude_unset=True)
@@ -211,10 +228,13 @@ async def delete_clause(
     Klausel löschen.
 
     Erfordert Admin-Rechte. Entfernt die Klausel auch aus allen Dokumenttypen.
+    Tenant-isoliert: Nur eigene Klauseln dürfen gelöscht werden.
     """
     clause = await db.get(models.Clause, clause_id)
     if not clause:
         raise HTTPException(status_code=404, detail="Klausel nicht gefunden")
+    if clause.user_id is not None and clause.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Zugriff verweigert")
 
     # Prüfe, ob Klausel in Dokumenttypen verwendet wird
     usage_query = (
