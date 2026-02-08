@@ -179,6 +179,11 @@ export const Dashboard = () => {
                                 className="pl-11 h-12 bg-white dark:bg-card border-transparent shadow-soft-sm focus:shadow-soft-lg transition-all rounded-xl text-base"
                                 data-global-search
                             />
+                            {searchQuery.trim() && (
+                                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-muted-foreground bg-warm-100 px-2 py-0.5 rounded">
+                                    Enter drücken ↵
+                                </span>
+                            )}
                         </div>
                     </form>
 
