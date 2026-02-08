@@ -409,7 +409,7 @@ export function MagicWordImport({ onSuccess, onCancel }: MagicWordImportProps) {
                 <CardContent className="space-y-4">
                     {/* Clause title */}
                     <div>
-                        <Label htmlFor="clause-title">Titel der Klausel</Label>
+                        <Label htmlFor="clause-title">Titel des Textbausteins</Label>
                         <Input
                             id="clause-title"
                             value={clauseTitle}

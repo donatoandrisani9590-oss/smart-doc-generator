@@ -157,7 +157,7 @@ export const PromotionDialog = ({
                     {/* Titel */}
                     <div className="space-y-2">
                         <Label htmlFor="promotion-title">
-                            Titel der Klausel <span className="text-red-500">*</span>
+                            Titel des Textbausteins <span className="text-red-500">*</span>
                         </Label>
                         <Input
                             id="promotion-title"

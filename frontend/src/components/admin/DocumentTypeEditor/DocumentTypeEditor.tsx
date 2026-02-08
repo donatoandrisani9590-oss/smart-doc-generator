@@ -32,7 +32,7 @@ import { BasicsStep } from "./BasicsStep";
 import { ClauseSelectionStep } from "./ClauseSelectionStep";
 import { SummaryStep } from "./SummaryStep";
 
-const STEP_LABELS = ["Grunddaten", "Klauseln", "Übersicht"] as const;
+const STEP_LABELS = ["Grunddaten", "Textbausteine", "Übersicht"] as const;
 
 export const DocumentTypeEditor = ({
     open,

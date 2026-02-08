@@ -124,7 +124,7 @@ export const AddVariantDialog = ({
                             onValueChange={(v) => setSelectedClauseId(parseInt(v))}
                         >
                             <SelectTrigger>
-                                <SelectValue placeholder="Klausel wählen..." />
+                                <SelectValue placeholder="Textbaustein wählen..." />
                             </SelectTrigger>
                             <SelectContent>
                                 {availableClauses?.map((clause: Clause) => (

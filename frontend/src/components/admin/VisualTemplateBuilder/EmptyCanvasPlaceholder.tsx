@@ -29,10 +29,10 @@ export const EmptyCanvasPlaceholder = ({ isOver, onAddSection }: EmptyCanvasPlac
                 />
             </div>
             <p className="text-lg font-medium text-muted-foreground">
-                {isOver ? "Klausel hier ablegen" : "Klauseln hier ablegen"}
+                {isOver ? "Textbaustein hier ablegen" : "Textbausteine hier ablegen"}
             </p>
             <p className="text-sm text-muted-foreground mt-1">
-                Ziehen Sie Klauseln aus der Toolbox hierher
+                Ziehen Sie Textbausteine aus der Toolbox hierher
             </p>
             {onAddSection && (
                 <Button

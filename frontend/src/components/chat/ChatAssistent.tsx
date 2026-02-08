@@ -66,7 +66,7 @@ export const ChatAssistent = ({ context, countryCode = "DE", onInsertText }: Cha
     };
 
     const quickPrompts = [
-        { label: "Klausel formulieren", prompt: "Formuliere eine Klausel für..." },
+        { label: "Textbaustein formulieren", prompt: "Formuliere einen Textbaustein für..." },
         { label: "Text verbessern", prompt: "Verbessere folgenden Text: " },
         { label: "Rechtsfrage", prompt: "Welche rechtlichen Aspekte muss ich bei ... beachten?" },
     ];
@@ -88,7 +88,7 @@ export const ChatAssistent = ({ context, countryCode = "DE", onInsertText }: Cha
                                 onClick={() => setMode(m)}
                                 className="text-xs"
                             >
-                                {m === "general" ? "Allgemein" : m === "clause" ? "Klauseln" : "Formell"}
+                                {m === "general" ? "Allgemein" : m === "clause" ? "Textbausteine" : "Formell"}
                             </Button>
                         ))}
                     </div>

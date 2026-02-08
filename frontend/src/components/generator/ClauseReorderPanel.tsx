@@ -344,8 +344,8 @@ const SortableClauseItem = ({
                             {clause.is_mandatory
                                 ? "Pflichtklausel kann nicht deaktiviert werden"
                                 : clause.is_enabled
-                                ? "Klausel deaktivieren"
-                                : "Klausel aktivieren"}
+                                ? "Textbaustein deaktivieren"
+                                : "Textbaustein aktivieren"}
                         </p>
                     </TooltipContent>
                 </Tooltip>

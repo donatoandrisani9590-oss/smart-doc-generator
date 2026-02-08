@@ -350,7 +350,7 @@ export const SortableConditionRow = ({
                         disabled={disabled}
                     >
                         <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Klausel wählen..." />
+                            <SelectValue placeholder="Textbaustein wählen..." />
                         </SelectTrigger>
                         <SelectContent className="max-h-[300px]">
                             {filteredClauses.map((clause) => (

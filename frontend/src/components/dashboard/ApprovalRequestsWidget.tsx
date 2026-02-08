@@ -130,7 +130,7 @@ export function ApprovalRequestsWidget({
       await api.post(`/api/v1/clause-approval/${selectedItem.id}/approve`, {
         comment: comment || undefined,
       });
-      toast.success("Klausel genehmigt");
+      toast.success("Textbaustein genehmigt");
       setDialogType(null);
       setSelectedItem(null);
       setComment("");
@@ -151,7 +151,7 @@ export function ApprovalRequestsWidget({
       await api.post(`/api/v1/clause-approval/${selectedItem.id}/reject`, {
         reason: comment,
       });
-      toast.success("Klausel abgelehnt");
+      toast.success("Textbaustein abgelehnt");
       setDialogType(null);
       setSelectedItem(null);
       setComment("");
