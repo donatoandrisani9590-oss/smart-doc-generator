@@ -61,6 +61,9 @@ class DocumentType(Base):
     custom_margin_top_cm = Column(String(10), nullable=True)
     custom_margin_bottom_cm = Column(String(10), nullable=True)
 
+    # KI-Anweisungen (dokumenttyp-spezifisch, ergänzt globale Anweisungen)
+    ai_instructions = Column(Text, nullable=True)  # z.B. "Kollektivvertragsformulierung verwenden"
+
     # Referenz zur Quell-Vorlage (für "von Vorlage übernommen")
     source_template_id = Column(Integer, ForeignKey("document_types.id", ondelete="SET NULL"), nullable=True)
 
@@ -373,6 +376,9 @@ class CompanySettings(Base):
     default_notice_period = Column(String(100), default="4 Wochen zum Monatsende")
     default_vacation_days = Column(Integer, default=30)
     default_weekly_hours = Column(Integer, default=40)
+
+    # KI-Anweisungen (globale Instruktionen für alle LLM-Prompts dieses Landes)
+    ai_instructions = Column(Text, nullable=True)
 
     # Timestamps
     updated_at = Column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now())

@@ -49,6 +49,9 @@ class DocumentTypeBase(BaseModel):
     default_vacation_days: int = 30
     default_weekly_hours: int = 40
 
+    # KI-Anweisungen (dokumenttyp-spezifisch)
+    ai_instructions: Optional[str] = Field(None, description="AI instructions specific to this document type")
+
 class DocumentTypeCreate(DocumentTypeBase):
     clauses: List[DocumentTypeClauseLink] = []
     variant_groups: List[DocumentTypeVariantGroupLink] = []  # Varianten-Gruppen zuordnen
@@ -67,6 +70,9 @@ class DocumentTypeUpdate(BaseModel):
     default_notice_period: Optional[str] = Field(None, max_length=500, description="Default notice period")
     default_vacation_days: Optional[int] = None
     default_weekly_hours: Optional[int] = None
+
+    # KI-Anweisungen
+    ai_instructions: Optional[str] = Field(None, description="AI instructions specific to this document type")
 
 class DocumentTypeInDBBase(DocumentTypeBase):
     id: int

@@ -168,6 +168,7 @@ def build_clause_catalog_prompt(clauses: List[Dict[str, Any]]) -> str:
 def build_ai_clause_system_prompt(
     clause_catalog: str,
     country_code: str = "DE",
+    custom_instructions: str = "",
 ) -> str:
     """
     Build the complete system prompt for AI clause selection.
@@ -216,7 +217,7 @@ ANTWORT-FORMAT (strikt JSON):
   "warnings": ["<Optionale Hinweise, z.B. fehlende Klauseln>"]
 }}
 
-{clause_catalog}"""
+{clause_catalog}{custom_instructions}"""
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -230,6 +231,7 @@ async def select_clauses_with_ai(
     country_code: str = "DE",
     document_type: Optional[str] = None,
     category_filter: Optional[str] = None,
+    document_type_id: Optional[int] = None,
 ) -> Dict[str, Any]:
     """
     Main entry point: Select clauses from user's library using AI.
@@ -268,8 +270,12 @@ async def select_clauses_with_ai(
     # 2. Build catalog prompt
     clause_catalog = build_clause_catalog_prompt(clauses)
 
+    # 2.5 Load custom AI instructions
+    from app.services.ai_instructions import get_ai_instructions
+    custom_instructions = await get_ai_instructions(db, country_code, document_type_id)
+
     # 3. Build system prompt
-    system_prompt = build_ai_clause_system_prompt(clause_catalog, country_code)
+    system_prompt = build_ai_clause_system_prompt(clause_catalog, country_code, custom_instructions)
 
     # 4. Build user message
     user_message = user_intent

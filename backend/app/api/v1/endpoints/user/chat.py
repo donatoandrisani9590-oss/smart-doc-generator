@@ -156,7 +156,7 @@ Attenzione a: Saluto e formula di chiusura corretti, Tono formale ma cortese, St
 # HELPER FUNCTIONS
 # ═══════════════════════════════════════════════════════════════════════════
 
-def get_system_prompt(mode: str, country_code: str, context: Optional[Dict] = None) -> str:
+def get_system_prompt(mode: str, country_code: str, context: Optional[Dict] = None, custom_instructions: str = "") -> str:
     """Get appropriate system prompt based on mode and country."""
     if country_code.upper() == "IT":
         prompt = IT_SYSTEM_PROMPTS.get(mode, IT_SYSTEM_PROMPTS["general"])
@@ -167,6 +167,10 @@ def get_system_prompt(mode: str, country_code: str, context: Optional[Dict] = No
     if context:
         context_str = "\n".join([f"- {k}: {v}" for k, v in context.items() if v])
         prompt += f"\n\nAktuelle Formulardaten:\n{context_str}"
+
+    # Add custom AI instructions
+    if custom_instructions:
+        prompt += custom_instructions
 
     return prompt
 
@@ -218,8 +222,12 @@ async def chat(
             detail=f"LLM nicht verfügbar: {str(e)}"
         )
 
+    # Load custom AI instructions
+    from app.services.ai_instructions import get_ai_instructions
+    custom_instructions = await get_ai_instructions(db, request.country_code)
+
     # Build messages
-    system_prompt = get_system_prompt(request.mode, request.country_code, request.context)
+    system_prompt = get_system_prompt(request.mode, request.country_code, request.context, custom_instructions)
 
     messages = [LLMMessage(role="system", content=system_prompt)]
     for msg in request.messages:
@@ -288,6 +296,10 @@ async def smart_chat(
             detail=f"LLM nicht verfügbar: {str(e)}"
         )
 
+    # Load custom AI instructions
+    from app.services.ai_instructions import get_ai_instructions
+    custom_instructions = await get_ai_instructions(db, request.country_code)
+
     # Use document mode for intent extraction
     system_prompt = SYSTEM_PROMPTS["document"]
 
@@ -295,6 +307,10 @@ async def smart_chat(
     if request.current_context:
         context_str = json.dumps(request.current_context, ensure_ascii=False, indent=2)
         system_prompt += f"\n\nAktueller Dokumentstatus:\n{context_str}"
+
+    # Add custom AI instructions
+    if custom_instructions:
+        system_prompt += custom_instructions
 
     messages = [
         LLMMessage(role="system", content=system_prompt),
@@ -425,6 +441,10 @@ async def suggest_clause(
             detail=f"LLM nicht verfügbar: {str(e)}"
         )
 
+    # Load custom AI instructions for fallback generation
+    from app.services.ai_instructions import get_ai_instructions as get_ai_instr
+    custom_instr = await get_ai_instr(db, country_code)
+
     country_name = "Deutschland" if country_code.upper() == "DE" else "Italien"
 
     prompt = f"""Erstelle eine rechtssichere Arbeitsvertragsklausel für folgendes Thema:
@@ -440,8 +460,12 @@ Die Klausel sollte:
 3. Branchenüblichen Standards entsprechen
 """
 
+    system_content = SYSTEM_PROMPTS["clause"]
+    if custom_instr:
+        system_content += custom_instr
+
     messages = [
-        LLMMessage(role="system", content=SYSTEM_PROMPTS["clause"]),
+        LLMMessage(role="system", content=system_content),
         LLMMessage(role="user", content=prompt)
     ]
 
@@ -495,8 +519,16 @@ async def improve_text(
 
     instruction = style_instructions.get(style, style_instructions["formal"])
 
+    # Load custom AI instructions
+    from app.services.ai_instructions import get_ai_instructions as get_ai_inst
+    custom_instructions = await get_ai_inst(db, "DE")
+
+    system_content = "Du bist ein Experte für Textoptimierung in Geschäftsdokumenten."
+    if custom_instructions:
+        system_content += custom_instructions
+
     messages = [
-        LLMMessage(role="system", content="Du bist ein Experte für Textoptimierung in Geschäftsdokumenten."),
+        LLMMessage(role="system", content=system_content),
         LLMMessage(role="user", content=f"{instruction}\n\nOriginaltext:\n{text}")
     ]
 

@@ -20,6 +20,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import {
     Building2,
     MapPin,
@@ -29,6 +30,7 @@ import {
     Loader2,
     CheckCircle,
     AlertCircle,
+    Bot,
 } from "lucide-react";
 import { apiFetch } from "@/lib/api-client";
 
@@ -42,6 +44,7 @@ interface CompanySettings {
     managing_director: string | null;
     commercial_register: string | null;
     tax_id: string | null;
+    ai_instructions: string | null;
     updated_at: string | null;
     updated_by: string | null;
 }
@@ -63,6 +66,7 @@ export default function CompanySettingsPage() {
         managing_director: "",
         commercial_register: "",
         tax_id: "",
+        ai_instructions: "",
     });
 
     // Fetch settings on country change
@@ -86,6 +90,7 @@ export default function CompanySettingsPage() {
                 managing_director: data.managing_director || "",
                 commercial_register: data.commercial_register || "",
                 tax_id: data.tax_id || "",
+                ai_instructions: data.ai_instructions || "",
             });
         } catch (err) {
             setError(err instanceof Error ? err.message : "Unbekannter Fehler");
@@ -246,6 +251,37 @@ export default function CompanySettingsPage() {
                     </CardContent>
                 </Card>
 
+                {/* AI Instructions Card */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <Bot className="w-5 h-5" />
+                            KI-Anweisungen
+                        </CardTitle>
+                        <CardDescription>
+                            Globale Anweisungen, die bei jeder KI-Aktion berücksichtigt werden
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium flex items-center gap-2">
+                                <Bot className="w-4 h-4 text-muted-foreground" />
+                                Anweisungen für die KI
+                            </label>
+                            <Textarea
+                                value={formData.ai_instructions}
+                                onChange={(e) => updateField("ai_instructions", e.target.value)}
+                                placeholder={"z.B. Verwende österreichisches Arbeitsrecht.\nAlle Dokumente per 'Sie'.\nFirmensitz Wien."}
+                                rows={8}
+                                className="resize-y"
+                            />
+                            <p className="text-xs text-muted-foreground">
+                                Diese Anweisungen werden bei jeder KI-Aktion berücksichtigt: Compliance-Check,
+                                Textbaustein-Auswahl, Chat-Assistent, Smart Mode und Dokument-Upload-Analyse.
+                            </p>
+                        </div>
+                    </CardContent>
+                </Card>
             </div>
 
             {/* Save Button */}

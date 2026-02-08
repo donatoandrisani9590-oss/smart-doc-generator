@@ -40,6 +40,9 @@ export function useDocumentTypeEditor({
     // Collapsible state for advanced settings
     const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
 
+    // KI-Anweisungen
+    const [aiInstructions, setAiInstructions] = useState("");
+
     // Default values for this document type
     const [defaultProbationMonths, setDefaultProbationMonths] = useState(6);
     const [defaultNoticePeriod, setDefaultNoticePeriod] = useState("4 Wochen zum Monatsende");
@@ -75,6 +78,7 @@ export function useDocumentTypeEditor({
                 setDefaultNoticePeriod("4 Wochen zum Monatsende");
                 setDefaultVacationDays(30);
                 setDefaultWeeklyHours(40);
+                setAiInstructions("");
             }
         }
     }, [open, editId, initialCountryCode]);
@@ -91,6 +95,7 @@ export function useDocumentTypeEditor({
             setDefaultNoticePeriod(existingDocType.default_notice_period ?? "4 Wochen zum Monatsende");
             setDefaultVacationDays(existingDocType.default_vacation_days ?? 30);
             setDefaultWeeklyHours(existingDocType.default_weekly_hours ?? 40);
+            setAiInstructions(existingDocType.ai_instructions ?? "");
 
             if (existingDocType.clauses) {
                 const clauseLinks: ClauseSelection[] = existingDocType.clauses.map((c: Clause, idx: number) => ({
@@ -273,6 +278,7 @@ export function useDocumentTypeEditor({
             default_notice_period: defaultNoticePeriod,
             default_vacation_days: defaultVacationDays,
             default_weekly_hours: defaultWeeklyHours,
+            ai_instructions: aiInstructions.trim() || null,
             clauses: selectedClauses.map((sc, idx) => ({
                 clause_id: sc.clause_id,
                 display_order: idx + 1,
@@ -309,6 +315,7 @@ export function useDocumentTypeEditor({
         defaultNoticePeriod,
         defaultVacationDays,
         defaultWeeklyHours,
+        aiInstructions,
         selectedClauses,
         selectedVariantGroups,
         isEditing,
@@ -363,6 +370,10 @@ export function useDocumentTypeEditor({
         setCountryCode,
         isActive,
         setIsActive,
+
+        // AI instructions
+        aiInstructions,
+        setAiInstructions,
 
         // Advanced settings
         showAdvancedSettings,

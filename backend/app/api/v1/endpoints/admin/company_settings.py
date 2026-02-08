@@ -39,6 +39,9 @@ class CompanySettingsUpdate(BaseModel):
     default_vacation_days: Optional[int] = None
     default_weekly_hours: Optional[int] = None
 
+    # KI-Anweisungen
+    ai_instructions: Optional[str] = None
+
 
 class CompanySettingsResponse(BaseModel):
     id: int
@@ -58,6 +61,9 @@ class CompanySettingsResponse(BaseModel):
     default_notice_period: str
     default_vacation_days: int
     default_weekly_hours: int
+
+    # KI-Anweisungen
+    ai_instructions: Optional[str] = None
 
     # Metadata
     updated_at: Optional[datetime] = None

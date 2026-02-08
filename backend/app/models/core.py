@@ -63,6 +63,9 @@ class DesignSetting(Base):
     # Signatory
     signatory_name = Column(String(200), nullable=True)     # Default signatory for contracts
 
+    # KI-Anweisungen (globale Instruktionen für alle LLM-Prompts)
+    ai_instructions = Column(Text, nullable=True)           # z.B. "Verwende österreichisches Arbeitsrecht"
+
     updated_at = Column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now())
 
 

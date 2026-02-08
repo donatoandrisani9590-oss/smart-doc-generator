@@ -287,7 +287,8 @@ class ComplianceService:
         country_code: str = "DE",
         document_type: Optional[str] = None,
         use_llm: bool = False,
-        cache_enabled: bool = True
+        cache_enabled: bool = True,
+        custom_instructions: str = ""
     ) -> ComplianceScanResult:
         """
         Scan document content for compliance risks.
@@ -366,7 +367,7 @@ class ComplianceService:
         provider = "pattern"
         if use_llm and self.llm and len(plain_text) > 100:
             try:
-                llm_risks = await self._analyze_with_llm(plain_text, country_code, risks)
+                llm_risks = await self._analyze_with_llm(plain_text, country_code, risks, custom_instructions)
                 risks.extend(llm_risks)
                 provider_info = await self.llm.get_provider_info()
                 provider = provider_info.get("provider", "llm")
@@ -408,7 +409,8 @@ class ComplianceService:
         self,
         text: str,
         country_code: str,
-        existing_risks: List[ComplianceRisk]
+        existing_risks: List[ComplianceRisk],
+        custom_instructions: str = ""
     ) -> List[ComplianceRisk]:
         """
         Deep analysis using LLM for complex/ambiguous cases.
@@ -460,7 +462,7 @@ ANTWORT-FORMAT (strikt JSON):
   ]
 }}
 
-Antworte NUR mit dem JSON-Objekt, ohne Erklärungen davor oder danach."""
+Antworte NUR mit dem JSON-Objekt, ohne Erklärungen davor oder danach.{custom_instructions}"""
 
         user_prompt = f"""Vertragstext zur Analyse:
 

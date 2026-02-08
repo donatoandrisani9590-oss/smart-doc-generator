@@ -120,6 +120,8 @@ export const DocumentTypeEditor = ({
                                     setDefaultVacationDays={editor.setDefaultVacationDays}
                                     defaultWeeklyHours={editor.defaultWeeklyHours}
                                     setDefaultWeeklyHours={editor.setDefaultWeeklyHours}
+                                    aiInstructions={editor.aiInstructions}
+                                    setAiInstructions={editor.setAiInstructions}
                                     errors={editor.errors}
                                     setErrors={editor.setErrors}
                                 />

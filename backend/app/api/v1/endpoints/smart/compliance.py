@@ -94,12 +94,17 @@ async def scan_document(
     - Mistral AI API (EU-hosted, GDPR compliant)
     """
     try:
+        # Load custom AI instructions
+        from app.services.ai_instructions import get_ai_instructions
+        custom_instructions = await get_ai_instructions(db, request.country_code)
+
         service = await get_compliance_service()
         result = await service.scan_content(
             content_html=request.content_html,
             country_code=request.country_code,
             document_type=request.document_type,
-            use_llm=request.use_llm
+            use_llm=request.use_llm,
+            custom_instructions=custom_instructions,
         )
         return result
     except Exception as e:
@@ -186,7 +191,8 @@ async def get_provider_info():
 @router.post("/analyze-clause")
 async def analyze_single_clause(
     clause_text: str = Query(..., min_length=10, description="Clause text to analyze"),
-    country_code: str = Query(default="DE", pattern="^(DE|AT|CH|IT)$")
+    country_code: str = Query(default="DE", pattern="^(DE|AT|CH|IT)$"),
+    db: AsyncSession = Depends(get_db),
 ):
     """
     Analyze a single clause for compliance risks.
@@ -194,6 +200,10 @@ async def analyze_single_clause(
     Convenience endpoint for checking individual clauses
     without full document context.
     """
+    # Load custom AI instructions
+    from app.services.ai_instructions import get_ai_instructions
+    custom_instructions = await get_ai_instructions(db, country_code)
+
     # Wrap in minimal HTML
     content_html = f"<p>{clause_text}</p>"
 
@@ -201,7 +211,8 @@ async def analyze_single_clause(
     result = await service.scan_content(
         content_html=content_html,
         country_code=country_code,
-        use_llm=True  # Always use LLM for single clause analysis
+        use_llm=True,  # Always use LLM for single clause analysis
+        custom_instructions=custom_instructions,
     )
 
     return {

@@ -213,7 +213,7 @@ def extract_with_patterns(text: str) -> tuple[List[ExtractedField], str, float]:
 # LLM-BASED EXTRACTION (Deep analysis)
 # ═══════════════════════════════════════════════════════════════════════════
 
-async def extract_with_llm(text: str, document_type_hint: Optional[str] = None) -> tuple[List[ExtractedField], str, float, str]:
+async def extract_with_llm(text: str, document_type_hint: Optional[str] = None, custom_instructions: str = "") -> tuple[List[ExtractedField], str, float, str]:
     """Deep extraction using LLM."""
     try:
         llm = await get_llm_service()
@@ -249,8 +249,12 @@ Antworte im JSON-Format:
     }}
 }}"""
 
+        system_content = "Du bist ein Dokumentenanalyse-Experte für deutsche Personalverträge."
+        if custom_instructions:
+            system_content += custom_instructions
+
         messages = [
-            LLMMessage(role="system", content="Du bist ein Dokumentenanalyse-Experte für deutsche Personalverträge."),
+            LLMMessage(role="system", content=system_content),
             LLMMessage(role="user", content=prompt)
         ]
 
@@ -383,9 +387,14 @@ async def upload_and_extract(
         pattern_fields, doc_type, confidence = extract_with_patterns(text)
         provider = "pattern"
 
+        # Load custom AI instructions
+        from app.services.ai_instructions import get_ai_instructions
+        country_code = getattr(current_user, "country_code", "DE") or "DE"
+        custom_instructions = await get_ai_instructions(db, country_code)
+
         # AI enhancement (optional)
         if use_ai:
-            ai_fields, ai_type, ai_confidence, ai_provider = await extract_with_llm(text, doc_type)
+            ai_fields, ai_type, ai_confidence, ai_provider = await extract_with_llm(text, doc_type, custom_instructions)
 
             if ai_confidence > confidence:
                 doc_type = ai_type
@@ -438,8 +447,13 @@ async def extract_from_text(
     # Pattern extraction
     pattern_fields, doc_type, confidence = extract_with_patterns(text)
 
+    # Load custom AI instructions
+    from app.services.ai_instructions import get_ai_instructions
+    country_code = getattr(current_user, "country_code", "DE") or "DE"
+    custom_instructions = await get_ai_instructions(db, country_code)
+
     # AI enhancement
-    ai_fields, ai_type, ai_confidence, provider = await extract_with_llm(text)
+    ai_fields, ai_type, ai_confidence, provider = await extract_with_llm(text, custom_instructions=custom_instructions)
 
     if ai_confidence > confidence:
         doc_type = ai_type

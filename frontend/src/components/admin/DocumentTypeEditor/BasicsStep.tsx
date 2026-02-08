@@ -18,6 +18,7 @@ import {
     Briefcase,
     Clock,
     Calendar,
+    Bot,
 } from "lucide-react";
 import { CATEGORIES } from "./constants";
 
@@ -42,6 +43,8 @@ interface BasicsStepProps {
     setDefaultVacationDays: (value: number) => void;
     defaultWeeklyHours: number;
     setDefaultWeeklyHours: (value: number) => void;
+    aiInstructions: string;
+    setAiInstructions: (value: string) => void;
     errors: Record<string, string>;
     setErrors: (errors: Record<string, string>) => void;
 }
@@ -67,6 +70,8 @@ export const BasicsStep = ({
     setDefaultVacationDays,
     defaultWeeklyHours,
     setDefaultWeeklyHours,
+    aiInstructions,
+    setAiInstructions,
     errors,
     setErrors,
 }: BasicsStepProps) => {
@@ -271,6 +276,51 @@ export const BasicsStep = ({
                                     </p>
                                 </div>
                             </div>
+                        </CardContent>
+                    </Card>
+                </CollapsibleContent>
+            </Collapsible>
+
+            {/* KI-Anweisungen */}
+            <Collapsible className="mt-4">
+                <CollapsibleTrigger asChild>
+                    <button
+                        type="button"
+                        className="flex items-center gap-2 w-full p-3 rounded-lg border border-purple-200 bg-purple-50/30 hover:bg-purple-50 transition-colors text-left group"
+                    >
+                        <ChevronDown className="w-4 h-4 text-purple-600 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+                        <Bot className="w-4 h-4 text-purple-600" />
+                        <div className="flex-1">
+                            <span className="font-medium text-sm text-purple-800">
+                                KI-Anweisungen
+                            </span>
+                            <span className="text-xs text-purple-600 ml-2">
+                                (optional)
+                            </span>
+                        </div>
+                        {aiInstructions.trim() && (
+                            <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded">
+                                Konfiguriert
+                            </span>
+                        )}
+                    </button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="pt-3">
+                    <Card className="border-purple-200 bg-purple-50/30">
+                        <CardContent className="pt-4 space-y-3">
+                            <p className="text-xs text-purple-600">
+                                Spezifische Anweisungen für die KI bei Erstellung dieses Dokumenttyps
+                            </p>
+                            <Textarea
+                                value={aiInstructions}
+                                onChange={(e) => setAiInstructions(e.target.value)}
+                                placeholder={"z.B. Kollektivvertragsformulierung verwenden.\nProbezeit immer 1 Monat.\nGenderneutrale Sprache."}
+                                rows={4}
+                                className="resize-y"
+                            />
+                            <p className="text-xs text-muted-foreground">
+                                Diese Anweisungen werden zusätzlich zu den globalen KI-Anweisungen aus den Stammdaten verwendet.
+                            </p>
                         </CardContent>
                     </Card>
                 </CollapsibleContent>

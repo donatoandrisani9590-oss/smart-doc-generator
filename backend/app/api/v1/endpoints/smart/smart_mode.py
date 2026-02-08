@@ -376,6 +376,10 @@ async def process_smart_mode_answer(
 
             # Build extraction prompt
             field_list = ", ".join([f"{f.name} ({f.label})" for f in all_fields])
+            # Load custom AI instructions
+            from app.services.ai_instructions import get_ai_instructions
+            custom_instructions = await get_ai_instructions(db, doc_type.country_code, doc_type.id)
+
             extraction_prompt = f"""Extrahiere Daten aus der Benutzereingabe.
 
 Verfügbare Felder: {field_list}
@@ -385,7 +389,7 @@ Benutzereingabe: "{request.user_input}"
 Antworte im JSON-Format mit den extrahierten Feldern:
 {{"field_name": "value", ...}}
 
-Nur Felder ausgeben, die eindeutig erkannt wurden."""
+Nur Felder ausgeben, die eindeutig erkannt wurden.{custom_instructions}"""
 
             response = await llm.chat_json([
                 LLMMessage(role="system", content="Du bist ein Datenextraktions-Assistent."),
