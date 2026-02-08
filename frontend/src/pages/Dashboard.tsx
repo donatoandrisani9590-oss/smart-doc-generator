@@ -62,6 +62,7 @@ export const Dashboard = () => {
     const isLoading = statsLoading || activityLoading;
     const hasOpenDrafts = (stats?.open_drafts ?? 0) > 0;
     const hasPendingTasks = hasOpenDrafts;
+    const hasNoDocumentTypes = !isLoading && (documentTypes?.length ?? 0) === 0;
 
     // Onboarding: Prüfe ob Ersteinrichtung abgeschlossen
     const showOnboarding = !onboardingDismissed && !isLoading;
@@ -95,7 +96,9 @@ export const Dashboard = () => {
                             {getGreeting()}
                         </h1>
                         <p className="text-white/80 mt-2 text-lg font-light">
-                            {hasPendingTasks
+                            {hasNoDocumentTypes
+                                ? "Richten Sie Ihre erste Dokumentvorlage ein"
+                                : hasPendingTasks
                                 ? "Sie haben offene Aufgaben"
                                 : "Bereit für neue Dokumente"}
                         </p>
@@ -140,10 +143,10 @@ export const Dashboard = () => {
                         )}
                         <Button
                             className="h-10 px-5 gap-2 bg-white text-[#243186] hover:bg-white/90 hover:shadow-[0_4px_14px_rgba(255,255,255,0.3)] transition-all duration-300 ease-out font-medium rounded-full border-2 border-white"
-                            onClick={() => setWizardOpen(true)}
+                            onClick={() => hasNoDocumentTypes ? navigate("/settings?tab=templates") : setWizardOpen(true)}
                         >
                             <PlusCircle className="w-4 h-4" />
-                            Neues Dokument
+                            {hasNoDocumentTypes ? "Einrichtung starten" : "Neues Dokument"}
                         </Button>
                     </div>
                 </div>
@@ -179,10 +182,11 @@ export const Dashboard = () => {
                         </div>
                     </form>
 
-                    {/* Quick Templates */}
-                    <QuickTemplates />
+                    {/* Quick Templates - nur anzeigen wenn Dokumenttypen vorhanden */}
+                    {!hasNoDocumentTypes && <QuickTemplates />}
 
-                    {/* AI Document Creation */}
+                    {/* AI Document Creation - nur anzeigen wenn Dokumenttypen vorhanden */}
+                    {!hasNoDocumentTypes && (
                     <div className="glass-card p-6 border-none relative overflow-hidden group">
                         <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none group-hover:opacity-10 transition-opacity">
                             <Sparkles className="w-32 h-32" />
@@ -213,6 +217,7 @@ export const Dashboard = () => {
                             />
                         </div>
                     </div>
+                    )}
 
                     {/* Widgets Row */}
                     <div className="grid gap-6 lg:grid-cols-2">
