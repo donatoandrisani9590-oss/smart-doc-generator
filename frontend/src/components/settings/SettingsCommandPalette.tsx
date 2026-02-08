@@ -163,7 +163,7 @@ const SETTINGS_GROUPS: SettingsGroup[] = [
       {
         id: "templates-variables",
         label: "Variablen",
-        description: "Platzhalter fuer Dokumenttypen",
+        description: "Platzhalter für Dokumenttypen",
         keywords: ["variable", "platzhalter", "placeholder", "feld", "field"],
         icon: Hash,
         tab: "templates",
@@ -179,7 +179,7 @@ const SETTINGS_GROUPS: SettingsGroup[] = [
       {
         id: "clauses-categories",
         label: "Klausel-Kategorien",
-        description: "Kategorien fuer Textbausteine",
+        description: "Kategorien für Textbausteine",
         keywords: ["kategorie", "category", "gruppe", "ordner"],
         icon: BookOpen,
         tab: "clauses",
@@ -210,7 +210,7 @@ const SETTINGS_GROUPS: SettingsGroup[] = [
       {
         id: "design-colors",
         label: "Farbschema",
-        description: "Primaer- und Akzentfarben anpassen",
+        description: "Primär- und Akzentfarben anpassen",
         keywords: ["farbe", "color", "primaer", "akzent", "theme", "dunkel", "hell", "dark", "light"],
         icon: Paintbrush,
         tab: "design",
@@ -218,7 +218,7 @@ const SETTINGS_GROUPS: SettingsGroup[] = [
       {
         id: "design-fonts",
         label: "Schriftarten",
-        description: "Schriftart fuer Dokumente waehlen",
+        description: "Schriftart für Dokumente wählen",
         keywords: ["schrift", "font", "typography", "text", "arial", "times"],
         icon: Type,
         tab: "design",

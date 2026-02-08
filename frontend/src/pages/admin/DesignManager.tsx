@@ -359,7 +359,7 @@ export const DesignManager = () => {
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div className="space-y-2">
-                                    <Label>Primaerfarbe</Label>
+                                    <Label>Primärfarbe</Label>
                                     <div className="flex gap-2">
                                         <input
                                             type="color"

@@ -300,7 +300,7 @@ const SortableClauseItem = ({
                                 </Badge>
                             </TooltipTrigger>
                             <TooltipContent>
-                                <p>Diese Klausel wird fuer diesen Vertragstyp empfohlen</p>
+                                <p>Diese Klausel wird für diesen Vertragstyp empfohlen</p>
                             </TooltipContent>
                         </Tooltip>
                     </TooltipProvider>

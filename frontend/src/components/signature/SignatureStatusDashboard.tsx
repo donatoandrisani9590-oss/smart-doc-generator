@@ -343,7 +343,7 @@ function CancelDialog({
             Signatur-Anfrage stornieren
           </AlertDialogTitle>
           <AlertDialogDescription>
-            Moechten Sie die Signatur-Anfrage fuer &quot;{documentTitle}&quot; wirklich
+            Möchten Sie die Signatur-Anfrage für &quot;{documentTitle}&quot; wirklich
             stornieren? Alle ausstehenden Unterschriften werden abgebrochen und die
             Unterzeichner werden benachrichtigt.
           </AlertDialogDescription>

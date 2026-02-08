@@ -141,7 +141,7 @@ export function DraftRecoveryDialog({
     onDiscard,
     showPreview = true,
     title = "Entwurf gefunden",
-    description = "Ein nicht gespeicherter Entwurf wurde gefunden. Moechten Sie diesen wiederherstellen?",
+    description = "Ein nicht gespeicherter Entwurf wurde gefunden. Möchten Sie diesen wiederherstellen?",
 }: DraftRecoveryDialogProps) {
     const [showDetails, setShowDetails] = useState(false);
     const [confirmDiscard, setConfirmDiscard] = useState(false);

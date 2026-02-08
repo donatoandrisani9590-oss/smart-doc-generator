@@ -484,7 +484,7 @@ export const UsersPage = () => {
                                                     </DropdownMenuItem>
                                                     <DropdownMenuItem onClick={() => openResetPasswordDialog(user)}>
                                                         <Key className="w-4 h-4 mr-2" />
-                                                        Passwort zuruecksetzen
+                                                        Passwort zurücksetzen
                                                     </DropdownMenuItem>
                                                     <DropdownMenuSeparator />
                                                     <DropdownMenuItem onClick={() => handleToggleActive(user)}>
@@ -517,7 +517,7 @@ export const UsersPage = () => {
                     <DialogHeader>
                         <DialogTitle>Neuen Benutzer anlegen</DialogTitle>
                         <DialogDescription>
-                            Erstellen Sie einen neuen Benutzer fuer das System.
+                            Erstellen Sie einen neuen Benutzer für das System.
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 py-4">
@@ -651,9 +651,9 @@ export const UsersPage = () => {
             <Dialog open={resetPasswordDialogOpen} onOpenChange={setResetPasswordDialogOpen}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Passwort zuruecksetzen</DialogTitle>
+                        <DialogTitle>Passwort zurücksetzen</DialogTitle>
                         <DialogDescription>
-                            Neues Passwort fuer {selectedUser?.email} setzen
+                            Neues Passwort für {selectedUser?.email} setzen
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 py-4">

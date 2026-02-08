@@ -103,7 +103,7 @@ export const ShareWithTeamDialog = ({
 
     const handleShare = async () => {
         if (!selectedTeamId) {
-            setError("Bitte waehlen Sie ein Team aus");
+            setError("Bitte wählen Sie ein Team aus");
             return;
         }
 
@@ -209,13 +209,13 @@ export const ShareWithTeamDialog = ({
                         ) : (
                             <>
                                 <div className="space-y-2">
-                                    <Label>Team auswaehlen</Label>
+                                    <Label>Team auswählen</Label>
                                     <Select
                                         value={selectedTeamId}
                                         onValueChange={setSelectedTeamId}
                                     >
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Team waehlen..." />
+                                            <SelectValue placeholder="Team wählen..." />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {teams.map((team) => (
@@ -268,7 +268,7 @@ export const ShareWithTeamDialog = ({
                                             />
                                             <Edit3 className="w-4 h-4 text-muted-foreground" />
                                             <span className="text-sm">
-                                                Bearbeiten (nur fuer Entwuerfe)
+                                                Bearbeiten (nur für Entwürfe)
                                             </span>
                                         </label>
                                     </div>

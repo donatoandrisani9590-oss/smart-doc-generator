@@ -493,7 +493,7 @@ export function FileDropZone({
             <div
                 role="button"
                 tabIndex={disabled ? -1 : 0}
-                aria-label="Dateien hier ablegen oder klicken zum Auswaehlen"
+                aria-label="Dateien hier ablegen oder klicken zum Auswählen"
                 aria-disabled={disabled}
                 onClick={handleClick}
                 onKeyDown={handleKeyDown}

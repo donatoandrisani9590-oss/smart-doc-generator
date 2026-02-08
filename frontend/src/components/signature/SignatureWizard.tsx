@@ -224,7 +224,7 @@ function SignersStep({ signers, onSignersChange, errors }: SignersStepProps) {
                     onValueChange={(value) => updateSigner(signer.id, 'role', value as SignerRole)}
                   >
                     <SelectTrigger id={`role-${signer.id}`}>
-                      <SelectValue placeholder="Rolle waehlen" />
+                      <SelectValue placeholder="Rolle wählen" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="employee">Mitarbeiter</SelectItem>
@@ -328,7 +328,7 @@ function FieldsStep({
   return (
     <WizardStepContent
       title="Wo sollen die Unterschriften platziert werden?"
-      description="Waehlen Sie die Signaturfelder fuer jeden Unterzeichner aus."
+      description="Wählen Sie die Signaturfelder für jeden Unterzeichner aus."
     >
       <div className="space-y-6">
         {/* Simplified PDF Preview */}

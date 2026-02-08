@@ -291,7 +291,7 @@ export function useWizardDrafts(params: UseWizardDraftsParams): UseWizardDraftsR
 
     const saveDraft = useCallback(async () => {
         if (!documentTypeId) {
-            toast.error("Fehler", "Bitte waehlen Sie einen Dokumenttyp");
+            toast.error("Fehler", "Bitte wählen Sie einen Dokumenttyp");
             return;
         }
 

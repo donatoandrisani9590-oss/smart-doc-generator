@@ -32,11 +32,11 @@ const DEFAULT_LABELS: Record<string, string> = {
   wochenstunden: "Wochenstunden",
   urlaubstage: "Urlaubstage",
   probezeit: "Probezeit",
-  kuendigungsfrist: "Kuendigungsfrist",
+  kuendigungsfrist: "Kündigungsfrist",
   signatory_name: "Unterzeichner",
   abteilung: "Abteilung",
   geburtsdatum: "Geburtsdatum",
-  strasse: "Strasse",
+  strasse: "Straße",
   plz: "PLZ",
   ort: "Ort",
 };

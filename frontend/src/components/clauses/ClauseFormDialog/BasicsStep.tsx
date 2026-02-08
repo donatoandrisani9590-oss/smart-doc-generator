@@ -226,18 +226,18 @@ export const BasicsStep = ({
             {/* Description for AI */}
             <div className="space-y-2">
                 <Label htmlFor="description" className="text-sm">
-                    Beschreibung (fuer KI-Auswahl)
+                    Beschreibung (für KI-Auswahl)
                 </Label>
                 <Input
                     id="description"
                     value={description}
                     onChange={(e) => setDescription(e.target.value.slice(0, 500))}
-                    placeholder="z.B. Strenge Kuendigungsklausel mit kurzer Frist fuer Fuehrungskraefte"
+                    placeholder="z.B. Strenge Kündigungsklausel mit kurzer Frist für Führungskräfte"
                     className="text-sm"
                     maxLength={500}
                 />
                 <p className="text-xs text-muted-foreground">
-                    Beschreiben Sie kurz den Zweck der Klausel. Die KI nutzt diese Beschreibung, um die richtige Klausel auszuwaehlen.
+                    Beschreiben Sie kurz den Zweck der Klausel. Die KI nutzt diese Beschreibung, um die richtige Klausel auszuwählen.
                 </p>
             </div>
 
