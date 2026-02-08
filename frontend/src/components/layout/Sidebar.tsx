@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { FavoritesList } from "./FavoritesList";
 import { KeyboardShortcutsDialog } from "./KeyboardShortcutsDialog";
 import { UserDropdown } from "./UserDropdown";
+import { useFeatureEnabled } from "@/hooks/useFeatureSettings";
 
 interface SidebarItemProps {
     icon: React.ComponentType<{ className?: string }>;
@@ -82,6 +83,7 @@ export const Sidebar = () => {
     const location = useLocation();
     const pathname = location.pathname;
     const [showShortcuts, setShowShortcuts] = useState(false);
+    const isDocumentsEnabled = useFeatureEnabled("show_documents_overview");
 
     // Global keyboard shortcut to open dialog (? key)
     const handleKeyDown = useCallback((event: KeyboardEvent) => {
@@ -145,12 +147,14 @@ export const Sidebar = () => {
                             href="/"
                             active={pathname === "/" || pathname === "/deadlines" || pathname === "/teams"}
                         />
+                        {isDocumentsEnabled && (
                         <SidebarItem
                             icon={FolderOpen}
                             label="Dokumente"
                             href="/documents"
                             active={pathname.startsWith("/documents") || pathname.startsWith("/search")}
                         />
+                        )}
                     </SidebarSection>
 
                     <SidebarSection title="Tools">
