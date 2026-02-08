@@ -9,8 +9,8 @@ class Settings(BaseSettings):
     SECRET_KEY: str = ""  # Für Access Tokens
     REFRESH_SECRET_KEY: str = ""  # Separate Key für Refresh Tokens (erhöhte Sicherheit)
     ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60  # 1 Stunde (vorher 8 Tage - unsicher!)
-    REFRESH_TOKEN_EXPIRE_DAYS: int = 7  # Refresh Token: 7 Tage
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 240  # 4 Stunden (Auto-Refresh via Refresh Token)
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 30  # Refresh Token: 30 Tage (persistent session)
 
     # Debug-Mode: Nur in Development aktivieren
     DEBUG: bool = False

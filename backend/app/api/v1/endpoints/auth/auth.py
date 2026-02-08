@@ -122,7 +122,46 @@ async def login_access_token(
     access_token = security.create_access_token(
         subject=user.id, expires_delta=access_token_expires
     )
-    return {"access_token": access_token, "token_type": "bearer"}
+    refresh_token = security.create_refresh_token(subject=user.id)
+    return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
+
+
+@router.post("/refresh", response_model=token_schema.Token)
+async def refresh_access_token(
+    data: token_schema.RefreshTokenRequest,
+    db: Annotated[AsyncSession, Depends(get_db)],
+):
+    """
+    Refresh access token using a valid refresh token.
+
+    Returns a new access token and a new refresh token (token rotation).
+    The old refresh token is invalidated by issuing a new one.
+    """
+    user_id = security.verify_refresh_token(data.refresh_token)
+    if not user_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Ungültiger oder abgelaufener Refresh-Token. Bitte erneut anmelden.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    user = await db.get(User, int(user_id))
+    if not user or not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Benutzerkonto ist nicht aktiv.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    # Issue new token pair (token rotation)
+    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    new_access_token = security.create_access_token(
+        subject=user.id, expires_delta=access_token_expires
+    )
+    new_refresh_token = security.create_refresh_token(subject=user.id)
+
+    logger.info(f"Token refreshed for: {user.email}")
+    return {"access_token": new_access_token, "refresh_token": new_refresh_token, "token_type": "bearer"}
 
 
 @router.post("/register", response_model=RegisterResponse)
@@ -178,11 +217,12 @@ async def register_user(
     await db.commit()
     await db.refresh(new_user)
 
-    # Generate access token for immediate login
+    # Generate access token + refresh token for immediate login
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = security.create_access_token(
         subject=new_user.id, expires_delta=access_token_expires
     )
+    refresh_token = security.create_refresh_token(subject=new_user.id)
 
     return RegisterResponse(
         user=UserResponse(
@@ -277,7 +317,8 @@ async def verify_two_factor(
     access_token = security.create_access_token(
         subject=user.id, expires_delta=access_token_expires
     )
-    return {"access_token": access_token, "token_type": "bearer"}
+    refresh_token = security.create_refresh_token(subject=user.id)
+    return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
 
 
 @router.post("/2fa/setup", response_model=TwoFactorSetupResponse)
