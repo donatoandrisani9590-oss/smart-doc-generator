@@ -25,7 +25,7 @@ import {
     Layers,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import { useDashboardStats, useMyActivity } from "@/hooks/useApi";
+import { useDashboardStats, useMyActivity, useClauses, useDocumentTypes } from "@/hooks/useApi";
 import { formatDistanceToNow } from "@/lib/dateUtils";
 import { DocumentWizardDialog } from "@/components/dashboard/DocumentWizardDialog";
 import { QuickTemplates } from "@/components/dashboard/QuickTemplates";
@@ -34,6 +34,7 @@ import { DeadlinesWidget } from "@/components/dashboard/DeadlinesWidget";
 import { ApprovalRequestsWidget } from "@/components/dashboard/ApprovalRequestsWidget";
 import { DocumentUploadDialog } from "@/components/documents/DocumentUploadDialog";
 import { ActivityFeedWidget } from "@/components/dashboard/ActivityFeedWidget";
+import { OnboardingBanner } from "@/components/dashboard/OnboardingBanner";
 import { useFeatureEnabled } from "@/hooks/useFeatureSettings";
 
 // Greeting based on time
@@ -47,15 +48,27 @@ const getGreeting = () => {
 export const Dashboard = () => {
     const { data: stats, isLoading: statsLoading } = useDashboardStats();
     const { data: activity, isLoading: activityLoading } = useMyActivity(5);
+    const { data: clauses } = useClauses();
+    const { data: documentTypes } = useDocumentTypes();
     const [searchQuery, setSearchQuery] = useState("");
     const [wizardOpen, setWizardOpen] = useState(false);
     const [uploadOpen, setUploadOpen] = useState(false);
+    const [onboardingDismissed, setOnboardingDismissed] = useState(() =>
+        localStorage.getItem("onboarding-dismissed") === "true"
+    );
     const navigate = useNavigate();
     const isUploadEnabled = useFeatureEnabled("enable_document_upload");
 
     const isLoading = statsLoading || activityLoading;
     const hasOpenDrafts = (stats?.open_drafts ?? 0) > 0;
     const hasPendingTasks = hasOpenDrafts;
+
+    // Onboarding: Prüfe ob Ersteinrichtung abgeschlossen
+    const showOnboarding = !onboardingDismissed && !isLoading;
+    const handleDismissOnboarding = () => {
+        setOnboardingDismissed(true);
+        localStorage.setItem("onboarding-dismissed", "true");
+    };
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
@@ -135,6 +148,17 @@ export const Dashboard = () => {
                     </div>
                 </div>
             </div>
+
+            {/* ── Onboarding Banner ── */}
+            {showOnboarding && (
+                <OnboardingBanner
+                    clauseCount={clauses?.length ?? 0}
+                    documentTypeCount={documentTypes?.length ?? 0}
+                    hasCompanyData={(stats?.documents_total ?? 0) > 0 || (documentTypes?.length ?? 0) > 0}
+                    hasLogo={false}
+                    onDismiss={handleDismissOnboarding}
+                />
+            )}
 
             {/* ── 3-Column Layout ── */}
             <div className="grid gap-6 lg:grid-cols-3">

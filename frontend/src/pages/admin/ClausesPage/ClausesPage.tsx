@@ -62,6 +62,7 @@ import {
     LayoutGrid,
     List,
     Copy,
+    Scissors,
 } from "lucide-react";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import {
@@ -71,6 +72,7 @@ import {
     type Clause,
 } from "@/hooks/useApi";
 import { WordImportWizard } from "@/components/admin/WordImportWizard";
+import { BulkClauseImportDialog } from "@/components/admin/BulkClauseImportDialog";
 import { ClauseFormDialog } from "@/components/clauses/ClauseFormDialog";
 import { ClauseVariantManager } from "@/components/clauses/ClauseVariantManager";
 import { ClauseVersionDiff } from "@/components/clauses/ClauseVersionDiff";
@@ -134,6 +136,7 @@ export const ClausesPage = () => {
 
     // Dialog State
     const [showImportWizard, setShowImportWizard] = useState(false);
+    const [showBulkImport, setShowBulkImport] = useState(false);
     const [showClauseForm, setShowClauseForm] = useState(false);
     const [editingClause, setEditingClause] = useState<Clause | null>(null);
     const [showVersionHistory, setShowVersionHistory] = useState(false);
@@ -324,6 +327,14 @@ export const ClausesPage = () => {
                             <List className="w-4 h-4" />
                         </Button>
                     </div>
+                    <Button
+                        variant="outline"
+                        className="gap-2"
+                        onClick={() => setShowBulkImport(true)}
+                    >
+                        <Scissors className="w-4 h-4" />
+                        <span className="hidden sm:inline">Freitext importieren</span>
+                    </Button>
                     <Button
                         variant="outline"
                         className="gap-2"
@@ -798,6 +809,15 @@ export const ClausesPage = () => {
                 onImportComplete={() => {
                     refetch();
                     setShowImportWizard(false);
+                }}
+            />
+
+            <BulkClauseImportDialog
+                open={showBulkImport}
+                onOpenChange={setShowBulkImport}
+                countryCode={countryFilter !== "all" ? countryFilter : "DE"}
+                onImportComplete={() => {
+                    refetch();
                 }}
             />
 

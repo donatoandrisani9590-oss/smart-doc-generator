@@ -13,7 +13,8 @@ import { Decoration, DecorationSet } from '@tiptap/pm/view'
 
 // Regex für {{ placeholder }} Erkennung
 // Erlaubt Leerzeichen innerhalb der Klammern: {{ name }} oder {{name}}
-const PLACEHOLDER_REGEX = /\{\{\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*\}\}/g
+// Unterstützt auch deutsche Umlaute in Platzhalter-Namen
+const PLACEHOLDER_REGEX = /\{\{\s*([a-zA-ZäöüÄÖÜß_][a-zA-Z0-9äöüÄÖÜß_]*)\s*\}\}/g
 
 export interface PlaceholderHighlightOptions {
   /**

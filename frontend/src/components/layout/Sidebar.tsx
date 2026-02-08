@@ -156,7 +156,7 @@ export const Sidebar = () => {
                     <SidebarSection title="Tools">
                         <SidebarItem
                             icon={LayoutTemplate}
-                            label="Vorlagen"
+                            label="Vorlagen verwalten"
                             href="/settings?tab=templates"
                             active={pathname === "/settings" && location.search.includes("tab=templates")}
                         />
@@ -167,7 +167,7 @@ export const Sidebar = () => {
                         <SidebarItem
                             icon={Settings2}
                             label="Einstellungen"
-                            href="/settings"
+                            href="/settings?tab=general"
                             active={
                                 (pathname.startsWith("/settings") && !location.search.includes("tab=templates"))
                                 || pathname.startsWith("/admin")

@@ -3,14 +3,19 @@ import type { CategoryOption, CountryOption } from "./types";
 export const CATEGORIES: CategoryOption[] = [
     // Arbeitsvertrag-Kategorien
     { value: "Einleitung", label: "Einleitung", description: "Allgemeine Einleitungstexte", group: "Arbeitsvertrag" },
+    { value: "Vertragsbeginn", label: "Vertragsbeginn / Probezeit", description: "Beginn, Befristung, Probezeit", group: "Arbeitsvertrag" },
     { value: "Arbeitszeit", label: "Arbeitszeit", description: "Regelungen zur Arbeitszeit", group: "Arbeitsvertrag" },
     { value: "Vergütung", label: "Vergütung", description: "Gehalt und Zusatzleistungen", group: "Arbeitsvertrag" },
+    { value: "Nebenleistungen", label: "Nebenleistungen", description: "Firmenwagen, Benefits, Zusatzleistungen", group: "Arbeitsvertrag" },
     { value: "Urlaub", label: "Urlaub", description: "Urlaubsregelungen", group: "Arbeitsvertrag" },
+    { value: "Pflichten", label: "Pflichten / Verhinderung", description: "Nebenpflichten, Krankmeldung, Verhinderung", group: "Arbeitsvertrag" },
     { value: "Kündigung", label: "Kündigung", description: "Kündigungsfristen und -bedingungen", group: "Arbeitsvertrag" },
     { value: "Geheimhaltung", label: "Geheimhaltung", description: "Vertraulichkeitsklauseln", group: "Arbeitsvertrag" },
+    { value: "Nebentätigkeit", label: "Nebentätigkeit", description: "Regelungen zu Nebentätigkeiten", group: "Arbeitsvertrag" },
     { value: "Wettbewerb", label: "Wettbewerb", description: "Wettbewerbsverbote", group: "Arbeitsvertrag" },
-    { value: "Nebenleistungen", label: "Nebenleistungen", description: "Benefits und Zusatzleistungen", group: "Arbeitsvertrag" },
-    // HR-Korrespondenz-Kategorien (NEU)
+    { value: "Ausschlussfristen", label: "Ausschlussfristen", description: "Verfallklauseln und Ausschlussfristen", group: "Arbeitsvertrag" },
+    { value: "Schlussbestimmungen", label: "Schlussbestimmungen", description: "Salvatorische Klausel, Schriftform, Gerichtsstand", group: "Arbeitsvertrag" },
+    // HR-Korrespondenz-Kategorien
     { value: "Einladung", label: "Einladung", description: "Einladungsschreiben", group: "HR-Korrespondenz" },
     { value: "Mitteilung", label: "Mitteilung", description: "Allgemeine Mitteilungen", group: "HR-Korrespondenz" },
     { value: "Fürsorge", label: "Fürsorge", description: "Fürsorgegespräche, BEM", group: "HR-Korrespondenz" },

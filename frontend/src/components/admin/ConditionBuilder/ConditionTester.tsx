@@ -60,7 +60,7 @@ export const ConditionTester = ({ condition, fields, onClose }: ConditionTesterP
     return (
         <div className="space-y-4">
             <div className="text-sm text-muted-foreground">
-                Geben Sie Testwerte ein, um zu pr\u00FCfen, ob die Bedingung erf\u00FCllt wird:
+                Geben Sie Testwerte ein, um zu prüfen, ob die Bedingung erfüllt wird:
             </div>
 
             <div className="space-y-3 max-h-[300px] overflow-y-auto">
@@ -91,7 +91,7 @@ export const ConditionTester = ({ condition, fields, onClose }: ConditionTesterP
                                         onValueChange={(v) => handleValueChange(fieldName, v)}
                                     >
                                         <SelectTrigger>
-                                            <SelectValue placeholder="W\u00E4hlen..." />
+                                            <SelectValue placeholder="Wählen..." />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {field.options?.map((opt) => (
@@ -128,7 +128,7 @@ export const ConditionTester = ({ condition, fields, onClose }: ConditionTesterP
 
             <div className="flex items-center justify-between pt-4 border-t">
                 <Button variant="outline" onClick={onClose}>
-                    Schlie\u00DFen
+                    Schließen
                 </Button>
                 <Button onClick={handleTest} disabled={usedFields.length === 0}>
                     <Play className="w-4 h-4 mr-2" />
@@ -147,7 +147,7 @@ export const ConditionTester = ({ condition, fields, onClose }: ConditionTesterP
                         <>
                             <CheckCircle2 className="w-6 h-6 text-green-600" />
                             <div>
-                                <p className="font-medium text-green-800 dark:text-green-200">Bedingung erf\u00FCllt!</p>
+                                <p className="font-medium text-green-800 dark:text-green-200">Bedingung erfüllt!</p>
                                 <p className="text-sm text-green-700 dark:text-green-300">Die Klausel wird angezeigt.</p>
                             </div>
                         </>
@@ -155,7 +155,7 @@ export const ConditionTester = ({ condition, fields, onClose }: ConditionTesterP
                         <>
                             <X className="w-6 h-6 text-red-600" />
                             <div>
-                                <p className="font-medium text-red-800 dark:text-red-200">Bedingung nicht erf\u00FCllt</p>
+                                <p className="font-medium text-red-800 dark:text-red-200">Bedingung nicht erfüllt</p>
                                 <p className="text-sm text-red-700 dark:text-red-300">Die Klausel wird ausgeblendet.</p>
                             </div>
                         </>

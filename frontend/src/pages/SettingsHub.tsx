@@ -184,7 +184,16 @@ export default function SettingsHub() {
 
     const [activeTab, setActiveTab] = useState(getInitialTab);
 
-    // Sync URL with active tab
+    // Sync URL → state: when user clicks Sidebar links (Vorlagen/Einstellungen),
+    // the URL changes externally but activeTab must follow
+    useEffect(() => {
+        const tabFromUrl = searchParams.get("tab");
+        if (tabFromUrl && tabFromUrl !== activeTab && ALL_ITEMS.some(i => i.id === tabFromUrl)) {
+            setActiveTab(tabFromUrl);
+        }
+    }, [searchParams]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    // Sync state → URL: keep URL in sync when user clicks Settings sidebar buttons
     useEffect(() => {
         const params = new URLSearchParams();
         params.set("tab", activeTab);

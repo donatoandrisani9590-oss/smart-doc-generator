@@ -208,8 +208,8 @@ export const ConditionGroupEditor = ({
                 {/* Logic Explanation */}
                 <span className="text-xs text-muted-foreground flex-1">
                     {group.logic === "and"
-                        ? "Alle Bedingungen m\u00FCssen erf\u00FCllt sein"
-                        : "Mindestens eine Bedingung muss erf\u00FCllt sein"}
+                        ? "Alle Bedingungen müssen erfüllt sein"
+                        : "Mindestens eine Bedingung muss erfüllt sein"}
                 </span>
 
                 {/* Remove Group Button */}

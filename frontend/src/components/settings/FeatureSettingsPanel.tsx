@@ -202,21 +202,31 @@ export function FeatureSettingsPanel() {
                   <CardTitle className="text-base">{category.label}</CardTitle>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-1 pt-2">
                 {category.features.map((feature) => {
                   const FeatureIcon = ICONS[feature.icon] || FileText;
                   const isToggling = togglingFeatures.has(feature.key);
 
                   return (
-                    <div
+                    <label
                       key={feature.key}
-                      className="flex items-start justify-between gap-4 py-2"
+                      className={`flex items-center justify-between gap-4 py-3 px-3 -mx-3 rounded-lg cursor-pointer transition-colors ${
+                        isToggling ? "opacity-60" : "hover:bg-muted/50"
+                      }`}
                     >
-                      <div className="flex items-start gap-3">
-                        <div className="p-2 bg-muted rounded-lg mt-0.5">
-                          <FeatureIcon className="w-4 h-4 text-muted-foreground" />
+                      <div className="flex items-center gap-3">
+                        <div className={`p-2 rounded-lg transition-colors ${
+                          feature.enabled
+                            ? "bg-primary/10 dark:bg-primary/20"
+                            : "bg-muted"
+                        }`}>
+                          <FeatureIcon className={`w-4 h-4 transition-colors ${
+                            feature.enabled
+                              ? "text-primary"
+                              : "text-muted-foreground"
+                          }`} />
                         </div>
-                        <div className="space-y-1">
+                        <div className="space-y-0.5">
                           <div className="flex items-center gap-2">
                             <span className="font-medium text-sm">
                               {feature.label}
@@ -241,7 +251,7 @@ export function FeatureSettingsPanel() {
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-3 shrink-0">
                         {isToggling && (
                           <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
                         )}
@@ -252,15 +262,15 @@ export function FeatureSettingsPanel() {
                           }
                           disabled={isToggling}
                         />
-                        <span className={`text-xs font-medium min-w-[24px] ${
+                        <span className={`text-xs font-semibold min-w-[28px] ${
                           feature.enabled
-                            ? "text-green-600 dark:text-green-400"
+                            ? "text-primary dark:text-primary"
                             : "text-muted-foreground"
                         }`}>
                           {feature.enabled ? "An" : "Aus"}
                         </span>
                       </div>
-                    </div>
+                    </label>
                   );
                 })}
               </CardContent>

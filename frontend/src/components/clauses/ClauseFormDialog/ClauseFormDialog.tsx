@@ -54,13 +54,11 @@ import {
     ChevronRight,
     ChevronLeft,
     Sparkles,
-    Tag,
     Eye,
     Save,
     X,
     AlertTriangle,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 import type { ClauseFormDialogProps, WizardStep } from "./types";
 import { BasicsStep } from "./BasicsStep";
@@ -258,28 +256,6 @@ export const ClauseFormDialog = ({
     const canProceedToContent = title.trim() && (category === "custom" ? customCategory.trim() : category);
     const canProceedToPreview = content.replace(/<[^>]*>/g, "").trim().length >= 10;
 
-    const handleNext = () => {
-        if (currentStep === "basics") {
-            setTouched({ title: true, category: true, customCategory: true });
-            if (validateBasics()) {
-                setCurrentStep("content");
-            }
-        } else if (currentStep === "content") {
-            setTouched((prev) => ({ ...prev, content: true }));
-            if (validateContent()) {
-                setCurrentStep("preview");
-            }
-        }
-    };
-
-    const handleBack = () => {
-        if (currentStep === "content") {
-            setCurrentStep("basics");
-        } else if (currentStep === "preview") {
-            setCurrentStep("content");
-        }
-    };
-
     // Save
     const handleSave = async () => {
         if (!validateBasics() || !validateContent()) {
@@ -321,56 +297,24 @@ export const ClauseFormDialog = ({
     const isSaving = createMutation.isPending || updateMutation.isPending;
     const saveError = createMutation.error || updateMutation.error;
 
-    // Render step indicator
+    // Render step indicator (only shown in preview step)
     const renderStepIndicator = () => {
-        const steps = [
-            { key: "basics", label: "Grundlagen", icon: Tag },
-            { key: "content", label: "Inhalt", icon: FileText },
-            { key: "preview", label: "Vorschau", icon: Eye },
-        ];
-
-        const currentIndex = steps.findIndex((s) => s.key === currentStep);
-
+        if (currentStep !== "preview") return null;
         return (
-            <div className="flex items-center justify-center gap-2 mb-6">
-                {steps.map((step, index) => {
-                    const Icon = step.icon;
-                    const isStepActive = step.key === currentStep;
-                    const isCompleted = index < currentIndex;
-
-                    return (
-                        <div key={step.key} className="flex items-center">
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    // Only allow going back
-                                    if (index < currentIndex) {
-                                        setCurrentStep(step.key as WizardStep);
-                                    }
-                                }}
-                                disabled={index > currentIndex}
-                                className={cn(
-                                    "flex items-center gap-2 px-3 py-1.5 rounded-full transition-all",
-                                    isStepActive && "bg-primary text-white",
-                                    isCompleted && "bg-secondary/20 text-secondary cursor-pointer hover:bg-secondary/30",
-                                    !isStepActive && !isCompleted && "text-muted-foreground"
-                                )}
-                            >
-                                {isCompleted ? (
-                                    <CheckCircle2 className="w-4 h-4" />
-                                ) : (
-                                    <Icon className="w-4 h-4" />
-                                )}
-                                <span className="text-sm font-medium hidden sm:inline">
-                                    {step.label}
-                                </span>
-                            </button>
-                            {index < steps.length - 1 && (
-                                <ChevronRight className="w-4 h-4 mx-2 text-border" />
-                            )}
-                        </div>
-                    );
-                })}
+            <div className="flex items-center justify-center gap-2 mb-4">
+                <button
+                    type="button"
+                    onClick={() => setCurrentStep("basics")}
+                    className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-secondary/20 text-secondary cursor-pointer hover:bg-secondary/30"
+                >
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span className="text-sm font-medium hidden sm:inline">Bearbeiten</span>
+                </button>
+                <ChevronRight className="w-4 h-4 mx-2 text-border" />
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary text-white">
+                    <Eye className="w-4 h-4" />
+                    <span className="text-sm font-medium hidden sm:inline">Vorschau</span>
+                </div>
             </div>
         );
     };
@@ -464,37 +408,40 @@ export const ClauseFormDialog = ({
                             </Tabs>
                         ) : (
                             <>
-                                {currentStep === "basics" && (
-                                    <BasicsStep
-                                        title={title}
-                                        setTitle={setTitle}
-                                        category={category}
-                                        setCategory={setCategory}
-                                        customCategory={customCategory}
-                                        setCustomCategory={setCustomCategory}
-                                        countryCode={countryCode}
-                                        setCountryCode={setCountryCode}
-                                        description={description}
-                                        setDescription={setDescription}
-                                        tags={tags}
-                                        setTags={setTags}
-                                        tagInput={tagInput}
-                                        setTagInput={setTagInput}
-                                        tone={tone}
-                                        setTone={setTone}
-                                        errors={errors}
-                                        touched={touched}
-                                        setTouched={setTouched}
-                                    />
-                                )}
-                                {currentStep === "content" && (
-                                    <ContentStep
-                                        content={content}
-                                        setContent={setContent}
-                                        countryCode={countryCode}
-                                        errors={errors}
-                                        touched={touched}
-                                    />
+                                {(currentStep === "basics" || currentStep === "content") && (
+                                    <div className="space-y-4">
+                                        {/* Compact Basics: Title + Category inline */}
+                                        <BasicsStep
+                                            title={title}
+                                            setTitle={setTitle}
+                                            category={category}
+                                            setCategory={setCategory}
+                                            customCategory={customCategory}
+                                            setCustomCategory={setCustomCategory}
+                                            countryCode={countryCode}
+                                            setCountryCode={setCountryCode}
+                                            description={description}
+                                            setDescription={setDescription}
+                                            tags={tags}
+                                            setTags={setTags}
+                                            tagInput={tagInput}
+                                            setTagInput={setTagInput}
+                                            tone={tone}
+                                            setTone={setTone}
+                                            errors={errors}
+                                            touched={touched}
+                                            setTouched={setTouched}
+                                            compact
+                                        />
+                                        {/* Editor directly below */}
+                                        <ContentStep
+                                            content={content}
+                                            setContent={setContent}
+                                            countryCode={countryCode}
+                                            errors={errors}
+                                            touched={touched}
+                                        />
+                                    </div>
                                 )}
                                 {currentStep === "preview" && (
                                     <PreviewStep
@@ -524,12 +471,12 @@ export const ClauseFormDialog = ({
                             Abbrechen
                         </Button>
 
-                        {/* Back */}
-                        {(currentStep !== "basics" || isEditMode) && (
+                        {/* Back (only in preview step or edit mode) */}
+                        {(currentStep === "preview" || isEditMode) && (
                             <Button
                                 variant="outline"
-                                onClick={handleBack}
-                                disabled={isSaving || (currentStep === "basics" && !isEditMode)}
+                                onClick={() => setCurrentStep("basics")}
+                                disabled={isSaving}
                             >
                                 <ChevronLeft className="w-4 h-4 mr-2" />
                                 Zurück
@@ -537,32 +484,35 @@ export const ClauseFormDialog = ({
                         )}
 
                         {/* Next / Save */}
-                        {currentStep === "preview" || isEditMode ? (
+                        {/* Preview button (create mode, not on preview step) */}
+                        {!isEditMode && currentStep !== "preview" && (
                             <Button
-                                onClick={handleSave}
-                                disabled={isSaving}
-                                className="bg-primary hover:bg-primary/90"
+                                variant="outline"
+                                onClick={() => {
+                                    if (validateBasics() && validateContent()) {
+                                        setCurrentStep("preview");
+                                    }
+                                }}
+                                disabled={!canProceedToContent || !canProceedToPreview}
                             >
-                                {isSaving ? (
-                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                ) : (
-                                    <Save className="w-4 h-4 mr-2" />
-                                )}
-                                {isEditMode ? "Änderungen speichern" : "Klausel erstellen"}
-                            </Button>
-                        ) : (
-                            <Button
-                                onClick={handleNext}
-                                disabled={
-                                    (currentStep === "basics" && !canProceedToContent) ||
-                                    (currentStep === "content" && !canProceedToPreview)
-                                }
-                                className="bg-primary hover:bg-primary/90"
-                            >
-                                Weiter
-                                <ChevronRight className="w-4 h-4 ml-2" />
+                                <Eye className="w-4 h-4 mr-2" />
+                                Vorschau
                             </Button>
                         )}
+
+                        {/* Save button */}
+                        <Button
+                            onClick={handleSave}
+                            disabled={isSaving || (!isEditMode && (!canProceedToContent || !canProceedToPreview))}
+                            className="bg-primary hover:bg-primary/90"
+                        >
+                            {isSaving ? (
+                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            ) : (
+                                <Save className="w-4 h-4 mr-2" />
+                            )}
+                            {isEditMode ? "Änderungen speichern" : "Klausel erstellen"}
+                        </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

@@ -94,7 +94,7 @@ export const SummaryStep = ({
                                 </span>
                             </div>
                             <div>
-                                <span className="text-muted-foreground">K{"\u00fc"}ndigungsfrist:</span>{" "}
+                                <span className="text-muted-foreground">Kündigungsfrist:</span>{" "}
                                 <span className="font-medium">{defaultNoticePeriod}</span>
                             </div>
                             <div>

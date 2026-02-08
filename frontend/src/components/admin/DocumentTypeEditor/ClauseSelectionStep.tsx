@@ -133,7 +133,7 @@ export const ClauseSelectionStep = ({
                     <CardHeader className="py-3 bg-warm-50">
                         <CardTitle className="text-sm flex items-center gap-2">
                             <FileText className="w-4 h-4" />
-                            Verf{"\u00fc"}gbare Klauseln
+                            Verfügbare Klauseln
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="p-0 overflow-y-auto h-[calc(100%-48px)]">
@@ -143,7 +143,23 @@ export const ClauseSelectionStep = ({
                             </div>
                         ) : Object.keys(groupedClauses).length === 0 ? (
                             <div className="p-4 text-center text-muted-foreground">
-                                Alle Klauseln wurden hinzugef{"\u00fc"}gt
+                                {selectedClauses.length === 0 ? (
+                                    <>
+                                        <FileText className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                                        <p className="text-sm">Noch keine Klauseln vorhanden</p>
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            className="mt-2"
+                                            onClick={() => setShowClauseCreator(true)}
+                                        >
+                                            <Plus className="w-4 h-4 mr-1" />
+                                            Klausel erstellen
+                                        </Button>
+                                    </>
+                                ) : (
+                                    <>Alle Klauseln wurden hinzugefügt</>
+                                )}
                             </div>
                         ) : (
                             <div className="divide-y">
@@ -187,16 +203,16 @@ export const ClauseSelectionStep = ({
                     <CardHeader className="py-3 bg-primary/5">
                         <CardTitle className="text-sm flex items-center gap-2">
                             <Settings2 className="w-4 h-4" />
-                            Ausgew{"\u00e4"}hlte Klauseln ({selectedClauses.length})
+                            Ausgewählte Klauseln ({selectedClauses.length})
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="p-0 overflow-y-auto h-[calc(100%-48px)]">
                         {selectedClauses.length === 0 ? (
                             <div className="p-4 text-center text-muted-foreground">
                                 <FileText className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                                <p className="text-sm">Keine Klauseln ausgew{"\u00e4"}hlt</p>
+                                <p className="text-sm">Keine Klauseln ausgewählt</p>
                                 <p className="text-xs">
-                                    Klicken Sie links auf eine Klausel, um sie hinzuzuf{"\u00fc"}gen
+                                    Klicken Sie links auf eine Klausel, um sie hinzuzufügen
                                 </p>
                             </div>
                         ) : (
@@ -278,7 +294,7 @@ export const ClauseSelectionStep = ({
                     </div>
                 </div>
                 <p className="text-xs text-muted-foreground mb-3">
-                    Varianten-Gruppen erm{"\u00f6"}glichen es dem Benutzer im Generator zwischen verschiedenen Klausel-Varianten zu w{"\u00e4"}hlen (z.B. verschiedene K{"\u00fc"}ndigungsfristen).
+                    Varianten-Gruppen ermöglichen es dem Benutzer im Generator zwischen verschiedenen Klausel-Varianten zu wählen (z.B. verschiedene Kündigungsfristen).
                 </p>
 
                 <div className="grid grid-cols-2 gap-4 h-[250px]">
@@ -287,7 +303,7 @@ export const ClauseSelectionStep = ({
                         <CardHeader className="py-2 bg-purple-50">
                             <CardTitle className="text-sm flex items-center gap-2 text-purple-800">
                                 <Layers className="w-4 h-4" />
-                                Verf{"\u00fc"}gbare Gruppen
+                                Verfügbare Gruppen
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="p-0 overflow-y-auto h-[calc(100%-40px)]">
@@ -297,7 +313,7 @@ export const ClauseSelectionStep = ({
                                 </div>
                             ) : unselectedVariantGroups.length === 0 ? (
                                 <div className="p-3 text-center text-muted-foreground text-xs">
-                                    Keine weiteren Varianten-Gruppen verf{"\u00fc"}gbar
+                                    Keine weiteren Varianten-Gruppen verfügbar
                                 </div>
                             ) : (
                                 <div className="divide-y">
@@ -385,7 +401,7 @@ export const ClauseSelectionStep = ({
                                                         onValueChange={(val) => setVariantGroupDefault(vg.variant_group_id, parseInt(val))}
                                                     >
                                                         <SelectTrigger className="h-7 text-xs">
-                                                            <SelectValue placeholder="Standard-Variante w\u00e4hlen" />
+                                                            <SelectValue placeholder="Standard-Variante wählen" />
                                                         </SelectTrigger>
                                                         <SelectContent>
                                                             {vg.variants.map((v) => (

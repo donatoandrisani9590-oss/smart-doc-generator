@@ -32,7 +32,7 @@ import { BasicsStep } from "./BasicsStep";
 import { ClauseSelectionStep } from "./ClauseSelectionStep";
 import { SummaryStep } from "./SummaryStep";
 
-const STEP_LABELS = ["Grunddaten", "Klauseln", "\u00dcbersicht"] as const;
+const STEP_LABELS = ["Grunddaten", "Klauseln", "Übersicht"] as const;
 
 export const DocumentTypeEditor = ({
     open,
@@ -174,7 +174,7 @@ export const DocumentTypeEditor = ({
                             {editor.step > 1 && (
                                 <Button variant="outline" onClick={editor.handleBack} disabled={editor.isPending}>
                                     <ChevronLeft className="w-4 h-4 mr-1" />
-                                    Zur{"\u00fc"}ck
+                                    Zurück
                                 </Button>
                             )}
                         </div>
@@ -205,7 +205,7 @@ export const DocumentTypeEditor = ({
                                     ) : (
                                         <>
                                             <Save className="w-4 h-4 mr-2" />
-                                            {editor.isEditing ? "\u00c4nderungen speichern" : "Dokumenttyp erstellen"}
+                                            {editor.isEditing ? "Änderungen speichern" : "Dokumenttyp erstellen"}
                                         </>
                                     )}
                                 </Button>

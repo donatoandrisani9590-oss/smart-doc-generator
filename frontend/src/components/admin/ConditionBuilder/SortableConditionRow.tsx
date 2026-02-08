@@ -230,7 +230,7 @@ export const SortableConditionRow = ({
                         disabled={disabled || !condition.field}
                     >
                         <SelectTrigger className="min-w-[150px]">
-                            <SelectValue placeholder="W\u00E4hlen..." />
+                            <SelectValue placeholder="Wählen..." />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="true">
@@ -257,7 +257,7 @@ export const SortableConditionRow = ({
                         disabled={disabled || !condition.field}
                     >
                         <SelectTrigger className="min-w-[150px]">
-                            <SelectValue placeholder="Wert w\u00E4hlen..." />
+                            <SelectValue placeholder="Wert wählen..." />
                         </SelectTrigger>
                         <SelectContent>
                             {fieldInfo?.options?.map((opt) => (
@@ -350,7 +350,7 @@ export const SortableConditionRow = ({
                         disabled={disabled}
                     >
                         <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Klausel w\u00E4hlen..." />
+                            <SelectValue placeholder="Klausel wählen..." />
                         </SelectTrigger>
                         <SelectContent className="max-h-[300px]">
                             {filteredClauses.map((clause) => (
@@ -360,7 +360,7 @@ export const SortableConditionRow = ({
                             ))}
                             {filteredClauses.length === 0 && (
                                 <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-                                    Keine Klauseln verf\u00FCgbar
+                                    Keine Klauseln verfügbar
                                 </div>
                             )}
                         </SelectContent>
@@ -375,7 +375,7 @@ export const SortableConditionRow = ({
                         disabled={disabled}
                     >
                         <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Variante w\u00E4hlen..." />
+                            <SelectValue placeholder="Variante wählen..." />
                         </SelectTrigger>
                         <SelectContent className="max-h-[300px]">
                             {Object.entries(variantsByClause).map(([clauseId, { clauseTitle, variants }]) => (
@@ -392,7 +392,7 @@ export const SortableConditionRow = ({
                             ))}
                             {Object.keys(variantsByClause).length === 0 && (
                                 <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-                                    Keine Varianten verf\u00FCgbar
+                                    Keine Varianten verfügbar
                                 </div>
                             )}
                         </SelectContent>
@@ -407,7 +407,7 @@ export const SortableConditionRow = ({
                         disabled={disabled}
                     >
                         <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Feld w\u00E4hlen..." />
+                            <SelectValue placeholder="Feld wählen..." />
                         </SelectTrigger>
                         <SelectContent className="max-h-[300px]">
                             {Object.entries(filteredFieldsByCategory).map(([category, categoryFields]) => (
@@ -472,13 +472,13 @@ export const SortableConditionRow = ({
                 <SelectItem value="true">
                     <div className="flex items-center gap-2">
                         <CheckCircle2 className="w-4 h-4 text-green-600" />
-                        {conditionKind === "clause_active" ? "aktiv" : "gew\u00E4hlt"}
+                        {conditionKind === "clause_active" ? "aktiv" : "gewählt"}
                     </div>
                 </SelectItem>
                 <SelectItem value="false">
                     <div className="flex items-center gap-2">
                         <AlertCircle className="w-4 h-4 text-muted-foreground" />
-                        {conditionKind === "clause_active" ? "nicht aktiv" : "nicht gew\u00E4hlt"}
+                        {conditionKind === "clause_active" ? "nicht aktiv" : "nicht gewählt"}
                     </div>
                 </SelectItem>
             </SelectContent>

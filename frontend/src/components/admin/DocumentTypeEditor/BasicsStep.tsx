@@ -96,7 +96,7 @@ export const BasicsStep = ({
                         <Label>Kategorie *</Label>
                         <Select value={category} onValueChange={setCategory}>
                             <SelectTrigger className={errors.category ? "border-red-500" : ""}>
-                                <SelectValue placeholder="Kategorie w\u00e4hlen" />
+                                <SelectValue placeholder="Kategorie wählen" />
                             </SelectTrigger>
                             <SelectContent>
                                 {CATEGORIES.map((cat) => (
@@ -183,7 +183,7 @@ export const BasicsStep = ({
                     <Card className="border-blue-200 bg-blue-50/30">
                         <CardHeader className="pb-3">
                             <p className="text-xs text-blue-600">
-                                Diese Werte werden beim Erstellen eines Dokuments dieses Typs vorausgef{"\u00fc"}llt
+                                Diese Werte werden beim Erstellen eines Dokuments dieses Typs vorausgefüllt
                             </p>
                         </CardHeader>
                         <CardContent className="space-y-4">
@@ -212,7 +212,7 @@ export const BasicsStep = ({
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label>K{"\u00fc"}ndigungsfrist</Label>
+                                    <Label>Kündigungsfrist</Label>
                                     <Input
                                         value={defaultNoticePeriod}
                                         onChange={(e) => setDefaultNoticePeriod(e.target.value)}
@@ -236,7 +236,7 @@ export const BasicsStep = ({
                                         max={40}
                                     />
                                     <p className="text-xs text-muted-foreground">
-                                        Minimum: 20 Tage. {"\u00dc"}blich: 25-30.
+                                        Minimum: 20 Tage. Üblich: 25-30.
                                     </p>
                                 </div>
 

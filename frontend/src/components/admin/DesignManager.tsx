@@ -1,11 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Palette, Save, Eye } from "lucide-react";
+import { Loader2, Palette, Save, Eye, Building2 } from "lucide-react";
 import { useDesignSettings, useUpdateDesignSettings } from "@/hooks/useApi";
+import { apiFetch } from "@/lib/api-client";
 import { LogoUploader } from "./LogoUploader";
 
 interface DesignManagerProps {
@@ -39,6 +40,36 @@ export const DesignManager = ({ countryCode }: DesignManagerProps) => {
     });
 
     const [showPreview, setShowPreview] = useState(false);
+    const [isSyncingCompany, setIsSyncingCompany] = useState(false);
+
+    const syncFromCompanyData = useCallback(async () => {
+        setIsSyncingCompany(true);
+        try {
+            const response = await apiFetch(`/api/v1/company-settings/${countryCode}`);
+            if (!response.ok) return;
+            const company = await response.json();
+
+            setFormData((prev) => ({
+                ...prev,
+                company_name: company.company_name || prev.company_name,
+                // Kopfzeile: Firmenname, Straße, PLZ Ort
+                header_line1: company.company_name || prev.header_line1,
+                header_line2: company.street || prev.header_line2,
+                header_line3: [company.postal_code, company.city].filter(Boolean).join(" ") || prev.header_line3,
+                // Fußzeile: Geschäftsführer, Handelsregister + USt-ID, Bankverbindung
+                footer_line1: company.managing_director
+                    ? `Geschäftsführer: ${company.managing_director}`
+                    : prev.footer_line1,
+                footer_line2: [company.commercial_register, company.tax_id ? `USt-ID: ${company.tax_id}` : null]
+                    .filter(Boolean)
+                    .join(" | ") || prev.footer_line2,
+            }));
+        } catch {
+            // Silently fail - company data might not exist yet
+        } finally {
+            setIsSyncingCompany(false);
+        }
+    }, [countryCode]);
 
     useEffect(() => {
         if (settings) {
@@ -99,6 +130,22 @@ export const DesignManager = ({ countryCode }: DesignManagerProps) => {
                                 placeholder="Niederwieser GmbH"
                             />
                         </div>
+
+                        {/* Sync from Company Data */}
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="gap-2 w-full"
+                            onClick={syncFromCompanyData}
+                            disabled={isSyncingCompany}
+                        >
+                            {isSyncingCompany ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                                <Building2 className="w-4 h-4" />
+                            )}
+                            Aus Firmendaten übernehmen
+                        </Button>
 
                         {/* Header Lines */}
                         <div className="space-y-2">

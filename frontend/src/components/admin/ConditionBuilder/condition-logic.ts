@@ -40,7 +40,7 @@ export const conditionToNaturalLanguage = (
             const clauseName = clause?.title || `Klausel #${condition.clauseId}`;
             const isActive = condition.value === true;
             const operatorNot = condition.operator === "!=" ? "nicht " : "";
-            return `Klausel \u201E${clauseName}\u201C ist ${operatorNot}${isActive ? "aktiv" : "inaktiv"}`;
+            return `Klausel „${clauseName}" ist ${operatorNot}${isActive ? "aktiv" : "inaktiv"}`;
         }
 
         // Handle variant_selected conditions
@@ -49,7 +49,7 @@ export const conditionToNaturalLanguage = (
             const variantName = variant?.title || `Variante #${condition.variantId}`;
             const isSelected = condition.value === true;
             const operatorNot = condition.operator === "!=" ? "nicht " : "";
-            return `Variante \u201E${variantName}\u201C ist ${operatorNot}${isSelected ? "gew\u00E4hlt" : "nicht gew\u00E4hlt"}`;
+            return `Variante „${variantName}" ist ${operatorNot}${isSelected ? "gewählt" : "nicht gewählt"}`;
         }
 
         // Handle field conditions (default)
@@ -61,7 +61,7 @@ export const conditionToNaturalLanguage = (
 
         // Handle operators that don't require a value
         if (!operator.requiresValue) {
-            return `\u201E${field.label}\u201C ${operator.label}`;
+            return `„${field.label}" ${operator.label}`;
         }
 
         // Format the value
@@ -75,7 +75,7 @@ export const conditionToNaturalLanguage = (
             displayValue = String(condition.value);
         }
 
-        return `\u201E${field.label}\u201C ${operator.label} ${displayValue}`;
+        return `„${field.label}" ${operator.label} ${displayValue}`;
     }
 
     if (condition.type === "group") {
@@ -176,10 +176,10 @@ export const validateCondition = (
 
     const validateSimple = (c: SimpleCondition, path: string): void => {
         if (!c.field) {
-            errors.push(`${path}: Kein Feld ausgew\u00E4hlt`);
+            errors.push(`${path}: Kein Feld ausgewählt`);
         }
         if (!c.operator) {
-            errors.push(`${path}: Kein Operator ausgew\u00E4hlt`);
+            errors.push(`${path}: Kein Operator ausgewählt`);
         }
         const operators = getOperatorsForField(c.field, fields);
         const operator = operators.find((o) => o.value === c.operator);
@@ -190,7 +190,7 @@ export const validateCondition = (
         if (c.operator === "between" && c.value) {
             const parts = String(c.value).split("-");
             if (parts.length !== 2 || isNaN(Number(parts[0])) || isNaN(Number(parts[1]))) {
-                errors.push(`${path}: Ung\u00FCltiges Format f\u00FCr "zwischen" (erwartet: Zahl-Zahl, z.B. 50000-80000)`);
+                errors.push(`${path}: Ungültiges Format für "zwischen" (erwartet: Zahl-Zahl, z.B. 50000-80000)`);
             } else if (Number(parts[0]) > Number(parts[1])) {
                 errors.push(`${path}: Der erste Wert muss kleiner als der zweite sein`);
             }

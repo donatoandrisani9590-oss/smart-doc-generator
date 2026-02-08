@@ -35,6 +35,8 @@ interface BasicsStepProps {
     errors: Record<string, string>;
     touched: Record<string, boolean>;
     setTouched: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
+    /** Compact mode: nur Titel + Kategorie, ohne AI-Metadaten, Land, Tipps */
+    compact?: boolean;
 }
 
 export const BasicsStep = ({
@@ -57,8 +59,9 @@ export const BasicsStep = ({
     errors,
     touched,
     setTouched,
+    compact = false,
 }: BasicsStepProps) => (
-    <div className="space-y-6">
+    <div className={compact ? "space-y-3" : "space-y-6"}>
         {/* Title */}
         <div className="space-y-2">
             <div className="flex items-center justify-between">
@@ -92,9 +95,11 @@ export const BasicsStep = ({
                     {errors.title}
                 </p>
             )}
+            {!compact && (
             <p className="text-xs text-muted-foreground">
                 Wählen Sie einen eindeutigen, beschreibenden Titel
             </p>
+            )}
         </div>
 
         {/* Category */}
@@ -183,7 +188,8 @@ export const BasicsStep = ({
             )}
         </div>
 
-        {/* Country */}
+        {/* Country - hidden in compact mode */}
+        {!compact && (
         <div className="space-y-2">
             <Label className="text-sm font-medium">
                 Land <span className="text-red-500">*</span>
@@ -207,8 +213,10 @@ export const BasicsStep = ({
                 ))}
             </div>
         </div>
+        )}
 
-        {/* AI Metadata Section (v4.3) */}
+        {/* AI Metadata Section (v4.3) - hidden in compact mode */}
+        {!compact && (
         <div className="space-y-4 pt-2 border-t">
             <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
                 <Sparkles className="w-4 h-4" />
@@ -293,8 +301,10 @@ export const BasicsStep = ({
                 </p>
             </div>
         </div>
+        )}
 
-        {/* Tips */}
+        {/* Tips - hidden in compact mode */}
+        {!compact && (
         <Card className="bg-primary/5 border-primary/20">
             <CardContent className="py-3 px-4">
                 <div className="flex items-start gap-2">
@@ -308,5 +318,6 @@ export const BasicsStep = ({
                 </div>
             </CardContent>
         </Card>
+        )}
     </div>
 );

@@ -249,7 +249,7 @@ export const ConditionBuilder = ({
                                                 <Undo2 className="w-4 h-4" />
                                             </Button>
                                         </TooltipTrigger>
-                                        <TooltipContent>R\u00FCckg\u00E4ngig (Strg+Z)</TooltipContent>
+                                        <TooltipContent>Rückgängig (Strg+Z)</TooltipContent>
                                     </Tooltip>
                                 </TooltipProvider>
                                 <TooltipProvider>
@@ -363,7 +363,7 @@ export const ConditionBuilder = ({
                                                 Bedingung testen
                                             </DialogTitle>
                                             <DialogDescription>
-                                                Pr\u00FCfen Sie, ob die Klausel mit bestimmten Werten angezeigt wird.
+                                                Prüfen Sie, ob die Klausel mit bestimmten Werten angezeigt wird.
                                             </DialogDescription>
                                         </DialogHeader>
                                         <ConditionTester
@@ -385,11 +385,11 @@ export const ConditionBuilder = ({
                                     </DialogTrigger>
                                     <DialogContent className="max-w-sm">
                                         <DialogHeader>
-                                            <DialogTitle>Tastaturk\u00FCrzel</DialogTitle>
+                                            <DialogTitle>Tastaturkürzel</DialogTitle>
                                         </DialogHeader>
                                         <div className="space-y-2">
                                             {[
-                                                { keys: "Strg + Z", action: "R\u00FCckg\u00E4ngig" },
+                                                { keys: "Strg + Z", action: "Rückgängig" },
                                                 { keys: "Strg + Y", action: "Wiederholen" },
                                                 { keys: "Strg + Shift + Z", action: "Wiederholen (alternativ)" },
                                             ].map(({ keys, action }) => (
@@ -402,11 +402,11 @@ export const ConditionBuilder = ({
                                             ))}
                                         </div>
                                         <p className="text-xs text-muted-foreground mt-3">
-                                            Tipp: Verwenden Sie die Buttons zum Duplizieren und L\u00F6schen von Bedingungen.
+                                            Tipp: Verwenden Sie die Buttons zum Duplizieren und Löschen von Bedingungen.
                                         </p>
                                         <DialogFooter>
                                             <Button variant="outline" onClick={() => setShowShortcutsDialog(false)}>
-                                                Schlie\u00DFen
+                                                Schließen
                                             </Button>
                                         </DialogFooter>
                                     </DialogContent>
@@ -420,10 +420,10 @@ export const ConditionBuilder = ({
                         <p className="flex items-start gap-2">
                             <HelpCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
                             <span>
-                                Definieren Sie, wann diese Klausel erscheint. Verkn\u00FCpfen Sie Bedingungen mit{" "}
-                                <strong className="text-blue-600">UND</strong> (alle m\u00FCssen zutreffen) oder{" "}
+                                Definieren Sie, wann diese Klausel erscheint. Verknüpfen Sie Bedingungen mit{" "}
+                                <strong className="text-blue-600">UND</strong> (alle müssen zutreffen) oder{" "}
                                 <strong className="text-amber-600">ODER</strong> (mindestens eine muss zutreffen).
-                                Ziehen Sie Bedingungen per Drag & Drop in die gew\u00FCnschte Reihenfolge.
+                                Ziehen Sie Bedingungen per Drag & Drop in die gewünschte Reihenfolge.
                             </span>
                         </p>
                     </div>
@@ -482,7 +482,7 @@ export const ConditionBuilder = ({
                                 <AlertCircle className="w-4 h-4 mt-0.5 text-destructive flex-shrink-0" />
                                 <div className="text-sm">
                                     <p className="font-medium text-destructive mb-1">
-                                        Bitte vervollst\u00E4ndigen Sie die Bedingung:
+                                        Bitte vervollständigen Sie die Bedingung:
                                     </p>
                                     <ul className="list-disc list-inside text-muted-foreground space-y-0.5">
                                         {validation.errors.map((error, i) => (

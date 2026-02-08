@@ -104,13 +104,17 @@ export function WordImportWizard({
     const IMPORT_CATEGORIES = [
         // Arbeitsvertrag-Kategorien
         { value: "Einleitung", label: "Einleitung", group: "Arbeitsvertrag" },
+        { value: "Vertragsbeginn", label: "Vertragsbeginn / Probezeit", group: "Arbeitsvertrag" },
         { value: "Arbeitszeit", label: "Arbeitszeit", group: "Arbeitsvertrag" },
         { value: "Vergütung", label: "Vergütung", group: "Arbeitsvertrag" },
+        { value: "Nebenleistungen", label: "Nebenleistungen", group: "Arbeitsvertrag" },
         { value: "Urlaub", label: "Urlaub", group: "Arbeitsvertrag" },
+        { value: "Pflichten", label: "Pflichten / Verhinderung", group: "Arbeitsvertrag" },
         { value: "Kündigung", label: "Kündigung", group: "Arbeitsvertrag" },
         { value: "Geheimhaltung", label: "Geheimhaltung", group: "Arbeitsvertrag" },
         { value: "Nebentätigkeit", label: "Nebentätigkeit", group: "Arbeitsvertrag" },
         { value: "Wettbewerb", label: "Wettbewerbsverbot", group: "Arbeitsvertrag" },
+        { value: "Ausschlussfristen", label: "Ausschlussfristen", group: "Arbeitsvertrag" },
         { value: "Schlussbestimmungen", label: "Schlussbestimmungen", group: "Arbeitsvertrag" },
         // HR-Korrespondenz-Kategorien
         { value: "Einladung", label: "Einladung", group: "HR-Korrespondenz" },
