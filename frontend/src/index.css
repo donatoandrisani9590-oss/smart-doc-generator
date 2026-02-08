@@ -377,6 +377,31 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
+   SWITCH COMPONENT – Robust colors that survive dark-mode overrides
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Track: unchecked state */
+.switch-track[data-state="unchecked"] {
+  background-color: hsl(220 9% 46% / 0.3);
+}
+.dark .switch-track[data-state="unchecked"] {
+  background-color: hsl(220 8% 60% / 0.45) !important;
+}
+
+/* Track: checked state */
+.switch-track[data-state="checked"] {
+  background-color: hsl(var(--primary));
+}
+.dark .switch-track[data-state="checked"] {
+  background-color: hsl(var(--primary)) !important;
+}
+
+/* Thumb: always white, even in dark mode */
+.switch-thumb {
+  background-color: #ffffff !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
    GLOBAL DARK MODE OVERRIDES
    Intercepts Tailwind color utilities so existing TSX files need no changes.
    ═══════════════════════════════════════════════════════════════════════════ */
