@@ -284,6 +284,49 @@ async def lifespan(app: FastAPI):
         logger.error(f"Failed to create database tables: {e}")
         # Don't fail startup - allow health checks to report the issue
 
+    # Run schema migrations for columns added after initial table creation
+    try:
+        from app.db import engine
+        from sqlalchemy import text
+
+        async with engine.begin() as conn:
+            # Get existing columns for users table
+            result = await conn.execute(text(
+                "SELECT column_name FROM information_schema.columns WHERE table_name = 'users'"
+            ))
+            existing_cols = {row[0] for row in result.fetchall()}
+
+            migrations_run = 0
+            user_migrations = [
+                ("totp_secret", "ALTER TABLE users ADD COLUMN totp_secret VARCHAR(64)"),
+                ("totp_enabled", "ALTER TABLE users ADD COLUMN totp_enabled BOOLEAN DEFAULT FALSE"),
+                ("sso_provider", "ALTER TABLE users ADD COLUMN sso_provider VARCHAR(50)"),
+                ("sso_subject_id", "ALTER TABLE users ADD COLUMN sso_subject_id VARCHAR(255)"),
+                ("display_name", "ALTER TABLE users ADD COLUMN display_name VARCHAR(255)"),
+            ]
+            for col_name, sql in user_migrations:
+                if col_name not in existing_cols:
+                    await conn.execute(text(sql))
+                    migrations_run += 1
+                    logger.info(f"Migration: added column users.{col_name}")
+
+            # Create indexes for SSO columns if they were just added
+            if "sso_provider" not in existing_cols:
+                await conn.execute(text(
+                    "CREATE INDEX IF NOT EXISTS ix_users_sso_provider ON users (sso_provider)"
+                ))
+                await conn.execute(text(
+                    "CREATE INDEX IF NOT EXISTS ix_users_sso_subject_id ON users (sso_subject_id)"
+                ))
+
+            if migrations_run > 0:
+                logger.info(f"Schema migrations complete: {migrations_run} columns added")
+            else:
+                logger.info("Schema migrations: no changes needed")
+    except Exception as e:
+        logger.error(f"Schema migration failed: {e}")
+        # Don't fail startup
+
     yield
 
     # Shutdown
