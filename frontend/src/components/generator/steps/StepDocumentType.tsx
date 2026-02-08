@@ -45,6 +45,9 @@ interface UserTemplateOption {
     has_logo: boolean;
     has_header: boolean;
     has_footer: boolean;
+    scope: string;
+    category: string | null;
+    is_own: boolean;
 }
 
 export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeProps) => {
@@ -302,12 +305,12 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
                     </p>
                 </div>
 
-                {/* Eigene Vorlage (optional, collapsible) */}
+                {/* Vorlage verwenden (optional, collapsible) */}
                 {userTemplates.length > 0 && (
                     <Collapsible open={templateSectionOpen || !!state.userTemplateId} onOpenChange={setTemplateSectionOpen}>
                         <CollapsibleTrigger className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors pt-2 group">
                             <LayoutTemplate className="w-4 h-4" />
-                            <span>Eigene Vorlage verwenden</span>
+                            <span>Vorlage verwenden</span>
                             <Badge variant="outline" className="text-[10px] py-0">Optional</Badge>
                             <ChevronDown className={cn(
                                 "w-3.5 h-3.5 transition-transform ml-auto",
@@ -316,7 +319,7 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
                         </CollapsibleTrigger>
                         <CollapsibleContent className="pt-3 space-y-2">
                             <p className="text-xs text-muted-foreground">
-                                Verwenden Sie eine eigene DOCX-Vorlage als Layout-Basis (mit Logo, Kopf-/Fusszeile).
+                                Verwenden Sie eine DOCX-Vorlage als Layout-Basis (mit Logo, Kopf-/Fusszeile).
                             </p>
                             <div className="grid gap-2">
                                 {/* "Keine Vorlage" Option */}
@@ -329,11 +332,16 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
                                             : "border-warm-200 hover:border-warm-300 text-muted-foreground"
                                     )}
                                 >
-                                    Standard-Layout (ohne eigene Vorlage)
+                                    Standard-Layout (ohne Vorlage)
                                 </button>
 
-                                {/* User Templates */}
-                                {userTemplates.map((template) => (
+                                {/* Own templates */}
+                                {userTemplates.filter(t => t.is_own).length > 0 && (
+                                    <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider pt-1">
+                                        Eigene Vorlagen
+                                    </div>
+                                )}
+                                {userTemplates.filter(t => t.is_own).map((template) => (
                                     <button
                                         key={template.id}
                                         onClick={() => actions.setUserTemplateId(template.id)}
@@ -350,12 +358,12 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
                                                 state.userTemplateId === template.id ? "text-primary" : "text-warm-400"
                                             )} />
                                             <span className={cn(
-                                                "text-sm",
+                                                "text-sm truncate",
                                                 state.userTemplateId === template.id ? "font-medium text-foreground" : "text-foreground"
                                             )}>
                                                 {template.name}
                                             </span>
-                                            <div className="flex gap-1 ml-auto">
+                                            <div className="flex gap-1 ml-auto shrink-0">
                                                 {template.has_logo && (
                                                     <Badge variant="secondary" className="text-[9px] py-0 px-1">Logo</Badge>
                                                 )}
@@ -364,6 +372,55 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
                                                 )}
                                                 {template.has_footer && (
                                                     <Badge variant="secondary" className="text-[9px] py-0 px-1">Fuss</Badge>
+                                                )}
+                                                {template.category && (
+                                                    <Badge variant="outline" className="text-[9px] py-0 px-1">{template.category}</Badge>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </button>
+                                ))}
+
+                                {/* Shared templates */}
+                                {userTemplates.filter(t => !t.is_own).length > 0 && (
+                                    <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider pt-1">
+                                        Geteilte Vorlagen
+                                    </div>
+                                )}
+                                {userTemplates.filter(t => !t.is_own).map((template) => (
+                                    <button
+                                        key={template.id}
+                                        onClick={() => actions.setUserTemplateId(template.id)}
+                                        className={cn(
+                                            "w-full text-left px-3 py-2.5 rounded-lg border transition-all",
+                                            state.userTemplateId === template.id
+                                                ? "border-primary bg-primary/5"
+                                                : "border-warm-200 hover:border-warm-300"
+                                        )}
+                                    >
+                                        <div className="flex items-center gap-2">
+                                            <FileText className={cn(
+                                                "w-4 h-4 shrink-0",
+                                                state.userTemplateId === template.id ? "text-primary" : "text-warm-400"
+                                            )} />
+                                            <span className={cn(
+                                                "text-sm truncate",
+                                                state.userTemplateId === template.id ? "font-medium text-foreground" : "text-foreground"
+                                            )}>
+                                                {template.name}
+                                            </span>
+                                            <div className="flex gap-1 ml-auto shrink-0">
+                                                {template.has_logo && (
+                                                    <Badge variant="secondary" className="text-[9px] py-0 px-1">Logo</Badge>
+                                                )}
+                                                {template.has_header && (
+                                                    <Badge variant="secondary" className="text-[9px] py-0 px-1">Kopf</Badge>
+                                                )}
+                                                {template.has_footer && (
+                                                    <Badge variant="secondary" className="text-[9px] py-0 px-1">Fuss</Badge>
+                                                )}
+                                                {template.category && (
+                                                    <Badge variant="outline" className="text-[9px] py-0 px-1">{template.category}</Badge>
                                                 )}
                                             </div>
                                         </div>

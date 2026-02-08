@@ -28,6 +28,12 @@ class UserTemplate(Base):
     file_size = Column(Integer, nullable=False)
     country_code = Column(String(2), nullable=True, index=True)  # Optional: DE, IT
 
+    # Sichtbarkeit & Zuordnung (spiegelt DocumentType.visibility-Muster)
+    # 'company' = alle Nutzer, 'team' = nur Team-Mitglieder, 'private' = nur Ersteller
+    scope = Column(String(20), default="company", server_default="company", nullable=False, index=True)
+    team_id = Column(Integer, ForeignKey("teams.id", ondelete="SET NULL"), nullable=True, index=True)
+    category = Column(String(100), nullable=True, index=True)  # z.B. "HR", "Recht", "Finanzen"
+
     # Metadaten aus DOCX-Analyse
     has_header = Column(Boolean, default=False)
     has_footer = Column(Boolean, default=False)

@@ -13,6 +13,7 @@ from app.models import core as models
 from app.models.documents import DocumentType, Clause, DocumentTypeClause
 from app.models.user_templates import UserTemplate
 from app.services.user_template_service import inject_content_into_template, get_user_template_path
+from app.api.v1.endpoints.user_templates import _can_access_template
 from docx import Document
 from docx.shared import Pt, Cm, Inches
 from docx.enum.text import WD_ALIGN_PARAGRAPH
@@ -698,12 +699,13 @@ async def generate_document_by_type(
 
         # Check if user template should be used
         if request_data.user_template_id:
-            # Load user template from DB
+            # Load user template from DB (supports shared templates)
             user_template = await db.get(UserTemplate, request_data.user_template_id)
-            if not user_template or user_template.user_id != current_user.id:
+            if not user_template or not await _can_access_template(db, user_template, current_user):
                 raise HTTPException(status_code=404, detail="Eigene Vorlage nicht gefunden")
 
-            template_file = get_user_template_path(current_user.id, user_template.stored_filename)
+            # Use uploader's user_id for file path (not current_user)
+            template_file = get_user_template_path(user_template.user_id, user_template.stored_filename)
             if not template_file.exists():
                 raise HTTPException(status_code=404, detail="Vorlage-Datei nicht gefunden")
 

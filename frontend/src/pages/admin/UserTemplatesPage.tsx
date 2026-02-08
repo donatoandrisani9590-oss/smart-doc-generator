@@ -2,12 +2,14 @@
  * User Templates Management Page
  *
  * Settings page for managing user-uploaded DOCX templates:
- * - Upload new templates (DOCX only)
- * - View all templates with metadata (header, footer, logo detection)
- * - Delete templates
+ * - Upload new templates (DOCX only) with scope, team, and category
+ * - View all accessible templates with metadata
+ * - Delete own templates
  *
- * These templates serve as layout basis (branding, header/footer)
- * for document generation.
+ * Templates can be scoped as:
+ * - 'company': visible to all users (default)
+ * - 'team': visible to members of a specific team
+ * - 'private': visible only to the creator
  */
 
 import { useState, useCallback, useEffect } from "react";
@@ -17,6 +19,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 import {
     Dialog,
     DialogContent,
@@ -39,6 +48,10 @@ import {
     Image,
     PanelTop,
     PanelBottom,
+    Building2,
+    Users,
+    Lock,
+    Tag,
 } from "lucide-react";
 import { useDropzone } from "react-dropzone";
 import { apiFetch } from "@/lib/api-client";
@@ -58,8 +71,17 @@ interface UserTemplate {
     has_footer: boolean;
     has_logo: boolean;
     font_family: string | null;
+    scope: "company" | "team" | "private";
+    team_id: number | null;
+    category: string | null;
+    is_own: boolean;
     created_at: string;
     updated_at: string | null;
+}
+
+interface TeamOption {
+    id: number;
+    name: string;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -71,6 +93,12 @@ const formatFileSize = (bytes?: number): string => {
     if (bytes < 1024) return `${bytes} B`;
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+};
+
+const SCOPE_LABELS: Record<string, { label: string; icon: typeof Building2; className: string }> = {
+    company: { label: "Unternehmen", icon: Building2, className: "border-blue-200 text-blue-600" },
+    team: { label: "Team", icon: Users, className: "border-green-200 text-green-600" },
+    private: { label: "Privat", icon: Lock, className: "border-warm-200 text-warm-500" },
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -88,9 +116,30 @@ function UploadDialog({ open, onOpenChange, onSuccess }: UploadDialogProps) {
     const [name, setName] = useState("");
     const [description, setDescription] = useState("");
     const [countryCode, setCountryCode] = useState("");
+    const [scope, setScope] = useState<"company" | "team" | "private">("company");
+    const [teamId, setTeamId] = useState<string>("");
+    const [category, setCategory] = useState("");
+    const [teams, setTeams] = useState<TeamOption[]>([]);
     const [uploading, setUploading] = useState(false);
     const [uploadState, setUploadState] = useState<"idle" | "success" | "error">("idle");
     const [errorMsg, setErrorMsg] = useState("");
+
+    // Fetch user's teams
+    useEffect(() => {
+        if (!open) return;
+        const fetchTeams = async () => {
+            try {
+                const res = await apiFetch("/api/v1/teams");
+                if (res.ok) {
+                    const data = await res.json();
+                    setTeams(Array.isArray(data) ? data : data.items || []);
+                }
+            } catch {
+                // Teams are optional
+            }
+        };
+        fetchTeams();
+    }, [open]);
 
     const onDrop = useCallback((accepted: File[]) => {
         if (accepted.length > 0) {
@@ -128,6 +177,9 @@ function UploadDialog({ open, onOpenChange, onSuccess }: UploadDialogProps) {
             params.set("name", name.trim());
             if (description.trim()) params.set("description", description.trim());
             if (countryCode.trim()) params.set("country_code", countryCode.trim().toUpperCase());
+            params.set("scope", scope);
+            if (scope === "team" && teamId) params.set("team_id", teamId);
+            if (category.trim()) params.set("category", category.trim());
 
             const response = await apiFetch(
                 `/api/v1/user-templates?${params.toString()}`,
@@ -158,6 +210,9 @@ function UploadDialog({ open, onOpenChange, onSuccess }: UploadDialogProps) {
         setName("");
         setDescription("");
         setCountryCode("");
+        setScope("company");
+        setTeamId("");
+        setCategory("");
         setUploadState("idle");
         setErrorMsg("");
     };
@@ -166,7 +221,7 @@ function UploadDialog({ open, onOpenChange, onSuccess }: UploadDialogProps) {
         <Dialog open={open} onOpenChange={(v) => { if (!uploading) { onOpenChange(v); if (!v) resetForm(); } }}>
             <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
-                    <DialogTitle>Eigene Vorlage hochladen</DialogTitle>
+                    <DialogTitle>Vorlage hochladen</DialogTitle>
                     <DialogDescription>
                         Laden Sie eine DOCX-Datei mit Ihrem Firmen-Branding hoch (Logo, Kopf-/Fusszeile).
                     </DialogDescription>
@@ -229,16 +284,85 @@ function UploadDialog({ open, onOpenChange, onSuccess }: UploadDialogProps) {
                         />
                     </div>
 
-                    {/* Country Code */}
+                    {/* Scope + Country in a row */}
+                    <div className="grid grid-cols-2 gap-3">
+                        {/* Scope */}
+                        <div className="space-y-1.5">
+                            <Label>Sichtbarkeit</Label>
+                            <Select value={scope} onValueChange={(v) => { setScope(v as "company" | "team" | "private"); if (v !== "team") setTeamId(""); }}>
+                                <SelectTrigger className="w-full">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="company">
+                                        <span className="flex items-center gap-2">
+                                            <Building2 className="w-3.5 h-3.5" />
+                                            Unternehmensweit
+                                        </span>
+                                    </SelectItem>
+                                    <SelectItem value="team">
+                                        <span className="flex items-center gap-2">
+                                            <Users className="w-3.5 h-3.5" />
+                                            Team
+                                        </span>
+                                    </SelectItem>
+                                    <SelectItem value="private">
+                                        <span className="flex items-center gap-2">
+                                            <Lock className="w-3.5 h-3.5" />
+                                            Nur ich
+                                        </span>
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        {/* Country Code */}
+                        <div className="space-y-1.5">
+                            <Label htmlFor="template-country">Land</Label>
+                            <Input
+                                id="template-country"
+                                value={countryCode}
+                                onChange={(e) => setCountryCode(e.target.value.toUpperCase().slice(0, 2))}
+                                placeholder="z.B. DE"
+                                maxLength={2}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Team Picker (conditional) */}
+                    {scope === "team" && (
+                        <div className="space-y-1.5">
+                            <Label>Team</Label>
+                            {teams.length > 0 ? (
+                                <Select value={teamId} onValueChange={setTeamId}>
+                                    <SelectTrigger className="w-full">
+                                        <SelectValue placeholder="Team waehlen..." />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {teams.map((t) => (
+                                            <SelectItem key={t.id} value={t.id.toString()}>
+                                                {t.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            ) : (
+                                <p className="text-xs text-muted-foreground">
+                                    Sie sind noch keinem Team zugeordnet.
+                                </p>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Category */}
                     <div className="space-y-1.5">
-                        <Label htmlFor="template-country">Land (optional)</Label>
+                        <Label htmlFor="template-category">Themengebiet</Label>
                         <Input
-                            id="template-country"
-                            value={countryCode}
-                            onChange={(e) => setCountryCode(e.target.value.toUpperCase().slice(0, 2))}
-                            placeholder="z.B. DE, IT"
-                            maxLength={2}
-                            className="w-24"
+                            id="template-category"
+                            value={category}
+                            onChange={(e) => setCategory(e.target.value)}
+                            placeholder="z.B. HR, Recht, Finanzen"
+                            maxLength={100}
                         />
                     </div>
 
@@ -267,7 +391,7 @@ function UploadDialog({ open, onOpenChange, onSuccess }: UploadDialogProps) {
                     </Button>
                     <Button
                         onClick={handleUpload}
-                        disabled={!file || !name.trim() || uploading}
+                        disabled={!file || !name.trim() || uploading || (scope === "team" && !teamId)}
                     >
                         {uploading ? (
                             <>
@@ -330,6 +454,22 @@ function DeleteDialog({ template, open, onOpenChange, onConfirm, isDeleting }: D
                 </DialogFooter>
             </DialogContent>
         </Dialog>
+    );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SCOPE BADGE COMPONENT
+// ═══════════════════════════════════════════════════════════════════════════
+
+function ScopeBadge({ scope }: { scope: string }) {
+    const config = SCOPE_LABELS[scope];
+    if (!config) return null;
+    const Icon = config.icon;
+    return (
+        <Badge variant="outline" className={`text-[10px] gap-1 py-0 px-1.5 ${config.className}`}>
+            <Icon className="w-2.5 h-2.5" />
+            {config.label}
+        </Badge>
     );
 }
 
@@ -398,14 +538,112 @@ export function UserTemplatesPage() {
         }
     };
 
+    // Separate own and shared templates
+    const ownTemplates = templates.filter((t) => t.is_own);
+    const sharedTemplates = templates.filter((t) => !t.is_own);
+
+    const renderTemplateCard = (template: UserTemplate) => (
+        <Card key={template.id} className="hover:shadow-sm transition-shadow">
+            <CardContent className="flex items-center gap-4 py-4 px-5">
+                {/* Icon */}
+                <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
+                    <FileText className="w-5 h-5 text-blue-600" />
+                </div>
+
+                {/* Info */}
+                <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                        <h4 className="font-medium text-sm truncate">{template.name}</h4>
+                        {template.country_code && (
+                            <Badge variant="outline" className="text-xs">
+                                {template.country_code}
+                            </Badge>
+                        )}
+                    </div>
+                    <div className="flex items-center gap-3 mt-1">
+                        <span className="text-xs text-muted-foreground">
+                            {template.original_filename}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                            {formatFileSize(template.file_size)}
+                        </span>
+                        {template.created_at && (
+                            <span className="text-xs text-muted-foreground">
+                                {new Date(template.created_at).toLocaleDateString("de-DE")}
+                            </span>
+                        )}
+                    </div>
+                    {/* Feature + Scope + Category badges */}
+                    <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                        {template.has_logo && (
+                            <Badge variant="secondary" className="text-[10px] gap-1 py-0 px-1.5">
+                                <Image className="w-2.5 h-2.5" />
+                                Logo
+                            </Badge>
+                        )}
+                        {template.has_header && (
+                            <Badge variant="secondary" className="text-[10px] gap-1 py-0 px-1.5">
+                                <PanelTop className="w-2.5 h-2.5" />
+                                Kopfzeile
+                            </Badge>
+                        )}
+                        {template.has_footer && (
+                            <Badge variant="secondary" className="text-[10px] gap-1 py-0 px-1.5">
+                                <PanelBottom className="w-2.5 h-2.5" />
+                                Fusszeile
+                            </Badge>
+                        )}
+                        {template.font_family && (
+                            <Badge variant="secondary" className="text-[10px] gap-1 py-0 px-1.5">
+                                <Type className="w-2.5 h-2.5" />
+                                {template.font_family}
+                            </Badge>
+                        )}
+                        <ScopeBadge scope={template.scope} />
+                        {template.category && (
+                            <Badge variant="secondary" className="text-[10px] gap-1 py-0 px-1.5">
+                                <Tag className="w-2.5 h-2.5" />
+                                {template.category}
+                            </Badge>
+                        )}
+                    </div>
+                </div>
+
+                {/* Actions */}
+                <div className="flex items-center gap-1 flex-shrink-0">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => handleDownload(template)}
+                        title="Herunterladen"
+                    >
+                        <Download className="w-4 h-4" />
+                    </Button>
+                    {template.is_own && (
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-destructive hover:text-destructive"
+                            onClick={() => setDeleteTemplate(template)}
+                            title="Loeschen"
+                        >
+                            <Trash2 className="w-4 h-4" />
+                        </Button>
+                    )}
+                </div>
+            </CardContent>
+        </Card>
+    );
+
     return (
         <div className="space-y-6">
             {/* Header */}
             <div className="flex items-start justify-between">
                 <div>
-                    <h2 className="text-xl font-semibold text-foreground">Eigene Vorlagen</h2>
+                    <h2 className="text-xl font-semibold text-foreground">Vorlagen</h2>
                     <p className="text-sm text-muted-foreground mt-1">
-                        Laden Sie DOCX-Vorlagen mit Ihrem Firmen-Branding hoch. Diese koennen bei der Dokumentenerstellung als Layout-Basis verwendet werden.
+                        DOCX-Vorlagen mit Firmen-Branding fuer die Dokumentenerstellung. Geteilte Vorlagen anderer Nutzer sind ebenfalls sichtbar.
                     </p>
                 </div>
                 <Button onClick={() => setUploadOpen(true)} className="gap-2">
@@ -435,91 +673,30 @@ export function UserTemplatesPage() {
                     </CardContent>
                 </Card>
             ) : (
-                <div className="grid gap-3">
-                    {templates.map((template) => (
-                        <Card key={template.id} className="hover:shadow-sm transition-shadow">
-                            <CardContent className="flex items-center gap-4 py-4 px-5">
-                                {/* Icon */}
-                                <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
-                                    <FileText className="w-5 h-5 text-blue-600" />
-                                </div>
+                <div className="space-y-6">
+                    {/* Own Templates */}
+                    {ownTemplates.length > 0 && (
+                        <div className="space-y-2">
+                            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                                Eigene Vorlagen ({ownTemplates.length})
+                            </h3>
+                            <div className="grid gap-3">
+                                {ownTemplates.map(renderTemplateCard)}
+                            </div>
+                        </div>
+                    )}
 
-                                {/* Info */}
-                                <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-2">
-                                        <h4 className="font-medium text-sm truncate">{template.name}</h4>
-                                        {template.country_code && (
-                                            <Badge variant="outline" className="text-xs">
-                                                {template.country_code}
-                                            </Badge>
-                                        )}
-                                    </div>
-                                    <div className="flex items-center gap-3 mt-1">
-                                        <span className="text-xs text-muted-foreground">
-                                            {template.original_filename}
-                                        </span>
-                                        <span className="text-xs text-muted-foreground">
-                                            {formatFileSize(template.file_size)}
-                                        </span>
-                                        {template.created_at && (
-                                            <span className="text-xs text-muted-foreground">
-                                                {new Date(template.created_at).toLocaleDateString("de-DE")}
-                                            </span>
-                                        )}
-                                    </div>
-                                    {/* Feature badges */}
-                                    <div className="flex items-center gap-1.5 mt-1.5">
-                                        {template.has_logo && (
-                                            <Badge variant="secondary" className="text-[10px] gap-1 py-0 px-1.5">
-                                                <Image className="w-2.5 h-2.5" />
-                                                Logo
-                                            </Badge>
-                                        )}
-                                        {template.has_header && (
-                                            <Badge variant="secondary" className="text-[10px] gap-1 py-0 px-1.5">
-                                                <PanelTop className="w-2.5 h-2.5" />
-                                                Kopfzeile
-                                            </Badge>
-                                        )}
-                                        {template.has_footer && (
-                                            <Badge variant="secondary" className="text-[10px] gap-1 py-0 px-1.5">
-                                                <PanelBottom className="w-2.5 h-2.5" />
-                                                Fusszeile
-                                            </Badge>
-                                        )}
-                                        {template.font_family && (
-                                            <Badge variant="secondary" className="text-[10px] gap-1 py-0 px-1.5">
-                                                <Type className="w-2.5 h-2.5" />
-                                                {template.font_family}
-                                            </Badge>
-                                        )}
-                                    </div>
-                                </div>
-
-                                {/* Actions */}
-                                <div className="flex items-center gap-1 flex-shrink-0">
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-8 w-8"
-                                        onClick={() => handleDownload(template)}
-                                        title="Herunterladen"
-                                    >
-                                        <Download className="w-4 h-4" />
-                                    </Button>
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-8 w-8 text-destructive hover:text-destructive"
-                                        onClick={() => setDeleteTemplate(template)}
-                                        title="Loeschen"
-                                    >
-                                        <Trash2 className="w-4 h-4" />
-                                    </Button>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ))}
+                    {/* Shared Templates */}
+                    {sharedTemplates.length > 0 && (
+                        <div className="space-y-2">
+                            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                                Geteilte Vorlagen ({sharedTemplates.length})
+                            </h3>
+                            <div className="grid gap-3">
+                                {sharedTemplates.map(renderTemplateCard)}
+                            </div>
+                        </div>
+                    )}
                 </div>
             )}
 
