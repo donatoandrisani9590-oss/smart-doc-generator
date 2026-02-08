@@ -614,7 +614,7 @@ export const DocumentDesigner = () => {
                                                             <FileText className="w-4 h-4 text-primary" />
                                                         </motion.div>
                                                         <div className="flex-1 min-w-0">
-                                                            <h4 className="text-sm font-medium truncate">
+                                                            <h4 className="text-sm font-medium truncate" title={clause.title}>
                                                                 {clause.title}
                                                             </h4>
                                                             <p className="text-xs text-muted-foreground">
@@ -696,7 +696,7 @@ export const DocumentDesigner = () => {
                                                                 </div>
                                                                 <div className="flex-1 min-w-0">
                                                                     <div className="flex items-center gap-2">
-                                                                        <h4 className="text-sm font-medium truncate">
+                                                                        <h4 className="text-sm font-medium truncate" title={group.name}>
                                                                             {group.name}
                                                                         </h4>
                                                                         <Badge variant="outline" className="text-xs">

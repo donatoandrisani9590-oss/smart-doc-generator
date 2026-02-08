@@ -61,7 +61,7 @@ export const SortableClause = ({
             {/* Clause Info */}
             <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                    <h4 className="font-medium truncate">{clause.title}</h4>
+                    <h4 className="font-medium truncate" title={clause.title}>{clause.title}</h4>
                     {clause.clause_type === "variant" && (
                         <TooltipProvider>
                             <Tooltip>
