@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, FileText, ChevronRight, Loader2, History } from "lucide-react";
+import { Search, FileText, ChevronRight, Loader2, History, LayoutTemplate, Lightbulb } from "lucide-react";
 import { api } from "@/lib/api-client";
 import { logError } from "@/lib/logger";
 
@@ -187,9 +187,36 @@ export const DocumentWizardDialog = ({
                                     <ChevronRight className="h-4 w-4 text-warm-300 group-hover:text-primary/50 self-center" />
                                 </button>
                             ))}
-                            {filteredTypes.length === 0 && (
+                            {filteredTypes.length === 0 && types.length === 0 && (
+                                <div className="col-span-2 text-center py-10">
+                                    <div className="p-3 bg-primary/10 rounded-full w-fit mx-auto mb-4">
+                                        <LayoutTemplate className="w-6 h-6 text-primary" />
+                                    </div>
+                                    <p className="font-medium text-foreground mb-1">
+                                        Noch keine Dokumenttypen vorhanden
+                                    </p>
+                                    <p className="text-sm text-muted-foreground mb-4">
+                                        Um Dokumente zu erstellen, benötigen Sie zuerst eine Dokumentvorlage.
+                                    </p>
+                                    <Button
+                                        onClick={() => {
+                                            onOpenChange(false);
+                                            navigate("/settings?tab=templates");
+                                        }}
+                                        className="bg-primary hover:bg-primary/90"
+                                    >
+                                        <LayoutTemplate className="w-4 h-4 mr-2" />
+                                        Vorlage erstellen
+                                    </Button>
+                                    <div className="flex items-center gap-2 mt-4 text-xs text-muted-foreground justify-center">
+                                        <Lightbulb className="w-3.5 h-3.5" />
+                                        <span>Tipp: Sie können auch eine bestehende Word-Vorlage importieren.</span>
+                                    </div>
+                                </div>
+                            )}
+                            {filteredTypes.length === 0 && types.length > 0 && (
                                 <div className="col-span-2 text-center py-8 text-muted-foreground">
-                                    Keine Dokumenttypen gefunden.
+                                    Keine Dokumenttypen für „{searchTerm}" gefunden.
                                 </div>
                             )}
                             </div>
