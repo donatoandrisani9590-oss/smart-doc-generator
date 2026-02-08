@@ -29,6 +29,7 @@ import {
     ToggleRight,
     Search,
     Bot,
+    LayoutTemplate,
 } from "lucide-react";
 import { SettingsCommandPalette } from "@/components/settings/SettingsCommandPalette";
 
@@ -48,6 +49,7 @@ const DocumentDesigner = lazy(() => import("./admin/DocumentDesigner").then(m =>
 const TemplatePreviewPage = lazy(() => import("./admin/TemplatePreviewPage").then(m => ({ default: m.TemplatePreviewPage })));
 const FeatureSettingsPanel = lazy(() => import("@/components/settings/FeatureSettingsPanel").then(m => ({ default: m.FeatureSettingsPanel })));
 const CopilotStudioSettings = lazy(() => import("@/components/settings/CopilotStudioSettings").then(m => ({ default: m.CopilotStudioSettings })));
+const UserTemplatesPage = lazy(() => import("./admin/UserTemplatesPage").then(m => ({ default: m.UserTemplatesPage })));
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Navigation Structure - 6 Groups, 16 Items
@@ -83,6 +85,7 @@ const SETTINGS_NAV: SettingsNavGroup[] = [
             { id: "clauses", label: "Textbausteine", icon: BookOpen, component: ClausesPage },
             { id: "form-fields", label: "Formularfelder", icon: FormInput, component: FormFieldsManager },
             { id: "attachments", label: "Anlagen", icon: Paperclip, component: AttachmentsPage },
+            { id: "user-templates", label: "Eigene Vorlagen", icon: LayoutTemplate, component: UserTemplatesPage },
         ],
     },
     {

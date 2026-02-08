@@ -32,6 +32,13 @@ class MockUser:
     role = "user"
     country_code = "DE"
     is_active = True
+    totp_enabled = False
+    totp_secret = None
+    sso_provider = None
+    sso_subject_id = None
+    display_name = None
+    failed_login_attempts = 0
+    locked_until = None
 
 
 async def get_current_user(

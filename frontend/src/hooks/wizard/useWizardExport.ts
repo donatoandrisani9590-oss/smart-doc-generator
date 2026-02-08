@@ -23,6 +23,7 @@ export interface UseWizardExportParams {
     documentClauses: DocumentClause[];
     selectedVariants: Record<number, { variantId: number; clauseId: number }>;
     selectedAttachmentIds: number[];
+    userTemplateId: number | null;
     validateStep: (step: number) => boolean;
 }
 
@@ -48,6 +49,7 @@ export function useWizardExport(params: UseWizardExportParams): UseWizardExportR
         documentClauses,
         selectedVariants,
         selectedAttachmentIds,
+        userTemplateId,
         validateStep,
     } = params;
 
@@ -90,6 +92,7 @@ export function useWizardExport(params: UseWizardExportParams): UseWizardExportR
                     output_format: format,
                     attachment_ids: selectedAttachmentIds,
                     clause_ids: allClauseIds,
+                    ...(userTemplateId ? { user_template_id: userTemplateId } : {}),
                 }),
             });
 
@@ -118,7 +121,7 @@ export function useWizardExport(params: UseWizardExportParams): UseWizardExportR
             setIsGenerating(false);
             exportLockRef.current = false;
         }
-    }, [documentTypeId, documentClauses, selectedVariants, formData, dynamicFormValues, selectedAttachmentIds, documentTitle, validateStep, toast]);
+    }, [documentTypeId, documentClauses, selectedVariants, formData, dynamicFormValues, selectedAttachmentIds, userTemplateId, documentTitle, validateStep, toast]);
 
     return {
         isGenerating,

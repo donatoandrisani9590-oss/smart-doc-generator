@@ -11,6 +11,8 @@ from app.services.preview import evaluate_condition
 from app.services.html_converter import HtmlToDocxConverter
 from app.models import core as models
 from app.models.documents import DocumentType, Clause, DocumentTypeClause
+from app.models.user_templates import UserTemplate
+from app.services.user_template_service import inject_content_into_template, get_user_template_path
 from docx import Document
 from docx.shared import Pt, Cm, Inches
 from docx.enum.text import WD_ALIGN_PARAGRAPH
@@ -217,6 +219,12 @@ class GenerateDocumentRequest(BaseModel):
     output_format: str = "pdf"
     attachment_ids: Optional[list[int]] = None
     clause_ids: Optional[list[int]] = None
+
+    # User template (optional: use a user-uploaded DOCX template as layout basis)
+    user_template_id: Optional[int] = Field(
+        default=None,
+        description="Optional: ID eines eigenen Templates fuer Branding/Layout"
+    )
 
     # Async processing option (recommended for PDF to avoid timeouts)
     async_pdf: bool = Field(
@@ -650,7 +658,7 @@ async def generate_document_by_type(
 
     # 4. Build form_data context from request
     form_data = request_data.model_dump(
-        exclude={"output_format", "attachment_ids", "clause_ids"},
+        exclude={"output_format", "attachment_ids", "clause_ids", "user_template_id", "async_pdf"},
         exclude_none=True
     )
 
@@ -688,14 +696,35 @@ async def generate_document_by_type(
         output_filename = f"Vertrag_{safe_nachname}_{timestamp}_{unique_id}.docx"
         output_path = OUTPUT_DIR / output_filename
 
-        # Create DOCX from clauses
-        docx_path = create_document_from_clauses(
-            clauses=active_clauses,
-            form_data=form_data,
-            country_code=country_code,
-            design_settings=design_settings,
-            output_path=output_path
-        )
+        # Check if user template should be used
+        if request_data.user_template_id:
+            # Load user template from DB
+            user_template = await db.get(UserTemplate, request_data.user_template_id)
+            if not user_template or user_template.user_id != current_user.id:
+                raise HTTPException(status_code=404, detail="Eigene Vorlage nicht gefunden")
+
+            template_file = get_user_template_path(current_user.id, user_template.stored_filename)
+            if not template_file.exists():
+                raise HTTPException(status_code=404, detail="Vorlage-Datei nicht gefunden")
+
+            # Generate into user template (preserves header/footer/branding)
+            docx_path = inject_content_into_template(
+                template_path=template_file,
+                clauses=active_clauses,
+                form_data=form_data,
+                country_code=country_code,
+                design_settings=design_settings,
+                output_path=output_path,
+            )
+        else:
+            # Standard generation (build document from scratch)
+            docx_path = create_document_from_clauses(
+                clauses=active_clauses,
+                form_data=form_data,
+                country_code=country_code,
+                design_settings=design_settings,
+                output_path=output_path,
+            )
 
         # Convert to PDF if requested
         if request_data.output_format == "pdf":

@@ -94,7 +94,11 @@ export function useDocumentWizard(initialDraftId?: number): WizardContextValue {
         setIsLoading: form.setIsLoading,
     });
 
-    // ── 7. Export ───────────────────────────────────────────────────────────
+    // ── 7. User Template Selection (optional layout template) ──────────────
+
+    const [userTemplateId, setUserTemplateId] = useState<number | null>(null);
+
+    // ── 8. Export ────────────────────────────────────────────────────────────
 
     const exportHook = useWizardExport({
         documentTypeId: form.documentTypeId,
@@ -104,10 +108,11 @@ export function useDocumentWizard(initialDraftId?: number): WizardContextValue {
         documentClauses: clauses.documentClauses,
         selectedVariants: clauses.selectedVariants,
         selectedAttachmentIds: clauses.selectedAttachmentIds,
+        userTemplateId,
         validateStep: nav.validateStep,
     });
 
-    // ── 8. Split-Screen Editor State ────────────────────────────────────────
+    // ── 9. Split-Screen Editor State ────────────────────────────────────────
     //    Kept here because it is small and tightly coupled to previewHtml.
 
     const [editorContent, setEditorContentState] = useState("");
@@ -138,7 +143,7 @@ export function useDocumentWizard(initialDraftId?: number): WizardContextValue {
         setShowCommentSidebar(prev => !prev);
     }, []);
 
-    // ── 9. Utility: clearForm ───────────────────────────────────────────────
+    // ── 10. Utility: clearForm ──────────────────────────────────────────────
 
     const clearForm = useCallback(() => {
         form.setFormDataRaw(initialFormData);
@@ -168,6 +173,7 @@ export function useDocumentWizard(initialDraftId?: number): WizardContextValue {
         documentTypeId: form.documentTypeId,
         documentTitle: form.documentTitle,
         loadedDraftId: drafts.loadedDraftId,
+        userTemplateId,
         // Form
         formData: form.formData,
         dynamicFormValues: form.dynamicFormValues,
@@ -210,6 +216,7 @@ export function useDocumentWizard(initialDraftId?: number): WizardContextValue {
         // Document / Form
         setDocumentType: form.setDocumentType,
         setDocumentTitle: form.setDocumentTitle,
+        setUserTemplateId,
         updateFormField: form.updateFormField,
         updateDynamicField: form.updateDynamicField,
         setFormData: form.setFormData,

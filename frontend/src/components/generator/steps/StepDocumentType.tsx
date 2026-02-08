@@ -11,16 +11,18 @@
  */
 
 import { useState, useMemo, useEffect } from "react";
-import { FileText, ArrowRight, Search, Clock, Star, X, Sparkles } from "lucide-react";
+import { FileText, ArrowRight, Search, Clock, Star, X, Sparkles, LayoutTemplate, ChevronDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { useWizardContext } from "../WizardContext";
 import { SmartModeDialog } from "../SmartModeDialog";
+import { apiFetch } from "@/lib/api-client";
 
 interface DocumentType {
     id: number;
@@ -37,11 +39,37 @@ interface StepDocumentTypeProps {
 const RECENT_TYPES_KEY = "sdg_recent_document_types";
 const MAX_RECENT = 5;
 
+interface UserTemplateOption {
+    id: number;
+    name: string;
+    has_logo: boolean;
+    has_header: boolean;
+    has_footer: boolean;
+}
+
 export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeProps) => {
     const { state, actions } = useWizardContext();
     const [searchQuery, setSearchQuery] = useState("");
     const [recentTypeIds, setRecentTypeIds] = useState<number[]>([]);
     const [isSmartModeOpen, setIsSmartModeOpen] = useState(false);
+    const [userTemplates, setUserTemplates] = useState<UserTemplateOption[]>([]);
+    const [templateSectionOpen, setTemplateSectionOpen] = useState(false);
+
+    // Fetch user templates
+    useEffect(() => {
+        const fetchTemplates = async () => {
+            try {
+                const response = await apiFetch("/api/v1/user-templates");
+                if (response.ok) {
+                    const data = await response.json();
+                    setUserTemplates(data.items || []);
+                }
+            } catch {
+                // Silently ignore - templates are optional
+            }
+        };
+        fetchTemplates();
+    }, []);
 
     // Lade Zuletzt-verwendet beim Mount
     useEffect(() => {
@@ -273,6 +301,78 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
                         Dieser Name erscheint in Ihrer Dokumentübersicht.
                     </p>
                 </div>
+
+                {/* Eigene Vorlage (optional, collapsible) */}
+                {userTemplates.length > 0 && (
+                    <Collapsible open={templateSectionOpen || !!state.userTemplateId} onOpenChange={setTemplateSectionOpen}>
+                        <CollapsibleTrigger className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors pt-2 group">
+                            <LayoutTemplate className="w-4 h-4" />
+                            <span>Eigene Vorlage verwenden</span>
+                            <Badge variant="outline" className="text-[10px] py-0">Optional</Badge>
+                            <ChevronDown className={cn(
+                                "w-3.5 h-3.5 transition-transform ml-auto",
+                                (templateSectionOpen || !!state.userTemplateId) && "rotate-180"
+                            )} />
+                        </CollapsibleTrigger>
+                        <CollapsibleContent className="pt-3 space-y-2">
+                            <p className="text-xs text-muted-foreground">
+                                Verwenden Sie eine eigene DOCX-Vorlage als Layout-Basis (mit Logo, Kopf-/Fusszeile).
+                            </p>
+                            <div className="grid gap-2">
+                                {/* "Keine Vorlage" Option */}
+                                <button
+                                    onClick={() => actions.setUserTemplateId(null)}
+                                    className={cn(
+                                        "w-full text-left px-3 py-2.5 rounded-lg border transition-all text-sm",
+                                        !state.userTemplateId
+                                            ? "border-primary bg-primary/5 text-foreground font-medium"
+                                            : "border-warm-200 hover:border-warm-300 text-muted-foreground"
+                                    )}
+                                >
+                                    Standard-Layout (ohne eigene Vorlage)
+                                </button>
+
+                                {/* User Templates */}
+                                {userTemplates.map((template) => (
+                                    <button
+                                        key={template.id}
+                                        onClick={() => actions.setUserTemplateId(template.id)}
+                                        className={cn(
+                                            "w-full text-left px-3 py-2.5 rounded-lg border transition-all",
+                                            state.userTemplateId === template.id
+                                                ? "border-primary bg-primary/5"
+                                                : "border-warm-200 hover:border-warm-300"
+                                        )}
+                                    >
+                                        <div className="flex items-center gap-2">
+                                            <FileText className={cn(
+                                                "w-4 h-4 shrink-0",
+                                                state.userTemplateId === template.id ? "text-primary" : "text-warm-400"
+                                            )} />
+                                            <span className={cn(
+                                                "text-sm",
+                                                state.userTemplateId === template.id ? "font-medium text-foreground" : "text-foreground"
+                                            )}>
+                                                {template.name}
+                                            </span>
+                                            <div className="flex gap-1 ml-auto">
+                                                {template.has_logo && (
+                                                    <Badge variant="secondary" className="text-[9px] py-0 px-1">Logo</Badge>
+                                                )}
+                                                {template.has_header && (
+                                                    <Badge variant="secondary" className="text-[9px] py-0 px-1">Kopf</Badge>
+                                                )}
+                                                {template.has_footer && (
+                                                    <Badge variant="secondary" className="text-[9px] py-0 px-1">Fuss</Badge>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
+                        </CollapsibleContent>
+                    </Collapsible>
+                )}
             </div>
 
             {/* Action Buttons - Klare visuelle Hierarchie */}

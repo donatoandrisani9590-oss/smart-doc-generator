@@ -50,6 +50,9 @@ from app.api.v1.endpoints.admin import (
     works_council, bulk, word_import, document_type_import, feature_settings,
 )
 
+# User Templates
+from app.api.v1.endpoints import user_templates
+
 # Smart UX
 from app.api.v1.endpoints.smart import composer, smart_mode, compliance, clause_ai_selection
 
@@ -278,7 +281,7 @@ async def lifespan(app: FastAPI):
     try:
         from app.db import engine, Base
         # Import all models to register them with Base
-        from app.models import core, documents, enterprise, collaboration  # noqa: F401
+        from app.models import core, documents, enterprise, collaboration, user_templates  # noqa: F401
 
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
@@ -492,6 +495,9 @@ app.include_router(feature_settings.router, prefix=f"{settings.API_V1_STR}/featu
 
 # Document Upload with AI Extraction
 app.include_router(document_upload.router, prefix=f"{settings.API_V1_STR}/document-upload", tags=["document-upload"])
+
+# User Templates (eigene DOCX-Vorlagen)
+app.include_router(user_templates.router, prefix=f"{settings.API_V1_STR}/user-templates", tags=["user-templates"])
 
 # ═══════════════════════════════════════════════════════════════════════════
 # COPILOT STUDIO / POWER PLATFORM INTEGRATION

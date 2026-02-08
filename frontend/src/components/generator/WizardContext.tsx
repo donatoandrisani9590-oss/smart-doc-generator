@@ -118,6 +118,9 @@ export interface WizardState {
     documentTitle: string;
     loadedDraftId: number | null;
 
+    // Eigene Vorlage (optional: DOCX mit Branding/Layout)
+    userTemplateId: number | null;
+
     // Formulardaten
     formData: FormData;
     dynamicFormValues: Record<string, string | number | boolean>;
@@ -171,6 +174,7 @@ export interface WizardActions {
     // Dokument
     setDocumentType: (id: number) => void;
     setDocumentTitle: (title: string) => void;
+    setUserTemplateId: (id: number | null) => void;
 
     // Formulardaten
     updateFormField: <K extends keyof FormData>(field: K, value: FormData[K]) => void;
@@ -257,6 +261,8 @@ export const initialWizardState: WizardState = {
     documentTypeId: null,
     documentTitle: "",
     loadedDraftId: null,
+
+    userTemplateId: null,
 
     formData: initialFormData,
     dynamicFormValues: {},

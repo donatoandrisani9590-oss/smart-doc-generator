@@ -54,6 +54,7 @@ from app.models.collaboration import (
     ActivityEvent,
     CommentReaction,
 )
+from app.models.user_templates import UserTemplate
 
 __all__ = [
     # Core
@@ -109,4 +110,6 @@ __all__ = [
     "CommentMention",
     "ActivityEvent",
     "CommentReaction",
+    # User Templates
+    "UserTemplate",
 ]
