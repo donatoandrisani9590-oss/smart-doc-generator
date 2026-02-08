@@ -121,6 +121,7 @@ export const DocumentTypeEditor = ({
                                     defaultWeeklyHours={editor.defaultWeeklyHours}
                                     setDefaultWeeklyHours={editor.setDefaultWeeklyHours}
                                     errors={editor.errors}
+                                    setErrors={editor.setErrors}
                                 />
                             )}
 

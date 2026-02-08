@@ -43,6 +43,7 @@ interface BasicsStepProps {
     defaultWeeklyHours: number;
     setDefaultWeeklyHours: (value: number) => void;
     errors: Record<string, string>;
+    setErrors: (errors: Record<string, string>) => void;
 }
 
 export const BasicsStep = ({
@@ -67,7 +68,23 @@ export const BasicsStep = ({
     defaultWeeklyHours,
     setDefaultWeeklyHours,
     errors,
+    setErrors,
 }: BasicsStepProps) => {
+    const handleNameChange = (value: string) => {
+        setName(value);
+        if (errors.name && value.trim()) {
+            const { name: _, ...rest } = errors;
+            setErrors(rest);
+        }
+    };
+
+    const handleCategoryChange = (value: string) => {
+        setCategory(value);
+        if (errors.category && value) {
+            const { category: _, ...rest } = errors;
+            setErrors(rest);
+        }
+    };
     return (
         <motion.div
             key="step1"
@@ -82,7 +99,7 @@ export const BasicsStep = ({
                     <Input
                         id="name"
                         value={name}
-                        onChange={(e) => setName(e.target.value)}
+                        onChange={(e) => handleNameChange(e.target.value)}
                         placeholder="z.B. Arbeitsvertrag Vollzeit"
                         className={errors.name ? "border-red-500" : ""}
                     />
@@ -94,7 +111,7 @@ export const BasicsStep = ({
                 <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                         <Label>Kategorie *</Label>
-                        <Select value={category} onValueChange={setCategory}>
+                        <Select value={category} onValueChange={handleCategoryChange}>
                             <SelectTrigger className={errors.category ? "border-red-500" : ""}>
                                 <SelectValue placeholder="Kategorie wählen" />
                             </SelectTrigger>
