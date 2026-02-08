@@ -126,7 +126,7 @@ export const Dashboard = () => {
                             </Button>
                         )}
                         <Button
-                            className="h-10 px-5 gap-2 bg-white text-primary hover:bg-white/90 shadow-lg font-medium"
+                            className="h-10 px-5 gap-2 bg-white text-[#243186] hover:bg-white/90 shadow-lg font-medium"
                             onClick={() => setWizardOpen(true)}
                         >
                             <PlusCircle className="w-4 h-4" />
@@ -340,7 +340,7 @@ export const Dashboard = () => {
                         ].map((stat) => (
                             <div
                                 key={stat.label}
-                                className="bg-white dark:bg-card rounded-xl p-4 shadow-soft-sm border border-warm-200/50 hover:shadow-soft-md transition-shadow"
+                                className="bg-card rounded-xl p-4 shadow-soft-sm border border-warm-200/50 dark:border-warm-700/50 hover:shadow-soft-md transition-shadow"
                             >
                                 <div className="flex items-center gap-3">
                                     <div className={`p-2 ${stat.bg} rounded-lg`}>

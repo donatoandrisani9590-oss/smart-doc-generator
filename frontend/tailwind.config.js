@@ -27,8 +27,8 @@ export default {
                     foreground: "hsl(0 0% 100%)",
                 },
                 destructive: {
-                    DEFAULT: "hsl(0 84.2% 60.2%)",
-                    foreground: "hsl(0 0% 98%)",
+                    DEFAULT: "hsl(var(--destructive))",
+                    foreground: "hsl(var(--destructive-foreground))",
                 },
                 warm: {
                     DEFAULT: "hsl(33 15% 81%)",      // RGB(215,207,197) - Niederwieser Beige
@@ -42,26 +42,26 @@ export default {
                     600: "hsl(30 8% 45%)",
                 },
                 muted: {
-                    DEFAULT: "hsl(33 12% 94%)",
-                    foreground: "hsl(25 8% 46%)",
+                    DEFAULT: "hsl(var(--muted))",
+                    foreground: "hsl(var(--muted-foreground))",
                 },
                 accent: {
-                    DEFAULT: "hsl(33 12% 94%)",
-                    foreground: "hsl(228 58% 33%)",
+                    DEFAULT: "hsl(var(--accent))",
+                    foreground: "hsl(var(--accent-foreground))",
                 },
                 popover: {
-                    DEFAULT: "hsl(0 0% 100%)",
-                    foreground: "hsl(224 71.4% 4.1%)",
+                    DEFAULT: "hsl(var(--popover))",
+                    foreground: "hsl(var(--popover-foreground))",
                 },
                 card: {
-                    DEFAULT: "hsl(0 0% 100%)",
-                    foreground: "hsl(224 71.4% 4.1%)",
+                    DEFAULT: "hsl(var(--card))",
+                    foreground: "hsl(var(--card-foreground))",
                 },
-                background: "hsl(33 20% 97%)", // Warm cream tint (Niederwieser Beige inspired)
-                foreground: "hsl(224 71.4% 4.1%)",
-                border: "hsl(33 10% 89%)",
-                input: "hsl(33 10% 89%)",
-                ring: "hsl(228 58% 33%)",
+                background: "hsl(var(--background))",
+                foreground: "hsl(var(--foreground))",
+                border: "hsl(var(--border))",
+                input: "hsl(var(--input))",
+                ring: "hsl(var(--ring))",
             },
             borderRadius: {
                 lg: "var(--radius)",
