@@ -5,24 +5,23 @@ import { motion } from "framer-motion"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-    "inline-flex items-center justify-center whitespace-nowrap rounded-full text-sm font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+    "inline-flex items-center justify-center whitespace-nowrap rounded-full text-sm font-medium ring-offset-background transition-all duration-300 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
     {
         variants: {
             variant: {
-                default: "bg-primary text-primary-foreground hover:bg-primary/90",
+                default: "bg-primary text-primary-foreground hover:bg-primary/85 hover:shadow-[0_4px_14px_rgba(36,49,134,0.35)] active:shadow-[0_2px_6px_rgba(36,49,134,0.25)]",
                 destructive:
-                    "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+                    "bg-destructive text-destructive-foreground hover:bg-destructive/85 hover:shadow-[0_4px_14px_rgba(220,38,38,0.3)]",
                 outline:
-                    "border-2 border-primary bg-transparent text-primary hover:bg-primary hover:text-primary-foreground",
+                    "border-2 border-primary bg-transparent text-primary hover:bg-primary hover:text-primary-foreground hover:shadow-[0_4px_14px_rgba(36,49,134,0.25)]",
                 secondary:
-                    "border-2 border-secondary bg-transparent text-secondary hover:bg-secondary hover:text-secondary-foreground",
+                    "border-2 border-secondary bg-transparent text-secondary hover:bg-secondary hover:text-secondary-foreground hover:shadow-[0_4px_14px_rgba(110,189,132,0.3)]",
                 ghost: "hover:bg-accent hover:text-accent-foreground",
                 link: "text-primary underline-offset-4 hover:underline",
-                // Niederwieser Corporate variants
                 success:
-                    "border-2 border-secondary bg-transparent text-secondary hover:bg-secondary hover:text-secondary-foreground",
+                    "border-2 border-secondary bg-transparent text-secondary hover:bg-secondary hover:text-secondary-foreground hover:shadow-[0_4px_14px_rgba(110,189,132,0.3)]",
                 warning:
-                    "border-2 border-amber-500 bg-transparent text-amber-600 hover:bg-amber-500 hover:text-white",
+                    "border-2 border-amber-500 bg-transparent text-amber-600 hover:bg-amber-500 hover:text-white hover:shadow-[0_4px_14px_rgba(245,158,11,0.3)]",
             },
             size: {
                 default: "h-10 px-5 py-2",

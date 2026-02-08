@@ -31,15 +31,15 @@ export default {
                     foreground: "hsl(var(--destructive-foreground))",
                 },
                 warm: {
-                    DEFAULT: "hsl(33 15% 81%)",      // RGB(215,207,197) - Niederwieser Beige
-                    foreground: "hsl(25 10% 20%)",
-                    50:  "hsl(33 20% 97%)",
-                    100: "hsl(33 18% 94%)",
-                    200: "hsl(33 15% 88%)",
-                    300: "hsl(33 15% 81%)",           // Brand beige
-                    400: "hsl(33 12% 72%)",
-                    500: "hsl(33 10% 60%)",
-                    600: "hsl(30 8% 45%)",
+                    DEFAULT: "hsl(220 9% 81%)",
+                    foreground: "hsl(220 10% 20%)",
+                    50:  "hsl(220 14% 98%)",    // fast weiss
+                    100: "hsl(220 14% 96%)",    // sehr helles Grau
+                    200: "hsl(220 13% 91%)",    // helles Grau
+                    300: "hsl(220 12% 81%)",
+                    400: "hsl(220 9% 72%)",
+                    500: "hsl(220 8% 60%)",
+                    600: "hsl(218 7% 45%)",
                 },
                 muted: {
                     DEFAULT: "hsl(var(--muted))",

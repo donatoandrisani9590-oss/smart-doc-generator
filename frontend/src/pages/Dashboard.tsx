@@ -118,7 +118,7 @@ export const Dashboard = () => {
                         {isUploadEnabled && (
                             <Button
                                 variant="outline"
-                                className="h-10 px-5 border-2 border-white/40 bg-transparent text-white hover:bg-white/15 hover:border-white/60 rounded-full"
+                                className="h-10 px-5 border-2 border-white/40 bg-transparent text-white hover:bg-white/15 hover:border-white/60 hover:shadow-[0_4px_14px_rgba(255,255,255,0.2)] transition-all duration-300 ease-out rounded-full"
                                 onClick={() => setUploadOpen(true)}
                             >
                                 <Upload className="w-4 h-4 mr-2" />
@@ -126,7 +126,7 @@ export const Dashboard = () => {
                             </Button>
                         )}
                         <Button
-                            className="h-10 px-5 gap-2 bg-white text-[#243186] hover:bg-white/90 font-medium rounded-full border-2 border-white"
+                            className="h-10 px-5 gap-2 bg-white text-[#243186] hover:bg-white/90 hover:shadow-[0_4px_14px_rgba(255,255,255,0.3)] transition-all duration-300 ease-out font-medium rounded-full border-2 border-white"
                             onClick={() => setWizardOpen(true)}
                         >
                             <PlusCircle className="w-4 h-4" />

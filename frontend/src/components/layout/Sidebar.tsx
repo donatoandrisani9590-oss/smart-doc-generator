@@ -128,7 +128,7 @@ export const Sidebar = () => {
                 <div className="px-4 mb-2">
                     <Link
                         to="/generate"
-                        className="flex items-center justify-center gap-2 w-full border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-all py-2.5 rounded-full text-sm font-medium active:scale-95"
+                        className="flex items-center justify-center gap-2 w-full border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground hover:shadow-[0_4px_14px_rgba(36,49,134,0.25)] transition-all duration-300 ease-out py-2.5 rounded-full text-sm font-medium active:scale-95"
                     >
                         <PlusCircle className="w-4 h-4" />
                         <span>Neues Dokument</span>
