@@ -7,7 +7,6 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { motion } from "framer-motion";
 import { ShieldCheck, Loader2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -89,12 +88,7 @@ export const TwoFactorVerifyPage: React.FC = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-950 p-4">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="w-full max-w-md"
-      >
+      <div className="w-full max-w-md animate-in fade-in slide-in-from-bottom-4 duration-400">
         <Card className="shadow-xl border-0">
           <CardHeader className="space-y-1 pb-6">
             <div className="flex justify-center mb-4">
@@ -113,15 +107,12 @@ export const TwoFactorVerifyPage: React.FC = () => {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               {error && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                >
+                <div className="animate-in fade-in duration-200">
                   <Alert variant="destructive">
                     <AlertCircle className="h-4 w-4" />
                     <AlertDescription>{error}</AlertDescription>
                   </Alert>
-                </motion.div>
+                </div>
               )}
 
               <div className="space-y-2">
@@ -159,7 +150,7 @@ export const TwoFactorVerifyPage: React.FC = () => {
             </p>
           </CardContent>
         </Card>
-      </motion.div>
+      </div>
     </div>
   );
 };

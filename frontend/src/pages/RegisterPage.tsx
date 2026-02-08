@@ -11,7 +11,6 @@
 
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { motion } from "framer-motion";
 import { Eye, EyeOff, UserPlus, AlertCircle, Loader2, CheckCircle2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -85,12 +84,7 @@ export const RegisterPage: React.FC = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-950 p-4">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="w-full max-w-md"
-      >
+      <div className="w-full max-w-md animate-in fade-in slide-in-from-bottom-4 duration-400">
         <Card className="shadow-xl border-0">
           <CardHeader className="space-y-1 pb-6">
             {/* Logo */}
@@ -112,16 +106,12 @@ export const RegisterPage: React.FC = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Error Alert */}
               {error && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                >
+                <div className="animate-in fade-in duration-200">
                   <Alert variant="destructive">
                     <AlertCircle className="h-4 w-4" />
                     <AlertDescription>{error}</AlertDescription>
                   </Alert>
-                </motion.div>
+                </div>
               )}
 
               {/* Email Field */}
@@ -277,7 +267,7 @@ export const RegisterPage: React.FC = () => {
         <p className="text-center text-xs text-muted-foreground mt-4">
           Smart Document Generator v1.0
         </p>
-      </motion.div>
+      </div>
     </div>
   );
 };

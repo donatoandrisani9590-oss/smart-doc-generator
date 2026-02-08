@@ -13,6 +13,10 @@ import { logApiError, logWarn } from "./logger";
 import { API_DEFAULTS } from "@/config/api.config";
 import { getAuthToken } from "@/contexts/AuthContext";
 
+// Refresh token key (must match AuthContext)
+const REFRESH_TOKEN_KEY = "auth_refresh_token";
+const TOKEN_KEY = "auth_token";
+
 // Types
 export interface ApiError {
     message: string;
@@ -60,6 +64,54 @@ const BASE_URL = import.meta.env.VITE_API_URL || "";
  */
 export function getApiBaseUrl(): string {
     return BASE_URL;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Token Refresh Logic (transparent, automatic)
+// ═══════════════════════════════════════════════════════════════════════════
+
+let isRefreshing = false;
+let refreshPromise: Promise<string | null> | null = null;
+
+/**
+ * Attempt to refresh the access token using the stored refresh token.
+ * Uses a mutex so only one refresh happens at a time - other callers wait.
+ */
+async function refreshAccessToken(): Promise<string | null> {
+    if (isRefreshing && refreshPromise) {
+        return refreshPromise;
+    }
+
+    const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
+    if (!refreshToken) return null;
+
+    isRefreshing = true;
+    refreshPromise = (async () => {
+        try {
+            const response = await fetch(`${BASE_URL}/api/v1/auth/refresh`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ refresh_token: refreshToken }),
+            });
+
+            if (!response.ok) return null;
+
+            const data = await response.json();
+            // Store new tokens
+            localStorage.setItem(TOKEN_KEY, data.access_token);
+            if (data.refresh_token) {
+                localStorage.setItem(REFRESH_TOKEN_KEY, data.refresh_token);
+            }
+            return data.access_token as string;
+        } catch {
+            return null;
+        } finally {
+            isRefreshing = false;
+            refreshPromise = null;
+        }
+    })();
+
+    return refreshPromise;
 }
 
 // Online status
@@ -238,6 +290,37 @@ async function request<T>(
                 };
             }
 
+            // Handle 401 - try token refresh before failing
+            if (response.status === 401 && !endpoint.includes("/auth/refresh") && !endpoint.includes("/auth/login")) {
+                const newToken = await refreshAccessToken();
+                if (newToken) {
+                    // Retry original request with new token
+                    requestHeaders["Authorization"] = `Bearer ${newToken}`;
+                    const retryResponse = await fetch(url, {
+                        method,
+                        headers: requestHeaders,
+                        body: body ? (isFormData ? body : JSON.stringify(body)) : undefined,
+                        signal: combinedSignal,
+                    });
+
+                    if (retryResponse.ok) {
+                        if (retryResponse.status === 204) {
+                            return { data: null as T, status: retryResponse.status, headers: retryResponse.headers };
+                        }
+                        const contentType = retryResponse.headers.get("content-type") || "";
+                        let data: T;
+                        if (contentType.includes("text/html") || contentType.includes("text/plain")) {
+                            data = await retryResponse.text() as T;
+                        } else {
+                            data = await retryResponse.json();
+                        }
+                        return { data, status: retryResponse.status, headers: retryResponse.headers };
+                    }
+                }
+                // Refresh failed - dispatch logout event
+                window.dispatchEvent(new CustomEvent("auth:logout"));
+            }
+
             // Handle error response
             const error = await createApiError(response);
 
@@ -389,7 +472,20 @@ export async function apiFetch(
         headers.set("Content-Type", "application/json");
     }
 
-    return fetch(url, { ...init, headers });
+    const response = await fetch(url, { ...init, headers });
+
+    // Auto-refresh on 401 (not for auth endpoints themselves)
+    if (response.status === 401 && !input.includes("/auth/refresh") && !input.includes("/auth/login")) {
+        const newToken = await refreshAccessToken();
+        if (newToken) {
+            headers.set("Authorization", `Bearer ${newToken}`);
+            return fetch(url, { ...init, headers });
+        }
+        // Refresh failed - trigger logout
+        window.dispatchEvent(new CustomEvent("auth:logout"));
+    }
+
+    return response;
 }
 
 /**
