@@ -97,20 +97,9 @@ export const ClauseSelectionStep = ({
             className="space-y-4"
         >
             {errors.clauses && (
-                <div className="flex items-center justify-between p-3 bg-red-50 text-red-700 rounded-lg">
-                    <div className="flex items-center gap-2">
-                        <AlertCircle className="w-4 h-4" />
-                        {errors.clauses}
-                    </div>
-                    <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => setShowClauseCreator(true)}
-                        className="bg-white hover:bg-red-100 text-red-700 border-red-300"
-                    >
-                        <Plus className="w-4 h-4 mr-1" />
-                        Textbaustein erstellen
-                    </Button>
+                <div className="flex items-center gap-2 p-3 bg-red-50 text-red-700 rounded-lg">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <span className="text-sm">{errors.clauses}</span>
                 </div>
             )}
 
@@ -237,7 +226,7 @@ export const ClauseSelectionStep = ({
                                             </span>
                                             <div className="flex-1 min-w-0">
                                                 <p className="text-sm font-medium truncate">
-                                                    {item.clause?.title || `Klausel ${item.clause_id}`}
+                                                    {item.clause?.title || `Textbaustein ${item.clause_id}`}
                                                 </p>
                                             </div>
                                             <div className="flex items-center gap-2">
@@ -271,7 +260,7 @@ export const ClauseSelectionStep = ({
                                         </span>
                                         <div className="flex-1 min-w-0">
                                             <p className="text-sm font-medium truncate">
-                                                {item.clause?.title || `Klausel ${item.clause_id}`}
+                                                {item.clause?.title || `Textbaustein ${item.clause_id}`}
                                             </p>
                                         </div>
                                     </div>
