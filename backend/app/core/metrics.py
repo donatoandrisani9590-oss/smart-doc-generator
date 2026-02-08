@@ -172,25 +172,16 @@ def track_auth_event(event_type: str) -> None:
 # METRICS ENDPOINT SETUP
 # ═══════════════════════════════════════════════════════════════════════════
 
-def setup_metrics(app: FastAPI) -> None:
-    """Register the /metrics endpoint and middleware on the FastAPI app."""
+def register_metrics_middleware(app: FastAPI) -> None:
+    """Register Prometheus middleware and /metrics endpoint on the app.
+
+    MUST be called before the app starts (not inside lifespan).
+    """
     if not PROMETHEUS_AVAILABLE:
-        logger.info("Prometheus metrics disabled (prometheus-client not installed)")
         return
 
-    # Set app info
-    from app.core.config import settings
-
-    APP_INFO.info({
-        "version": "1.0.0",
-        "environment": settings.ENVIRONMENT,
-        "project": settings.PROJECT_NAME,
-    })
-
-    # Add middleware
     app.add_middleware(PrometheusMiddleware)
 
-    # Add /metrics endpoint
     @app.get("/metrics", include_in_schema=False)
     async def metrics_endpoint():
         """Prometheus metrics in text exposition format."""
@@ -199,4 +190,25 @@ def setup_metrics(app: FastAPI) -> None:
             media_type=CONTENT_TYPE_LATEST,
         )
 
-    logger.info("Prometheus metrics enabled at /metrics")
+    logger.info("Prometheus metrics middleware and endpoint registered")
+
+
+def setup_metrics(app: FastAPI) -> None:
+    """Initialize metric labels (safe to call during lifespan).
+
+    Call register_metrics_middleware() BEFORE app start for middleware,
+    then call this during lifespan for app info setup.
+    """
+    if not PROMETHEUS_AVAILABLE:
+        logger.info("Prometheus metrics disabled (prometheus-client not installed)")
+        return
+
+    from app.core.config import settings
+
+    APP_INFO.info({
+        "version": "1.0.0",
+        "environment": settings.ENVIRONMENT,
+        "project": settings.PROJECT_NAME,
+    })
+
+    logger.info("Prometheus metrics initialized")

@@ -346,6 +346,10 @@ app.add_middleware(RateLimitMiddleware)
 # GZip Compression - compress responses > 500 bytes
 app.add_middleware(GZipMiddleware, minimum_size=500)
 
+# Prometheus Metrics middleware (must be registered before app starts, not in lifespan)
+from app.core.metrics import register_metrics_middleware
+register_metrics_middleware(app)
+
 # CORS - Restrictive configuration
 if settings.BACKEND_CORS_ORIGINS:
     app.add_middleware(
