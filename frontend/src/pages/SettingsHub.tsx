@@ -1,29 +1,22 @@
 /**
- * SettingsHub - Zentrale Einstellungsseite
+ * SettingsHub - Zentrale Einstellungsseite mit Sidebar-Navigation
  *
- * UX-Refactoring: Sammelt alle Admin-Features in einer zentralen Seite mit Tabs.
- * Ersetzt die 12+ einzelnen Admin-Menüpunkte in der Sidebar.
- *
- * Struktur:
- * - Allgemein: Firmendaten, Logo
- * - Design: Farben, Schriften, Layout
- * - Vorlagen: Dokumenttypen verwalten
- * - Textbausteine: Klauseln bearbeiten
- * - Erweitert: Power-User Features
+ * Sidebar-Layout (wie GitHub/Notion Settings):
+ * - Links: Kategorisierte Navigation (6 Gruppen, 16 Eintraege)
+ * - Rechts: Content-Area mit lazy-loaded Komponenten
+ * - Mobile: Horizontale Scroll-Leiste statt Sidebar
  */
 
 import { useState, useEffect, lazy, Suspense } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-// Card imports removed - using direct div styling for SimpleDocs design
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import {
     Building2,
     Palette,
     FileText,
     BookOpen,
-    Settings2,
     Users,
     Shield,
     Archive,
@@ -39,7 +32,7 @@ import {
 } from "lucide-react";
 import { SettingsCommandPalette } from "@/components/settings/SettingsCommandPalette";
 
-// Lazy load sub-pages (mit Named Export Handling für Module ohne Default-Export)
+// Lazy load sub-pages
 const CompanySettingsPage = lazy(() => import("./admin/CompanySettingsPage"));
 const DesignManager = lazy(() => import("./admin/DesignManager").then(m => ({ default: m.DesignManager })));
 const DocumentTypesManager = lazy(() => import("./admin/DocumentTypesManager").then(m => ({ default: m.DocumentTypesManager })));
@@ -56,51 +49,79 @@ const TemplatePreviewPage = lazy(() => import("./admin/TemplatePreviewPage").the
 const FeatureSettingsPanel = lazy(() => import("@/components/settings/FeatureSettingsPanel").then(m => ({ default: m.FeatureSettingsPanel })));
 const CopilotStudioSettings = lazy(() => import("@/components/settings/CopilotStudioSettings").then(m => ({ default: m.CopilotStudioSettings })));
 
-// Tab definitions with icons and descriptions
-const TABS = [
+// ═══════════════════════════════════════════════════════════════════════════
+// Navigation Structure - 6 Groups, 16 Items
+// ═══════════════════════════════════════════════════════════════════════════
+
+interface SettingsNavItem {
+    id: string;
+    label: string;
+    icon: React.ComponentType<{ className?: string }>;
+    component: React.LazyExoticComponent<React.ComponentType>;
+}
+
+interface SettingsNavGroup {
+    id: string;
+    label: string;
+    items: SettingsNavItem[];
+}
+
+const SETTINGS_NAV: SettingsNavGroup[] = [
     {
-        id: "general",
+        id: "allgemein",
         label: "Allgemein",
-        icon: Building2,
-        description: "Firmendaten & Logo",
+        items: [
+            { id: "general", label: "Firmendaten", icon: Building2, component: CompanySettingsPage },
+            { id: "features", label: "Funktionen", icon: ToggleRight, component: FeatureSettingsPanel },
+        ],
     },
     {
-        id: "features",
-        label: "Funktionen",
-        icon: ToggleRight,
-        description: "Feature-Toggles",
+        id: "dokumente",
+        label: "Dokumente",
+        items: [
+            { id: "templates", label: "Vorlagen", icon: FileText, component: DocumentTypesManager },
+            { id: "clauses", label: "Textbausteine", icon: BookOpen, component: ClausesPage },
+            { id: "form-fields", label: "Formularfelder", icon: FormInput, component: FormFieldsManager },
+            { id: "attachments", label: "Anlagen", icon: Paperclip, component: AttachmentsPage },
+        ],
     },
     {
-        id: "design",
-        label: "Design",
-        icon: Palette,
-        description: "Farben, Schriften",
+        id: "design-layout",
+        label: "Design & Layout",
+        items: [
+            { id: "design", label: "Branding", icon: Palette, component: DesignManager },
+            { id: "designer", label: "Layout-Editor", icon: Layout, component: DocumentDesigner },
+            { id: "preview", label: "Vorschau", icon: Eye, component: TemplatePreviewPage },
+        ],
     },
     {
-        id: "templates",
-        label: "Vorlagen",
-        icon: FileText,
-        description: "Dokumenttypen",
+        id: "verwaltung",
+        label: "Verwaltung",
+        items: [
+            { id: "users", label: "Benutzer", icon: Users, component: UsersPage },
+            { id: "approvals", label: "Freigaben", icon: CheckSquare, component: ClauseApprovalQueue },
+            { id: "works-council", label: "Betriebsrat", icon: UserCheck, component: WorksCouncilTemplatesPage },
+        ],
     },
     {
-        id: "clauses",
-        label: "Textbausteine",
-        icon: BookOpen,
-        description: "Klauseln",
+        id: "compliance",
+        label: "Compliance",
+        items: [
+            { id: "retention", label: "Aufbewahrung", icon: Archive, component: RetentionPoliciesPage },
+            { id: "audit", label: "Protokoll", icon: Shield, component: AuditLogPage },
+        ],
     },
     {
-        id: "advanced",
-        label: "Erweitert",
-        icon: Settings2,
-        description: "Power-User",
-    },
-    {
-        id: "integrations",
+        id: "integrationen",
         label: "Integrationen",
-        icon: Bot,
-        description: "Copilot Studio",
+        items: [
+            { id: "integrations", label: "Copilot Studio", icon: Bot, component: CopilotStudioSettings },
+        ],
     },
 ];
+
+// Flat lookup for quick access
+const ALL_ITEMS = SETTINGS_NAV.flatMap(g => g.items);
 
 // Loading placeholder
 const TabSkeleton = () => (
@@ -114,80 +135,78 @@ const TabSkeleton = () => (
     </div>
 );
 
-// Sub-navigation for Advanced tab
-const ADVANCED_SECTIONS = [
-    { id: "users", label: "Benutzer", icon: Users, component: UsersPage },
-    { id: "approvals", label: "Freigaben", icon: CheckSquare, component: ClauseApprovalQueue },
-    { id: "attachments", label: "Anlagen", icon: Paperclip, component: AttachmentsPage },
-    { id: "form-fields", label: "Formularfelder", icon: FormInput, component: FormFieldsManager },
-    { id: "designer", label: "Layout-Editor", icon: Layout, component: DocumentDesigner },
-    { id: "preview", label: "Vorschau", icon: Eye, component: TemplatePreviewPage },
-    { id: "works-council", label: "Betriebsrat", icon: UserCheck, component: WorksCouncilTemplatesPage },
-    { id: "retention", label: "Aufbewahrung", icon: Archive, component: RetentionPoliciesPage },
-    { id: "audit", label: "Protokoll", icon: Shield, component: AuditLogPage },
-];
+// ═══════════════════════════════════════════════════════════════════════════
+// Legacy Route Map
+// ═══════════════════════════════════════════════════════════════════════════
+
+const LEGACY_ROUTE_MAP: Record<string, string> = {
+    "company-settings": "general",
+    "settings": "design",
+    "types": "templates",
+    "clauses": "clauses",
+    "users": "users",
+    "clause-approvals": "approvals",
+    "attachments": "attachments",
+    "form-fields": "form-fields",
+    "document-designer": "designer",
+    "template-preview": "preview",
+    "works-council": "works-council",
+    "retention": "retention",
+    "audit": "audit",
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Component
+// ═══════════════════════════════════════════════════════════════════════════
 
 export default function SettingsHub() {
     const [searchParams, setSearchParams] = useSearchParams();
     const navigate = useNavigate();
-    const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "general");
-    const [advancedSection, setAdvancedSection] = useState(searchParams.get("section") || "users");
     const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
+
+    // Determine initial tab (with backward compatibility for ?tab=advanced&section=xxx)
+    const getInitialTab = (): string => {
+        const tab = searchParams.get("tab") || "general";
+        const section = searchParams.get("section");
+
+        // Legacy: ?tab=advanced&section=users -> users
+        if (tab === "advanced" && section) {
+            return ALL_ITEMS.some(i => i.id === section) ? section : "general";
+        }
+
+        // Validate tab exists
+        if (ALL_ITEMS.some(i => i.id === tab)) {
+            return tab;
+        }
+
+        return "general";
+    };
+
+    const [activeTab, setActiveTab] = useState(getInitialTab);
 
     // Sync URL with active tab
     useEffect(() => {
         const params = new URLSearchParams();
         params.set("tab", activeTab);
-        if (activeTab === "advanced") {
-            params.set("section", advancedSection);
-        }
         setSearchParams(params, { replace: true });
-    }, [activeTab, advancedSection, setSearchParams]);
+    }, [activeTab, setSearchParams]);
 
     // Handle legacy /admin/* routes
     useEffect(() => {
         const path = window.location.pathname;
         if (path.startsWith("/admin/")) {
             const segment = path.replace("/admin/", "").split("/")[0];
-            // Map old routes to new tabs
-            const routeMap: Record<string, { tab: string; section?: string }> = {
-                "company-settings": { tab: "general" },
-                "settings": { tab: "design" },
-                "types": { tab: "templates" },
-                "clauses": { tab: "clauses" },
-                "users": { tab: "advanced", section: "users" },
-                "clause-approvals": { tab: "advanced", section: "approvals" },
-                "attachments": { tab: "advanced", section: "attachments" },
-                "form-fields": { tab: "advanced", section: "form-fields" },
-                "document-designer": { tab: "advanced", section: "designer" },
-                "template-preview": { tab: "advanced", section: "preview" },
-                "works-council": { tab: "advanced", section: "works-council" },
-                "retention": { tab: "advanced", section: "retention" },
-                "audit": { tab: "advanced", section: "audit" },
-            };
-            const mapping = routeMap[segment];
+            const mapping = LEGACY_ROUTE_MAP[segment];
             if (mapping) {
-                setActiveTab(mapping.tab);
-                if (mapping.section) {
-                    setAdvancedSection(mapping.section);
-                }
-                // Redirect to clean URL
-                navigate(`/settings?tab=${mapping.tab}${mapping.section ? `&section=${mapping.section}` : ""}`, { replace: true });
+                setActiveTab(mapping);
+                navigate(`/settings?tab=${mapping}`, { replace: true });
             }
         }
     }, [navigate]);
 
-    const renderAdvancedContent = () => {
-        const section = ADVANCED_SECTIONS.find((s) => s.id === advancedSection);
-        if (!section) return null;
-
-        const Component = section.component;
-        return (
-            <Suspense fallback={<TabSkeleton />}>
-                <Component />
-            </Suspense>
-        );
-    };
+    // Render active content
+    const activeItem = ALL_ITEMS.find(i => i.id === activeTab);
+    const ActiveComponent = activeItem?.component;
 
     return (
         <div className="max-w-6xl mx-auto">
@@ -197,12 +216,12 @@ export default function SettingsHub() {
                 onOpenChange={setCommandPaletteOpen}
             />
 
-            {/* Header - SimpleDocs Style */}
+            {/* Header */}
             <div className="flex items-start justify-between mb-6">
                 <div>
                     <h1 className="text-2xl font-semibold text-foreground">Einstellungen</h1>
                     <p className="text-muted-foreground mt-1">
-                        Firmendaten, Design, Vorlagen und Textbausteine verwalten
+                        Firmendaten, Design, Vorlagen und Verwaltung
                     </p>
                 </div>
                 <Button
@@ -219,87 +238,74 @@ export default function SettingsHub() {
                 </Button>
             </div>
 
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-                <TabsList className="grid w-full grid-cols-7 lg:w-auto lg:inline-flex">
-                    {TABS.map((tab) => (
-                        <TabsTrigger
-                            key={tab.id}
-                            value={tab.id}
-                            className="flex items-center gap-2"
-                        >
-                            <tab.icon className="w-4 h-4" />
-                            <span className="hidden sm:inline">{tab.label}</span>
-                        </TabsTrigger>
-                    ))}
-                </TabsList>
+            {/* Main Layout: Sidebar + Content */}
+            <div className="flex flex-col md:flex-row border border-warm-200 dark:border-warm-200 rounded-lg bg-white dark:bg-card overflow-hidden min-h-[600px]">
 
-                {/* Allgemein - Firmendaten */}
-                <TabsContent value="general" className="space-y-4">
-                    <Suspense fallback={<TabSkeleton />}>
-                        <CompanySettingsPage />
-                    </Suspense>
-                </TabsContent>
-
-                {/* Funktionen - Feature Toggles */}
-                <TabsContent value="features" className="space-y-4">
-                    <Suspense fallback={<TabSkeleton />}>
-                        <FeatureSettingsPanel />
-                    </Suspense>
-                </TabsContent>
-
-                {/* Design - Farben, Schriften */}
-                <TabsContent value="design" className="space-y-4">
-                    <Suspense fallback={<TabSkeleton />}>
-                        <DesignManager />
-                    </Suspense>
-                </TabsContent>
-
-                {/* Vorlagen - Dokumenttypen */}
-                <TabsContent value="templates" className="space-y-4">
-                    <Suspense fallback={<TabSkeleton />}>
-                        <DocumentTypesManager />
-                    </Suspense>
-                </TabsContent>
-
-                {/* Textbausteine - Klauseln */}
-                <TabsContent value="clauses" className="space-y-4">
-                    <Suspense fallback={<TabSkeleton />}>
-                        <ClausesPage />
-                    </Suspense>
-                </TabsContent>
-
-                {/* Erweitert - Sub-Navigation - SimpleDocs Style */}
-                <TabsContent value="advanced" className="space-y-4">
-                    <div className="bg-white border border-warm-200 rounded-lg">
-                        <div className="flex flex-wrap gap-1 p-2 border-b border-warm-100">
-                            {ADVANCED_SECTIONS.map((section) => (
-                                <button
-                                    key={section.id}
-                                    onClick={() => setAdvancedSection(section.id)}
-                                    className={`flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors ${
-                                        advancedSection === section.id
-                                            ? "bg-primary/10 text-primary font-medium"
-                                            : "text-muted-foreground hover:bg-warm-100 hover:text-foreground"
-                                    }`}
-                                >
-                                    <section.icon className="w-4 h-4" />
-                                    {section.label}
-                                </button>
-                            ))}
-                        </div>
-                        <div className="p-4">
-                            {renderAdvancedContent()}
-                        </div>
+                {/* Mobile: Horizontal Scroll Nav */}
+                <div className="md:hidden overflow-x-auto border-b border-warm-200 dark:border-warm-200 bg-warm-50/50 dark:bg-muted/30 px-2 py-2">
+                    <div className="flex gap-1 min-w-max">
+                        {ALL_ITEMS.map((item) => (
+                            <button
+                                key={item.id}
+                                onClick={() => setActiveTab(item.id)}
+                                className={cn(
+                                    "flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-full whitespace-nowrap transition-colors",
+                                    activeTab === item.id
+                                        ? "bg-primary/15 text-primary font-medium dark:bg-primary/20"
+                                        : "text-muted-foreground hover:bg-warm-100 dark:hover:bg-muted hover:text-foreground"
+                                )}
+                            >
+                                <item.icon className="w-3.5 h-3.5" />
+                                {item.label}
+                            </button>
+                        ))}
                     </div>
-                </TabsContent>
+                </div>
 
-                {/* Integrationen - Copilot Studio / Power Platform */}
-                <TabsContent value="integrations" className="space-y-4">
-                    <Suspense fallback={<TabSkeleton />}>
-                        <CopilotStudioSettings />
-                    </Suspense>
-                </TabsContent>
-            </Tabs>
+                {/* Desktop: Sidebar Navigation */}
+                <nav className="hidden md:block w-[240px] shrink-0 border-r border-warm-200 dark:border-warm-200 overflow-y-auto scrollbar-hide py-4 bg-warm-50/30 dark:bg-warm-50/50">
+                    {SETTINGS_NAV.map((group) => (
+                        <div key={group.id} className="mb-4">
+                            <h3 className="settings-nav-header px-4 py-1.5 text-[11px] font-semibold uppercase tracking-widest">
+                                {group.label}
+                            </h3>
+                            <div className="space-y-0.5 mt-1">
+                                {group.items.map((item) => (
+                                    <button
+                                        key={item.id}
+                                        onClick={() => setActiveTab(item.id)}
+                                        className={cn(
+                                            "w-full flex items-center gap-3 px-3 py-2 text-sm rounded-lg mx-1 transition-all",
+                                            activeTab === item.id
+                                                ? "settings-nav-item-active bg-warm-100 dark:bg-primary/20 font-medium border-l-2 border-primary"
+                                                : "settings-nav-item hover:bg-warm-50 dark:hover:bg-muted/50"
+                                        )}
+                                    >
+                                        <item.icon className={cn(
+                                            "w-4 h-4 shrink-0 transition-colors",
+                                            activeTab === item.id
+                                                ? "settings-nav-icon-active"
+                                                : "settings-nav-icon"
+                                        )} />
+                                        <span>{item.label}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    ))}
+                </nav>
+
+                {/* Content Area */}
+                <div className="flex-1 min-w-0 p-6 overflow-y-auto">
+                    {ActiveComponent ? (
+                        <Suspense fallback={<TabSkeleton />}>
+                            <ActiveComponent />
+                        </Suspense>
+                    ) : (
+                        <TabSkeleton />
+                    )}
+                </div>
+            </div>
         </div>
     );
 }

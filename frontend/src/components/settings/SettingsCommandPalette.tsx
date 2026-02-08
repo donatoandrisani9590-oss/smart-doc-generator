@@ -25,7 +25,6 @@ import {
   Palette,
   FileText,
   BookOpen,
-  Settings2,
   Users,
   Shield,
   Archive,
@@ -48,6 +47,7 @@ import {
   Clock,
   Activity,
   Search,
+  Bot,
 } from "lucide-react";
 
 // Types for settings items
@@ -58,7 +58,6 @@ interface SettingsItem {
   keywords: string[];
   icon: React.ComponentType<{ className?: string }>;
   tab: string;
-  section?: string;
 }
 
 interface SettingsGroup {
@@ -149,8 +148,63 @@ const SETTINGS_GROUPS: SettingsGroup[] = [
     ],
   },
   {
-    id: "design",
-    label: "Design",
+    id: "dokumente",
+    label: "Dokumente",
+    icon: FileText,
+    items: [
+      {
+        id: "templates-types",
+        label: "Dokumenttypen",
+        description: "Vertraege, Angebote, Rechnungen verwalten",
+        keywords: ["dokumenttyp", "type", "vertrag", "angebot", "rechnung", "vorlage", "template"],
+        icon: FileType,
+        tab: "templates",
+      },
+      {
+        id: "templates-variables",
+        label: "Variablen",
+        description: "Platzhalter fuer Dokumenttypen",
+        keywords: ["variable", "platzhalter", "placeholder", "feld", "field"],
+        icon: Hash,
+        tab: "templates",
+      },
+      {
+        id: "clauses-manage",
+        label: "Klauseln verwalten",
+        description: "Textbausteine erstellen und bearbeiten",
+        keywords: ["klausel", "textbaustein", "clause", "baustein", "text", "absatz"],
+        icon: BookOpen,
+        tab: "clauses",
+      },
+      {
+        id: "clauses-categories",
+        label: "Klausel-Kategorien",
+        description: "Kategorien fuer Textbausteine",
+        keywords: ["kategorie", "category", "gruppe", "ordner"],
+        icon: BookOpen,
+        tab: "clauses",
+      },
+      {
+        id: "form-fields",
+        label: "Formularfelder",
+        description: "Benutzerdefinierte Eingabefelder",
+        keywords: ["formular", "feld", "eingabe", "input", "custom"],
+        icon: FormInput,
+        tab: "form-fields",
+      },
+      {
+        id: "attachments",
+        label: "Anlagen",
+        description: "Standard-Anlagen verwalten",
+        keywords: ["anlage", "attachment", "anhang", "datei", "file"],
+        icon: Paperclip,
+        tab: "attachments",
+      },
+    ],
+  },
+  {
+    id: "design-layout",
+    label: "Design & Layout",
     icon: Palette,
     items: [
       {
@@ -177,139 +231,90 @@ const SETTINGS_GROUPS: SettingsGroup[] = [
         icon: Layout,
         tab: "design",
       },
-    ],
-  },
-  {
-    id: "templates",
-    label: "Vorlagen",
-    icon: FileText,
-    items: [
       {
-        id: "templates-types",
-        label: "Dokumenttypen",
-        description: "Vertraege, Angebote, Rechnungen verwalten",
-        keywords: ["dokumenttyp", "type", "vertrag", "angebot", "rechnung", "vorlage", "template"],
-        icon: FileType,
-        tab: "templates",
-      },
-      {
-        id: "templates-variables",
-        label: "Variablen",
-        description: "Platzhalter fuer Dokumenttypen",
-        keywords: ["variable", "platzhalter", "placeholder", "feld", "field"],
-        icon: Hash,
-        tab: "templates",
-      },
-    ],
-  },
-  {
-    id: "clauses",
-    label: "Textbausteine",
-    icon: BookOpen,
-    items: [
-      {
-        id: "clauses-manage",
-        label: "Klauseln verwalten",
-        description: "Textbausteine erstellen und bearbeiten",
-        keywords: ["klausel", "textbaustein", "clause", "baustein", "text", "absatz"],
-        icon: BookOpen,
-        tab: "clauses",
-      },
-      {
-        id: "clauses-categories",
-        label: "Klausel-Kategorien",
-        description: "Kategorien fuer Textbausteine",
-        keywords: ["kategorie", "category", "gruppe", "ordner"],
-        icon: BookOpen,
-        tab: "clauses",
-      },
-    ],
-  },
-  {
-    id: "advanced",
-    label: "Erweitert",
-    icon: Settings2,
-    items: [
-      {
-        id: "advanced-users",
-        label: "Benutzerverwaltung",
-        description: "Benutzer hinzufuegen, bearbeiten, loeschen",
-        keywords: ["benutzer", "user", "mitarbeiter", "team", "rolle", "rechte"],
-        icon: Users,
-        tab: "advanced",
-        section: "users",
-      },
-      {
-        id: "advanced-approvals",
-        label: "Freigaben",
-        description: "Genehmigungsworkflow und Freigaben",
-        keywords: ["freigabe", "genehmigung", "approval", "workflow", "pruefen"],
-        icon: CheckSquare,
-        tab: "advanced",
-        section: "approvals",
-      },
-      {
-        id: "advanced-attachments",
-        label: "Anlagen",
-        description: "Standard-Anlagen verwalten",
-        keywords: ["anlage", "attachment", "anhang", "datei", "file"],
-        icon: Paperclip,
-        tab: "advanced",
-        section: "attachments",
-      },
-      {
-        id: "advanced-form-fields",
-        label: "Formularfelder",
-        description: "Benutzerdefinierte Eingabefelder",
-        keywords: ["formular", "feld", "eingabe", "input", "custom"],
-        icon: FormInput,
-        tab: "advanced",
-        section: "form-fields",
-      },
-      {
-        id: "advanced-designer",
+        id: "designer",
         label: "Layout-Editor",
         description: "Visueller Dokumenten-Designer",
         keywords: ["designer", "editor", "layout", "visuell", "drag", "drop"],
         icon: Layout,
-        tab: "advanced",
-        section: "designer",
+        tab: "designer",
       },
       {
-        id: "advanced-preview",
+        id: "preview",
         label: "Vorschau",
         description: "Vorlagen-Vorschau testen",
         keywords: ["vorschau", "preview", "test", "ansicht"],
         icon: Eye,
-        tab: "advanced",
-        section: "preview",
+        tab: "preview",
+      },
+    ],
+  },
+  {
+    id: "verwaltung",
+    label: "Verwaltung",
+    icon: Users,
+    items: [
+      {
+        id: "users",
+        label: "Benutzerverwaltung",
+        description: "Benutzer hinzufuegen, bearbeiten, loeschen",
+        keywords: ["benutzer", "user", "mitarbeiter", "team", "rolle", "rechte"],
+        icon: Users,
+        tab: "users",
       },
       {
-        id: "advanced-works-council",
+        id: "approvals",
+        label: "Freigaben",
+        description: "Genehmigungsworkflow und Freigaben",
+        keywords: ["freigabe", "genehmigung", "approval", "workflow", "pruefen"],
+        icon: CheckSquare,
+        tab: "approvals",
+      },
+      {
+        id: "works-council",
         label: "Betriebsrat",
         description: "Betriebsrats-Vorlagen",
         keywords: ["betriebsrat", "works", "council", "mitbestimmung"],
         icon: UserCheck,
-        tab: "advanced",
-        section: "works-council",
+        tab: "works-council",
       },
+    ],
+  },
+  {
+    id: "compliance",
+    label: "Compliance",
+    icon: Shield,
+    items: [
       {
-        id: "advanced-retention",
+        id: "retention",
         label: "Aufbewahrung",
         description: "Aufbewahrungsfristen und -richtlinien",
         keywords: ["aufbewahrung", "retention", "frist", "archiv", "loeschen"],
         icon: Archive,
-        tab: "advanced",
-        section: "retention",
+        tab: "retention",
       },
       {
-        id: "advanced-audit",
+        id: "audit",
         label: "Audit-Protokoll",
         description: "Aenderungshistorie und Logs",
         keywords: ["audit", "protokoll", "log", "historie", "aenderung", "tracking"],
         icon: Shield,
-        tab: "advanced",
-        section: "audit",
+        tab: "audit",
+      },
+    ],
+  },
+  {
+    id: "integrationen",
+    label: "Integrationen",
+    icon: Bot,
+    items: [
+      {
+        id: "integrations",
+        label: "Copilot Studio",
+        description: "Microsoft Copilot Studio Integration",
+        keywords: ["copilot", "microsoft", "integration", "bot", "ki", "ai"],
+        icon: Bot,
+        tab: "integrations",
       },
     ],
   },
@@ -374,16 +379,7 @@ export function SettingsCommandPalette({
   const handleSelect = useCallback(
     (item: SettingsItem) => {
       setOpen(false);
-
-      // Build URL params
-      const params = new URLSearchParams();
-      params.set("tab", item.tab);
-      if (item.section) {
-        params.set("section", item.section);
-      }
-
-      // Navigate to settings page with the correct tab/section
-      navigate(`/settings?${params.toString()}`);
+      navigate(`/settings?tab=${item.tab}`);
     },
     [navigate, setOpen]
   );
@@ -398,7 +394,7 @@ export function SettingsCommandPalette({
           navigate("/documents");
           break;
         case "activity-log":
-          navigate("/settings?tab=advanced&section=audit");
+          navigate("/settings?tab=audit");
           break;
         default:
           // For search-all, just keep the palette open

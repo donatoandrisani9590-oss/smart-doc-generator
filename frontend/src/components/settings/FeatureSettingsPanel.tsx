@@ -101,7 +101,7 @@ export function FeatureSettingsPanel() {
       await toggleFeature(featureKey as FeatureKey, enabled);
       toast.success(
         enabled ? "Funktion aktiviert" : "Funktion deaktiviert",
-        { duration: 2000 }
+        { duration: 3500 }
       );
     } catch {
       toast.error("Fehler beim Ändern der Einstellung");
@@ -252,6 +252,13 @@ export function FeatureSettingsPanel() {
                           }
                           disabled={isToggling}
                         />
+                        <span className={`text-xs font-medium min-w-[24px] ${
+                          feature.enabled
+                            ? "text-green-600 dark:text-green-400"
+                            : "text-muted-foreground"
+                        }`}>
+                          {feature.enabled ? "An" : "Aus"}
+                        </span>
                       </div>
                     </div>
                   );

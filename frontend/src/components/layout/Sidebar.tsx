@@ -168,7 +168,10 @@ export const Sidebar = () => {
                             icon={Settings2}
                             label="Einstellungen"
                             href="/settings"
-                            active={pathname.startsWith("/settings") || pathname.startsWith("/admin")}
+                            active={
+                                (pathname.startsWith("/settings") && !location.search.includes("tab=templates"))
+                                || pathname.startsWith("/admin")
+                            }
                         />
                     </SidebarSection>
 

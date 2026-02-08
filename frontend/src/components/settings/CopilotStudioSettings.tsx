@@ -438,7 +438,20 @@ export const CopilotStudioSettings = () => {
               </div>
               <Switch
                 checked={config?.is_enabled || false}
-                onCheckedChange={(checked) => setConfig((prev) => (prev ? { ...prev, is_enabled: checked } : prev))}
+                onCheckedChange={async (checked) => {
+                  const prev = config;
+                  setConfig((p) => (p ? { ...p, is_enabled: checked } : p));
+                  try {
+                    await api.put("/api/v1/copilot-studio/config", { ...config, is_enabled: checked });
+                    toast.success(
+                      checked ? "Aktiviert" : "Deaktiviert",
+                      checked ? "Integration wurde aktiviert" : "Integration wurde deaktiviert"
+                    );
+                  } catch {
+                    setConfig(prev);
+                    toast.error("Fehler", "Status konnte nicht gespeichert werden");
+                  }
+                }}
               />
             </div>
           </CardHeader>

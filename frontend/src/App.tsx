@@ -90,16 +90,16 @@ function App() {
                 <Route path="admin/company-settings" element={<Navigate to="/settings?tab=general" replace />} />
                 <Route path="admin/settings" element={<Navigate to="/settings?tab=design" replace />} />
                 <Route path="admin/clauses" element={<Navigate to="/settings?tab=clauses" replace />} />
-                <Route path="admin/attachments" element={<Navigate to="/settings?tab=advanced&section=attachments" replace />} />
+                <Route path="admin/attachments" element={<Navigate to="/settings?tab=attachments" replace />} />
                 <Route path="admin/types" element={<Navigate to="/settings?tab=templates" replace />} />
-                <Route path="admin/document-designer" element={<Navigate to="/settings?tab=advanced&section=designer" replace />} />
-                <Route path="admin/form-fields" element={<Navigate to="/settings?tab=advanced&section=form-fields" replace />} />
-                <Route path="admin/template-preview" element={<Navigate to="/settings?tab=advanced&section=preview" replace />} />
-                <Route path="admin/users" element={<Navigate to="/settings?tab=advanced&section=users" replace />} />
-                <Route path="admin/works-council" element={<Navigate to="/settings?tab=advanced&section=works-council" replace />} />
-                <Route path="admin/retention" element={<Navigate to="/settings?tab=advanced&section=retention" replace />} />
-                <Route path="admin/audit" element={<Navigate to="/settings?tab=advanced&section=audit" replace />} />
-                <Route path="admin/clause-approvals" element={<Navigate to="/settings?tab=advanced&section=approvals" replace />} />
+                <Route path="admin/document-designer" element={<Navigate to="/settings?tab=designer" replace />} />
+                <Route path="admin/form-fields" element={<Navigate to="/settings?tab=form-fields" replace />} />
+                <Route path="admin/template-preview" element={<Navigate to="/settings?tab=preview" replace />} />
+                <Route path="admin/users" element={<Navigate to="/settings?tab=users" replace />} />
+                <Route path="admin/works-council" element={<Navigate to="/settings?tab=works-council" replace />} />
+                <Route path="admin/retention" element={<Navigate to="/settings?tab=retention" replace />} />
+                <Route path="admin/audit" element={<Navigate to="/settings?tab=audit" replace />} />
+                <Route path="admin/clause-approvals" element={<Navigate to="/settings?tab=approvals" replace />} />
                 {/* Catch-all for any other /admin/* routes */}
                 <Route path="admin/*" element={<Navigate to="/settings" replace />} />
 

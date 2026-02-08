@@ -9,7 +9,7 @@
 
 import { useState, useEffect } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
-import { AnimatePresence, motion } from "framer-motion";
+// framer-motion removed - caused opacity stuck bug in production
 import { Sidebar } from "./Sidebar";
 import { NotificationDropdown } from "@/components/notifications/NotificationDropdown";
 import { ThemeToggle } from "./ThemeToggle";
@@ -124,7 +124,7 @@ export const Layout = () => {
                         backdropFilter: 'blur(12px)',
                         backgroundColor: resolvedTheme === 'dark'
                             ? 'rgba(20, 22, 30, 0.85)'
-                            : 'rgba(252, 249, 245, 0.85)',
+                            : 'rgba(255, 255, 255, 0.85)',
                     }}
                 >
                     <div className="flex items-center gap-4">
@@ -159,18 +159,9 @@ export const Layout = () => {
                     tabIndex={-1}
                 >
                     <div className="p-8 max-w-7xl mx-auto w-full">
-                        <AnimatePresence mode="wait">
-                            <motion.div
-                                key={location.pathname}
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -10 }}
-                                transition={{ duration: 0.2, ease: "easeOut" }}
-                                className="w-full"
-                            >
-                                <Outlet />
-                            </motion.div>
-                        </AnimatePresence>
+                        <div className="w-full animate-in fade-in duration-200">
+                            <Outlet />
+                        </div>
                     </div>
                     {/* Bottom spacer for comfortable scrolling */}
                     <div className="h-12" />
