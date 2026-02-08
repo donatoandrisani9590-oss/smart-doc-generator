@@ -96,7 +96,7 @@
     --destructive-foreground: 0 0% 98%;
 
     --border: 225 12% 20%;
-    --input: 225 12% 20%;
+    --input: 225 12% 28%;
     --ring: 228 58% 55%;
 
     --warm: 220 10% 25%;
@@ -196,6 +196,24 @@
   .dark .glass-panel {
     background-color: hsl(225 18% 13% / 0.9);
     border-color: hsl(225 12% 22% / 0.3);
+  }
+
+  /* Dialog Overlay - Dark backdrop */
+  .glass-overlay {
+    background-color: rgb(0 0 0 / 0.5);
+    backdrop-filter: blur(4px);
+  }
+
+  .dark .glass-overlay {
+    background-color: rgb(0 0 0 / 0.65);
+  }
+
+  /* Dialog/Popover Content - Solid background */
+  .glass-popover {
+    background-color: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-soft-xl);
   }
 
   /* Soft Cards (Borderless by default) */
@@ -359,8 +377,164 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
+   GLOBAL DARK MODE OVERRIDES
+   Intercepts Tailwind color utilities so existing TSX files need no changes.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── bg-white → dark card background ── */
+.dark .bg-white { background-color: hsl(225 18% 13%) !important; }
+.dark .bg-white\/80 { background-color: hsl(225 18% 13% / 0.8) !important; }
+.dark .bg-white\/85 { background-color: hsl(225 18% 13% / 0.85) !important; }
+.dark .bg-white\/90 { background-color: hsl(225 18% 13% / 0.9) !important; }
+.dark .bg-white\/95 { background-color: hsl(225 18% 13% / 0.95) !important; }
+
+/* ── Red status ── */
+.dark .bg-red-50    { background-color: hsl(0 40% 15%) !important; }
+.dark .bg-red-100   { background-color: hsl(0 35% 18%) !important; }
+.dark .text-red-600  { color: hsl(0 72% 65%) !important; }
+.dark .text-red-700  { color: hsl(0 70% 68%) !important; }
+.dark .text-red-800  { color: hsl(0 65% 72%) !important; }
+.dark .border-red-200 { border-color: hsl(0 30% 25%) !important; }
+.dark .border-red-300 { border-color: hsl(0 28% 30%) !important; }
+
+/* ── Green status ── */
+.dark .bg-green-50  { background-color: hsl(140 25% 14%) !important; }
+.dark .bg-green-100 { background-color: hsl(140 22% 17%) !important; }
+.dark .text-green-600 { color: hsl(140 58% 58%) !important; }
+.dark .text-green-700 { color: hsl(140 55% 62%) !important; }
+.dark .text-green-800 { color: hsl(140 50% 66%) !important; }
+.dark .border-green-200 { border-color: hsl(140 20% 22%) !important; }
+.dark .border-green-300 { border-color: hsl(140 18% 28%) !important; }
+
+/* ── Blue status ── */
+.dark .bg-blue-50   { background-color: hsl(220 35% 15%) !important; }
+.dark .bg-blue-100  { background-color: hsl(220 30% 18%) !important; }
+.dark .text-blue-500 { color: hsl(220 75% 65%) !important; }
+.dark .text-blue-600 { color: hsl(220 70% 68%) !important; }
+.dark .text-blue-700 { color: hsl(220 65% 65%) !important; }
+.dark .text-blue-800 { color: hsl(220 60% 72%) !important; }
+.dark .border-blue-200 { border-color: hsl(220 25% 25%) !important; }
+.dark .border-blue-300 { border-color: hsl(220 22% 30%) !important; }
+
+/* ── Yellow status ── */
+.dark .bg-yellow-50  { background-color: hsl(45 30% 14%) !important; }
+.dark .bg-yellow-100 { background-color: hsl(45 28% 17%) !important; }
+.dark .text-yellow-600 { color: hsl(45 75% 58%) !important; }
+.dark .text-yellow-700 { color: hsl(45 70% 60%) !important; }
+.dark .text-yellow-800 { color: hsl(45 65% 65%) !important; }
+.dark .border-yellow-200 { border-color: hsl(45 25% 22%) !important; }
+.dark .border-yellow-300 { border-color: hsl(45 22% 28%) !important; }
+
+/* ── Amber status ── */
+.dark .bg-amber-50  { background-color: hsl(38 30% 14%) !important; }
+.dark .bg-amber-100 { background-color: hsl(38 28% 17%) !important; }
+.dark .text-amber-500 { color: hsl(38 78% 55%) !important; }
+.dark .text-amber-600 { color: hsl(38 75% 58%) !important; }
+.dark .text-amber-700 { color: hsl(38 70% 62%) !important; }
+.dark .text-amber-800 { color: hsl(38 65% 66%) !important; }
+.dark .border-amber-200 { border-color: hsl(38 25% 22%) !important; }
+.dark .border-amber-300 { border-color: hsl(38 22% 28%) !important; }
+
+/* ── Orange status ── */
+.dark .bg-orange-50  { background-color: hsl(25 30% 14%) !important; }
+.dark .bg-orange-100 { background-color: hsl(25 28% 17%) !important; }
+.dark .text-orange-500 { color: hsl(25 82% 58%) !important; }
+.dark .text-orange-600 { color: hsl(25 80% 60%) !important; }
+.dark .text-orange-700 { color: hsl(25 75% 62%) !important; }
+.dark .border-orange-200 { border-color: hsl(25 25% 22%) !important; }
+.dark .border-orange-300 { border-color: hsl(25 22% 28%) !important; }
+
+/* ── Purple status ── */
+.dark .bg-purple-50  { background-color: hsl(270 30% 15%) !important; }
+.dark .bg-purple-100 { background-color: hsl(270 28% 18%) !important; }
+.dark .text-purple-500 { color: hsl(270 68% 65%) !important; }
+.dark .text-purple-600 { color: hsl(270 65% 68%) !important; }
+.dark .text-purple-700 { color: hsl(270 60% 65%) !important; }
+.dark .border-purple-200 { border-color: hsl(270 25% 25%) !important; }
+
+/* ── Indigo status ── */
+.dark .bg-indigo-50  { background-color: hsl(235 30% 15%) !important; }
+.dark .bg-indigo-100 { background-color: hsl(235 28% 18%) !important; }
+.dark .text-indigo-600 { color: hsl(235 65% 68%) !important; }
+.dark .text-indigo-700 { color: hsl(235 60% 65%) !important; }
+.dark .border-indigo-200 { border-color: hsl(235 25% 25%) !important; }
+
+/* ── Gray overrides for consistency ── */
+.dark .bg-gray-50   { background-color: hsl(220 14% 13%) !important; }
+.dark .bg-gray-100  { background-color: hsl(220 14% 16%) !important; }
+.dark .text-gray-500 { color: hsl(220 8% 55%) !important; }
+.dark .text-gray-600 { color: hsl(220 8% 60%) !important; }
+.dark .text-gray-700 { color: hsl(220 8% 68%) !important; }
+.dark .text-gray-800 { color: hsl(220 8% 75%) !important; }
+.dark .border-gray-200 { border-color: hsl(220 12% 20%) !important; }
+.dark .border-gray-300 { border-color: hsl(220 10% 25%) !important; }
+
+/* ── Slate overrides ── */
+.dark .bg-slate-50   { background-color: hsl(220 14% 13%) !important; }
+.dark .bg-slate-100  { background-color: hsl(220 14% 16%) !important; }
+.dark .text-slate-600 { color: hsl(220 8% 60%) !important; }
+.dark .text-slate-700 { color: hsl(220 8% 68%) !important; }
+.dark .border-slate-200 { border-color: hsl(220 12% 20%) !important; }
+
+/* ── Primary shades ── */
+.dark .bg-primary-50 { background-color: hsl(228 35% 15%) !important; }
+.dark .bg-primary-100 { background-color: hsl(228 30% 18%) !important; }
+
+/* ── Hardcoded color overrides ── */
+.dark .text-\[\#243186\] { color: hsl(228 58% 70%) !important; }
+
+/* ── Hover state overrides ── */
+.dark .hover\:bg-blue-50:hover { background-color: hsl(220 35% 15%) !important; }
+.dark .hover\:bg-gray-50:hover { background-color: hsl(220 14% 15%) !important; }
+.dark .hover\:bg-warm-50:hover { background-color: hsl(var(--warm-50)) !important; }
+.dark .hover\:bg-red-50:hover { background-color: hsl(0 40% 15%) !important; }
+.dark .hover\:bg-green-50:hover { background-color: hsl(140 25% 14%) !important; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
    COMPONENT SPECIFIC STYLES
    ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Settings Sidebar Navigation - Dark Mode Color Fix */
+.settings-nav-header {
+  color: hsl(var(--muted-foreground) / 0.7);
+}
+.dark .settings-nav-header {
+  color: hsl(220 8% 55%);
+}
+
+.settings-nav-item {
+  color: hsl(var(--muted-foreground));
+}
+.dark .settings-nav-item {
+  color: hsl(220 8% 70%);
+}
+.settings-nav-item:hover {
+  color: hsl(var(--foreground));
+}
+.dark .settings-nav-item:hover {
+  color: hsl(220 10% 88%);
+}
+
+.settings-nav-item-active {
+  color: hsl(var(--primary));
+}
+.dark .settings-nav-item-active {
+  color: hsl(228 58% 70%);
+}
+
+.settings-nav-icon {
+  color: hsl(var(--muted-foreground) / 0.8);
+}
+.dark .settings-nav-icon {
+  color: hsl(220 8% 55%);
+}
+
+.settings-nav-icon-active {
+  color: hsl(var(--primary));
+}
+.dark .settings-nav-icon-active {
+  color: hsl(228 58% 70%);
+}
 
 /* Skeleton Loading - Dark */
 .dark .skeleton {
@@ -390,12 +564,20 @@
   color: #374151;
 }
 
+.dark .tiptap-strict .ProseMirror {
+  color: hsl(220 10% 88%);
+}
+
 .tiptap-strict .ProseMirror p.is-editor-empty:first-child::before {
   color: #9ca3af;
   content: attr(data-placeholder);
   float: left;
   height: 0;
   pointer-events: none;
+}
+
+.dark .tiptap-strict .ProseMirror p.is-editor-empty:first-child::before {
+  color: hsl(220 8% 45%);
 }
 
 /* Placeholder Chips in Editor - "Smart" Feel */
@@ -422,6 +604,18 @@
   background: #e0e7ff;
   transform: translateY(-1px);
   box-shadow: 0 2px 4px rgba(79, 70, 229, 0.1);
+}
+
+.dark .placeholder-chip {
+  background: hsl(228 35% 20%);
+  color: hsl(228 70% 72%);
+  border-color: hsl(228 30% 28%);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+}
+
+.dark .placeholder-chip:hover {
+  background: hsl(228 35% 25%);
+  box-shadow: 0 2px 4px rgba(100, 120, 220, 0.15);
 }
 
 /* Animations */

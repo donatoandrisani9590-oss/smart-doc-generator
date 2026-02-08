@@ -33,9 +33,9 @@ export default {
                 warm: {
                     DEFAULT: "hsl(220 9% 81%)",
                     foreground: "hsl(220 10% 20%)",
-                    50:  "hsl(220 14% 98%)",    // fast weiss
-                    100: "hsl(220 14% 96%)",    // sehr helles Grau
-                    200: "hsl(220 13% 91%)",    // helles Grau
+                    50:  "hsl(var(--warm-50))",    // CSS var → dark mode aware
+                    100: "hsl(var(--warm-100))",   // CSS var → dark mode aware
+                    200: "hsl(var(--warm-200))",   // CSS var → dark mode aware
                     300: "hsl(220 12% 81%)",
                     400: "hsl(220 9% 72%)",
                     500: "hsl(220 8% 60%)",
