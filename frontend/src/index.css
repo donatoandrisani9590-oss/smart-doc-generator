@@ -2,8 +2,11 @@
 @import "./styles/magic-import.css";
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   SOFT & SIMPLE DESIGN SYSTEM (PandaDoc Style)
-   Focus: Whitespace, Soft Shadows, Clean Typography, Subtle Glass
+   NIEDERWIESER CORPORATE DESIGN SYSTEM
+   Based on: niederwiesergroup.com
+   Colors: Primary Blue #243186, Secondary Green #6EBD84, Warm Beige #D7CFC5
+   Buttons: Pill-shaped (border-radius: 9999px), outline style with 2px border
+   Typography: Clean sans-serif, generous letter-spacing, uppercase accents
    ═══════════════════════════════════════════════════════════════════════════ */
 
 @layer base {
@@ -242,24 +245,40 @@
     color: hsl(var(--muted-foreground) / 0.5);
   }
 
-  /* Buttons - Engaging */
+  /* Buttons - Niederwieser Corporate Pill Style */
   .btn-primary-soft {
-    background-color: hsl(var(--primary));
-    color: white;
-    box-shadow: var(--shadow-soft-md);
+    background-color: transparent;
+    color: hsl(var(--primary));
+    border: 2px solid hsl(var(--primary));
     font-weight: 500;
     letter-spacing: 0.025em;
-    border-radius: var(--radius);
+    border-radius: 9999px;
     transition: all 0.2s;
   }
 
   .btn-primary-soft:hover {
-    box-shadow: var(--shadow-soft-lg);
-    filter: brightness(1.1);
+    background-color: hsl(var(--primary));
+    color: white;
   }
 
   .btn-primary-soft:active {
-    transform: scale(0.95);
+    transform: scale(0.97);
+  }
+
+  /* Secondary outline button (Green) */
+  .btn-secondary-outline {
+    background-color: transparent;
+    color: hsl(var(--secondary));
+    border: 2px solid hsl(var(--secondary));
+    font-weight: 500;
+    letter-spacing: 0.025em;
+    border-radius: 9999px;
+    transition: all 0.2s;
+  }
+
+  .btn-secondary-outline:hover {
+    background-color: hsl(var(--secondary));
+    color: white;
   }
 
   /* Scrollbar - Clean */

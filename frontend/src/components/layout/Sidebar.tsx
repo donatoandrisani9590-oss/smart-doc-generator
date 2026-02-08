@@ -104,23 +104,31 @@ export const Sidebar = () => {
         <>
             <KeyboardShortcutsDialog open={showShortcuts} onOpenChange={setShowShortcuts} />
             <div className="w-[260px] h-screen flex flex-col font-sans glass-sidebar">
-                {/* Logo Section - Clean & Modern */}
-                <div className="h-16 flex items-center px-6">
-                    <div className="flex flex-col">
-                        <span className="text-lg font-bold tracking-tight text-primary flex items-center gap-2">
-                            Docs<span className="font-light text-foreground">Gen</span>
+                {/* Logo Section - Niederwieser Corporate */}
+                <div className="h-16 flex items-center px-5">
+                    <Link to="/" className="flex items-center gap-3 group">
+                        <img
+                            src="/niederwieser-logo-blue.svg"
+                            alt="Niederwieser"
+                            className="h-7 w-auto dark:hidden"
+                        />
+                        <img
+                            src="/niederwieser-logo.svg"
+                            alt="Niederwieser"
+                            className="h-7 w-auto hidden dark:block"
+                        />
+                        <div className="h-5 w-px bg-border/60" />
+                        <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-[0.15em]">
+                            Docs
                         </span>
-                        <span className="text-[10px] text-muted-foreground tracking-widest uppercase">
-                            Niederwieser
-                        </span>
-                    </div>
+                    </Link>
                 </div>
 
-                {/* Primary Action Button */}
+                {/* Primary Action Button - Niederwieser Pill Style */}
                 <div className="px-4 mb-2">
                     <Link
                         to="/generate"
-                        className="flex items-center justify-center gap-2 w-full bg-primary text-primary-foreground hover:bg-primary/90 transition-all shadow-soft-md hover:shadow-soft-lg py-2.5 rounded-lg text-sm font-medium active:scale-95"
+                        className="flex items-center justify-center gap-2 w-full border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-all py-2.5 rounded-full text-sm font-medium active:scale-95"
                     >
                         <PlusCircle className="w-4 h-4" />
                         <span>Neues Dokument</span>
