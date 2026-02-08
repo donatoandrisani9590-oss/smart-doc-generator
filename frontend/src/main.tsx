@@ -8,8 +8,12 @@ import { OnlineStatusProvider } from '@/hooks/useOnlineStatus'
 import { ErrorHandlerProvider } from '@/hooks/useErrorHandler'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { logError, logInfo } from '@/lib/logger'
+import { initSentry, captureException } from '@/lib/sentry'
 import './index.css'
 import App from './App.tsx'
+
+// Initialize Sentry error tracking (no-op if VITE_SENTRY_DSN not set)
+initSentry()
 
 // Log app initialization
 logInfo('App initializing', {
@@ -41,6 +45,7 @@ window.addEventListener('unhandledrejection', (event) => {
     reason: String(event.reason),
     stack: event.reason?.stack,
   })
+  captureException(event.reason, { source: 'unhandledrejection' })
 })
 
 // Global error handler for runtime errors
@@ -51,6 +56,7 @@ window.addEventListener('error', (event) => {
     lineno: event.lineno,
     colno: event.colno,
   })
+  captureException(event.error || new Error(event.message), { source: 'window.onerror' })
 })
 
 createRoot(document.getElementById('root')!).render(
@@ -60,6 +66,10 @@ createRoot(document.getElementById('root')!).render(
         logError('Root ErrorBoundary caught error', {
           error: error.message,
           stack: error.stack,
+          componentStack: errorInfo.componentStack,
+        })
+        captureException(error, {
+          source: 'ErrorBoundary',
           componentStack: errorInfo.componentStack,
         })
       }}

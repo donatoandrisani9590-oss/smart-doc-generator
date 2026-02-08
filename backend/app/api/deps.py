@@ -1,6 +1,5 @@
-import os
 import logging
-from typing import AsyncGenerator, Annotated, Optional
+from typing import Annotated, Optional
 from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordBearer
 from jose import jwt, JWTError
@@ -13,14 +12,24 @@ from app.models.core import User
 
 logger = logging.getLogger(__name__)
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"{settings.API_V1_STR}/auth/login", auto_error=not settings.DEBUG)
+# In production, always require a token. In dev with auth bypass, make token optional.
+_auth_bypass_active = (
+    settings.DEBUG
+    and settings.ALLOW_AUTH_BYPASS
+    and settings.ENVIRONMENT.lower() not in ("production", "prod", "staging")
+)
+
+oauth2_scheme = OAuth2PasswordBearer(
+    tokenUrl=f"{settings.API_V1_STR}/auth/login",
+    auto_error=not _auth_bypass_active,
+)
 
 
 class MockUser:
-    """Mock user for DEBUG mode - allows testing without database."""
+    """Mock user for local development only — never admin by default."""
     id = 1
     email = "dev@example.com"
-    role = "admin"
+    role = "user"
     country_code = "DE"
     is_active = True
 
@@ -28,24 +37,20 @@ class MockUser:
 async def get_current_user(
     request: Request,
     token: Annotated[Optional[str], Depends(oauth2_scheme)] = None,
-    db: Annotated[AsyncSession, Depends(get_db)] = None
+    db: Annotated[AsyncSession, Depends(get_db)] = None,
 ) -> User:
-    # DEBUG MODE: Return mock admin user without authentication
-    # SECURITY: Only allowed when DEBUG=True AND not in production environment
-    if settings.DEBUG:
-        env = os.environ.get("ENVIRONMENT", "development").lower()
-        if env in ("production", "prod", "staging"):
-            logger.critical(
-                "DEBUG mode is enabled in a production/staging environment! "
-                "Auth bypass is DISABLED. Set DEBUG=False in production."
-            )
-        else:
-            logger.warning("DEBUG mode active: returning mock admin user without authentication")
-            return MockUser()
+    # Auth bypass: requires DEBUG=True AND ALLOW_AUTH_BYPASS=True AND non-production env
+    if _auth_bypass_active:
+        logger.warning(
+            "Auth bypass active (DEBUG=True, ALLOW_AUTH_BYPASS=True, ENV=%s). "
+            "DO NOT use in production.",
+            settings.ENVIRONMENT,
+        )
+        return MockUser()
 
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
+        detail="Ungültige Anmeldedaten",
         headers={"WWW-Authenticate": "Bearer"},
     )
 
@@ -67,14 +72,15 @@ async def get_current_user(
     if user is None:
         raise credentials_exception
     if not user.is_active:
-        raise HTTPException(status_code=400, detail="Inactive user")
+        raise HTTPException(status_code=400, detail="Benutzer ist deaktiviert")
     return user
 
+
 async def get_current_active_admin(
-    current_user: Annotated[User, Depends(get_current_user)]
+    current_user: Annotated[User, Depends(get_current_user)],
 ) -> User:
     if current_user.role != "admin":
         raise HTTPException(
-            status_code=400, detail="The user doesn't have enough privileges"
+            status_code=403, detail="Unzureichende Berechtigungen"
         )
     return current_user

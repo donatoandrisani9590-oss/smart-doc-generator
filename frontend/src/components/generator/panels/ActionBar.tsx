@@ -196,7 +196,7 @@ export const ActionBar = () => {
             case 'offline':
                 return { icon: <CloudOff className="w-3 h-3" />, text: "Offline gespeichert", color: "text-amber-500" };
             case 'pending':
-                return { icon: <Cloud className="w-3 h-3" />, text: "Änderungen...", color: "text-gray-400" };
+                return { icon: <Cloud className="w-3 h-3" />, text: "Änderungen...", color: "text-warm-400" };
             default:
                 return null;
         }

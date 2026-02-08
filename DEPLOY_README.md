@@ -20,9 +20,6 @@ Das wars! Mehr brauchst du nicht.
 # Clone das Repository
 git clone <dein-repo-url>
 cd smart-doc-generator
-
-# Wechsel zum richtigen Branch
-git checkout claude/review-app-code-qmWZ7
 ```
 
 ---
@@ -225,7 +222,7 @@ Dann mit Nginx oder einem anderen Webserver serven.
 ## 📚 Mehr Infos?
 
 - **Komplette Anleitung:** `PRODUCTION_DEPLOYMENT_GUIDE.md`
-- **Security Details:** `SECURITY_HARDENING_KONZEPT.md`
+- **Security Details:** `SECURITY_HARDENING_KONZEPT.md` / `SCHEMA_SECURITY_HARDENING_REPORT.md`
 - **Deployment Checklist:** `DEPLOYMENT_CHECKLIST.md`
 
 ---

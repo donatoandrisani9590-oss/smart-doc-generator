@@ -1,0 +1,29 @@
+{% extends "emails/base.html" %}
+
+{% block content %}
+<h2>{{ title }}</h2>
+<p>{{ message }}</p>
+
+{% if priority and priority != "normal" %}
+<span class="priority-badge priority-{{ priority }}">
+  {% if priority == "high" %}Wichtig{% elif priority == "urgent" %}Dringend{% else %}{{ priority }}{% endif %}
+</span>
+{% endif %}
+
+{% if action_url %}
+<div style="text-align: center; margin: 24px 0;">
+  <a href="{{ app_url }}{{ action_url }}" class="btn">Jetzt ansehen</a>
+</div>
+{% endif %}
+
+{% if metadata %}
+<div class="meta-box">
+  {% for key, value in metadata.items() %}
+  <div class="meta-row">
+    <span class="meta-label">{{ key }}</span>
+    <span class="meta-value">{{ value }}</span>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

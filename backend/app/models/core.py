@@ -7,7 +7,7 @@ class User(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True, nullable=False)
-    password_hash = Column(String, nullable=False)
+    password_hash = Column(String, nullable=True)  # Nullable for SSO-only users
     role = Column(String, default="user")  # 'admin' or 'user'
     country_code = Column(String(2), nullable=True)  # 'DE', 'IT' - context preference
     created_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -16,6 +16,15 @@ class User(Base):
     # Brute-Force Protection (SEC-017)
     failed_login_attempts = Column(Integer, default=0)
     locked_until = Column(DateTime(timezone=True), nullable=True)
+
+    # Two-Factor Authentication (TOTP)
+    totp_secret = Column(String(64), nullable=True)  # Base32-encoded secret
+    totp_enabled = Column(Boolean, default=False)
+
+    # SSO / OAuth2 (OIDC)
+    sso_provider = Column(String(50), nullable=True, index=True)  # "azure_ad", "google", etc.
+    sso_subject_id = Column(String(255), nullable=True, index=True)  # Provider's unique user ID
+    display_name = Column(String(255), nullable=True)  # Full name from SSO claims
 
 class DesignSetting(Base):
     __tablename__ = "design_settings"

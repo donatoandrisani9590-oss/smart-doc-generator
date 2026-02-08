@@ -827,7 +827,7 @@ async def download_pdf_by_job_id(
     if not output_path or not Path(output_path).exists():
         raise HTTPException(
             status_code=404,
-            detail="PDF file not found. It may have been cleaned up."
+            detail="PDF-Datei nicht gefunden. Sie wurde moeglicherweise bereinigt."
         )
 
     return FileResponse(

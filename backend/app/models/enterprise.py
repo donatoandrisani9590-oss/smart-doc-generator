@@ -30,6 +30,35 @@ class GeneratedDocument(Base):
     current_version = Column(Integer, default=1)  # Track version number
     is_correctable = Column(Boolean, default=True)  # Can this doc be corrected?
 
+class DocumentLock(Base):
+    """
+    Pessimistic locking for documents during editing/correction.
+
+    Prevents concurrent editing conflicts:
+    - User acquires lock before starting correction
+    - Lock expires after timeout (heartbeat-based)
+    - Other users see "locked by X" indicator
+    - Lock released on correction submit/cancel or timeout
+    """
+    __tablename__ = "document_locks"
+
+    id = Column(Integer, primary_key=True, index=True)
+    document_id = Column(Integer, ForeignKey("generated_documents.id", ondelete="CASCADE"), nullable=False, unique=True, index=True)
+
+    # Who holds the lock
+    locked_by_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    locked_by_email = Column(String(255), nullable=False)
+    locked_by_name = Column(String(255), nullable=True)  # Display name for UI
+
+    # Timing
+    locked_at = Column(DateTime(timezone=True), server_default=func.now())
+    last_heartbeat = Column(DateTime(timezone=True), server_default=func.now())
+    expires_at = Column(DateTime(timezone=True), nullable=False)  # Auto-expire time
+
+    # Context
+    lock_reason = Column(String(100), default="correction")  # correction, review, editing
+
+
 class RetentionPolicy(Base):
     __tablename__ = "retention_policies"
 
@@ -165,6 +194,7 @@ class DocumentDraft(Base):
     name = Column(String(255), nullable=True)
     form_data = Column(Text, nullable=False)  # JSON string
     custom_clauses = Column(Text, nullable=True)  # JSON for Individualvereinbarung
+    version = Column(Integer, default=1, nullable=False)  # Optimistic locking
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now())
 

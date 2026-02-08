@@ -12,6 +12,7 @@ celery_app = Celery(
         "app.tasks.retention",
         "app.tasks.bulk_tasks",
         "app.tasks.pdf_tasks",
+        "app.tasks.email_tasks",
     ]
 )
 

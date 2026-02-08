@@ -116,7 +116,7 @@ async def get_document_type(
     if not doc_type:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Document type not found"
+            detail="Dokumenttyp nicht gefunden"
         )
 
     return doc_type
@@ -147,7 +147,7 @@ async def get_document_type_with_variant_groups(
     if not doc_type:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Document type not found"
+            detail="Dokumenttyp nicht gefunden"
         )
 
     # Build response with variant groups
@@ -271,7 +271,7 @@ async def duplicate_document_type(
     if not original:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Document type not found"
+            detail="Dokumenttyp nicht gefunden"
         )
 
     # Determine new name and country
@@ -453,7 +453,7 @@ async def update_document_type(
     if not doc_type:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Document type not found"
+            detail="Dokumenttyp nicht gefunden"
         )
 
     # Update fields
@@ -526,7 +526,7 @@ async def get_document_type_clauses(
     if not doc_type:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Document type not found"
+            detail="Dokumenttyp nicht gefunden"
         )
 
     # Get clause links with clause data
@@ -574,7 +574,7 @@ async def delete_document_type(
     if not doc_type:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Document type not found"
+            detail="Dokumenttyp nicht gefunden"
         )
 
     # Soft delete
@@ -604,7 +604,7 @@ async def get_document_type_variant_groups(
     if not doc_type:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Document type not found"
+            detail="Dokumenttyp nicht gefunden"
         )
 
     # Get variant group links with data
@@ -676,7 +676,7 @@ async def add_variant_group_to_document_type(
     if not doc_type:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Document type not found"
+            detail="Dokumenttyp nicht gefunden"
         )
 
     # Verify variant group exists
@@ -684,7 +684,7 @@ async def add_variant_group_to_document_type(
     if not vg:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Variant group not found"
+            detail="Varianten-Gruppe nicht gefunden"
         )
 
     # Check for existing link
@@ -696,7 +696,7 @@ async def add_variant_group_to_document_type(
     if existing_result.scalar_one_or_none():
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="Variant group is already assigned to this document type"
+            detail="Varianten-Gruppe ist diesem Dokumenttyp bereits zugeordnet"
         )
 
     # Create link
@@ -739,7 +739,7 @@ async def remove_variant_group_from_document_type(
     if not doc_type:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Document type not found"
+            detail="Dokumenttyp nicht gefunden"
         )
 
     # Delete the link
@@ -753,7 +753,7 @@ async def remove_variant_group_from_document_type(
     if result.rowcount == 0:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Variant group assignment not found"
+            detail="Varianten-Gruppen-Zuordnung nicht gefunden"
         )
 
     await db.commit()
@@ -781,7 +781,7 @@ async def get_header_footer_settings(
     if not doc_type:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Document type not found"
+            detail="Dokumenttyp nicht gefunden"
         )
 
     return HeaderFooterSettings(
@@ -820,7 +820,7 @@ async def update_header_footer_settings(
     if not doc_type:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Document type not found"
+            detail="Dokumenttyp nicht gefunden"
         )
 
     # Update all header/footer fields
@@ -870,7 +870,7 @@ async def copy_settings_from_template(
     if not target:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Target document type not found"
+            detail="Ziel-Dokumenttyp nicht gefunden"
         )
 
     # Get source document type
@@ -878,7 +878,7 @@ async def copy_settings_from_template(
     if not source:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Source template not found"
+            detail="Quell-Vorlage nicht gefunden"
         )
 
     copied_items = []
@@ -1018,7 +1018,7 @@ async def reset_header_footer_settings(
     if not doc_type:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Document type not found"
+            detail="Dokumenttyp nicht gefunden"
         )
 
     # Reset all custom settings

@@ -124,6 +124,7 @@ export function useWizardDrafts(params: UseWizardDraftsParams): UseWizardDraftsR
     const navigate = useNavigate();
 
     const [loadedDraftId, setLoadedDraftId] = useState<number | null>(initialDraftId ?? null);
+    const [draftVersion, setDraftVersion] = useState<number>(1);
     const [isSaving, setIsSaving] = useState(false);
 
     // ── Auto-Save Data Structure ────────────────────────────────────────────
@@ -141,7 +142,7 @@ export function useWizardDrafts(params: UseWizardDraftsParams): UseWizardDraftsR
         timestamp: new Date().toISOString(),
     }), [formData, dynamicFormValues, documentTitle, documentTypeId, comments, documentClauses, selectedVariants, selectedAttachmentIds, currentStep]);
 
-    // Auto-save callback - save to server (create or update)
+    // Auto-save callback - save to server (create or update) with optimistic locking
     const performAutoSave = useCallback(async (data: typeof autoSaveData): Promise<void> => {
         if (!data.documentTypeId) return;
 
@@ -154,19 +155,24 @@ export function useWizardDrafts(params: UseWizardDraftsParams): UseWizardDraftsR
                 ...data.dynamicFormValues,
             },
             custom_clauses: data.documentClauses,
+            version: draftVersion,
         };
 
         if (loadedDraftId) {
-            // Update existing draft
-            await api.put(`/api/v1/drafts/${loadedDraftId}`, draftData);
+            // Update existing draft with version for conflict detection
+            const response = await api.put<{ version: number }>(`/api/v1/drafts/${loadedDraftId}`, draftData);
+            if (response.data?.version) {
+                setDraftVersion(response.data.version);
+            }
         } else {
             // Create new server-side draft on first auto-save
-            const response = await api.post<{ id: number }>("/api/v1/drafts", draftData);
+            const response = await api.post<{ id: number; version: number }>("/api/v1/drafts", draftData);
             if (response.data?.id) {
                 setLoadedDraftId(response.data.id);
+                setDraftVersion(response.data.version || 1);
             }
         }
-    }, [loadedDraftId]);
+    }, [loadedDraftId, draftVersion]);
 
     const autoSaveKey = useMemo(() =>
         documentTypeId ? `wizard_${documentTypeId}` : 'wizard_new',
@@ -252,6 +258,7 @@ export function useWizardDrafts(params: UseWizardDraftsParams): UseWizardDraftsR
             setDocumentTypeIdState(draft.document_type_id);
             setDocumentTitle(draft.name || "");
             setLoadedDraftId(draftId);
+            setDraftVersion(draft.version || 1);
 
             if (draft.form_data) {
                 setFormDataRaw({
@@ -309,14 +316,19 @@ export function useWizardDrafts(params: UseWizardDraftsParams): UseWizardDraftsR
                 name: draftName,
                 form_data: mergedFormData,
                 custom_clauses: documentClauses.filter(c => c.is_enabled).map(c => c.id),
+                version: draftVersion,
             };
 
             if (loadedDraftId) {
-                await api.put(`/api/v1/drafts/${loadedDraftId}`, draftData);
+                const response = await api.put<{ version: number }>(`/api/v1/drafts/${loadedDraftId}`, draftData);
+                if (response.data?.version) {
+                    setDraftVersion(response.data.version);
+                }
                 toast.success("Entwurf aktualisiert", `"${draftName}" wurde in Meine Dokumente gespeichert`);
             } else {
-                const response = await api.post<{ id: number }>("/api/v1/drafts", draftData);
+                const response = await api.post<{ id: number; version: number }>("/api/v1/drafts", draftData);
                 setLoadedDraftId(response.data.id);
+                setDraftVersion(response.data.version || 1);
                 toast.success("Entwurf erstellt", `"${draftName}" wurde in Meine Dokumente gespeichert`);
             }
 
@@ -325,7 +337,19 @@ export function useWizardDrafts(params: UseWizardDraftsParams): UseWizardDraftsR
                 localStorage.removeItem(getStorageKey(documentTypeId));
             }
             setHasUnsavedChanges(false);
-        } catch (error) {
+        } catch (error: unknown) {
+            const apiError = error as { status?: number };
+            if (apiError.status === 409) {
+                toast.error(
+                    "Konflikt",
+                    "Der Entwurf wurde zwischenzeitlich geaendert. Seite wird neu geladen...",
+                );
+                // Reload draft to get latest version
+                if (loadedDraftId) {
+                    setTimeout(() => loadDraft(loadedDraftId), 1500);
+                }
+                return;
+            }
             logError("Failed to save draft", { error: error as unknown as Record<string, unknown> });
             toast.error("Fehler", "Entwurf konnte nicht gespeichert werden");
         } finally {

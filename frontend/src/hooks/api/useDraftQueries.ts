@@ -19,6 +19,7 @@ export interface Draft {
     document_type_id: number;
     form_data: Record<string, unknown>;
     country_code: string;
+    version: number;
     updated_at: string;
 }
 

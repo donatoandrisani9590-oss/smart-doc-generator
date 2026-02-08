@@ -1,16 +1,17 @@
 /**
- * DocumentDetail Page - Dokumentansicht
+ * DocumentDetail Page - Warm & Friendly Design
  *
- * UX-Refactoring: Klare, übersichtliche Darstellung
- * - Fokus auf wichtige Informationen
- * - Schnelle Aktionen
- * - Modernes Layout
+ * - Status action bar at top (EPL-inspired)
+ * - Info cards with warm headers
+ * - Notes/comments panel in sidebar
+ * - Clean, modern layout
  */
 
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useRepositoryDocument } from "@/hooks/useApi";
 
 interface RelatedDocument {
@@ -24,6 +25,8 @@ interface RelatedDocument {
 import { DocumentCorrectionDialog } from "@/components/documents/DocumentCorrectionDialog";
 import { VersionHistoryPanel } from "@/components/documents/VersionHistoryPanel";
 import { ShareWithTeamDialog } from "@/components/documents/ShareWithTeamDialog";
+import { DocumentLockBanner } from "@/components/documents/DocumentLockBanner";
+import { useDocumentLockStatus } from "@/hooks/api/useDocumentQueries";
 import {
     ArrowLeft,
     Download,
@@ -32,7 +35,9 @@ import {
     Loader2,
     AlertCircle,
     Share2,
-    Printer,
+    FileText,
+    FileCheck,
+    MessageSquare,
     Copy,
     CheckCircle,
 } from "lucide-react";
@@ -44,9 +49,11 @@ export const DocumentDetailPage = () => {
     const [showShareDialog, setShowShareDialog] = useState(false);
     const [copied, setCopied] = useState(false);
 
-    const { data: document, isLoading, error, refetch } = useRepositoryDocument(
-        documentId ? parseInt(documentId, 10) : 0
-    );
+    const docIdNum = documentId ? parseInt(documentId, 10) : 0;
+    const { data: document, isLoading, error, refetch } = useRepositoryDocument(docIdNum);
+    const { data: lockStatus } = useDocumentLockStatus(docIdNum);
+
+    const isLockedByOther = lockStatus?.is_locked && !lockStatus?.is_own_lock;
 
     const [relatedDocs, setRelatedDocs] = useState<RelatedDocument[]>([]);
 
@@ -120,100 +127,147 @@ export const DocumentDetailPage = () => {
 
     return (
         <div className="space-y-6 max-w-6xl mx-auto">
-            {/* Header - Modern & Clean */}
-            <div className="flex items-start justify-between">
-                <div className="flex items-center gap-4">
-                    <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-                        <ArrowLeft className="w-5 h-5" />
-                    </Button>
+            {/* Status Action Bar - EPL Inspired */}
+            <div className="bg-white dark:bg-card rounded-xl p-4 shadow-soft-sm border border-warm-200/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                    <div className="p-2 bg-green-50 dark:bg-green-950/30 rounded-lg">
+                        <FileCheck className="w-5 h-5 text-green-600 dark:text-green-400" />
+                    </div>
                     <div>
-                        <h1 className="text-2xl font-bold">
-                            {document.title || document.document_type_name}
-                        </h1>
-                        <p className="text-muted-foreground flex items-center gap-2">
-                            {document.employee_name && (
-                                <span className="flex items-center gap-1">
-                                    <User className="w-4 h-4" />
-                                    {document.employee_name}
-                                </span>
-                            )}
-                            {document.employee_name && <span>•</span>}
-                            {document.document_type_name}
+                        <p className="font-medium text-foreground">Fertiggestellt</p>
+                        <p className="text-xs text-muted-foreground">
+                            Version {document.current_version} &middot; Erstellt am{" "}
+                            {document.created_at
+                                ? new Date(document.created_at).toLocaleDateString("de")
+                                : "-"}
                         </p>
                     </div>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
                     <Button variant="outline" size="sm" onClick={handleCopyLink}>
                         {copied ? <CheckCircle className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+                        <span className="ml-1.5 hidden sm:inline">{copied ? "Kopiert" : "Link"}</span>
                     </Button>
-                    <Button variant="outline" size="sm" onClick={() => window.print()}>
-                        <Printer className="w-4 h-4" />
+                    {document.is_correctable && (
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setShowCorrection(true)}
+                            disabled={!!isLockedByOther}
+                            title={isLockedByOther ? `Gesperrt von ${lockStatus?.locked_by_name || lockStatus?.locked_by_email}` : undefined}
+                        >
+                            <Edit3 className="w-4 h-4 mr-1.5" />
+                            Korrigieren
+                        </Button>
+                    )}
+                    <Button variant="outline" size="sm" onClick={() => setShowShareDialog(true)}>
+                        <Share2 className="w-4 h-4 mr-1.5" />
+                        Teilen
                     </Button>
-                    <Button onClick={() => window.open(document.file_path, "_blank")}>
-                        <Download className="w-4 h-4 mr-2" />
+                    <Button size="sm" onClick={() => window.open(document.file_path, "_blank")}>
+                        <Download className="w-4 h-4 mr-1.5" />
                         Download
                     </Button>
+                </div>
+            </div>
+
+            {/* Document Lock Banner */}
+            <DocumentLockBanner documentId={docIdNum} />
+
+            {/* Header - Simplified */}
+            <div className="flex items-center gap-4">
+                <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+                    <ArrowLeft className="w-5 h-5" />
+                </Button>
+                <div>
+                    <h1 className="text-2xl font-bold text-foreground">
+                        {document.title || document.document_type_name}
+                    </h1>
+                    <p className="text-muted-foreground flex items-center gap-2">
+                        {document.employee_name && (
+                            <span className="flex items-center gap-1">
+                                <User className="w-4 h-4" />
+                                {document.employee_name}
+                            </span>
+                        )}
+                        {document.employee_name && <span>&middot;</span>}
+                        {document.document_type_name}
+                    </p>
                 </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Main Content - Left Column */}
                 <div className="lg:col-span-2 space-y-6">
-                    {/* Kompakte Metadaten */}
-                    <Card>
-                        <CardContent className="pt-6">
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                <div className="p-3 bg-muted/30 rounded-lg">
-                                    <p className="text-xs text-muted-foreground mb-1">Mitarbeiter</p>
-                                    <p className="font-medium">{document.employee_name || "-"}</p>
-                                </div>
-                                {document.employee_id && (
-                                    <div className="p-3 bg-muted/30 rounded-lg">
-                                        <p className="text-xs text-muted-foreground mb-1">Personalnr.</p>
-                                        <p className="font-medium">{document.employee_id}</p>
-                                    </div>
-                                )}
-                                <div className="p-3 bg-muted/30 rounded-lg">
-                                    <p className="text-xs text-muted-foreground mb-1">Erstellt am</p>
-                                    <p className="font-medium">
-                                        {document.created_at
-                                            ? new Date(document.created_at).toLocaleDateString("de")
-                                            : "-"}
-                                    </p>
-                                </div>
-                                <div className="p-3 bg-muted/30 rounded-lg">
-                                    <p className="text-xs text-muted-foreground mb-1">Version</p>
-                                    <p className="font-medium">v{document.current_version}</p>
-                                </div>
+                    {/* Employee Info Card */}
+                    <div className="card-soft p-0 overflow-hidden">
+                        <div className="px-5 py-3 info-card-header">
+                            <h3 className="text-sm font-medium flex items-center gap-2">
+                                <User className="w-4 h-4 text-primary" />
+                                Mitarbeiter-Informationen
+                            </h3>
+                        </div>
+                        <div className="p-5 grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div>
+                                <p className="text-xs text-muted-foreground mb-1">Name</p>
+                                <p className="font-medium">{document.employee_name || "-"}</p>
                             </div>
-
-                            {/* Korrektur-Button */}
-                            {document.is_correctable && (
-                                <div className="mt-4 pt-4 border-t">
-                                    <Button
-                                        variant="outline"
-                                        onClick={() => setShowCorrection(true)}
-                                    >
-                                        <Edit3 className="w-4 h-4 mr-2" />
-                                        Dokument korrigieren
-                                    </Button>
+                            {document.employee_id && (
+                                <div>
+                                    <p className="text-xs text-muted-foreground mb-1">Personalnr.</p>
+                                    <p className="font-medium">{document.employee_id}</p>
                                 </div>
                             )}
-                        </CardContent>
-                    </Card>
+                            <div>
+                                <p className="text-xs text-muted-foreground mb-1">Erstellt am</p>
+                                <p className="font-medium">
+                                    {document.created_at
+                                        ? new Date(document.created_at).toLocaleDateString("de")
+                                        : "-"}
+                                </p>
+                            </div>
+                            <div>
+                                <p className="text-xs text-muted-foreground mb-1">Version</p>
+                                <p className="font-medium">v{document.current_version}</p>
+                            </div>
+                        </div>
+                    </div>
 
-                    {/* Formulardaten - Falls vorhanden */}
+                    {/* Document Info Card */}
+                    <div className="card-soft p-0 overflow-hidden">
+                        <div className="px-5 py-3 info-card-header">
+                            <h3 className="text-sm font-medium flex items-center gap-2">
+                                <FileText className="w-4 h-4 text-primary" />
+                                Dokument-Informationen
+                            </h3>
+                        </div>
+                        <div className="p-5 grid grid-cols-2 gap-4">
+                            <div>
+                                <p className="text-xs text-muted-foreground mb-1">Typ</p>
+                                <p className="font-medium">{document.document_type_name}</p>
+                            </div>
+                            <div>
+                                <p className="text-xs text-muted-foreground mb-1">Version</p>
+                                <p className="font-medium">v{document.current_version}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Form Data - If available */}
                     {document.form_data && Object.keys(document.form_data).length > 0 && (
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="text-base">Formulardaten</CardTitle>
-                            </CardHeader>
-                            <CardContent>
+                        <div className="card-soft p-0 overflow-hidden">
+                            <div className="px-5 py-3 info-card-header">
+                                <h3 className="text-sm font-medium flex items-center gap-2">
+                                    <FileText className="w-4 h-4 text-primary" />
+                                    Formulardaten
+                                </h3>
+                            </div>
+                            <div className="p-5">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                     {Object.entries(document.form_data).map(([key, value]) => (
                                         <div
                                             key={key}
-                                            className="p-3 bg-muted/30 rounded-lg"
+                                            className="p-3 bg-warm-50/50 rounded-lg"
                                         >
                                             <p className="text-xs text-muted-foreground mb-1">
                                                 {key.replace(/_/g, " ")}
@@ -226,14 +280,40 @@ export const DocumentDetailPage = () => {
                                         </div>
                                     ))}
                                 </div>
-                            </CardContent>
-                        </Card>
+                            </div>
+                        </div>
                     )}
                 </div>
 
-                {/* Sidebar - Rechte Spalte */}
+                {/* Sidebar - Right Column */}
                 <div className="space-y-6">
-                    {/* Versionshistorie */}
+                    {/* Notes / Comments Panel - EPL Inspired */}
+                    <div className="card-soft p-0 overflow-hidden">
+                        <div className="px-5 py-3 info-card-header flex items-center justify-between">
+                            <h3 className="text-sm font-medium flex items-center gap-2">
+                                <MessageSquare className="w-4 h-4 text-primary" />
+                                Notizen
+                            </h3>
+                        </div>
+                        <div className="p-4 max-h-[300px] overflow-y-auto">
+                            <div className="text-center py-6">
+                                <div className="w-10 h-10 mx-auto rounded-full bg-warm-100 flex items-center justify-center mb-2">
+                                    <MessageSquare className="w-4 h-4 text-warm-500" />
+                                </div>
+                                <p className="text-sm text-muted-foreground">Keine Notizen vorhanden</p>
+                            </div>
+                        </div>
+                        <div className="p-3 border-t border-warm-200/50">
+                            <div className="flex gap-2">
+                                <Input placeholder="Notiz hinzufügen..." className="h-9 text-sm" />
+                                <Button size="sm" variant="outline" className="shrink-0">
+                                    Senden
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Version History */}
                     <VersionHistoryPanel
                         documentId={document.id}
                         onDownloadVersion={(version) => {
@@ -241,71 +321,34 @@ export const DocumentDetailPage = () => {
                         }}
                     />
 
-                    {/* Schnellaktionen */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="text-base">Aktionen</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-2">
-                            <Button
-                                variant="outline"
-                                className="w-full justify-start"
-                                onClick={() => window.open(document.file_path, "_blank")}
-                            >
-                                <Download className="w-4 h-4 mr-2" />
-                                Herunterladen
-                            </Button>
-                            {document.is_correctable && (
-                                <Button
-                                    variant="outline"
-                                    className="w-full justify-start"
-                                    onClick={() => setShowCorrection(true)}
-                                >
-                                    <Edit3 className="w-4 h-4 mr-2" />
-                                    Korrektur
-                                </Button>
-                            )}
-                            <Button
-                                variant="outline"
-                                className="w-full justify-start"
-                                onClick={() => setShowShareDialog(true)}
-                            >
-                                <Share2 className="w-4 h-4 mr-2" />
-                                Teilen
-                            </Button>
-                        </CardContent>
-                    </Card>
-
-                    {/* Verwandte Dokumente */}
+                    {/* Related Documents */}
                     {relatedDocs.length > 0 && (
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="text-base">Verwandte Dokumente</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="space-y-2">
-                                    {relatedDocs.map((related) => (
-                                        <Link
-                                            key={related.id}
-                                            to={`/documents/${related.id}`}
-                                            className="block p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
-                                        >
-                                            <p className="text-sm font-medium truncate">
-                                                {related.title || related.employee_name}
-                                            </p>
-                                            <p className="text-xs text-muted-foreground">
-                                                {related.document_type_name}
-                                            </p>
-                                        </Link>
-                                    ))}
-                                </div>
-                            </CardContent>
-                        </Card>
+                        <div className="card-soft p-0 overflow-hidden">
+                            <div className="px-5 py-3 info-card-header">
+                                <h3 className="text-sm font-medium">Verwandte Dokumente</h3>
+                            </div>
+                            <div className="p-3 space-y-1">
+                                {relatedDocs.map((related) => (
+                                    <Link
+                                        key={related.id}
+                                        to={`/documents/${related.id}`}
+                                        className="block p-3 rounded-lg hover:bg-warm-50 transition-colors"
+                                    >
+                                        <p className="text-sm font-medium truncate">
+                                            {related.title || related.employee_name}
+                                        </p>
+                                        <p className="text-xs text-muted-foreground">
+                                            {related.document_type_name}
+                                        </p>
+                                    </Link>
+                                ))}
+                            </div>
+                        </div>
                     )}
                 </div>
             </div>
 
-            {/* Dialoge */}
+            {/* Dialogs */}
             {showCorrection && (
                 <DocumentCorrectionDialog
                     documentId={document.id}

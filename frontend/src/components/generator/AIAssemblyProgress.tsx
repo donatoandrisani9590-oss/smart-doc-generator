@@ -17,7 +17,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Search,
   Library,
-  FileCheck,
   Shield,
   CheckCircle2,
   Loader2,

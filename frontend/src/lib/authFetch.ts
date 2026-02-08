@@ -5,5 +5,5 @@
  * All new code should import directly from `@/lib/api-client`.
  */
 
-export { apiFetch as authFetch, fetchApi as authApi } from "./api-client";
+export { apiFetch as authFetch, apiFetch as authApi } from "./api-client";
 export default undefined;

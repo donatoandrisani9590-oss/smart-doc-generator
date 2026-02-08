@@ -38,9 +38,9 @@ async def _run_retention_logic():
             if doc.file_path and os.path.exists(doc.file_path):
                 try:
                     os.remove(doc.file_path)
-                    print(f"Deleted file: {doc.file_path}")
+                    logger.info(f"Deleted file: {doc.file_path}")
                 except OSError as e:
-                    print(f"Error deleting file {doc.file_path}: {e}")
+                    logger.error(f"Error deleting file {doc.file_path}: {e}")
             
             # Mark as deleted in DB
             doc.is_deleted = True

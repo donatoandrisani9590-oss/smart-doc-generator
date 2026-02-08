@@ -111,7 +111,7 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
         <div className="max-w-xl mx-auto space-y-6">
             {/* Header - Kompakt und clean */}
             <div className="pb-4 border-b">
-                <h1 className="text-2xl font-semibold text-gray-900">
+                <h1 className="text-2xl font-semibold text-foreground">
                     Neues Dokument erstellen
                 </h1>
                 <p className="text-sm text-muted-foreground mt-1">
@@ -123,20 +123,20 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
             <div className="space-y-4">
                 {/* Suchfeld - Clean und prominent */}
                 <div className="relative">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-warm-400" />
                     <Input
                         id="document-type-search"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         placeholder="Dokumenttyp suchen..."
-                        className="h-11 pl-11 pr-10 border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/10"
+                        className="h-11 pl-11 pr-10 border-warm-200 focus:border-primary focus:ring-2 focus:ring-primary/10"
                         disabled={isLoading}
                     />
                     {searchQuery && (
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 text-gray-400 hover:text-gray-600"
+                            className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 text-warm-400 hover:text-muted-foreground"
                             onClick={() => setSearchQuery("")}
                         >
                             <X className="w-4 h-4" />
@@ -148,7 +148,7 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
                 {selectedType && (
                     <div className="flex items-center gap-3 p-3 bg-primary/5 border-l-4 border-l-primary border border-primary/10 rounded-lg">
                         <Star className="w-4 h-4 text-primary fill-primary shrink-0" />
-                        <span className="font-medium text-gray-900">{selectedType.name}</span>
+                        <span className="font-medium text-foreground">{selectedType.name}</span>
                         {selectedType.category && (
                             <Badge variant="outline" className="text-xs bg-white">
                                 {selectedType.category}
@@ -157,7 +157,7 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="ml-auto h-6 w-6 text-gray-400 hover:text-gray-600"
+                            className="ml-auto h-6 w-6 text-warm-400 hover:text-muted-foreground"
                             onClick={() => actions.setDocumentType(0)}
                         >
                             <X className="w-3 h-3" />
@@ -166,14 +166,14 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
                 )}
 
                 {/* Dokumenttyp-Liste - Saubere Gruppierung */}
-                <div className="border border-gray-200 rounded-lg overflow-hidden bg-white">
+                <div className="border border-warm-200 rounded-lg overflow-hidden bg-white">
                     <ScrollArea className="h-[300px]">
-                        <div className="divide-y divide-gray-100">
+                        <div className="divide-y divide-warm-100">
                             {/* Zuletzt verwendet */}
                             {!searchQuery && recentTypes.length > 0 && (
                                 <div>
-                                    <div className="px-4 py-2.5 bg-gray-50/80 border-b border-gray-100">
-                                        <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider flex items-center gap-1.5">
+                                    <div className="px-4 py-2.5 bg-warm-50/80 border-b border-warm-100">
+                                        <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
                                             <Clock className="w-3 h-3" />
                                             Zuletzt verwendet
                                         </span>
@@ -184,24 +184,24 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
                                                 key={`recent-${type.id}`}
                                                 onClick={() => handleDocumentTypeChange(type.id)}
                                                 className={cn(
-                                                    "w-full flex items-center justify-between px-4 py-3 text-left transition-all border-b border-gray-50 last:border-b-0",
+                                                    "w-full flex items-center justify-between px-4 py-3 text-left transition-all border-b border-warm-50 last:border-b-0",
                                                     state.documentTypeId === type.id
                                                         ? "bg-primary/5 border-l-[3px] border-l-primary"
-                                                        : "hover:bg-gray-50"
+                                                        : "hover:bg-warm-50"
                                                 )}
                                             >
                                                 <div className="flex items-center gap-3">
                                                     <FileText className={cn(
                                                         "w-4 h-4 shrink-0",
-                                                        state.documentTypeId === type.id ? "text-primary" : "text-gray-400"
+                                                        state.documentTypeId === type.id ? "text-primary" : "text-warm-400"
                                                     )} />
                                                     <span className={cn(
                                                         "text-sm",
-                                                        state.documentTypeId === type.id ? "font-medium text-gray-900" : "text-gray-700"
+                                                        state.documentTypeId === type.id ? "font-medium text-foreground" : "text-foreground"
                                                     )}>{type.name}</span>
                                                 </div>
                                                 {type.category && (
-                                                    <span className="text-[11px] px-2 py-0.5 bg-gray-100 text-gray-500 rounded">
+                                                    <span className="text-[11px] px-2 py-0.5 bg-warm-100 text-muted-foreground rounded">
                                                         {type.category}
                                                     </span>
                                                 )}
@@ -214,8 +214,8 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
                             {/* Kategorisierte Liste */}
                             {Object.entries(groupedTypes).map(([category, types]) => (
                                 <div key={category}>
-                                    <div className="px-4 py-2.5 bg-gray-50/80 border-b border-gray-100">
-                                        <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
+                                    <div className="px-4 py-2.5 bg-warm-50/80 border-b border-warm-100">
+                                        <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
                                             {category}
                                         </span>
                                     </div>
@@ -226,19 +226,19 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
                                                 onClick={() => handleDocumentTypeChange(type.id)}
                                                 className={cn(
                                                     "w-full flex items-center gap-3 px-4 py-3 text-left transition-all",
-                                                    idx < types.length - 1 && "border-b border-gray-50",
+                                                    idx < types.length - 1 && "border-b border-warm-50",
                                                     state.documentTypeId === type.id
                                                         ? "bg-primary/5 border-l-[3px] border-l-primary"
-                                                        : "hover:bg-gray-50"
+                                                        : "hover:bg-warm-50"
                                                 )}
                                             >
                                                 <FileText className={cn(
                                                     "w-4 h-4 shrink-0",
-                                                    state.documentTypeId === type.id ? "text-primary" : "text-gray-400"
+                                                    state.documentTypeId === type.id ? "text-primary" : "text-warm-400"
                                                 )} />
                                                 <span className={cn(
                                                     "text-sm",
-                                                    state.documentTypeId === type.id ? "font-medium text-gray-900" : "text-gray-700"
+                                                    state.documentTypeId === type.id ? "font-medium text-foreground" : "text-foreground"
                                                 )}>{type.name}</span>
                                             </button>
                                         ))}
@@ -248,8 +248,8 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
 
                             {/* Keine Ergebnisse */}
                             {filteredTypes.length === 0 && (
-                                <div className="text-center py-10 text-gray-500">
-                                    <Search className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+                                <div className="text-center py-10 text-muted-foreground">
+                                    <Search className="w-8 h-8 mx-auto mb-2 text-warm-300" />
                                     <p className="text-sm">Keine Ergebnisse für "{searchQuery}"</p>
                                 </div>
                             )}
@@ -259,7 +259,7 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
 
                 {/* Dokumenttitel */}
                 <div className="space-y-2 pt-4">
-                    <Label htmlFor="document-title" className="text-sm font-medium text-gray-700">
+                    <Label htmlFor="document-title" className="text-sm font-medium text-foreground">
                         Dokumentname
                     </Label>
                     <Input
@@ -267,29 +267,29 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
                         value={state.documentTitle}
                         onChange={(e) => actions.setDocumentTitle(e.target.value)}
                         placeholder="z.B. Arbeitsvertrag Max Müller"
-                        className="h-11 border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/10"
+                        className="h-11 border-warm-200 focus:border-primary focus:ring-2 focus:ring-primary/10"
                     />
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-muted-foreground">
                         Dieser Name erscheint in Ihrer Dokumentübersicht.
                     </p>
                 </div>
             </div>
 
             {/* Action Buttons - Klare visuelle Hierarchie */}
-            <div className="pt-6 border-t border-gray-100">
+            <div className="pt-6 border-t border-warm-100">
                 <div className="flex items-center justify-center gap-4">
                     {/* Sekundärer Button: Manuell */}
                     <Button
                         variant="outline"
                         onClick={() => actions.enterSplitScreenMode()}
                         disabled={!canProceed}
-                        className="h-11 px-6 border-gray-200 text-gray-700 hover:border-primary hover:text-primary disabled:opacity-50"
+                        className="h-11 px-6 border-warm-200 text-foreground hover:border-primary hover:text-primary disabled:opacity-50"
                     >
                         Manuell erstellen
                         <ArrowRight className="w-4 h-4 ml-2" />
                     </Button>
 
-                    <span className="text-sm text-gray-400">oder</span>
+                    <span className="text-sm text-warm-400">oder</span>
 
                     {/* Primärer Button: Mit KI - Klar hervorgehoben */}
                     <TooltipProvider>
@@ -313,7 +313,7 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
 
                 {/* Hinweis wenn kein Dokumenttyp ausgewählt */}
                 {!canProceed && (
-                    <p className="text-center text-sm text-gray-500 mt-4">
+                    <p className="text-center text-sm text-muted-foreground mt-4">
                         Bitte wählen Sie zuerst einen Dokumenttyp aus.
                     </p>
                 )}
@@ -366,7 +366,7 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
             <div className="text-center">
                 <a
                     href="/settings?tab=templates"
-                    className="text-xs text-gray-500 hover:text-primary transition-colors inline-flex items-center gap-1"
+                    className="text-xs text-muted-foreground hover:text-primary transition-colors inline-flex items-center gap-1"
                 >
                     Eigene Word-Vorlage importieren
                     <ArrowRight className="w-3 h-3" />

@@ -9,7 +9,7 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { motion } from "framer-motion";
-import { GripVertical, Lock, Edit3, Info, Trash2, Unlock, ArrowLeftRight } from "lucide-react";
+import { GripVertical, Lock, Edit3, Info, Trash2, Unlock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -194,7 +194,7 @@ export const ClauseBlock = ({
                     {/* Swap Button (appears on hover) */}
                     {onSwap && (
                         <ClauseSwapButton
-                            currentClauseId={clause.clause_id}
+                            currentClauseId={clause.clause_id ?? clause.id}
                             currentClauseTitle={clause.title}
                             category={clause.category || "Sonstiges"}
                             alternatives={alternatives}

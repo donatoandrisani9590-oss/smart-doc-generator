@@ -8,6 +8,8 @@ export type ClauseOrigin = "global" | "local" | "deviation";
 
 export interface ClauseInstance {
     id: number;
+    clause_id?: number;
+    category?: string;
     origin: ClauseOrigin;
     source_clause_id: number | null;
     source_clause_version: number | null;

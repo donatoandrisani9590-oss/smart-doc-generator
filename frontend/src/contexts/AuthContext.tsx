@@ -42,11 +42,21 @@ export interface RegisterCredentials {
   password: string;
 }
 
+export interface SSOProvider {
+  id: string;
+  label: string;
+  icon: string;
+  authorize_url: string;
+}
+
 export interface AuthContextType extends AuthState {
   login: (credentials: LoginCredentials) => Promise<void>;
   register: (credentials: RegisterCredentials) => Promise<void>;
   logout: () => void;
   refreshUser: () => Promise<void>;
+  handleSSOCallback: (token: string) => Promise<void>;
+  ssoProviders: SSOProvider[];
+  ssoEnabled: boolean;
 }
 
 // Context
@@ -64,6 +74,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     isAuthenticated: false,
     isLoading: true,
   });
+  const [ssoProviders, setSsoProviders] = useState<SSOProvider[]>([]);
+  const [ssoEnabled, setSsoEnabled] = useState(false);
 
   // Initialize from localStorage
   useEffect(() => {
@@ -156,6 +168,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     initAuth();
+
+    // Fetch SSO providers (only if not in DEV_MODE)
+    if (!DEV_MODE) {
+      fetch(`${API_BASE}/api/v1/auth/sso/providers`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.sso_enabled && data.providers?.length > 0) {
+            setSsoEnabled(true);
+            setSsoProviders(data.providers);
+          }
+        })
+        .catch(() => {
+          // SSO not available - that's fine, don't show SSO buttons
+        });
+    }
   }, []);
 
   // Login function
@@ -181,7 +208,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error(error.detail || "Login fehlgeschlagen");
       }
 
-      const { access_token } = await response.json();
+      const loginData = await response.json();
+
+      // Check if 2FA is required
+      if (loginData.requires_2fa) {
+        setState((prev) => ({ ...prev, isLoading: false }));
+        const err = new Error("2FA_REQUIRED");
+        (err as any).preAuthToken = loginData.access_token;
+        throw err;
+      }
+
+      const access_token = loginData.access_token;
 
       // Fetch user data
       const userResponse = await fetch(`${API_BASE}/api/v1/auth/me`, {
@@ -251,6 +288,40 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
+  // Handle SSO callback - validate token and store session
+  const handleSSOCallback = useCallback(async (token: string) => {
+    setState((prev) => ({ ...prev, isLoading: true }));
+
+    try {
+      // Validate token by fetching user data
+      const userResponse = await fetch(`${API_BASE}/api/v1/auth/me`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!userResponse.ok) {
+        throw new Error("SSO-Token ist ungültig oder abgelaufen.");
+      }
+
+      const user = await userResponse.json();
+
+      // Store in localStorage
+      localStorage.setItem(TOKEN_KEY, token);
+      localStorage.setItem(USER_KEY, JSON.stringify(user));
+
+      setState({
+        user,
+        token,
+        isAuthenticated: true,
+        isLoading: false,
+      });
+    } catch (error) {
+      setState((prev) => ({ ...prev, isLoading: false }));
+      throw error;
+    }
+  }, []);
+
   // Logout function
   const logout = useCallback(() => {
     localStorage.removeItem(TOKEN_KEY);
@@ -293,6 +364,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     register,
     logout,
     refreshUser,
+    handleSSOCallback,
+    ssoProviders,
+    ssoEnabled,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -22,14 +22,6 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogDescription,
-    DialogFooter,
-} from "@/components/ui/dialog";
-import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
@@ -64,7 +56,6 @@ import {
     Eye,
     CheckCircle2,
     XCircle,
-    AlertTriangle,
     Sparkles,
     Layers,
     GitCompare,
@@ -76,8 +67,6 @@ import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import {
     useClauses,
     useDeleteClause,
-    useClauseVersions,
-    useRestoreClauseVersion,
     useCreateClause,
     type Clause,
 } from "@/hooks/useApi";
@@ -87,302 +76,10 @@ import { ClauseVariantManager } from "@/components/clauses/ClauseVariantManager"
 import { ClauseVersionDiff } from "@/components/clauses/ClauseVersionDiff";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/toast";
-import { sanitizeHtml } from "@/utils/sanitize";
-
-// Version History Dialog Component
-const VersionHistoryDialog = ({
-    open,
-    onOpenChange,
-    clause,
-}: {
-    open: boolean;
-    onOpenChange: (open: boolean) => void;
-    clause: Clause | null;
-}) => {
-    const { data: versions, isLoading } = useClauseVersions(clause?.id || 0);
-    const restoreMutation = useRestoreClauseVersion();
-
-    if (!clause) return null;
-
-    return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-lg">
-                <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2">
-                        <History className="w-5 h-5 text-primary" />
-                        Versionshistorie
-                    </DialogTitle>
-                    <DialogDescription>
-                        {clause.title} - Alle Versionen
-                    </DialogDescription>
-                </DialogHeader>
-
-                <div className="py-4">
-                    {isLoading ? (
-                        <div className="flex items-center justify-center py-8">
-                            <Loader2 className="w-6 h-6 animate-spin text-primary" />
-                        </div>
-                    ) : versions && versions.length > 0 ? (
-                        <div className="space-y-2 max-h-[400px] overflow-y-auto">
-                            {versions.map((version: any, index: number) => (
-                                <div
-                                    key={version.id}
-                                    className={cn(
-                                        "flex items-center justify-between p-3 rounded-lg border",
-                                        index === 0 ? "bg-primary/5 border-primary/20" : "border-border"
-                                    )}
-                                >
-                                    <div>
-                                        <div className="flex items-center gap-2">
-                                            <span className="font-medium">Version {version.version}</span>
-                                            {index === 0 && (
-                                                <Badge className="bg-secondary/10 text-secondary text-xs">
-                                                    Aktuell
-                                                </Badge>
-                                            )}
-                                        </div>
-                                        <p className="text-xs text-muted-foreground mt-0.5">
-                                            {new Date(version.created_at).toLocaleString("de-DE")}
-                                        </p>
-                                    </div>
-                                    {index > 0 && (
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => {
-                                                restoreMutation.mutate({
-                                                    clauseId: clause.id,
-                                                    versionId: version.id,
-                                                });
-                                            }}
-                                            disabled={restoreMutation.isPending}
-                                        >
-                                            {restoreMutation.isPending ? (
-                                                <Loader2 className="w-3 h-3 animate-spin" />
-                                            ) : (
-                                                "Wiederherstellen"
-                                            )}
-                                        </Button>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="text-center py-8 text-muted-foreground">
-                            <History className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                            <p>Keine Versionshistorie verfügbar</p>
-                        </div>
-                    )}
-                </div>
-
-                <DialogFooter>
-                    <Button variant="outline" onClick={() => onOpenChange(false)}>
-                        Schließen
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
-    );
-};
-
-// Delete Confirmation Dialog with Impact Analysis
-const DeleteConfirmDialog = ({
-    open,
-    onOpenChange,
-    clause,
-    onConfirm,
-    isDeleting,
-    usageCount = 0,
-    usedInTypes = [],
-}: {
-    open: boolean;
-    onOpenChange: (open: boolean) => void;
-    clause: Clause | null;
-    onConfirm: () => void;
-    isDeleting: boolean;
-    usageCount?: number;
-    usedInTypes?: string[];
-}) => {
-    if (!clause) return null;
-
-    const hasUsage = usageCount > 0;
-
-    return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-md" aria-describedby="delete-clause-description">
-                <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2 text-destructive">
-                        <AlertTriangle className="w-5 h-5" aria-hidden="true" />
-                        Klausel löschen
-                    </DialogTitle>
-                    <DialogDescription id="delete-clause-description">
-                        Diese Aktion kann nicht rückgängig gemacht werden.
-                    </DialogDescription>
-                </DialogHeader>
-
-                <div className="py-4 space-y-3">
-                    {/* Impact Warning */}
-                    {hasUsage && (
-                        <Card className="border-amber-300 bg-amber-50">
-                            <CardContent className="py-3">
-                                <div className="flex items-start gap-2">
-                                    <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" aria-hidden="true" />
-                                    <div>
-                                        <p className="text-sm font-medium text-amber-800">
-                                            Diese Klausel wird verwendet
-                                        </p>
-                                        <p className="text-xs text-amber-700 mt-1">
-                                            {usageCount} Dokumenttyp{usageCount !== 1 ? "en" : ""} verwenden diese Klausel:
-                                        </p>
-                                        {usedInTypes.length > 0 && (
-                                            <ul className="text-xs text-amber-700 mt-1 list-disc list-inside">
-                                                {usedInTypes.slice(0, 3).map((type, i) => (
-                                                    <li key={i}>{type}</li>
-                                                ))}
-                                                {usedInTypes.length > 3 && (
-                                                    <li>und {usedInTypes.length - 3} weitere...</li>
-                                                )}
-                                            </ul>
-                                        )}
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    )}
-
-                    {/* Deletion Warning */}
-                    <Card className="border-destructive/30 bg-destructive/5">
-                        <CardContent className="py-3">
-                            <p className="text-sm text-destructive">
-                                Sind Sie sicher, dass Sie die Klausel{" "}
-                                <strong>"{clause.title}"</strong> löschen möchten?
-                            </p>
-                            <p className="text-xs text-destructive/80 mt-2">
-                                {hasUsage
-                                    ? "Die Klausel wird aus allen oben genannten Dokumenttypen entfernt. Bestehende Dokumente sind nicht betroffen."
-                                    : "Diese Klausel wird derzeit nicht verwendet."}
-                            </p>
-                        </CardContent>
-                    </Card>
-                </div>
-
-                <DialogFooter className="gap-2">
-                    <Button
-                        variant="outline"
-                        onClick={() => onOpenChange(false)}
-                        disabled={isDeleting}
-                    >
-                        Abbrechen
-                    </Button>
-                    <Button
-                        variant="destructive"
-                        onClick={onConfirm}
-                        disabled={isDeleting}
-                        aria-label={`Klausel ${clause.title} endgültig löschen`}
-                    >
-                        {isDeleting ? (
-                            <Loader2 className="w-4 h-4 mr-2 animate-spin" aria-hidden="true" />
-                        ) : (
-                            <Trash2 className="w-4 h-4 mr-2" aria-hidden="true" />
-                        )}
-                        Endgültig löschen
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
-    );
-};
-
-// Clause Preview Dialog
-const ClausePreviewDialog = ({
-    open,
-    onOpenChange,
-    clause,
-}: {
-    open: boolean;
-    onOpenChange: (open: boolean) => void;
-    clause: Clause | null;
-}) => {
-    if (!clause) return null;
-
-    return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-2xl max-h-[80vh]">
-                <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2">
-                        <Eye className="w-5 h-5 text-primary" />
-                        {clause.title}
-                    </DialogTitle>
-                    <DialogDescription>
-                        <div className="flex gap-2 mt-2">
-                            <Badge className="bg-primary/10 text-primary">
-                                {clause.category || "Allgemein"}
-                            </Badge>
-                            <Badge className="bg-secondary/10 text-secondary">
-                                {clause.country_code === "DE" ? "🇩🇪 Deutschland" : "🇮🇹 Italien"}
-                            </Badge>
-                            <Badge variant="outline">v{clause.version || "1.0"}</Badge>
-                        </div>
-                    </DialogDescription>
-                </DialogHeader>
-
-                <div className="py-4 overflow-y-auto max-h-[50vh]">
-                    <div className="p-4 bg-background rounded-lg">
-                        <div
-                            className="prose prose-sm max-w-none"
-                            dangerouslySetInnerHTML={{ __html: sanitizeHtml(clause.content || "") }}
-                        />
-                    </div>
-
-                    {clause.placeholders && clause.placeholders.length > 0 && (
-                        <div className="mt-4">
-                            <p className="text-sm font-medium text-foreground mb-2">
-                                Verwendete Platzhalter:
-                            </p>
-                            <div className="flex flex-wrap gap-1">
-                                {clause.placeholders.map((ph: string) => (
-                                    <Badge
-                                        key={ph}
-                                        variant="outline"
-                                        className="font-mono text-xs"
-                                    >
-                                        {`{{${ph}}}`}
-                                    </Badge>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-                </div>
-
-                <DialogFooter>
-                    <Button variant="outline" onClick={() => onOpenChange(false)}>
-                        Schließen
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
-    );
-};
-
-// Kategorie-Farbzuordnung für visuelle Orientierung
-const CATEGORY_COLORS: Record<string, string> = {
-    'Einleitung': 'border-l-blue-500',
-    'Vergütung': 'border-l-emerald-500',
-    'Kündigung': 'border-l-red-500',
-    'Arbeitszeit': 'border-l-amber-500',
-    'Urlaub': 'border-l-cyan-500',
-    'Nebentätigkeit': 'border-l-purple-500',
-    'Geheimhaltung': 'border-l-slate-500',
-    'Wettbewerb': 'border-l-orange-500',
-    'Probezeit': 'border-l-lime-500',
-    'Sonstiges': 'border-l-gray-400',
-    'Allgemein': 'border-l-primary',
-};
-
-const getCategoryColor = (category: string | undefined): string => {
-    if (!category) return CATEGORY_COLORS['Allgemein'];
-    return CATEGORY_COLORS[category] || 'border-l-primary';
-};
+import { getCategoryColor } from "./constants";
+import { VersionHistoryDialog } from "./VersionHistoryDialog";
+import { DeleteConfirmDialog } from "./DeleteConfirmDialog";
+import { ClausePreviewDialog } from "./ClausePreviewDialog";
 
 export const ClausesPage = () => {
     // View Mode State mit localStorage Persistenz
@@ -805,9 +502,9 @@ export const ClausesPage = () => {
                                 </p>
                                 <p className="text-muted-foreground mb-6 max-w-md mx-auto">
                                     Textbausteine sind wiederverwendbare Absätze für Ihre Dokumente.
-                                    Erstellen Sie z.B. Bausteine für <span className="font-medium">„Arbeitszeit"</span>,
-                                    <span className="font-medium"> „Kündigungsfrist"</span> oder
-                                    <span className="font-medium"> „Geheimhaltung"</span>.
+                                    Erstellen Sie z.B. Bausteine für <span className="font-medium">{"\u201E"}Arbeitszeit{"\u201C"}</span>,
+                                    <span className="font-medium"> {"\u201E"}Kündigungsfrist{"\u201C"}</span> oder
+                                    <span className="font-medium"> {"\u201E"}Geheimhaltung{"\u201C"}</span>.
                                 </p>
 
                                 {/* Visual Guide */}
@@ -816,12 +513,12 @@ export const ClausesPage = () => {
                                         <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary">1</div>
                                         <span>Baustein erstellen</span>
                                     </div>
-                                    <span className="text-border">→</span>
+                                    <span className="text-border">{"\u2192"}</span>
                                     <div className="flex items-center gap-2">
                                         <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary">2</div>
                                         <span>In Vorlage einfügen</span>
                                     </div>
-                                    <span className="text-border">→</span>
+                                    <span className="text-border">{"\u2192"}</span>
                                     <div className="flex items-center gap-2">
                                         <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary">3</div>
                                         <span>Dokument generieren</span>
@@ -838,7 +535,7 @@ export const ClausesPage = () => {
                                 </Button>
 
                                 <p className="text-xs text-muted-foreground mt-4">
-                                    💡 Tipp: Sie können auch bestehende Word-Dokumente importieren
+                                    Tipp: Sie können auch bestehende Word-Dokumente importieren
                                 </p>
                             </>
                         )}
@@ -882,7 +579,7 @@ export const ClausesPage = () => {
                                         </Badge>
                                     </TableCell>
                                     <TableCell>
-                                        {clause.country_code === "DE" ? "🇩🇪" : "🇮🇹"} {clause.country_code}
+                                        {clause.country_code === "DE" ? "\u{1F1E9}\u{1F1EA}" : "\u{1F1EE}\u{1F1F9}"} {clause.country_code}
                                     </TableCell>
                                     <TableCell>
                                         <Badge variant="outline" className="text-muted-foreground">
@@ -980,7 +677,7 @@ export const ClausesPage = () => {
                                                 {clause.category || "Allgemein"}
                                             </Badge>
                                             <Badge className="bg-secondary/10 text-secondary">
-                                                {clause.country_code === "DE" ? "🇩🇪" : "🇮🇹"} {clause.country_code}
+                                                {clause.country_code === "DE" ? "\u{1F1E9}\u{1F1EA}" : "\u{1F1EE}\u{1F1F9}"} {clause.country_code}
                                             </Badge>
                                             <Badge variant="outline" className="text-muted-foreground">
                                                 v{clause.version || "1.0"}

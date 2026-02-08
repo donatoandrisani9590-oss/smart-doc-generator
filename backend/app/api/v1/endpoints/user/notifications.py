@@ -27,6 +27,7 @@ import json
 from app.db import get_db
 from app.models.enterprise import Notification, NotificationPreference
 from app.api.deps import get_current_user
+from app.core.config import settings
 
 router = APIRouter()
 
@@ -184,6 +185,8 @@ async def create_notification(
     Create a new notification for a user.
 
     This is the core function used throughout the application.
+    If the user has email_enabled for this notification type and
+    email_digest is 'immediate' (or unset), an email is queued via Celery.
     """
     # Check user preferences
     pref_result = await db.execute(
@@ -196,7 +199,7 @@ async def create_notification(
     )
     preference = pref_result.scalar_one_or_none()
 
-    # If preference exists and in_app is disabled, skip notification
+    # If preference exists and in_app is disabled, skip in-app notification
     if preference and not preference.in_app_enabled:
         return None
 
@@ -209,13 +212,59 @@ async def create_notification(
         entity_type=entity_type,
         entity_id=entity_id,
         action_url=action_url,
-        metadata=json.dumps(metadata) if metadata else None,
+        extra_data=json.dumps(metadata) if metadata else None,
         expires_at=expires_at,
     )
     db.add(notification)
     await db.commit()
     await db.refresh(notification)
+
+    # Queue email if user has email enabled and digest is immediate (or unset)
+    should_email = (
+        settings.mail_enabled
+        and preference
+        and preference.email_enabled
+        and (preference.email_digest or "immediate") == "immediate"
+    )
+    if should_email:
+        await _queue_notification_email(db, user_id, title, message, priority, action_url, metadata)
+
     return notification
+
+
+async def _queue_notification_email(
+    db: AsyncSession,
+    user_id: str,
+    title: str,
+    message: str,
+    priority: str,
+    action_url: str = None,
+    metadata: dict = None,
+) -> None:
+    """Look up user email and queue a Celery email task."""
+    from app.models.core import User
+    try:
+        user_result = await db.execute(
+            select(User.email).where(User.id == int(user_id))
+        )
+        email = user_result.scalar_one_or_none()
+        if not email:
+            return
+
+        from app.tasks.email_tasks import send_notification_email
+        send_notification_email.delay(
+            to_email=email,
+            title=title,
+            message=message,
+            priority=priority,
+            action_url=action_url,
+            metadata=metadata,
+        )
+    except Exception:
+        import logging
+        logging.getLogger(__name__).warning(
+            f"E-Mail-Queue fehlgeschlagen für User {user_id}", exc_info=True
+        )
 
 
 async def notify_admins_clause_pending(
@@ -302,7 +351,7 @@ def parse_notification(n: Notification) -> NotificationResponse:
         is_read=n.is_read,
         read_at=n.read_at,
         created_at=n.created_at,
-        metadata=json.loads(n.metadata) if n.metadata else None,
+        metadata=json.loads(n.extra_data) if n.extra_data else None,
     )
 
 

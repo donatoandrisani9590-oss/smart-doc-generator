@@ -28,31 +28,12 @@ import {
     SortableContext,
     sortableKeyboardCoordinates,
     verticalListSortingStrategy,
-    useSortable,
 } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-
-/**
- * Micro-interaction variants for list items
- */
-const listItemVariants = {
-    initial: { opacity: 0, y: 10 },
-    animate: { opacity: 1, y: 0 },
-    exit: { opacity: 0, y: -10, scale: 0.95 },
-    hover: { scale: 1.02, x: 4 },
-    tap: { scale: 0.98 },
-};
-
-const listTransition = {
-    type: "spring",
-    stiffness: 400,
-    damping: 25,
-};
 import {
     Dialog,
     DialogContent,
@@ -69,11 +50,8 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import {
-    GripVertical,
-    Trash2,
     Plus,
     Check,
-    Settings,
     FileText,
     Save,
     ArrowLeft,
@@ -81,7 +59,6 @@ import {
     FolderOpen,
     Loader2,
     Paperclip,
-    CheckCircle,
     Layers,
     Play,
     Info,
@@ -96,289 +73,10 @@ import { sanitizeHtml } from "@/utils/sanitize";
 import "@/styles/preview.css";
 import { RefreshCw, AlertTriangle } from "lucide-react";
 
-// Types
-interface Clause {
-    id: number;
-    title: string;
-    content?: string;
-    category: string;
-    country_code?: string;
-    version?: string;
-    placeholders?: string[];
-    isMandatory?: boolean;
-}
-
-interface ClauseCondition {
-    field: string;
-    operator: "=" | "!=" | ">" | "<" | "contains";
-    value: string | number | boolean;
-}
-
-interface AssignedClause extends Clause {
-    uniqueId: string; // Unique ID for DnD (clause can be added multiple times theoretically)
-    order: number;
-    is_mandatory: boolean;
-    condition?: ClauseCondition | null;
-    // Variant support
-    variant_group_id?: number;
-    variant_group_name?: string;
-    clause_type?: "standard" | "optional" | "conditional" | "variant";
-}
-
-interface Attachment {
-    id: number;
-    name: string;
-    file_type: string;
-    page_count?: number;
-    is_mandatory?: boolean;
-}
-
-interface AssignedAttachment {
-    id: number;
-    attachment: Attachment;
-    display_order: number;
-    is_mandatory: boolean;
-    is_preselected: boolean;
-}
-
-// Sortable Item Component with enhanced features
-function SortableClause({
-    clause,
-    onRemove,
-    onToggleMandatory,
-    onEditCondition,
-}: {
-    clause: AssignedClause;
-    onRemove: (uniqueId: string) => void;
-    onToggleMandatory: (uniqueId: string) => void;
-    onEditCondition: (clause: AssignedClause) => void;
-}) {
-    const {
-        attributes,
-        listeners,
-        setNodeRef,
-        transform,
-        transition,
-        isDragging,
-    } = useSortable({ id: clause.uniqueId });
-
-    const style = {
-        transform: CSS.Transform.toString(transform),
-        transition,
-        opacity: isDragging ? 0.5 : 1,
-    };
-
-    return (
-        <div
-            ref={setNodeRef}
-            style={style}
-            className={`flex items-center gap-3 p-4 bg-card border rounded-lg shadow-soft-sm transition-all ${
-                isDragging ? "border-primary shadow-lg ring-2 ring-primary/20" : "border-border"
-            }`}
-        >
-            {/* Drag Handle */}
-            <button
-                {...attributes}
-                {...listeners}
-                className="cursor-grab active:cursor-grabbing p-1 hover:bg-muted rounded text-muted-foreground"
-            >
-                <GripVertical className="w-5 h-5" />
-            </button>
-
-            {/* Order Number */}
-            <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center text-sm font-semibold text-primary shrink-0">
-                {clause.order}
-            </div>
-
-            {/* Clause Info */}
-            <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                    <h4 className="font-medium truncate">{clause.title}</h4>
-                    {clause.clause_type === "variant" && (
-                        <TooltipProvider>
-                            <Tooltip>
-                                <TooltipTrigger>
-                                    <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 text-xs">
-                                        <Layers className="w-3 h-3 mr-1" />
-                                        Variante
-                                    </Badge>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <p>Bei der Dokumenterstellung kann eine Variante gewählt werden</p>
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
-                    )}
-                </div>
-                <p className="text-sm text-muted-foreground truncate">
-                    {clause.variant_group_name || clause.category}
-                    {clause.version && !clause.variant_group_name && ` • v${clause.version}`}
-                </p>
-            </div>
-
-            {/* Mandatory/Optional Toggle */}
-            <div className="flex items-center gap-2 shrink-0">
-                <span
-                    className={`text-xs font-medium ${
-                        clause.is_mandatory ? "text-primary" : "text-muted-foreground"
-                    }`}
-                >
-                    {clause.is_mandatory ? "Pflicht" : "Optional"}
-                </span>
-                <Switch
-                    checked={clause.is_mandatory}
-                    onCheckedChange={() => onToggleMandatory(clause.uniqueId)}
-                    className="data-[state=checked]:bg-secondary"
-                />
-            </div>
-
-            {/* Condition Badge */}
-            {clause.condition && (
-                <span className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded-full shrink-0">
-                    Bedingt
-                </span>
-            )}
-
-            {/* Actions */}
-            <div className="flex items-center gap-1 shrink-0">
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => onEditCondition(clause)}
-                    title="Bedingung bearbeiten"
-                >
-                    <Settings className="w-4 h-4" />
-                </Button>
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => onRemove(clause.uniqueId)}
-                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                    title="Entfernen"
-                >
-                    <Trash2 className="w-4 h-4" />
-                </Button>
-            </div>
-        </div>
-    );
-}
-
-// Condition Editor Component
-const ConditionEditor = ({
-    clause,
-    placeholders,
-    onSave,
-    onCancel,
-}: {
-    clause: AssignedClause;
-    placeholders: string[];
-    onSave: (condition: ClauseCondition | null) => void;
-    onCancel: () => void;
-}) => {
-    const [enabled, setEnabled] = useState(!!clause.condition);
-    const [field, setField] = useState(clause.condition?.field || "");
-    const [operator, setOperator] = useState<ClauseCondition["operator"]>(
-        clause.condition?.operator || "="
-    );
-    const [value, setValue] = useState<string>(
-        String(clause.condition?.value || "")
-    );
-
-    const handleSave = () => {
-        if (!enabled) {
-            onSave(null);
-        } else if (field && value) {
-            onSave({ field, operator, value });
-        }
-    };
-
-    return (
-        <div className="space-y-4">
-            <div className="flex items-center gap-3">
-                <Switch checked={enabled} onCheckedChange={setEnabled} />
-                <Label>Bedingung aktivieren</Label>
-            </div>
-
-            {enabled && (
-                <div className="space-y-4 p-4 bg-muted/30 rounded-lg">
-                    <div className="space-y-2">
-                        <Label>Zeige Klausel wenn Feld...</Label>
-                        <Select value={field} onValueChange={setField}>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Feld wählen" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {placeholders.map((p) => (
-                                    <SelectItem key={p} value={p}>
-                                        {p}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                        <Label>Operator</Label>
-                        <Select
-                            value={operator}
-                            onValueChange={(v) => setOperator(v as ClauseCondition["operator"])}
-                        >
-                            <SelectTrigger>
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="=">ist gleich (=)</SelectItem>
-                                <SelectItem value="!=">ist nicht gleich (!=)</SelectItem>
-                                <SelectItem value=">">größer als (&gt;)</SelectItem>
-                                <SelectItem value="<">kleiner als (&lt;)</SelectItem>
-                                <SelectItem value="contains">enthält</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                        <Label>Wert</Label>
-                        <Input
-                            value={value}
-                            onChange={(e) => setValue(e.target.value)}
-                            placeholder="Vergleichswert eingeben"
-                        />
-                    </div>
-
-                    <div className="p-3 bg-card rounded border border-border text-sm">
-                        <span className="text-muted-foreground">Vorschau: </span>
-                        {field ? (
-                            <span>
-                                Zeige "{clause.title}" wenn{" "}
-                                <code className="font-mono text-primary bg-primary/10 px-1 rounded">
-                                    {field}
-                                </code>{" "}
-                                <span className="font-medium">{operator}</span>{" "}
-                                <code className="font-mono text-primary bg-primary/10 px-1 rounded">
-                                    {value || "..."}
-                                </code>
-                            </span>
-                        ) : (
-                            <span className="text-muted-foreground italic">
-                                Wählen Sie ein Feld aus
-                            </span>
-                        )}
-                    </div>
-                </div>
-            )}
-
-            <DialogFooter>
-                <Button variant="outline" onClick={onCancel}>
-                    Abbrechen
-                </Button>
-                <Button onClick={handleSave}>
-                    <CheckCircle className="w-4 h-4 mr-2" />
-                    Speichern
-                </Button>
-            </DialogFooter>
-        </div>
-    );
-};
+import type { Clause, ClauseCondition, AssignedClause, Attachment, AssignedAttachment } from "./types";
+import { listItemVariants, listTransition } from "./constants";
+import { SortableClause } from "./SortableClause";
+import { ConditionEditor } from "./ConditionEditor";
 
 export const DocumentDesigner = () => {
     const { id } = useParams<{ id: string }>();
@@ -1017,7 +715,7 @@ export const DocumentDesigner = () => {
                                                                                 className={`text-xs px-2 py-0.5 rounded-full ${
                                                                                     v.is_default
                                                                                         ? "bg-green-100 text-green-700"
-                                                                                        : "bg-gray-100 text-gray-600"
+                                                                                        : "bg-warm-100 text-muted-foreground"
                                                                                 }`}
                                                                             >
                                                                                 {v.variant_name}
@@ -1403,3 +1101,5 @@ export const DocumentDesigner = () => {
         </div>
     );
 };
+
+export default DocumentDesigner;

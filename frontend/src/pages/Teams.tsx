@@ -66,7 +66,7 @@ const roleInfo: Record<string, { icon: typeof Crown; label: string; color: strin
     owner: { icon: Crown, label: "Eigentümer", color: "text-yellow-600" },
     admin: { icon: Shield, label: "Administrator", color: "text-blue-600" },
     member: { icon: User, label: "Mitglied", color: "text-green-600" },
-    viewer: { icon: Eye, label: "Betrachter", color: "text-gray-500" },
+    viewer: { icon: Eye, label: "Betrachter", color: "text-muted-foreground" },
 };
 
 export const TeamsPage = () => {

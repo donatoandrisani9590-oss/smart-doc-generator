@@ -154,7 +154,7 @@ export const QuickTemplates = ({ className }: QuickTemplatesProps) => {
 
     return (
         <div className={`space-y-3 ${className}`}>
-            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Schnellstart</h3>
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Schnellstart</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 {types.map((type, index) => {
                     const Icon = getIconForType(type.name);
@@ -174,11 +174,11 @@ export const QuickTemplates = ({ className }: QuickTemplatesProps) => {
                             >
                                 <Icon className={`w-5 h-5 shrink-0 ${colors.icon}`} />
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-medium text-gray-900 truncate">
+                                    <p className="text-sm font-medium text-foreground truncate">
                                         {type.name}
                                     </p>
                                     {type.description && (
-                                        <p className="text-xs text-gray-500 truncate">
+                                        <p className="text-xs text-muted-foreground truncate">
                                             {type.description}
                                         </p>
                                     )}

@@ -210,8 +210,8 @@ const VALUE_TYPE_CONFIG: Record<
         icon: "📞",
     },
     text: {
-        color: "text-gray-700",
-        bgColor: "bg-gray-50 border-gray-200",
+        color: "text-foreground",
+        bgColor: "bg-warm-50 border-warm-200",
         label: "Text",
         icon: "📝",
     },
@@ -476,8 +476,8 @@ export function SideBySideMappingEditor({
                     "rounded-lg border p-4 transition-all cursor-pointer",
                     isSelected && "ring-2 ring-blue-500 border-blue-300",
                     isHovered && !isSelected && "border-blue-200 bg-blue-50/50",
-                    isConfirmed && "opacity-60 bg-gray-50",
-                    !isSelected && !isHovered && !isConfirmed && "hover:bg-gray-50"
+                    isConfirmed && "opacity-60 bg-warm-50",
+                    !isSelected && !isHovered && !isConfirmed && "hover:bg-warm-50"
                 )}
                 onClick={() => setSelectedValueId(value.id)}
                 onMouseEnter={() => setHoveredValueId(value.id)}
@@ -537,7 +537,7 @@ export function SideBySideMappingEditor({
                                                 <div className="flex items-center gap-2">
                                                     <Sparkles className="w-4 h-4 text-yellow-500" />
                                                     {value.suggested_label || value.suggested_placeholder}
-                                                    <span className="text-xs text-gray-500">
+                                                    <span className="text-xs text-muted-foreground">
                                                         (Vorschlag)
                                                     </span>
                                                 </div>
@@ -564,7 +564,7 @@ export function SideBySideMappingEditor({
                                             ([category, placeholders]) => (
                                                 <React.Fragment key={category}>
                                                     <hr className="my-1" />
-                                                    <div className="px-2 py-1 text-xs font-semibold text-gray-500">
+                                                    <div className="px-2 py-1 text-xs font-semibold text-muted-foreground">
                                                         {category}
                                                     </div>
                                                     {placeholders.map((p) => (
@@ -656,11 +656,11 @@ export function SideBySideMappingEditor({
 
                 {/* Confirmed state */}
                 {isConfirmed && (
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Check className="w-4 h-4 text-green-500" />
                         <span>
                             Zugeordnet zu:{" "}
-                            <code className="bg-gray-100 px-1 rounded">
+                            <code className="bg-warm-100 px-1 rounded">
                                 {"{{ "}
                                 {confirmations[value.id]?.placeholder || value.user_override}
                                 {" }}"}
@@ -673,7 +673,7 @@ export function SideBySideMappingEditor({
     };
 
     return (
-        <div className="h-full flex flex-col bg-gray-50">
+        <div className="h-full flex flex-col bg-warm-50">
             {/* Header */}
             <div className="bg-white border-b px-6 py-4">
                 <div className="flex items-center justify-between">
@@ -682,7 +682,7 @@ export function SideBySideMappingEditor({
                             <Sparkles className="w-5 h-5 text-yellow-500" />
                             Magic Mapping-Assistent
                         </h2>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-muted-foreground">
                             {analysisResult.original_filename} -{" "}
                             {detectedValues.length} erkannte Werte
                         </p>
@@ -691,7 +691,7 @@ export function SideBySideMappingEditor({
                     <div className="flex items-center gap-4">
                         {/* Progress */}
                         <div className="w-48">
-                            <div className="text-xs text-gray-500 mb-1 text-right">
+                            <div className="text-xs text-muted-foreground mb-1 text-right">
                                 {Object.keys(confirmations).length} / {detectedValues.length}{" "}
                                 zugeordnet
                             </div>
@@ -740,7 +740,7 @@ export function SideBySideMappingEditor({
                 {/* Left: Document Preview */}
                 <div className="w-1/2 border-r bg-white flex flex-col">
                     {/* Toolbar */}
-                    <div className="p-2 border-b flex items-center justify-between bg-gray-50">
+                    <div className="p-2 border-b flex items-center justify-between bg-warm-50">
                         <div className="flex items-center gap-1">
                             <Button
                                 variant="ghost"
@@ -749,7 +749,7 @@ export function SideBySideMappingEditor({
                             >
                                 <ZoomOut className="w-4 h-4" />
                             </Button>
-                            <span className="text-sm text-gray-600 w-12 text-center">
+                            <span className="text-sm text-muted-foreground w-12 text-center">
                                 {zoom}%
                             </span>
                             <Button
@@ -762,8 +762,8 @@ export function SideBySideMappingEditor({
                         </div>
 
                         <div className="flex items-center gap-2">
-                            <FileText className="w-4 h-4 text-gray-400" />
-                            <span className="text-sm text-gray-600">
+                            <FileText className="w-4 h-4 text-warm-400" />
+                            <span className="text-sm text-muted-foreground">
                                 {analysisResult.original_filename}
                             </span>
                         </div>
@@ -827,11 +827,11 @@ export function SideBySideMappingEditor({
                 </div>
 
                 {/* Right: Mapping Panel */}
-                <div className="w-1/2 flex flex-col bg-gray-50">
+                <div className="w-1/2 flex flex-col bg-warm-50">
                     {/* Section header */}
                     <div className="p-4 bg-white border-b">
                         <h3 className="font-semibold">Erkannte Werte zuordnen</h3>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-muted-foreground">
                             Klicken Sie auf einen Wert oder nutzen Sie Tastenkürzel
                         </p>
                     </div>
@@ -855,25 +855,25 @@ export function SideBySideMappingEditor({
                                 <div className="text-2xl font-bold text-blue-600">
                                     {analysisResult.statistics.total_detected_values}
                                 </div>
-                                <div className="text-xs text-gray-500">Erkannt</div>
+                                <div className="text-xs text-muted-foreground">Erkannt</div>
                             </div>
                             <div>
                                 <div className="text-2xl font-bold text-green-600">
                                     {analysisResult.statistics.high_confidence_count}
                                 </div>
-                                <div className="text-xs text-gray-500">Hohe Konfidenz</div>
+                                <div className="text-xs text-muted-foreground">Hohe Konfidenz</div>
                             </div>
                             <div>
                                 <div className="text-2xl font-bold text-yellow-600">
                                     {analysisResult.statistics.suggested_placeholder_count}
                                 </div>
-                                <div className="text-xs text-gray-500">Mit Vorschlag</div>
+                                <div className="text-xs text-muted-foreground">Mit Vorschlag</div>
                             </div>
                             <div>
                                 <div className="text-2xl font-bold text-purple-600">
                                     {Object.keys(confirmations).length}
                                 </div>
-                                <div className="text-xs text-gray-500">Bestätigt</div>
+                                <div className="text-xs text-muted-foreground">Bestätigt</div>
                             </div>
                         </div>
                     </div>
@@ -904,31 +904,31 @@ export function SideBySideMappingEditor({
 
                             <div className="space-y-3">
                                 <div className="flex items-center justify-between">
-                                    <kbd className="px-2 py-1 bg-gray-100 rounded font-mono">
+                                    <kbd className="px-2 py-1 bg-warm-100 rounded font-mono">
                                         Y / J
                                     </kbd>
                                     <span>Vorschlag übernehmen</span>
                                 </div>
                                 <div className="flex items-center justify-between">
-                                    <kbd className="px-2 py-1 bg-gray-100 rounded font-mono">
+                                    <kbd className="px-2 py-1 bg-warm-100 rounded font-mono">
                                         N
                                     </kbd>
                                     <span>Überspringen</span>
                                 </div>
                                 <div className="flex items-center justify-between">
-                                    <kbd className="px-2 py-1 bg-gray-100 rounded font-mono">
+                                    <kbd className="px-2 py-1 bg-warm-100 rounded font-mono">
                                         A
                                     </kbd>
                                     <span>Für alle ähnlichen übernehmen</span>
                                 </div>
                                 <div className="flex items-center justify-between">
-                                    <kbd className="px-2 py-1 bg-gray-100 rounded font-mono">
+                                    <kbd className="px-2 py-1 bg-warm-100 rounded font-mono">
                                         ↑ / ↓
                                     </kbd>
                                     <span>Navigation</span>
                                 </div>
                                 <div className="flex items-center justify-between">
-                                    <kbd className="px-2 py-1 bg-gray-100 rounded font-mono">
+                                    <kbd className="px-2 py-1 bg-warm-100 rounded font-mono">
                                         ?
                                     </kbd>
                                     <span>Diese Hilfe anzeigen</span>

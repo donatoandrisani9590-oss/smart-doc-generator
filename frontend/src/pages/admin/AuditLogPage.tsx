@@ -63,7 +63,7 @@ const getActionColor = (action: string): string => {
     for (const [key, color] of Object.entries(actionColors)) {
         if (action.toLowerCase().includes(key)) return color;
     }
-    return "bg-gray-100 text-gray-800";
+    return "bg-warm-100 text-warm-600";
 };
 
 export const AuditLogPage = () => {

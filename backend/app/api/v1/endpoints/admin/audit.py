@@ -579,7 +579,7 @@ async def create_audit_log(
 
 @router.get("/export")
 async def export_audit_logs(
-    format: str = Query("csv", regex="^(csv|json)$"),
+    format: str = Query("csv", pattern="^(csv|json)$"),
     action_category: Optional[str] = None,
     date_from: Optional[datetime] = None,
     date_to: Optional[datetime] = None,

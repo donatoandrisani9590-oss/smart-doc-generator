@@ -289,7 +289,7 @@ export function DocumentTypeImportWizard({
             case "create_new": return <PlusCircle className="w-4 h-4 text-green-600" />;
             case "use_existing": return <Link2 className="w-4 h-4 text-blue-600" />;
             case "add_variant": return <GitBranch className="w-4 h-4 text-purple-600" />;
-            case "skip": return <X className="w-4 h-4 text-gray-400" />;
+            case "skip": return <X className="w-4 h-4 text-warm-400" />;
         }
     };
 

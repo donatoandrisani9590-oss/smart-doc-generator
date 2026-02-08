@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+    darkMode: "class",
     content: [
         "./index.html",
         "./src/**/*.{js,ts,jsx,tsx}",
@@ -29,12 +30,23 @@ export default {
                     DEFAULT: "hsl(0 84.2% 60.2%)",
                     foreground: "hsl(0 0% 98%)",
                 },
+                warm: {
+                    DEFAULT: "hsl(33 15% 81%)",      // RGB(215,207,197) - Niederwieser Beige
+                    foreground: "hsl(25 10% 20%)",
+                    50:  "hsl(33 20% 97%)",
+                    100: "hsl(33 18% 94%)",
+                    200: "hsl(33 15% 88%)",
+                    300: "hsl(33 15% 81%)",           // Brand beige
+                    400: "hsl(33 12% 72%)",
+                    500: "hsl(33 10% 60%)",
+                    600: "hsl(30 8% 45%)",
+                },
                 muted: {
-                    DEFAULT: "hsl(220 14% 96%)",
-                    foreground: "hsl(220 8% 46%)",
+                    DEFAULT: "hsl(33 12% 94%)",
+                    foreground: "hsl(25 8% 46%)",
                 },
                 accent: {
-                    DEFAULT: "hsl(220 14% 96%)",
+                    DEFAULT: "hsl(33 12% 94%)",
                     foreground: "hsl(228 58% 33%)",
                 },
                 popover: {
@@ -45,10 +57,10 @@ export default {
                     DEFAULT: "hsl(0 0% 100%)",
                     foreground: "hsl(224 71.4% 4.1%)",
                 },
-                background: "hsl(220 33% 98%)", // Cool gray/blue tint typical of SaaS
+                background: "hsl(33 20% 97%)", // Warm cream tint (Niederwieser Beige inspired)
                 foreground: "hsl(224 71.4% 4.1%)",
-                border: "hsl(220 13% 91%)",
-                input: "hsl(220 13% 91%)",
+                border: "hsl(33 10% 89%)",
+                input: "hsl(33 10% 89%)",
                 ring: "hsl(228 58% 33%)",
             },
             borderRadius: {
@@ -77,6 +89,8 @@ export default {
                 'float': '0 8px 30px rgba(0, 0, 0, 0.06)',
                 'paper': '0 4px 24px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0,0,0,0.04)',
                 'glow': '0 0 15px rgba(36, 49, 134, 0.15)',
+                'soft-warm': '0 4px 12px -2px rgba(180, 160, 140, 0.08), 0 2px 4px -2px rgba(180, 160, 140, 0.06)',
+                'hero': '0 8px 30px rgba(36, 49, 134, 0.12), 0 2px 8px rgba(36, 49, 134, 0.06)',
             },
             keyframes: {
                 "accordion-down": {

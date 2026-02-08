@@ -50,7 +50,7 @@ const typeIcons: Record<string, React.ElementType> = {
 
 // Priority colors
 const priorityColors: Record<string, string> = {
-    low: "border-l-gray-300",
+    low: "border-l-warm-300",
     normal: "border-l-blue-400",
     high: "border-l-amber-400",
     urgent: "border-l-red-500",

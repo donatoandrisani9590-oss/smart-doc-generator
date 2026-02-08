@@ -17,10 +17,13 @@ from sqlalchemy import select
 from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
 import json
+import logging
 import os
 import tempfile
 import re
 from datetime import datetime
+
+logger = logging.getLogger(__name__)
 
 from app.db import get_db
 from app.api.deps import get_current_user
@@ -272,7 +275,7 @@ Antworte im JSON-Format:
         return fields, doc_type, confidence, provider
 
     except Exception as e:
-        print(f"LLM extraction failed: {e}")
+        logger.warning(f"LLM extraction failed: {e}")
         return [], "Unbekannt", 0.0, "error"
 
 

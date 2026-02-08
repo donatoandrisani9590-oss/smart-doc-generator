@@ -91,8 +91,8 @@ const STATUS_CONFIG: Record<
 > = {
   draft: {
     label: 'Entwurf',
-    color: 'text-gray-600',
-    bgColor: 'bg-gray-100',
+    color: 'text-warm-600',
+    bgColor: 'bg-warm-100',
     icon: FileEdit,
   },
   sent: {
@@ -121,14 +121,14 @@ const STATUS_CONFIG: Record<
   },
   expired: {
     label: 'Abgelaufen',
-    color: 'text-gray-500',
-    bgColor: 'bg-gray-100',
+    color: 'text-warm-500',
+    bgColor: 'bg-warm-100',
     icon: CalendarClock,
   },
   voided: {
     label: 'Storniert',
-    color: 'text-gray-500',
-    bgColor: 'bg-gray-100',
+    color: 'text-warm-500',
+    bgColor: 'bg-warm-100',
     icon: Ban,
   },
 };
@@ -183,9 +183,9 @@ function getSignerStatusIcon(status: string): React.ReactNode {
       return <Eye className="h-4 w-4 text-blue-600" />;
     case 'sent':
     case 'delivered':
-      return <Mail className="h-4 w-4 text-gray-500" />;
+      return <Mail className="h-4 w-4 text-muted-foreground" />;
     default:
-      return <Clock className="h-4 w-4 text-gray-400" />;
+      return <Clock className="h-4 w-4 text-warm-400" />;
   }
 }
 
@@ -233,12 +233,12 @@ interface SignerListProps {
 function SignerList({ signers }: SignerListProps) {
   return (
     <div className="space-y-2">
-      <span className="text-sm font-medium text-gray-700">Unterzeichner:</span>
+      <span className="text-sm font-medium text-foreground">Unterzeichner:</span>
       {signers.map((signer) => (
         <div key={signer.id} className="flex items-center gap-2 text-sm">
           {getSignerStatusIcon(signer.status.status)}
           <span className="font-medium">{signer.name}</span>
-          <span className="text-gray-500">- {getSignerStatusText(signer)}</span>
+          <span className="text-muted-foreground">- {getSignerStatusText(signer)}</span>
         </div>
       ))}
     </div>
@@ -284,7 +284,7 @@ function AuditTrailModal({
               ))}
             </div>
           ) : events.length === 0 ? (
-            <p className="text-sm text-gray-500 text-center py-8">
+            <p className="text-sm text-muted-foreground text-center py-8">
               Keine Ereignisse vorhanden
             </p>
           ) : (
@@ -292,18 +292,18 @@ function AuditTrailModal({
               {events.map((event) => (
                 <div
                   key={event.id}
-                  className="flex items-start gap-3 text-sm border-b border-gray-100 pb-2 last:border-0"
+                  className="flex items-start gap-3 text-sm border-b border-warm-100 pb-2 last:border-0"
                 >
-                  <span className="text-gray-500 whitespace-nowrap min-w-[120px]">
+                  <span className="text-muted-foreground whitespace-nowrap min-w-[120px]">
                     {formatDateTime(event.timestamp)}
                   </span>
-                  <span className="text-gray-700">
+                  <span className="text-foreground">
                     {event.actorName && (
                       <span className="font-medium">{event.actorName} </span>
                     )}
                     {AUDIT_EVENT_LABELS[event.eventType] || event.eventType}
                     {event.details?.reason ? (
-                      <span className="text-gray-500">
+                      <span className="text-muted-foreground">
                         {' '}
                         - {String(event.details.reason as string)}
                       </span>
@@ -399,14 +399,14 @@ function SignatureRequestCard({
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-2">
-            <FileText className="h-5 w-5 text-gray-500" />
+            <FileText className="h-5 w-5 text-muted-foreground" />
             <CardTitle className="text-lg font-semibold">
               {request.documentTitle}
             </CardTitle>
           </div>
           <StatusBadge status={request.status} />
         </div>
-        <p className="text-sm text-gray-500">Erstellt: {formatDate(request.createdAt)}</p>
+        <p className="text-sm text-muted-foreground">Erstellt: {formatDate(request.createdAt)}</p>
       </CardHeader>
 
       <Separator />
@@ -659,7 +659,7 @@ export function SignatureStatusDashboard({ className }: SignatureStatusDashboard
     <div className={className}>
       {/* Header with Filters */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Signatur-Anfragen</h2>
+        <h2 className="text-2xl font-bold text-foreground">Signatur-Anfragen</h2>
 
         <div className="flex items-center gap-3">
           {/* Status Filter */}
@@ -723,11 +723,11 @@ export function SignatureStatusDashboard({ className }: SignatureStatusDashboard
       {/* Empty State */}
       {!isLoading && filteredRequests.length === 0 && (
         <div className="text-center py-16">
-          <FileText className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-700 mb-2">
+          <FileText className="h-12 w-12 text-warm-300 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-foreground mb-2">
             Keine Signatur-Anfragen
           </h3>
-          <p className="text-gray-500">
+          <p className="text-muted-foreground">
             {filterStatus === 'all'
               ? 'Es wurden noch keine Signatur-Anfragen erstellt.'
               : filterStatus === 'pending'

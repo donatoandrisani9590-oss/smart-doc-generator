@@ -322,7 +322,7 @@ export function DocumentUploadDialog({
                               ? "bg-green-50 text-green-700"
                               : field.confidence > 0.5
                               ? "bg-yellow-50 text-yellow-700"
-                              : "bg-gray-50 text-gray-700"
+                              : "bg-warm-50 text-foreground"
                           }
                         >
                           {Math.round(field.confidence * 100)}%

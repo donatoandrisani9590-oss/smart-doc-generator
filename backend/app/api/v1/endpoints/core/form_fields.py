@@ -13,7 +13,8 @@ from typing import Any, Annotated, Optional, List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
+import json
 
 from app.db import get_db
 from app.api import deps
@@ -99,6 +100,28 @@ class FormFieldUpdate(BaseModel):
     # Conditional visibility (v4.2: Checkbox → Variante → Felder Flow)
     show_condition: Optional[str] = None  # JSON: { clause_id?, variant_id?, field_conditions? }
 
+    @field_validator("show_condition")
+    @classmethod
+    def validate_show_condition(cls, v: Optional[str]) -> Optional[str]:
+        """Ensure show_condition is valid JSON if provided."""
+        if v is not None:
+            try:
+                json.loads(v)
+            except (json.JSONDecodeError, TypeError):
+                raise ValueError("show_condition muss gueltiges JSON sein")
+        return v
+
+    @field_validator("options")
+    @classmethod
+    def validate_options(cls, v: Optional[str]) -> Optional[str]:
+        """Ensure options is valid JSON if provided."""
+        if v is not None:
+            try:
+                json.loads(v)
+            except (json.JSONDecodeError, TypeError):
+                raise ValueError("options muss gueltiges JSON sein")
+        return v
+
 
 class FormFieldCreate(BaseModel):
     """Create a new custom form field."""
@@ -114,6 +137,16 @@ class FormFieldCreate(BaseModel):
     suffix: Optional[str] = None
     display_order: Optional[int] = None
     display_group: Optional[str] = None
+
+    @field_validator("options")
+    @classmethod
+    def validate_options(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None:
+            try:
+                json.loads(v)
+            except (json.JSONDecodeError, TypeError):
+                raise ValueError("options muss gueltiges JSON sein")
+        return v
 
 
 class ReorderRequest(BaseModel):

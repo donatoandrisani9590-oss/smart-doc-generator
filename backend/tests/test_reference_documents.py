@@ -152,7 +152,7 @@ def analyze_margins(docx_path: Path) -> Dict[str, float]:
     return margins
 
 
-def test_document(name: str, docx_path: Path) -> Dict[str, Any]:
+def analyze_single_document(name: str, docx_path: Path) -> Dict[str, Any]:
     """Testet ein einzelnes Dokument."""
     if not docx_path.exists():
         return {'error': f'Datei nicht gefunden: {docx_path}'}
@@ -211,7 +211,7 @@ def run_all_tests():
         print(f"Dokument: {name}")
         print(f"{'─' * 70}")
 
-        result = test_document(name, path)
+        result = analyze_single_document(name, path)
 
         if 'error' in result:
             print(f"  FEHLER: {result['error']}")

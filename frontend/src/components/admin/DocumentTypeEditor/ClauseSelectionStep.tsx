@@ -68,11 +68,11 @@ interface ClauseSelectionStepProps {
     setShowClauseCreator: (show: boolean) => void;
 }
 
-export function ClauseSelectionStep({
+export const ClauseSelectionStep = ({
     errors,
-    setErrors,
+    setErrors: _setErrors,
     selectedClauses,
-    setSelectedClauses,
+    setSelectedClauses: _setSelectedClauses,
     groupedClauses,
     loadingClauses,
     addClause,
@@ -87,7 +87,7 @@ export function ClauseSelectionStep({
     toggleVariantGroupMandatory,
     setVariantGroupDefault,
     setShowClauseCreator,
-}: ClauseSelectionStepProps) {
+}: ClauseSelectionStepProps) => {
     return (
         <motion.div
             key="step2"
@@ -130,7 +130,7 @@ export function ClauseSelectionStep({
             <div className="grid grid-cols-2 gap-4 h-[450px]">
                 {/* Available Clauses */}
                 <Card className="overflow-hidden">
-                    <CardHeader className="py-3 bg-gray-50">
+                    <CardHeader className="py-3 bg-warm-50">
                         <CardTitle className="text-sm flex items-center gap-2">
                             <FileText className="w-4 h-4" />
                             Verf{"\u00fc"}gbare Klauseln
@@ -142,27 +142,27 @@ export function ClauseSelectionStep({
                                 <Loader2 className="w-6 h-6 animate-spin" />
                             </div>
                         ) : Object.keys(groupedClauses).length === 0 ? (
-                            <div className="p-4 text-center text-gray-500">
+                            <div className="p-4 text-center text-muted-foreground">
                                 Alle Klauseln wurden hinzugef{"\u00fc"}gt
                             </div>
                         ) : (
                             <div className="divide-y">
                                 {Object.entries(groupedClauses).map(([cat, clauses]) => (
                                     <div key={cat}>
-                                        <div className="px-3 py-2 bg-gray-50 text-xs font-medium text-gray-500 uppercase">
+                                        <div className="px-3 py-2 bg-warm-50 text-xs font-medium text-muted-foreground uppercase">
                                             {cat}
                                         </div>
                                         {(clauses as Clause[]).map((clause) => (
                                             <div
                                                 key={clause.id}
-                                                className="flex items-center justify-between p-3 hover:bg-gray-50 cursor-pointer group"
+                                                className="flex items-center justify-between p-3 hover:bg-warm-50 cursor-pointer group"
                                                 onClick={() => addClause(clause)}
                                             >
                                                 <div className="flex-1 min-w-0">
                                                     <p className="text-sm font-medium truncate">
                                                         {clause.title}
                                                     </p>
-                                                    <p className="text-xs text-gray-500">
+                                                    <p className="text-xs text-muted-foreground">
                                                         v{clause.version}
                                                     </p>
                                                 </div>
@@ -192,7 +192,7 @@ export function ClauseSelectionStep({
                     </CardHeader>
                     <CardContent className="p-0 overflow-y-auto h-[calc(100%-48px)]">
                         {selectedClauses.length === 0 ? (
-                            <div className="p-4 text-center text-gray-500">
+                            <div className="p-4 text-center text-muted-foreground">
                                 <FileText className="w-8 h-8 mx-auto mb-2 opacity-50" />
                                 <p className="text-sm">Keine Klauseln ausgew{"\u00e4"}hlt</p>
                                 <p className="text-xs">
@@ -212,7 +212,7 @@ export function ClauseSelectionStep({
                                 renderItem={(item, index) => (
                                     <SortableItemWrapper
                                         id={item.id}
-                                        className="bg-white hover:bg-gray-50"
+                                        className="bg-white hover:bg-warm-50"
                                     >
                                         <div className="flex items-center gap-2 p-3">
                                             <DragHandle className="w-6 h-6" />
@@ -231,7 +231,7 @@ export function ClauseSelectionStep({
                                                         "px-2 py-1 text-xs rounded transition-colors",
                                                         item.is_mandatory
                                                             ? "bg-secondary/20 text-secondary"
-                                                            : "bg-gray-100 text-gray-500"
+                                                            : "bg-warm-100 text-muted-foreground"
                                                     )}
                                                 >
                                                     {item.is_mandatory ? "Pflicht" : "Optional"}
@@ -249,7 +249,7 @@ export function ClauseSelectionStep({
                                 )}
                                 renderDragOverlay={(item) => (
                                     <div className="flex items-center gap-2 p-3 bg-white border rounded-lg shadow-lg">
-                                        <GripVertical className="w-4 h-4 text-gray-400" />
+                                        <GripVertical className="w-4 h-4 text-warm-400" />
                                         <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center font-medium">
                                             {selectedClauses.findIndex(sc => sc.clause_id === item.id) + 1}
                                         </span>
@@ -296,7 +296,7 @@ export function ClauseSelectionStep({
                                     <Loader2 className="w-5 h-5 animate-spin" />
                                 </div>
                             ) : unselectedVariantGroups.length === 0 ? (
-                                <div className="p-3 text-center text-gray-500 text-xs">
+                                <div className="p-3 text-center text-muted-foreground text-xs">
                                     Keine weiteren Varianten-Gruppen verf{"\u00fc"}gbar
                                 </div>
                             ) : (
@@ -309,7 +309,7 @@ export function ClauseSelectionStep({
                                         >
                                             <div className="flex-1 min-w-0">
                                                 <p className="text-sm font-medium truncate">{vg.name}</p>
-                                                <p className="text-xs text-gray-500">
+                                                <p className="text-xs text-muted-foreground">
                                                     {vg.variants?.length || 0} Varianten
                                                 </p>
                                             </div>
@@ -337,7 +337,7 @@ export function ClauseSelectionStep({
                         </CardHeader>
                         <CardContent className="p-0 overflow-y-auto h-[calc(100%-40px)]">
                             {selectedVariantGroups.length === 0 ? (
-                                <div className="p-3 text-center text-gray-500">
+                                <div className="p-3 text-center text-muted-foreground">
                                     <Layers className="w-6 h-6 mx-auto mb-1 opacity-50" />
                                     <p className="text-xs">Keine Varianten-Gruppen zugeordnet</p>
                                 </div>
@@ -346,14 +346,14 @@ export function ClauseSelectionStep({
                                     {selectedVariantGroups.map((vg) => (
                                         <div
                                             key={vg.variant_group_id}
-                                            className="p-2 bg-white hover:bg-gray-50"
+                                            className="p-2 bg-white hover:bg-warm-50"
                                         >
                                             <div className="flex items-center gap-2">
                                                 <div className="flex-1 min-w-0">
                                                     <p className="text-sm font-medium truncate">
                                                         {vg.name}
                                                     </p>
-                                                    <p className="text-xs text-gray-500">
+                                                    <p className="text-xs text-muted-foreground">
                                                         {vg.variant_count || vg.variants?.length || 0} Varianten
                                                     </p>
                                                 </div>
@@ -363,7 +363,7 @@ export function ClauseSelectionStep({
                                                         "px-2 py-0.5 text-xs rounded",
                                                         vg.is_mandatory
                                                             ? "bg-purple-100 text-purple-700"
-                                                            : "bg-gray-100 text-gray-500"
+                                                            : "bg-warm-100 text-muted-foreground"
                                                     )}
                                                 >
                                                     {vg.is_mandatory ? "Pflicht" : "Optional"}
@@ -407,4 +407,4 @@ export function ClauseSelectionStep({
             </div>
         </motion.div>
     );
-}
+};

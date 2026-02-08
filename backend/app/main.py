@@ -17,13 +17,14 @@ from typing import Callable
 
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.core.config import settings
 from app.middleware.rate_limit import RateLimitMiddleware
 # Auth
-from app.api.v1.endpoints.auth import auth, guest
+from app.api.v1.endpoints.auth import auth, guest, sso
 
 # Core Resources
 from app.api.v1.endpoints.core import (
@@ -33,14 +34,14 @@ from app.api.v1.endpoints.core import (
 
 # Documents
 from app.api.v1.endpoints.documents import (
-    generation, preview, history, drafts, corrections,
+    generation, preview, history, drafts, corrections, locks,
     export, repository, document_upload, approvals,
 )
 
 # User Features
 from app.api.v1.endpoints.user import (
     users, teams, favorites, search, statistics,
-    notifications, comments, deadlines, chat,
+    notifications, comments, deadlines, chat, frontend_logs,
 )
 
 # Admin Features
@@ -62,17 +63,75 @@ from app.api.v1.endpoints.config import setup, countries, locations
 # LOGGING CONFIGURATION
 # ═══════════════════════════════════════════════════════════════════════════
 
-logging.basicConfig(
-    level=logging.DEBUG if settings.DEBUG else logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S"
-)
+from app.core.logging_config import setup_logging
+setup_logging()
 logger = logging.getLogger(__name__)
 
 
 # ═══════════════════════════════════════════════════════════════════════════
 # MIDDLEWARE CLASSES
 # ═══════════════════════════════════════════════════════════════════════════
+
+class CSRFProtectionMiddleware(BaseHTTPMiddleware):
+    """
+    CSRF protection via X-Requested-With header check.
+
+    State-changing methods (POST, PUT, PATCH, DELETE) must include
+    X-Requested-With: XMLHttpRequest. This prevents cross-origin form
+    submissions since browsers don't add custom headers automatically.
+
+    Exempted paths: health checks, auth login/register, setup endpoints,
+    and Copilot Studio webhooks (use their own API key auth).
+    """
+
+    SAFE_METHODS = {"GET", "HEAD", "OPTIONS"}
+    EXEMPT_PREFIXES = (
+        "/health",
+        f"{settings.API_V1_STR}/health",
+        f"{settings.API_V1_STR}/auth/login",
+        f"{settings.API_V1_STR}/auth/register",
+        f"{settings.API_V1_STR}/auth/sso/",
+        f"{settings.API_V1_STR}/logs",
+        f"{settings.API_V1_STR}/setup/",
+        f"{settings.API_V1_STR}/actions/",
+        f"{settings.API_V1_STR}/webhooks/",
+        f"{settings.API_V1_STR}/copilot-studio/",
+    )
+
+    async def dispatch(self, request: Request, call_next: Callable):
+        if request.method in self.SAFE_METHODS:
+            return await call_next(request)
+
+        # Check exempt paths
+        path = request.url.path
+        if any(path.startswith(prefix) for prefix in self.EXEMPT_PREFIXES):
+            return await call_next(request)
+
+        # Require X-Requested-With header for state-changing requests
+        x_requested_with = request.headers.get("x-requested-with", "")
+        if x_requested_with.lower() != "xmlhttprequest":
+            return JSONResponse(
+                status_code=403,
+                content={"detail": "CSRF-Schutz: X-Requested-With Header fehlt"},
+            )
+
+        return await call_next(request)
+
+
+class UploadSizeLimitMiddleware(BaseHTTPMiddleware):
+    """Reject requests with Content-Length exceeding the limit."""
+
+    MAX_UPLOAD_BYTES = 50 * 1024 * 1024  # 50 MB
+
+    async def dispatch(self, request: Request, call_next: Callable):
+        content_length = request.headers.get("content-length")
+        if content_length and int(content_length) > self.MAX_UPLOAD_BYTES:
+            return JSONResponse(
+                status_code=413,
+                content={"detail": f"Datei zu gross. Maximum: {self.MAX_UPLOAD_BYTES // (1024 * 1024)} MB"},
+            )
+        return await call_next(request)
+
 
 class RequestLoggingMiddleware(BaseHTTPMiddleware):
     """Log all incoming requests with timing information."""
@@ -149,8 +208,8 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         ]
         response.headers["Content-Security-Policy"] = "; ".join(csp_directives)
 
-        # HSTS only in production (non-debug)
-        if not settings.DEBUG:
+        # HSTS only in production/staging environments
+        if settings.ENVIRONMENT.lower() in ("production", "prod", "staging"):
             response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains; preload"
         return response
 
@@ -166,8 +225,12 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
             logger.error(f"Unhandled exception: {str(exc)}")
             logger.error(traceback.format_exc())
 
-            # In debug mode, return detailed error
-            if settings.DEBUG:
+            # Report to Sentry (no-op if not configured)
+            from app.core.sentry import capture_exception
+            capture_exception(exc, endpoint=str(request.url), method=request.method)
+
+            # In development, return detailed error for debugging
+            if settings.DEBUG and settings.ENVIRONMENT.lower() not in ("production", "prod", "staging"):
                 return JSONResponse(
                     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                     content={
@@ -199,6 +262,14 @@ async def lifespan(app: FastAPI):
     logger.info(f"Debug mode: {settings.DEBUG}")
     logger.info(f"CORS Origins: {settings.BACKEND_CORS_ORIGINS}")
     logger.info("=" * 60)
+
+    # Initialize Sentry error tracking (no-op if SENTRY_DSN not set)
+    from app.core.sentry import init_sentry
+    init_sentry()
+
+    # Initialize Prometheus metrics (no-op if prometheus-client not installed)
+    from app.core.metrics import setup_metrics
+    setup_metrics(app)
 
     # Auto-create database tables if they don't exist
     try:
@@ -243,10 +314,10 @@ app = FastAPI(
     - Jede REST-fähige Anwendung
     """,
     version="1.0.0",
-    # OpenAPI immer verfügbar für Copilot Studio / Power Platform Integration
-    openapi_url=f"{settings.API_V1_STR}/openapi.json" if settings.DEBUG else None,
-    docs_url=f"{settings.API_V1_STR}/docs" if settings.DEBUG else None,
-    redoc_url=f"{settings.API_V1_STR}/redoc" if settings.DEBUG else None,
+    # API docs controlled via SHOW_API_DOCS (independent from DEBUG)
+    openapi_url=f"{settings.API_V1_STR}/openapi.json" if settings.SHOW_API_DOCS else None,
+    docs_url=f"{settings.API_V1_STR}/docs" if settings.SHOW_API_DOCS else None,
+    redoc_url=f"{settings.API_V1_STR}/redoc" if settings.SHOW_API_DOCS else None,
     lifespan=lifespan,
     # OpenAPI Tags für bessere Strukturierung
     openapi_tags=[
@@ -265,11 +336,15 @@ app = FastAPI(
 # Add middlewares (order matters - first added = outermost)
 app.add_middleware(ErrorHandlingMiddleware)
 app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(CSRFProtectionMiddleware)
+app.add_middleware(UploadSizeLimitMiddleware)
 app.add_middleware(RequestLoggingMiddleware)
 
-# Rate Limiting - Redis-based in production
-if not settings.DEBUG:
-    app.add_middleware(RateLimitMiddleware)
+# Rate Limiting - always active (uses in-memory fallback when Redis unavailable)
+app.add_middleware(RateLimitMiddleware)
+
+# GZip Compression - compress responses > 500 bytes
+app.add_middleware(GZipMiddleware, minimum_size=500)
 
 # CORS - Restrictive configuration
 if settings.BACKEND_CORS_ORIGINS:
@@ -299,6 +374,7 @@ if settings.BACKEND_CORS_ORIGINS:
 
 # Auth
 app.include_router(auth.router, prefix=f"{settings.API_V1_STR}/auth", tags=["auth"])
+app.include_router(sso.router, prefix=f"{settings.API_V1_STR}/auth", tags=["auth-sso"])
 
 # Core Resources
 app.include_router(clauses.router, prefix=f"{settings.API_V1_STR}/clauses", tags=["clauses"])
@@ -323,9 +399,13 @@ app.include_router(teams.router, prefix=f"{settings.API_V1_STR}/teams", tags=["t
 app.include_router(notifications.router, prefix=f"{settings.API_V1_STR}/notifications", tags=["notifications"])
 app.include_router(comments.router, prefix=f"{settings.API_V1_STR}/comments", tags=["comments"])
 
+# Frontend Log Ingestion (fire-and-forget from browser)
+app.include_router(frontend_logs.router, prefix=f"{settings.API_V1_STR}/logs", tags=["logs"])
+
 # Admin Features
 app.include_router(form_fields.router, prefix=f"{settings.API_V1_STR}/form-fields", tags=["form-fields"])
 app.include_router(corrections.router, prefix=f"{settings.API_V1_STR}/corrections", tags=["corrections"])
+app.include_router(locks.router, prefix=f"{settings.API_V1_STR}/locks", tags=["document-locks"])
 app.include_router(repository.router, prefix=f"{settings.API_V1_STR}/repository", tags=["repository"])
 app.include_router(export.router, prefix=f"{settings.API_V1_STR}/export", tags=["export"])
 app.include_router(attachments.router, prefix=f"{settings.API_V1_STR}/admin/attachments", tags=["attachments"])
@@ -458,13 +538,12 @@ async def readiness_check():
     # Determine overall status
     all_healthy = all(v == "healthy" for v in checks.values())
 
-    # In production, return minimal info; in debug, return details
     result = {
         "status": "ok" if all_healthy else "degraded",
         "version": "1.0.0",
     }
-    if settings.DEBUG:
+    # Only expose detailed checks in non-production environments
+    if settings.ENVIRONMENT.lower() not in ("production", "prod", "staging"):
         result["checks"] = checks
-        result["debug"] = True
 
     return result

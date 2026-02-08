@@ -231,13 +231,13 @@ export const DesignManager = ({ countryCode }: DesignManagerProps) => {
                                 <h1 className="text-xl font-bold" style={{ color: formData.primary_color }}>
                                     Dokumenttitel
                                 </h1>
-                                <p className="text-gray-600">
+                                <p className="text-muted-foreground">
                                     Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore.
                                 </p>
                             </div>
 
                             {/* Footer Preview */}
-                            <div className="border-t pt-4 mt-6 text-xs text-gray-500 text-center">
+                            <div className="border-t pt-4 mt-6 text-xs text-muted-foreground text-center">
                                 <p>{formData.footer_line1 || "Geschäftsführer: Name"}</p>
                                 <p>{formData.footer_line2 || "HRB 12345 | USt-ID: DE123456789"}</p>
                                 <p>{formData.footer_line3 || "IBAN: DE12 3456 7890"}</p>

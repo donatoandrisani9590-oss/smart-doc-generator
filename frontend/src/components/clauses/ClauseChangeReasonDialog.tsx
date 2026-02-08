@@ -85,7 +85,7 @@ const CHANGE_REASONS = [
         label: "Sonstiges",
         description: "Andere Gründe (bitte im Kommentar erläutern)",
         icon: HelpCircle,
-        color: "text-gray-600 bg-gray-100",
+        color: "text-muted-foreground bg-warm-100",
     },
 ];
 

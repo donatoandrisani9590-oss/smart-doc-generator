@@ -15,6 +15,24 @@ class Settings(BaseSettings):
     # Debug-Mode: Nur in Development aktivieren
     DEBUG: bool = False
 
+    # Explicit opt-in for auth bypass in local development
+    # Must be explicitly set to True alongside DEBUG=True to skip authentication
+    ALLOW_AUTH_BYPASS: bool = False
+
+    # Control API docs visibility independently from DEBUG
+    SHOW_API_DOCS: bool = False
+
+    # Environment identifier (development, staging, production)
+    ENVIRONMENT: str = "development"
+
+    # Logging
+    LOG_LEVEL: str = "INFO"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+    LOG_FORMAT: str = "json"  # "json" for production, "text" for development
+
+    # Sentry Error Tracking (optional – leave empty to disable)
+    SENTRY_DSN: str = ""
+    SENTRY_TRACES_SAMPLE_RATE: float = 0.1  # 10% of transactions
+
     DATABASE_URL: str = "postgresql+asyncpg://user:password@localhost/docgen_db"
     REDIS_URL: str = "redis://localhost:6379/0"
 
@@ -23,6 +41,49 @@ class Settings(BaseSettings):
 
     # CORS: In Production explizite Domains setzen (Komma-getrennt in .env)
     CORS_ORIGINS: str = "http://localhost:5173,http://localhost:3000"
+
+    # E-Mail (SMTP) – leave empty to disable email notifications
+    MAIL_SERVER: str = ""
+    MAIL_PORT: int = 587
+    MAIL_USERNAME: str = ""
+    MAIL_PASSWORD: str = ""
+    MAIL_FROM: str = "noreply@example.com"
+    MAIL_FROM_NAME: str = "Smart Document Generator"
+    MAIL_USE_TLS: bool = True
+    MAIL_USE_SSL: bool = False
+
+    # SSO / OAuth2 (OIDC) – leave empty to disable SSO
+    # Supported providers: azure_ad, google, custom_oidc
+    SSO_PROVIDER: str = ""  # e.g. "azure_ad"
+    SSO_CLIENT_ID: str = ""
+    SSO_CLIENT_SECRET: str = ""
+    SSO_TENANT_ID: str = ""  # Azure AD Tenant ID
+    SSO_AUTHORITY_URL: str = ""  # OIDC issuer URL (auto-derived for azure_ad if empty)
+    SSO_CALLBACK_URL: str = ""  # Backend callback URL (auto-derived if empty)
+    SSO_AUTO_CREATE_USERS: bool = True  # Auto-create user on first SSO login
+    SSO_DEFAULT_ROLE: str = "user"  # Default role for SSO-created users
+
+    @property
+    def sso_enabled(self) -> bool:
+        return bool(self.SSO_PROVIDER and self.SSO_CLIENT_ID and self.SSO_CLIENT_SECRET)
+
+    @property
+    def sso_authority_url(self) -> str:
+        if self.SSO_AUTHORITY_URL:
+            return self.SSO_AUTHORITY_URL
+        if self.SSO_PROVIDER == "azure_ad" and self.SSO_TENANT_ID:
+            return f"https://login.microsoftonline.com/{self.SSO_TENANT_ID}/v2.0"
+        return ""
+
+    @property
+    def sso_callback_url(self) -> str:
+        if self.SSO_CALLBACK_URL:
+            return self.SSO_CALLBACK_URL
+        return f"{self.API_BASE_URL}{self.API_V1_STR}/auth/sso/callback"
+
+    @property
+    def mail_enabled(self) -> bool:
+        return bool(self.MAIL_SERVER and self.MAIL_USERNAME)
 
     @property
     def BACKEND_CORS_ORIGINS(self) -> list[str]:

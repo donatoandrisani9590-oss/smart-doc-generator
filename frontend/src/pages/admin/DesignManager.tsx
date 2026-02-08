@@ -668,12 +668,12 @@ export const DesignManager = () => {
                                                     style={{ width: `${parseFloat(designSettings.logo_width_cm || "5.0") * 8}px`, maxHeight: "30px", objectFit: "contain" }}
                                                 />
                                             ) : (
-                                                <div className="bg-gray-200 rounded px-2 py-1 text-[8px] text-gray-500">
+                                                <div className="bg-warm-200 rounded px-2 py-1 text-[8px] text-muted-foreground">
                                                     Logo
                                                 </div>
                                             )}
                                         </div>
-                                        <div className="text-right text-[7px] text-gray-600">
+                                        <div className="text-right text-[7px] text-muted-foreground">
                                             <div className="font-semibold">{designSettings.company_name || "Firmenname"}</div>
                                             <div>{designSettings.header_line1 || "Adresszeile 1"}</div>
                                             <div>{designSettings.header_line2 || "Adresszeile 2"}</div>
@@ -685,7 +685,7 @@ export const DesignManager = () => {
                                         <h3 style={{ color: designSettings.primary_color || "#243186", fontSize: "9pt", fontWeight: "bold" }}>
                                             Arbeitsvertrag
                                         </h3>
-                                        <div className="text-[7px] text-gray-700 space-y-1">
+                                        <div className="text-[7px] text-foreground space-y-1">
                                             <p>Zwischen der Firma und Max Mustermann wird folgender Vertrag geschlossen...</p>
                                             <p className="font-semibold">§ 1 Vertragsgegenstand</p>
                                             <p>Der Arbeitnehmer wird ab dem 01.01.2025 als Software-Entwickler eingestellt.</p>
@@ -693,7 +693,7 @@ export const DesignManager = () => {
                                     </div>
 
                                     {/* Footer */}
-                                    <div className="mt-4 pt-2 border-t text-[6px] text-gray-500">
+                                    <div className="mt-4 pt-2 border-t text-[6px] text-muted-foreground">
                                         {designSettings.footer_line1 || "Fußzeile 1"} | {designSettings.footer_line2 || "Fußzeile 2"}
                                     </div>
                                 </div>

@@ -40,6 +40,7 @@ export interface DraftResponse {
     name: string | null;
     form_data: Record<string, unknown>;
     custom_clauses: number[] | null;
+    version?: number;
 }
 
 // ══════════════════════════════════════════════════════════════════════════════

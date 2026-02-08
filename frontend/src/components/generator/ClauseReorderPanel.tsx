@@ -210,7 +210,7 @@ const SortableClauseItem = ({
             className={cn(
                 "flex items-center gap-3 p-3 bg-white border rounded-lg transition-all",
                 isDragging && "border-primary shadow-lg ring-2 ring-primary/20",
-                !clause.is_enabled && "opacity-50 bg-gray-50",
+                !clause.is_enabled && "opacity-50 bg-warm-50",
                 clause.is_mandatory && "border-l-4 border-l-[#243186]"
             )}
         >
@@ -221,7 +221,7 @@ const SortableClauseItem = ({
                     "p-1 rounded",
                     canDrag
                         ? "cursor-grab active:cursor-grabbing hover:bg-muted text-muted-foreground"
-                        : "cursor-not-allowed text-gray-300"
+                        : "cursor-not-allowed text-warm-300"
                 )}
             >
                 {clause.is_order_locked ? (

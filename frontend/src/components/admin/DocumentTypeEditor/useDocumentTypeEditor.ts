@@ -7,7 +7,7 @@ import {
     useVariantGroups,
     type Clause,
 } from "@/hooks/useApi";
-import type { ClauseSelection, VariantGroupSelection, DocumentTypeEditorProps } from "./types";
+import type { ClauseSelection, VariantGroupSelection } from "./types";
 
 interface UseDocumentTypeEditorOptions {
     open: boolean;

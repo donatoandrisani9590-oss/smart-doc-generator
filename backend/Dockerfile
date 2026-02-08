@@ -10,6 +10,7 @@ RUN apt-get update && apt-get install -y \
     default-jre \
     netcat-openbsd \
     fonts-liberation \
+    libmagic1 \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app

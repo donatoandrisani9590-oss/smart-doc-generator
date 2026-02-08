@@ -1,0 +1,27 @@
+{% extends "emails/base.html" %}
+
+{% block content %}
+<h2>{{ digest_title }}</h2>
+<p>Sie haben {{ notifications|length }} neue Benachrichtigung{{ "en" if notifications|length != 1 else "" }}:</p>
+
+{% for n in notifications %}
+<div class="meta-box">
+  <div style="margin-bottom: 4px;">
+    <strong>{{ n.title }}</strong>
+    {% if n.priority and n.priority != "normal" %}
+    <span class="priority-badge priority-{{ n.priority }}" style="margin-left: 8px;">
+      {% if n.priority == "high" %}Wichtig{% elif n.priority == "urgent" %}Dringend{% else %}{{ n.priority }}{% endif %}
+    </span>
+    {% endif %}
+  </div>
+  <p style="margin: 4px 0; font-size: 14px; color: #4a4a5a;">{{ n.message }}</p>
+  {% if n.action_url %}
+  <a href="{{ app_url }}{{ n.action_url }}" style="font-size: 13px; color: #243186;">Ansehen &rarr;</a>
+  {% endif %}
+</div>
+{% endfor %}
+
+<div style="text-align: center; margin: 24px 0;">
+  <a href="{{ app_url }}/notifications" class="btn">Alle Benachrichtigungen</a>
+</div>
+{% endblock %}

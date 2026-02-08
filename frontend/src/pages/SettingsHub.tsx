@@ -200,8 +200,8 @@ export default function SettingsHub() {
             {/* Header - SimpleDocs Style */}
             <div className="flex items-start justify-between mb-6">
                 <div>
-                    <h1 className="text-2xl font-semibold text-gray-900">Einstellungen</h1>
-                    <p className="text-gray-500 mt-1">
+                    <h1 className="text-2xl font-semibold text-foreground">Einstellungen</h1>
+                    <p className="text-muted-foreground mt-1">
                         Firmendaten, Design, Vorlagen und Textbausteine verwalten
                     </p>
                 </div>
@@ -213,7 +213,7 @@ export default function SettingsHub() {
                 >
                     <Search className="h-4 w-4" />
                     <span className="hidden sm:inline">Suchen</span>
-                    <kbd className="pointer-events-none hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border bg-gray-100 px-1.5 font-mono text-[10px] font-medium text-gray-500 ml-2">
+                    <kbd className="pointer-events-none hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border bg-warm-100 px-1.5 font-mono text-[10px] font-medium text-muted-foreground ml-2">
                         {navigator.platform.includes("Mac") ? "Cmd" : "Ctrl"}+K
                     </kbd>
                 </Button>
@@ -270,8 +270,8 @@ export default function SettingsHub() {
 
                 {/* Erweitert - Sub-Navigation - SimpleDocs Style */}
                 <TabsContent value="advanced" className="space-y-4">
-                    <div className="bg-white border border-gray-200 rounded-lg">
-                        <div className="flex flex-wrap gap-1 p-2 border-b border-gray-100">
+                    <div className="bg-white border border-warm-200 rounded-lg">
+                        <div className="flex flex-wrap gap-1 p-2 border-b border-warm-100">
                             {ADVANCED_SECTIONS.map((section) => (
                                 <button
                                     key={section.id}
@@ -279,7 +279,7 @@ export default function SettingsHub() {
                                     className={`flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors ${
                                         advancedSection === section.id
                                             ? "bg-primary/10 text-primary font-medium"
-                                            : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                                            : "text-muted-foreground hover:bg-warm-100 hover:text-foreground"
                                     }`}
                                 >
                                     <section.icon className="w-4 h-4" />

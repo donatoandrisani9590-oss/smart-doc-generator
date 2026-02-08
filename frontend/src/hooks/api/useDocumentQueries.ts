@@ -703,3 +703,121 @@ export const useMergePdf = () => {
 export const getDownloadUrl = (documentId: number) => {
     return `${API_BASE}/export/single/${documentId}`;
 };
+
+// ═══════════════════════════════════════════════════════════════════════════
+// DOCUMENT LOCKING
+// ═══════════════════════════════════════════════════════════════════════════
+
+export interface DocumentLockStatus {
+    is_locked: boolean;
+    locked_by_id: number | null;
+    locked_by_email: string | null;
+    locked_by_name: string | null;
+    locked_at: string | null;
+    expires_at: string | null;
+    lock_reason: string | null;
+    is_own_lock: boolean;
+    is_expired: boolean;
+}
+
+export interface LockAcquiredResult {
+    message: string;
+    document_id: number;
+    expires_at: string;
+    lock_id: number;
+}
+
+export const useDocumentLockStatus = (documentId: number) => {
+    return useQuery({
+        queryKey: ["document-lock", documentId],
+        queryFn: async () => {
+            const res = await fetch(`${API_BASE}/locks/${documentId}`);
+            if (!res.ok) throw new Error("Failed to check lock status");
+            return res.json() as Promise<DocumentLockStatus>;
+        },
+        enabled: !!documentId,
+        refetchInterval: 30000, // Poll every 30 seconds
+        staleTime: 10000,
+    });
+};
+
+export const useAcquireLock = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (data: { document_id: number; lock_reason?: string }) => {
+            const res = await fetch(`${API_BASE}/locks/acquire`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data),
+            });
+            if (!res.ok) {
+                const error = await res.json().catch(() => ({ detail: "Failed to acquire lock" }));
+                const detail = typeof error.detail === "string" ? error.detail : error.detail?.message || "Dokument ist gesperrt";
+                throw new Error(detail);
+            }
+            return res.json() as Promise<LockAcquiredResult>;
+        },
+        onSuccess: (_, { document_id }) => {
+            queryClient.invalidateQueries({ queryKey: ["document-lock", document_id] });
+        },
+    });
+};
+
+export const useReleaseLock = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (documentId: number) => {
+            const res = await fetch(`${API_BASE}/locks/release`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ document_id: documentId }),
+            });
+            if (!res.ok) {
+                const error = await res.json().catch(() => ({ detail: "Failed to release lock" }));
+                throw new Error(error.detail || "Failed to release lock");
+            }
+            return res.json();
+        },
+        onSuccess: (_, documentId) => {
+            queryClient.invalidateQueries({ queryKey: ["document-lock", documentId] });
+        },
+    });
+};
+
+export const useLockHeartbeat = () => {
+    return useMutation({
+        mutationFn: async (documentId: number) => {
+            const res = await fetch(`${API_BASE}/locks/heartbeat`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ document_id: documentId }),
+            });
+            if (!res.ok) throw new Error("Heartbeat failed");
+            return res.json();
+        },
+    });
+};
+
+export const useForceReleaseLock = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (documentId: number) => {
+            const res = await fetch(`${API_BASE}/locks/force-release`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ document_id: documentId }),
+            });
+            if (!res.ok) {
+                const error = await res.json().catch(() => ({ detail: "Failed to force release" }));
+                throw new Error(error.detail || "Failed to force release lock");
+            }
+            return res.json();
+        },
+        onSuccess: (_, documentId) => {
+            queryClient.invalidateQueries({ queryKey: ["document-lock", documentId] });
+        },
+    });
+};

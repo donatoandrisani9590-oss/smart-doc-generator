@@ -593,7 +593,7 @@ async def get_job_status(
     job = await db.get(BulkJob, job_id)
     
     if not job or job.created_by_id != current_user.id:
-        raise HTTPException(status_code=404, detail="Job not found")
+        raise HTTPException(status_code=404, detail="Auftrag nicht gefunden")
     
     return {
         "id": job.id,
@@ -616,13 +616,13 @@ async def download_job_result(
     job = await db.get(BulkJob, job_id)
     
     if not job or job.created_by_id != current_user.id:
-        raise HTTPException(status_code=404, detail="Job not found")
+        raise HTTPException(status_code=404, detail="Auftrag nicht gefunden")
     
     if job.status != "COMPLETED":
         raise HTTPException(status_code=400, detail=f"Job not complete. Status: {job.status}")
     
     if not job.result_file_path or not os.path.exists(job.result_file_path):
-        raise HTTPException(status_code=404, detail="Result file not found")
+        raise HTTPException(status_code=404, detail="Ergebnis-Datei nicht gefunden")
     
     return FileResponse(
         job.result_file_path,
@@ -670,7 +670,7 @@ async def cancel_job(
         job = await db.get(BulkJob, job_id)
 
         if not job or job.created_by_id != current_user.id:
-            raise HTTPException(status_code=404, detail="Job not found")
+            raise HTTPException(status_code=404, detail="Auftrag nicht gefunden")
 
         # Job existiert aber hat falschen Status
         raise HTTPException(

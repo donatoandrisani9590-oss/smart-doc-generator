@@ -193,7 +193,7 @@ async def get_attachment(
     """Get attachment details."""
     attachment = await db.get(Attachment, attachment_id)
     if not attachment:
-        raise HTTPException(status_code=404, detail="Attachment not found")
+        raise HTTPException(status_code=404, detail="Anlage nicht gefunden")
     
     return {
         "id": attachment.id,
@@ -217,7 +217,7 @@ async def delete_attachment(
     """Soft-delete an attachment. Requires admin privileges."""
     attachment = await db.get(Attachment, attachment_id)
     if not attachment:
-        raise HTTPException(status_code=404, detail="Attachment not found")
+        raise HTTPException(status_code=404, detail="Anlage nicht gefunden")
     
     attachment.is_active = False
     await db.commit()

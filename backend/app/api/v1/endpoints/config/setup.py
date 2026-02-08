@@ -89,14 +89,14 @@ async def initialize_system(
     if admin_count > 0:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="System already initialized. Use admin panel to manage users."
+            detail="System bereits initialisiert. Verwenden Sie das Admin-Panel zur Benutzerverwaltung."
         )
 
     # Validate password
     if len(setup_data.password) < 8:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Password must be at least 8 characters long"
+            detail="Passwort muss mindestens 8 Zeichen lang sein"
         )
 
     # Check if email already exists
@@ -105,7 +105,7 @@ async def initialize_system(
     if existing_result.scalar_one_or_none():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="A user with this email already exists"
+            detail="Ein Benutzer mit dieser E-Mail existiert bereits"
         )
 
     # Create admin user
@@ -196,15 +196,17 @@ async def migrate_schema(
 
     for col_name, col_type in document_type_columns:
         try:
-            # Check if column exists
-            check_sql = text(f"""
+            # Check if column exists (parameterized query)
+            check_sql = text("""
                 SELECT column_name
                 FROM information_schema.columns
-                WHERE table_name = 'document_types' AND column_name = '{col_name}'
+                WHERE table_name = :table_name AND column_name = :col_name
             """)
-            result = await db.execute(check_sql)
+            result = await db.execute(check_sql, {"table_name": "document_types", "col_name": col_name})
             if not result.fetchone():
                 # Column doesn't exist, add it
+                # Note: DDL column names/types cannot be parameterized,
+                # but values come from a hardcoded list above (not user input)
                 alter_sql = text(f"ALTER TABLE document_types ADD COLUMN {col_name} {col_type}")
                 await db.execute(alter_sql)
                 migrations.append(f"Added column document_types.{col_name}")

@@ -181,6 +181,13 @@ export function logWarn(message: string, data?: Record<string, unknown>) {
 
 export function logError(message: string, data?: Record<string, unknown>) {
     log("error", message, data);
+
+    // Forward errors to Sentry (lazy-import to avoid circular deps)
+    import("./sentry").then(({ captureMessage: sentryMessage }) => {
+        sentryMessage(`${message}${data ? ` | ${JSON.stringify(data)}` : ""}`, "error");
+    }).catch(() => {
+        // Sentry not available, already logged to console
+    });
 }
 
 /**

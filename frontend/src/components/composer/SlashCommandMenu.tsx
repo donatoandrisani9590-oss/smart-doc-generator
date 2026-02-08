@@ -44,13 +44,13 @@ export const SlashCommandMenu = ({
     return (
         <div
             ref={menuRef}
-            className="fixed z-50 w-64 bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden flex flex-col py-1 animate-in fade-in zoom-in-95 duration-100"
+            className="fixed z-50 w-64 bg-white rounded-lg shadow-xl border border-warm-200 overflow-hidden flex flex-col py-1 animate-in fade-in zoom-in-95 duration-100"
             style={{
                 top: position.y + 24, // Offset below cursor
                 left: position.x,
             }}
         >
-            <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground bg-gray-50/50 border-b mb-1">
+            <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground bg-warm-50/50 border-b mb-1">
                 Befehle
             </div>
 
@@ -61,14 +61,14 @@ export const SlashCommandMenu = ({
                         "flex items-center gap-2 px-3 py-2 text-sm text-left transition-colors",
                         index === selectedIndex
                             ? "bg-primary/10 text-primary"
-                            : "hover:bg-gray-50 text-foreground"
+                            : "hover:bg-warm-50 text-foreground"
                     )}
                     onClick={() => onSelect(index)}
                     onMouseEnter={() => onSelect(index)} // UX: Follow mouse too
                 >
                     <div className={cn(
                         "p-1 rounded border",
-                        index === selectedIndex ? "bg-white border-primary/20" : "bg-gray-50 border-gray-100"
+                        index === selectedIndex ? "bg-white border-primary/20" : "bg-warm-50 border-warm-100"
                     )}>
                         <item.icon className="w-4 h-4" />
                     </div>

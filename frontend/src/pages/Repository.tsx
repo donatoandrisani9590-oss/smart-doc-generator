@@ -32,7 +32,6 @@ import {
     ChevronLeft,
     ChevronRight,
     Loader2,
-    Calendar,
     User,
     Clock,
     Edit3,
@@ -74,6 +73,7 @@ export const RepositoryPage = () => {
     const [correctionDocId, setCorrectionDocId] = useState<number | null>(null);
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     const [pendingAction, setPendingAction] = useState<"delete" | "archive" | null>(null);
+    const [activeFilter, setActiveFilter] = useState<"all" | "draft" | "completed" | "corrections">("all");
 
     const { data: repository, isLoading: loadingDocs, refetch } = useRepository(filters);
     const { data: stats } = useRepositoryStats();
@@ -135,6 +135,16 @@ export const RepositoryPage = () => {
 
         return items;
     }, [drafts, documents]);
+
+    // Filter by active status card
+    const filteredItems = useMemo(() => {
+        switch (activeFilter) {
+            case "draft": return unifiedItems.filter(i => i.type === "draft");
+            case "completed": return unifiedItems.filter(i => i.type === "document");
+            case "corrections": return unifiedItems.filter(i => i.type === "document" && i.is_correctable);
+            default: return unifiedItems;
+        }
+    }, [unifiedItems, activeFilter]);
 
     // Toggle selection
     const toggleSelect = (id: number) => {
@@ -272,11 +282,11 @@ export const RepositoryPage = () => {
 
     return (
         <div className="space-y-6 max-w-6xl mx-auto">
-            {/* Header - SimpleDocs Style */}
+            {/* Header */}
             <div className="flex items-start justify-between">
                 <div>
-                    <h1 className="text-2xl font-semibold text-gray-900">Meine Dokumente</h1>
-                    <p className="text-gray-500 mt-1">
+                    <h1 className="text-2xl font-semibold text-foreground">Meine Dokumente</h1>
+                    <p className="text-muted-foreground mt-1">
                         {drafts?.length ? `${drafts.length} Entwürfe, ` : ""}
                         {stats ? `${stats.total_documents} fertige Dokumente` : "Alle Ihre Dokumente"}
                     </p>
@@ -289,53 +299,35 @@ export const RepositoryPage = () => {
                 </Link>
             </div>
 
-            {/* Stats - SimpleDocs Style */}
+            {/* Status Filter Cards - EPL Style */}
             <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
-                <div className="card-soft px-4 py-3">
-                    <div className="flex items-center gap-3">
-                        <FileText className="w-4 h-4 text-primary" />
-                        <div>
-                            <p className="text-lg font-semibold text-gray-900">{stats?.total_documents ?? "-"}</p>
-                            <p className="text-xs text-gray-500">Gesamt</p>
+                {[
+                    { key: "all" as const, label: "Gesamt", count: (stats?.total_documents ?? 0) + (drafts?.length ?? 0), icon: FileText, color: "text-primary" },
+                    { key: "draft" as const, label: "Entwürfe", count: drafts?.length ?? 0, icon: Edit3, color: "text-amber-500" },
+                    { key: "completed" as const, label: "Fertig", count: stats?.total_documents ?? 0, icon: FileCheck, color: "text-green-500" },
+                    { key: "corrections" as const, label: "Mit Korrekturen", count: stats?.documents_with_corrections ?? 0, icon: AlertTriangle, color: "text-orange-500" },
+                ].map(card => (
+                    <button
+                        key={card.key}
+                        onClick={() => setActiveFilter(card.key)}
+                        className={`status-card text-left ${activeFilter === card.key ? 'active' : ''}`}
+                    >
+                        <div className="flex items-center gap-3">
+                            <card.icon className={`w-5 h-5 ${card.color}`} />
+                            <div>
+                                <p className="text-2xl font-bold text-foreground">{card.count}</p>
+                                <p className="text-xs text-muted-foreground">{card.label}</p>
+                            </div>
                         </div>
-                    </div>
-                </div>
-                <div className="card-soft px-4 py-3">
-                    <div className="flex items-center gap-3">
-                        <Calendar className="w-4 h-4 text-green-500" />
-                        <div>
-                            <p className="text-lg font-semibold text-gray-900">{stats?.documents_this_month ?? "-"}</p>
-                            <p className="text-xs text-gray-500">Diesen Monat</p>
-                        </div>
-                    </div>
-                </div>
-                <div className="card-soft px-4 py-3">
-                    <div className="flex items-center gap-3">
-                        <Edit3 className="w-4 h-4 text-amber-500" />
-                        <div>
-                            <p className="text-lg font-semibold text-gray-900">{stats?.documents_with_corrections ?? "-"}</p>
-                            <p className="text-xs text-gray-500">Mit Korrekturen</p>
-                        </div>
-                    </div>
-                </div>
-                <div className="card-soft px-4 py-3">
-                    <div className="flex items-center gap-3">
-                        <FileCheck className="w-4 h-4 text-primary" />
-                        <div>
-                            <p className="text-lg font-semibold text-gray-900 truncate max-w-[100px]">
-                                {stats?.documents_by_type[0]?.name || "-"}
-                            </p>
-                            <p className="text-xs text-gray-500">Häufigster Typ</p>
-                        </div>
-                    </div>
-                </div>
+                    </button>
+                ))}
             </div>
 
             {/* Search - SimpleDocs Style */}
             <div className="card-soft p-4">
                 <div className="flex gap-3">
                     <div className="relative flex-1">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                         <Input
                             placeholder="Dokument suchen..."
                             value={filters.search || ""}
@@ -430,7 +422,7 @@ export const RepositoryPage = () => {
             {selectedIds.length > 0 && (
                 <div className="bg-primary/5 border border-primary/20 rounded-xl px-4 py-3 animate-in fade-in slide-in-from-bottom-2">
                     <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-gray-900">
+                        <span className="text-sm font-medium text-foreground">
                             {selectedIds.length} ausgewählt
                         </span>
                         <div className="flex gap-2">
@@ -471,10 +463,10 @@ export const RepositoryPage = () => {
 
             {/* Document List - SimpleDocs Style */}
             <div className="card-soft">
-                <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-                    <h3 className="font-medium text-gray-900">
-                        {unifiedItems.length} Einträge
-                        {drafts?.length ? ` (${drafts.length} Entwürfe)` : ""}
+                <div className="flex items-center justify-between px-4 py-3 border-b info-card-header">
+                    <h3 className="font-medium text-foreground">
+                        {filteredItems.length} Einträge
+                        {activeFilter === "all" && drafts?.length ? ` (${drafts.length} Entwürfe)` : ""}
                     </h3>
                     {documents.length > 0 && (
                         <button
@@ -492,7 +484,7 @@ export const RepositoryPage = () => {
                                 <Skeleton key={i} className="h-20 w-full" />
                             ))}
                         </div>
-                    ) : unifiedItems.length === 0 ? (
+                    ) : filteredItems.length === 0 ? (
                         <div className="text-center py-12">
                             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
                                 <FileText className="w-8 h-8 text-muted-foreground" />
@@ -523,12 +515,12 @@ export const RepositoryPage = () => {
                     ) : (
                         /* Unified View: Entwürfe + Dokumente */
                         <div className="space-y-2">
-                            {unifiedItems.map((item) => (
+                            {filteredItems.map((item) => (
                                 <div
                                     key={`${item.type}-${item.id}`}
                                     className={`flex items-center gap-4 p-4 rounded-lg border transition-all cursor-pointer group ${item.type === "draft"
-                                            ? "border-amber-200 bg-amber-50/30 hover:bg-amber-50 hover:border-amber-300"
-                                            : "hover:bg-muted/50 hover:border-primary/30"
+                                            ? "border-amber-200 dark:border-amber-800 bg-amber-50/30 dark:bg-amber-950/20 hover:bg-amber-50 dark:hover:bg-amber-950/30 hover:border-amber-300 dark:hover:border-amber-700"
+                                            : "hover:bg-warm-50 hover:border-primary/30"
                                         }`}
                                     onClick={() =>
                                         item.type === "draft"
@@ -550,13 +542,13 @@ export const RepositoryPage = () => {
 
                                     {/* Status-Icon */}
                                     <div className={`p-2 rounded-lg transition-colors ${item.type === "draft"
-                                            ? "bg-amber-100 group-hover:bg-amber-200"
-                                            : "bg-green-50 group-hover:bg-green-100"
+                                            ? "bg-amber-100 dark:bg-amber-900/40 group-hover:bg-amber-200 dark:group-hover:bg-amber-900/60"
+                                            : "bg-green-50 dark:bg-green-950/30 group-hover:bg-green-100 dark:group-hover:bg-green-900/40"
                                         }`}>
                                         {item.type === "draft" ? (
                                             <Edit3 className="w-5 h-5 text-amber-600" />
                                         ) : (
-                                            <FileCheck className="w-5 h-5 text-green-600" />
+                                            <FileCheck className="w-5 h-5 text-green-600 dark:text-green-400" />
                                         )}
                                     </div>
 
@@ -565,14 +557,14 @@ export const RepositoryPage = () => {
                                         <div className="flex items-center gap-2">
                                             {/* Status Badge */}
                                             <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${item.type === "draft"
-                                                    ? "bg-amber-100 text-amber-700"
-                                                    : "bg-green-100 text-green-700"
+                                                    ? "bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400"
+                                                    : "bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400"
                                                 }`}>
                                                 {item.type === "draft" ? "Entwurf" : "Fertig"}
                                             </span>
                                             <p className="font-medium truncate">{item.name}</p>
                                             {item.version_count && item.version_count > 1 && (
-                                                <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">
+                                                <span className="text-xs bg-warm-100 text-warm-600 px-2 py-0.5 rounded-full">
                                                     v{item.current_version}
                                                 </span>
                                             )}

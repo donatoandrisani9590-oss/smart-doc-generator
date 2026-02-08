@@ -22,6 +22,14 @@ from app.api import deps
 from app.models import core as core_models
 from app.models import enterprise as models
 
+import logging
+from datetime import datetime, timedelta, timezone
+
+logger = logging.getLogger(__name__)
+
+# Lock timeout - same as in locks.py
+LOCK_TIMEOUT_MINUTES = 15
+
 router = APIRouter()
 
 
@@ -258,6 +266,37 @@ async def start_correction(
             detail="Es gibt bereits eine offene Korrekturanfrage für dieses Dokument",
         )
 
+    # Check for document lock (pessimistic locking)
+    now = datetime.now(timezone.utc)
+    lock_result = await db.execute(
+        select(models.DocumentLock).where(
+            and_(
+                models.DocumentLock.document_id == request_data.document_id,
+                models.DocumentLock.expires_at > now,
+            )
+        )
+    )
+    existing_lock = lock_result.scalar_one_or_none()
+    if existing_lock and existing_lock.locked_by_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Dokument wird von {existing_lock.locked_by_name or existing_lock.locked_by_email} bearbeitet",
+        )
+
+    # Auto-acquire lock when starting correction
+    if not existing_lock:
+        expires_at = now + timedelta(minutes=LOCK_TIMEOUT_MINUTES)
+        new_lock = models.DocumentLock(
+            document_id=request_data.document_id,
+            locked_by_id=current_user.id,
+            locked_by_email=current_user.email,
+            locked_by_name=getattr(current_user, "display_name", None) or current_user.email,
+            expires_at=expires_at,
+            lock_reason="correction",
+        )
+        db.add(new_lock)
+        logger.info(f"Auto-acquired lock on document {request_data.document_id} for correction by {current_user.email}")
+
     # Create correction request
     correction = models.DocumentCorrectionRequest(
         document_id=request_data.document_id,
@@ -372,6 +411,17 @@ async def submit_correction(
     correction.completed_by = current_user.email
     correction.completed_at = func.now()
 
+    # Release document lock (if held)
+    lock_result = await db.execute(
+        select(models.DocumentLock).where(
+            models.DocumentLock.document_id == document.id
+        )
+    )
+    lock = lock_result.scalar_one_or_none()
+    if lock:
+        await db.delete(lock)
+        logger.info(f"Auto-released lock on document {document.id} after correction submit")
+
     await db.commit()
     await db.refresh(new_version)
 
@@ -410,6 +460,21 @@ async def cancel_correction(
         )
 
     correction.status = "cancelled"
+
+    # Release document lock (if held by this user)
+    lock_result = await db.execute(
+        select(models.DocumentLock).where(
+            and_(
+                models.DocumentLock.document_id == correction.document_id,
+                models.DocumentLock.locked_by_id == current_user.id,
+            )
+        )
+    )
+    lock = lock_result.scalar_one_or_none()
+    if lock:
+        await db.delete(lock)
+        logger.info(f"Auto-released lock on document {correction.document_id} after correction cancel")
+
     await db.commit()
 
     return {"message": "Korrekturanfrage abgebrochen", "id": correction_id}

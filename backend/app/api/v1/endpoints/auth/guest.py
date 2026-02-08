@@ -25,10 +25,10 @@ async def download_shared_document(
     share = result.scalar_one_or_none()
     
     if not share:
-        raise HTTPException(status_code=404, detail="Link invalid or expired")
+        raise HTTPException(status_code=404, detail="Link ungueltig oder abgelaufen")
     
     if share.expires_at < datetime.utcnow():
-        raise HTTPException(status_code=410, detail="Link expired")
+        raise HTTPException(status_code=410, detail="Link abgelaufen")
         
     # Fetch document
     doc_stmt = select(GeneratedDocument).where(GeneratedDocument.id == share.generated_document_id)
@@ -36,7 +36,7 @@ async def download_shared_document(
     doc = doc_res.scalar_one_or_none()
     
     if not doc or not os.path.exists(doc.file_path):
-        raise HTTPException(status_code=404, detail="Document not found")
+        raise HTTPException(status_code=404, detail="Dokument nicht gefunden")
         
     return FileResponse(
         doc.file_path, 

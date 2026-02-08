@@ -7,7 +7,7 @@ import {
     GitBranch,
     Layers,
 } from "lucide-react";
-import { CATEGORIES } from "./types";
+import { CATEGORIES } from "./constants";
 import type { ClauseSelection, VariantGroupSelection } from "./types";
 
 interface SummaryStepProps {
@@ -25,7 +25,7 @@ interface SummaryStepProps {
     updateError?: string | null;
 }
 
-export function SummaryStep({
+export const SummaryStep = ({
     name,
     category,
     countryCode,
@@ -38,7 +38,7 @@ export function SummaryStep({
     selectedVariantGroups,
     createError,
     updateError,
-}: SummaryStepProps) {
+}: SummaryStepProps) => {
     return (
         <motion.div
             key="step3"
@@ -54,26 +54,26 @@ export function SummaryStep({
                 <CardContent className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <p className="text-sm text-gray-500">Name</p>
+                            <p className="text-sm text-muted-foreground">Name</p>
                             <p className="font-medium">{name}</p>
                         </div>
                         <div>
-                            <p className="text-sm text-gray-500">Kategorie</p>
+                            <p className="text-sm text-muted-foreground">Kategorie</p>
                             <p className="font-medium">
                                 {CATEGORIES.find(c => c.value === category)?.label || category}
                             </p>
                         </div>
                         <div>
-                            <p className="text-sm text-gray-500">Land</p>
+                            <p className="text-sm text-muted-foreground">Land</p>
                             <p className="font-medium">
                                 {countryCode === "DE" ? "Deutschland" : "Italien"}
                             </p>
                         </div>
                         <div>
-                            <p className="text-sm text-gray-500">Status</p>
+                            <p className="text-sm text-muted-foreground">Status</p>
                             <p className={cn(
                                 "font-medium",
-                                isActive ? "text-green-600" : "text-gray-500"
+                                isActive ? "text-green-600" : "text-muted-foreground"
                             )}>
                                 {isActive ? "Aktiv" : "Inaktiv"}
                             </p>
@@ -82,34 +82,34 @@ export function SummaryStep({
 
                     {/* Default values summary */}
                     <div className="border-t pt-4 mt-4">
-                        <p className="text-sm text-gray-500 mb-2 flex items-center gap-2">
+                        <p className="text-sm text-muted-foreground mb-2 flex items-center gap-2">
                             <Briefcase className="w-4 h-4" />
                             Standardwerte
                         </p>
                         <div className="grid grid-cols-2 gap-2 text-sm bg-blue-50 p-3 rounded-lg">
                             <div>
-                                <span className="text-gray-500">Probezeit:</span>{" "}
+                                <span className="text-muted-foreground">Probezeit:</span>{" "}
                                 <span className="font-medium">
                                     {defaultProbationMonths === 0 ? "Keine" : `${defaultProbationMonths} Monate`}
                                 </span>
                             </div>
                             <div>
-                                <span className="text-gray-500">K{"\u00fc"}ndigungsfrist:</span>{" "}
+                                <span className="text-muted-foreground">K{"\u00fc"}ndigungsfrist:</span>{" "}
                                 <span className="font-medium">{defaultNoticePeriod}</span>
                             </div>
                             <div>
-                                <span className="text-gray-500">Urlaubstage:</span>{" "}
+                                <span className="text-muted-foreground">Urlaubstage:</span>{" "}
                                 <span className="font-medium">{defaultVacationDays} Tage</span>
                             </div>
                             <div>
-                                <span className="text-gray-500">Wochenstunden:</span>{" "}
+                                <span className="text-muted-foreground">Wochenstunden:</span>{" "}
                                 <span className="font-medium">{defaultWeeklyHours}h</span>
                             </div>
                         </div>
                     </div>
 
                     <div className="border-t pt-4">
-                        <p className="text-sm text-gray-500 mb-2">
+                        <p className="text-sm text-muted-foreground mb-2">
                             Klauseln ({selectedClauses.length})
                         </p>
                         <div className="space-y-2">
@@ -128,7 +128,7 @@ export function SummaryStep({
                                         "text-xs px-2 py-0.5 rounded",
                                         sc.is_mandatory
                                             ? "bg-secondary/20 text-secondary"
-                                            : "bg-gray-100 text-gray-500"
+                                            : "bg-warm-100 text-muted-foreground"
                                     )}>
                                         {sc.is_mandatory ? "Pflicht" : "Optional"}
                                     </span>
@@ -140,7 +140,7 @@ export function SummaryStep({
                     {/* Variant Groups Summary */}
                     {selectedVariantGroups.length > 0 && (
                         <div className="border-t pt-4">
-                            <p className="text-sm text-gray-500 mb-2 flex items-center gap-2">
+                            <p className="text-sm text-muted-foreground mb-2 flex items-center gap-2">
                                 <GitBranch className="w-4 h-4 text-purple-600" />
                                 Varianten-Gruppen ({selectedVariantGroups.length})
                             </p>
@@ -154,14 +154,14 @@ export function SummaryStep({
                                         <span className="flex-1 font-medium">
                                             {vg.name}
                                         </span>
-                                        <span className="text-xs text-gray-500">
+                                        <span className="text-xs text-muted-foreground">
                                             {vg.variant_count || vg.variants?.length || 0} Varianten
                                         </span>
                                         <span className={cn(
                                             "text-xs px-2 py-0.5 rounded",
                                             vg.is_mandatory
                                                 ? "bg-purple-200 text-purple-700"
-                                                : "bg-gray-100 text-gray-500"
+                                                : "bg-warm-100 text-muted-foreground"
                                         )}>
                                             {vg.is_mandatory ? "Pflicht" : "Optional"}
                                         </span>
@@ -181,4 +181,4 @@ export function SummaryStep({
             )}
         </motion.div>
     );
-}
+};

@@ -264,7 +264,7 @@ export const StepReview = ({ documentTypes }: StepReviewProps) => {
                             ) : previewHtml ? (
                                 <VariableHighlighter
                                     html={sanitizeHtml(previewHtml)}
-                                    formData={formData}
+                                    formData={formData as unknown as Record<string, string | number | undefined>}
                                     className="preview-content p-6"
                                 />
                             ) : (

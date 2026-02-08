@@ -54,7 +54,7 @@ const typeIcons: Record<string, React.ElementType> = {
 
 // Priority colors
 const priorityColors: Record<string, string> = {
-    low: "border-l-gray-300",
+    low: "border-l-warm-300",
     normal: "border-l-blue-400",
     high: "border-l-amber-400",
     urgent: "border-l-red-500",
@@ -339,7 +339,7 @@ const NotificationSettings = () => {
                                                     e.target.checked
                                                 )
                                             }
-                                            className="w-4 h-4 rounded border-gray-300"
+                                            className="w-4 h-4 rounded border-warm-300"
                                         />
                                         <span className="text-sm">In-App</span>
                                     </label>
@@ -354,7 +354,7 @@ const NotificationSettings = () => {
                                                     e.target.checked
                                                 )
                                             }
-                                            className="w-4 h-4 rounded border-gray-300"
+                                            className="w-4 h-4 rounded border-warm-300"
                                         />
                                         <span className="text-sm">E-Mail</span>
                                     </label>

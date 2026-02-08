@@ -10,8 +10,8 @@ Implementiert gemäß v4.2 Spezifikation Kapitel 13:
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from pydantic import BaseModel
-from typing import Optional, Union, List
+from pydantic import BaseModel, field_validator
+from typing import Optional, Union, List, Any
 from datetime import datetime, timedelta
 import json
 
@@ -27,15 +27,39 @@ class DraftCreate(BaseModel):
     country_code: str = "DE"
     name: Optional[str] = None
     form_data: dict
-    # custom_clauses kann entweder ein dict oder eine Liste von Clause-IDs sein
     custom_clauses: Optional[Union[dict, List[int]]] = None
+
+    @field_validator("form_data")
+    @classmethod
+    def validate_form_data(cls, v: dict) -> dict:
+        """Ensure form_data is a valid dict and not excessively large."""
+        serialized = json.dumps(v)
+        if len(serialized) > 500_000:  # 500KB max
+            raise ValueError("form_data ist zu gross (max 500KB)")
+        return v
+
+    @field_validator("country_code")
+    @classmethod
+    def validate_country_code(cls, v: str) -> str:
+        if len(v) != 2 or not v.isalpha():
+            raise ValueError("country_code muss ein 2-stelliger Laendercode sein")
+        return v.upper()
 
 
 class DraftUpdate(BaseModel):
     name: Optional[str] = None
     form_data: Optional[dict] = None
-    # custom_clauses kann entweder ein dict oder eine Liste von Clause-IDs sein
     custom_clauses: Optional[Union[dict, List[int]]] = None
+    version: Optional[int] = None
+
+    @field_validator("form_data")
+    @classmethod
+    def validate_form_data(cls, v: Optional[dict]) -> Optional[dict]:
+        if v is not None:
+            serialized = json.dumps(v)
+            if len(serialized) > 500_000:
+                raise ValueError("form_data ist zu gross (max 500KB)")
+        return v
 
 
 DRAFT_TTL_DAYS = 30  # Entwürfe werden nach 30 Tagen gelöscht
@@ -74,12 +98,12 @@ async def list_drafts(
         {
             "id": d.id,
             "document_type_id": d.document_type_id,
-            "document_type_name": type_name or "Unbekannter Typ",  # NEU: Name des Dokumenttyps
+            "document_type_name": type_name or "Unbekannter Typ",
             "name": d.name or "Unbenannter Entwurf",
             "country_code": d.country_code,
+            "version": d.version or 1,
             "created_at": d.created_at.isoformat() if d.created_at else None,
             "updated_at": d.updated_at.isoformat() if d.updated_at else None,
-            # TTL-Informationen für UX
             "expires_at": calculate_expires_at(d.created_at).isoformat() if d.created_at else None,
             "days_remaining": calculate_days_remaining(d.created_at) if d.created_at else DRAFT_TTL_DAYS,
             "status": "draft",
@@ -107,7 +131,7 @@ async def create_draft(
     await db.commit()
     await db.refresh(new_draft)
     
-    return {"id": new_draft.id, "status": "created"}
+    return {"id": new_draft.id, "version": new_draft.version or 1, "status": "created"}
 
 
 @router.get("/{draft_id}")
@@ -122,7 +146,7 @@ async def get_draft(
     draft = await db.get(DocumentDraft, draft_id)
 
     if not draft or draft.user_id != str(current_user.id):
-        raise HTTPException(status_code=404, detail="Draft not found")
+        raise HTTPException(status_code=404, detail="Entwurf nicht gefunden")
 
     # Lade Dokumenttyp-Namen
     document_type = await db.get(DocumentType, draft.document_type_id)
@@ -136,6 +160,7 @@ async def get_draft(
         "country_code": draft.country_code,
         "form_data": json.loads(draft.form_data) if draft.form_data else {},
         "custom_clauses": json.loads(draft.custom_clauses) if draft.custom_clauses else None,
+        "version": draft.version or 1,
         "created_at": draft.created_at.isoformat() if draft.created_at else None,
         "updated_at": draft.updated_at.isoformat() if draft.updated_at else None,
         # TTL-Informationen
@@ -152,23 +177,39 @@ async def update_draft(
     db: AsyncSession = Depends(get_db),
     current_user = Depends(get_current_user)
 ):
-    """Update an existing draft (auto-save endpoint)."""
+    """Update an existing draft (auto-save endpoint) with optimistic locking."""
     draft = await db.get(DocumentDraft, draft_id)
-    
+
     if not draft or draft.user_id != str(current_user.id):
-        raise HTTPException(status_code=404, detail="Draft not found")
-    
+        raise HTTPException(status_code=404, detail="Entwurf nicht gefunden")
+
+    # Optimistic locking: reject if client version doesn't match
+    current_version = draft.version or 1
+    if update.version is not None and update.version != current_version:
+        raise HTTPException(
+            status_code=409,
+            detail="Konflikt: Der Entwurf wurde zwischenzeitlich geändert. Bitte laden Sie den Entwurf neu."
+        )
+
     if update.name is not None:
         draft.name = update.name
     if update.form_data is not None:
         draft.form_data = json.dumps(update.form_data)
     if update.custom_clauses is not None:
         draft.custom_clauses = json.dumps(update.custom_clauses)
-    
+
+    # Increment version on every successful update
+    draft.version = current_version + 1
+
     await db.commit()
     await db.refresh(draft)
-    
-    return {"id": draft.id, "status": "updated", "updated_at": draft.updated_at.isoformat()}
+
+    return {
+        "id": draft.id,
+        "status": "updated",
+        "version": draft.version,
+        "updated_at": draft.updated_at.isoformat(),
+    }
 
 
 @router.delete("/{draft_id}")
@@ -181,11 +222,11 @@ async def delete_draft(
     draft = await db.get(DocumentDraft, draft_id)
     
     if not draft or draft.user_id != str(current_user.id):
-        raise HTTPException(status_code=404, detail="Draft not found")
-    
+        raise HTTPException(status_code=404, detail="Entwurf nicht gefunden")
+
     await db.delete(draft)
     await db.commit()
-    
+
     return {"status": "deleted"}
 
 
@@ -227,12 +268,12 @@ async def finalize_draft(
     draft = await db.get(DocumentDraft, draft_id)
 
     if not draft or draft.user_id != str(current_user.id):
-        raise HTTPException(status_code=404, detail="Draft not found")
+        raise HTTPException(status_code=404, detail="Entwurf nicht gefunden")
 
     # Lade Dokumenttyp
     document_type = await db.get(DocumentType, draft.document_type_id)
     if not document_type:
-        raise HTTPException(status_code=404, detail="Document type not found")
+        raise HTTPException(status_code=404, detail="Dokumenttyp nicht gefunden")
 
     # Parse form_data
     form_data = json.loads(draft.form_data) if draft.form_data else {}
@@ -459,7 +500,7 @@ async def refresh_draft_ttl(
     draft = await db.get(DocumentDraft, draft_id)
 
     if not draft or draft.user_id != str(current_user.id):
-        raise HTTPException(status_code=404, detail="Draft not found")
+        raise HTTPException(status_code=404, detail="Entwurf nicht gefunden")
 
     # Update timestamp to reset TTL
     draft.updated_at = datetime.utcnow()

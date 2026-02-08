@@ -241,7 +241,7 @@ export const DocumentTypesManager = () => {
                                             className={`px-2 py-1 text-xs rounded-full ${
                                                 dt.is_active
                                                     ? "bg-secondary/20 text-secondary"
-                                                    : "bg-gray-100 text-gray-600"
+                                                    : "bg-warm-100 text-warm-600"
                                             }`}
                                         >
                                             {dt.is_active ? "Aktiv" : "Inaktiv"}

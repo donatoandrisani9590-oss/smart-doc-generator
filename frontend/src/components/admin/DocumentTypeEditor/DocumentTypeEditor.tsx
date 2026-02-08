@@ -28,7 +28,7 @@ import {
 import { ClauseFormDialog } from "@/components/clauses/ClauseFormDialog";
 import type { DocumentTypeEditorProps } from "./types";
 import { useDocumentTypeEditor } from "./useDocumentTypeEditor";
-import { BasicInfoStep } from "./BasicInfoStep";
+import { BasicsStep } from "./BasicsStep";
 import { ClauseSelectionStep } from "./ClauseSelectionStep";
 import { SummaryStep } from "./SummaryStep";
 
@@ -70,7 +70,7 @@ export const DocumentTypeEditor = ({
                                         ? "bg-secondary text-white"
                                         : s === editor.step
                                         ? "bg-primary text-white"
-                                        : "bg-gray-200 text-gray-500"
+                                        : "bg-warm-200 text-muted-foreground"
                                 )}
                             >
                                 {s < editor.step ? <Check className="w-4 h-4" /> : s}
@@ -78,13 +78,13 @@ export const DocumentTypeEditor = ({
                             <span
                                 className={cn(
                                     "ml-2 text-sm",
-                                    s === editor.step ? "text-primary font-medium" : "text-gray-500"
+                                    s === editor.step ? "text-primary font-medium" : "text-muted-foreground"
                                 )}
                             >
                                 {STEP_LABELS[s - 1]}
                             </span>
                             {s < 3 && (
-                                <ChevronRight className="w-4 h-4 mx-4 text-gray-400" />
+                                <ChevronRight className="w-4 h-4 mx-4 text-warm-400" />
                             )}
                         </div>
                     ))}
@@ -99,7 +99,7 @@ export const DocumentTypeEditor = ({
                     ) : (
                         <AnimatePresence mode="wait">
                             {editor.step === 1 && (
-                                <BasicInfoStep
+                                <BasicsStep
                                     name={editor.name}
                                     setName={editor.setName}
                                     description={editor.description}

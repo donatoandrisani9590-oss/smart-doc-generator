@@ -208,7 +208,7 @@ export const ValidationProgress = ({
                         </div>
 
                         {/* Fortschrittsbalken */}
-                        <div className="w-16 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                        <div className="w-16 h-1.5 bg-warm-200 rounded-full overflow-hidden">
                             <motion.div
                                 className={cn("h-full rounded-full", config.color)}
                                 initial={{ width: 0 }}

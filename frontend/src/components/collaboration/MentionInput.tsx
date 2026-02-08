@@ -256,7 +256,7 @@ export const MentionInput = ({
                         transition={{ duration: 0.15 }}
                         className={cn(
                             "absolute z-50 mt-1 w-full max-w-xs",
-                            "bg-white dark:bg-gray-900 rounded-lg shadow-lg border",
+                            "bg-white dark:bg-warm-50 rounded-lg shadow-lg border",
                             "max-h-60 overflow-y-auto"
                         )}
                     >

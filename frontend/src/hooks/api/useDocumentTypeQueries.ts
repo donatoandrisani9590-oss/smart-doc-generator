@@ -4,7 +4,7 @@
  * MASTER TEMPLATES + FORM FIELDS + FORM FIELD SYNC + PLACEHOLDERS
  */
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiFetch, fetchApi } from "@/lib/api-client";
+import { apiFetch } from "@/lib/api-client";
 import { toast } from "sonner";
 
 const API_BASE = "/api/v1";
@@ -147,7 +147,7 @@ export const useDeleteDocumentType = () => {
 
     return useMutation({
         mutationFn: async (documentTypeId: number) => {
-            const res = await fetchApi.delete(`${API_BASE}/document-types/${documentTypeId}`);
+            const res = await apiFetch(`${API_BASE}/document-types/${documentTypeId}`, { method: "DELETE" });
             if (!res.ok) {
                 const error = await res.json().catch(() => ({ detail: "Löschen fehlgeschlagen" }));
                 throw new Error(error.detail || "Dokumenttyp konnte nicht gelöscht werden");

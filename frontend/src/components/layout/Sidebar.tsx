@@ -28,8 +28,8 @@ const SidebarItem = ({ icon: Icon, label, href, active, badge }: SidebarItemProp
         className={cn(
             "group flex items-center justify-between px-3 py-2.5 text-sm transition-all rounded-lg mx-1",
             active
-                ? "bg-primary/5 text-primary font-medium"
-                : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                ? "bg-warm-100 text-primary font-medium border-l-2 border-primary"
+                : "text-muted-foreground hover:bg-warm-50 hover:text-foreground"
         )}
         aria-current={active ? "page" : undefined}
     >

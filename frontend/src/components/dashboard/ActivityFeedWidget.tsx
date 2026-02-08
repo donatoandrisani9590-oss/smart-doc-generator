@@ -98,7 +98,7 @@ const ACTIVITY_CONFIGS: Record<
   },
   draft_saved: {
     icon: Clock,
-    color: "text-gray-600 bg-gray-50",
+    color: "text-warm-600 bg-warm-100",
     label: "gespeichert",
   },
 };
@@ -117,6 +117,8 @@ interface ActivityFeedWidgetProps {
   limit?: number;
   /** Show header */
   showHeader?: boolean;
+  /** Compact mode for sidebar usage */
+  compact?: boolean;
   /** Custom class name */
   className?: string;
 }
@@ -124,6 +126,7 @@ interface ActivityFeedWidgetProps {
 export function ActivityFeedWidget({
   limit = 5,
   showHeader = true,
+  compact = false,
   className,
 }: ActivityFeedWidgetProps) {
   const navigate = useNavigate();
@@ -210,7 +213,9 @@ export function ActivityFeedWidget({
         )}
         <CardContent>
           <div className="text-center py-6">
-            <Activity className="w-10 h-10 mx-auto text-muted-foreground/50 mb-2" />
+            <div className="w-12 h-12 mx-auto rounded-full bg-warm-100 flex items-center justify-center mb-2">
+              <Activity className="w-5 h-5 text-warm-500" />
+            </div>
             <p className="text-sm text-muted-foreground">
               Noch keine Aktivitäten
             </p>
@@ -248,7 +253,7 @@ export function ActivityFeedWidget({
           <div className="absolute left-4 top-2 bottom-2 w-px bg-border" />
 
           {/* Activities */}
-          <div className="space-y-4">
+          <div className={compact ? "space-y-3" : "space-y-4"}>
             {activities.map((activity, index) => {
               const config =
                 ACTIVITY_CONFIGS[activity.activity_type] ||

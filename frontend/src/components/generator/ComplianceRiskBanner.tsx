@@ -218,12 +218,12 @@ export function ComplianceRiskBanner({
     return (
       <div
         className={cn(
-          "flex items-center gap-2 px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg",
+          "flex items-center gap-2 px-4 py-3 bg-warm-50 border border-warm-200 rounded-lg",
           className
         )}
       >
-        <Loader2 className="h-4 w-4 animate-spin text-gray-500" />
-        <span className="text-sm text-gray-600">
+        <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+        <span className="text-sm text-muted-foreground">
           Compliance-Prüfung läuft...
         </span>
       </div>
@@ -235,12 +235,12 @@ export function ComplianceRiskBanner({
     return (
       <div
         className={cn(
-          "flex items-center gap-2 px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg",
+          "flex items-center gap-2 px-4 py-3 bg-warm-50 border border-warm-200 rounded-lg",
           className
         )}
       >
-        <Info className="h-4 w-4 text-gray-500" />
-        <span className="text-sm text-gray-500">{error}</span>
+        <Info className="h-4 w-4 text-muted-foreground" />
+        <span className="text-sm text-muted-foreground">{error}</span>
       </div>
     );
   }
@@ -358,15 +358,15 @@ export function ComplianceRiskBanner({
 
             {/* Loading indicator */}
             {isLoading && (
-              <Loader2 className="h-4 w-4 animate-spin text-gray-500 flex-shrink-0" />
+              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground flex-shrink-0" />
             )}
 
             {/* Expand/collapse icon */}
             <div className="flex-shrink-0">
               {isExpanded ? (
-                <ChevronUp className="h-4 w-4 text-gray-500" />
+                <ChevronUp className="h-4 w-4 text-muted-foreground" />
               ) : (
-                <ChevronDown className="h-4 w-4 text-gray-500" />
+                <ChevronDown className="h-4 w-4 text-muted-foreground" />
               )}
             </div>
           </button>
@@ -374,7 +374,7 @@ export function ComplianceRiskBanner({
 
         {/* Expandable content - Risk details */}
         <CollapsibleContent>
-          <div className="border-t border-gray-200 divide-y divide-gray-100 max-h-[400px] overflow-y-auto">
+          <div className="border-t border-warm-200 divide-y divide-warm-100 max-h-[400px] overflow-y-auto">
             {result.risks.map((risk) => {
               const riskConfig = severityConfig[risk.severity];
               const RiskIcon = riskConfig.icon;
@@ -401,7 +401,7 @@ export function ComplianceRiskBanner({
                     <div className="flex-1 min-w-0">
                       {/* Title + Severity Badge */}
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-medium text-gray-900">
+                        <span className="font-medium text-foreground">
                           {risk.title}
                         </span>
                         <Badge
@@ -413,22 +413,22 @@ export function ComplianceRiskBanner({
                       </div>
 
                       {/* Description */}
-                      <p className="text-sm text-gray-600 mt-1">
+                      <p className="text-sm text-muted-foreground mt-1">
                         {risk.description}
                       </p>
 
                       {/* Affected Text */}
-                      <div className="mt-2 px-3 py-2 bg-gray-100 rounded text-sm font-mono text-gray-700 break-words">
+                      <div className="mt-2 px-3 py-2 bg-warm-100 rounded text-sm font-mono text-foreground break-words">
                         „{risk.affected_text}"
                       </div>
 
                       {/* Suggestion */}
                       {risk.suggestion && (
                         <div className="mt-2 flex items-start gap-2">
-                          <span className="text-xs font-medium text-gray-500 flex-shrink-0">
+                          <span className="text-xs font-medium text-muted-foreground flex-shrink-0">
                             💡 Empfehlung:
                           </span>
-                          <span className="text-sm text-gray-700">
+                          <span className="text-sm text-foreground">
                             {risk.suggestion}
                           </span>
                         </div>
@@ -436,7 +436,7 @@ export function ComplianceRiskBanner({
 
                       {/* Legal Reference */}
                       {risk.legal_reference && (
-                        <div className="mt-1 flex items-center gap-1 text-xs text-gray-500">
+                        <div className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
                           <Scale className="h-3 w-3" />
                           <span>Rechtsgrundlage: {risk.legal_reference}</span>
                         </div>
@@ -449,7 +449,7 @@ export function ComplianceRiskBanner({
           </div>
 
           {/* Footer with metadata */}
-          <div className="px-4 py-2 bg-gray-50 border-t border-gray-200 flex items-center justify-between text-xs text-gray-500">
+          <div className="px-4 py-2 bg-warm-50 border-t border-warm-200 flex items-center justify-between text-xs text-muted-foreground">
             <span>
               Geprüft:{" "}
               {new Date(result.scanned_at).toLocaleTimeString("de-DE")}

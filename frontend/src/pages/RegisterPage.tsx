@@ -31,8 +31,13 @@ export const RegisterPage: React.FC = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Password validation
-  const passwordMinLength = password.length >= 8;
+  // Password validation (must match backend policy: 12+ chars, upper, lower, digit, special)
+  const passwordMinLength = password.length >= 12;
+  const passwordHasUpper = /[A-Z]/.test(password);
+  const passwordHasLower = /[a-z]/.test(password);
+  const passwordHasDigit = /\d/.test(password);
+  const passwordHasSpecial = /[!@#$%^&*()_+\-=\[\]{}|;:,.<>?/~`]/.test(password);
+  const passwordValid = passwordMinLength && passwordHasUpper && passwordHasLower && passwordHasDigit && passwordHasSpecial;
   const passwordsMatch = password === confirmPassword && confirmPassword.length > 0;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -52,9 +57,15 @@ export const RegisterPage: React.FC = () => {
       return;
     }
 
-    // Validate password length
-    if (password.length < 8) {
-      setError("Das Passwort muss mindestens 8 Zeichen lang sein.");
+    // Validate password complexity (must match backend policy)
+    const pwErrors: string[] = [];
+    if (password.length < 12) pwErrors.push("mindestens 12 Zeichen");
+    if (!/[A-Z]/.test(password)) pwErrors.push("einen Großbuchstaben");
+    if (!/[a-z]/.test(password)) pwErrors.push("einen Kleinbuchstaben");
+    if (!/\d/.test(password)) pwErrors.push("eine Ziffer");
+    if (!/[!@#$%^&*()_+\-=\[\]{}|;:,.<>?/~`]/.test(password)) pwErrors.push("ein Sonderzeichen");
+    if (pwErrors.length > 0) {
+      setError(`Passwort benötigt: ${pwErrors.join(", ")}`);
       return;
     }
 
@@ -73,7 +84,7 @@ export const RegisterPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-950 p-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -135,7 +146,7 @@ export const RegisterPage: React.FC = () => {
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
-                    placeholder="Mindestens 8 Zeichen"
+                    placeholder="Mind. 12 Zeichen, Groß-/Kleinbuchst., Ziffer, Sonderz."
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     disabled={isLoading}
@@ -155,17 +166,27 @@ export const RegisterPage: React.FC = () => {
                     )}
                   </button>
                 </div>
-                {/* Password strength indicator */}
+                {/* Password strength indicators */}
                 {password.length > 0 && (
-                  <div className="flex items-center gap-2 text-xs">
-                    {passwordMinLength ? (
-                      <CheckCircle2 className="h-3 w-3 text-green-500" />
-                    ) : (
-                      <AlertCircle className="h-3 w-3 text-muted-foreground" />
-                    )}
-                    <span className={passwordMinLength ? "text-green-600" : "text-muted-foreground"}>
-                      Mindestens 8 Zeichen
-                    </span>
+                  <div className="space-y-1">
+                    {[
+                      { check: passwordMinLength, label: "Mindestens 12 Zeichen" },
+                      { check: passwordHasUpper, label: "Großbuchstabe (A-Z)" },
+                      { check: passwordHasLower, label: "Kleinbuchstabe (a-z)" },
+                      { check: passwordHasDigit, label: "Ziffer (0-9)" },
+                      { check: passwordHasSpecial, label: "Sonderzeichen (!@#$...)" },
+                    ].map(({ check, label }) => (
+                      <div key={label} className="flex items-center gap-2 text-xs">
+                        {check ? (
+                          <CheckCircle2 className="h-3 w-3 text-green-500" />
+                        ) : (
+                          <AlertCircle className="h-3 w-3 text-muted-foreground" />
+                        )}
+                        <span className={check ? "text-green-600" : "text-muted-foreground"}>
+                          {label}
+                        </span>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
@@ -216,7 +237,7 @@ export const RegisterPage: React.FC = () => {
               <Button
                 type="submit"
                 className="w-full"
-                disabled={isLoading || !passwordMinLength || !passwordsMatch}
+                disabled={isLoading || !passwordValid || !passwordsMatch}
                 size="lg"
               >
                 {isLoading ? (

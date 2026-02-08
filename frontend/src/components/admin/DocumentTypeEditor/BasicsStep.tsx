@@ -19,9 +19,9 @@ import {
     Clock,
     Calendar,
 } from "lucide-react";
-import { CATEGORIES } from "./types";
+import { CATEGORIES } from "./constants";
 
-interface BasicInfoStepProps {
+interface BasicsStepProps {
     name: string;
     setName: (value: string) => void;
     description: string;
@@ -45,7 +45,7 @@ interface BasicInfoStepProps {
     errors: Record<string, string>;
 }
 
-export function BasicInfoStep({
+export const BasicsStep = ({
     name,
     setName,
     description,
@@ -67,7 +67,7 @@ export function BasicInfoStep({
     defaultWeeklyHours,
     setDefaultWeeklyHours,
     errors,
-}: BasicInfoStepProps) {
+}: BasicsStepProps) => {
     return (
         <motion.div
             key="step1"
@@ -260,4 +260,4 @@ export function BasicInfoStep({
             </Collapsible>
         </motion.div>
     );
-}
+};

@@ -148,7 +148,7 @@ export const CommentSidebar = ({
                         style={{ width }}
                         className={cn(
                             "fixed right-0 top-0 h-full z-50",
-                            "bg-white dark:bg-gray-900 border-l shadow-xl",
+                            "bg-white dark:bg-warm-50 border-l shadow-xl",
                             "flex flex-col",
                             "lg:relative lg:z-0",
                             className

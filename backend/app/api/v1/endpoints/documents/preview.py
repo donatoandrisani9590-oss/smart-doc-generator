@@ -83,7 +83,7 @@ async def generate_preview(
     # 1. Get document type
     doc_type = await db.get(DocumentType, request.document_type_id)
     if not doc_type:
-        raise HTTPException(status_code=404, detail="Document type not found")
+        raise HTTPException(status_code=404, detail="Dokumenttyp nicht gefunden")
     
     country_code = doc_type.country_code or "DE"
     
@@ -313,7 +313,7 @@ async def generate_composer_preview(
     instances = draft_result.scalars().all()
 
     if not instances:
-        raise HTTPException(status_code=404, detail="Draft not found or empty")
+        raise HTTPException(status_code=404, detail="Entwurf nicht gefunden oder leer")
 
     # Get country code from first clause or default
     country_code = "DE"
@@ -394,7 +394,7 @@ async def generate_test_preview(
     This is for admin/designer testing before publishing.
     """
     if not request.clause_ids:
-        raise HTTPException(status_code=400, detail="At least one clause_id is required")
+        raise HTTPException(status_code=400, detail="Mindestens eine clause_id ist erforderlich")
 
     # Get country code from first clause or default
     country_code = "DE"

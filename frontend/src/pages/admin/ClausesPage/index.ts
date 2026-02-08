@@ -1,0 +1,1 @@
+export { ClausesPage } from "./ClausesPage";

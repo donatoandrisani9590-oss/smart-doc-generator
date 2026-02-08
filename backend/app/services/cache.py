@@ -3,8 +3,11 @@ Redis caching service for performance optimization.
 Caches design settings, clauses, and document type data for fast preview.
 """
 import json
+import logging
 from typing import Optional, Any
 import os
+
+logger = logging.getLogger(__name__)
 
 # Try to import redis, fall back to in-memory cache if not available
 try:
@@ -41,12 +44,12 @@ class CacheService:
                 )
                 # Test connection
                 await self._redis_client.ping()
-                print(f"✓ Redis connected: {redis_url}")
+                logger.info(f"Redis connected: {redis_url}")
             except Exception as e:
-                print(f"⚠ Redis unavailable ({e}), using memory cache")
+                logger.warning(f"Redis unavailable ({e}), using memory cache")
                 self._redis_client = None
         else:
-            print("⚠ Redis library not installed, using memory cache")
+            logger.warning("Redis library not installed, using memory cache")
         
         self._initialized = True
     

@@ -220,28 +220,8 @@ export function WorksCouncilExport({
 
     // PDF Download (simuliert)
     const downloadPDF = () => {
-        // In Produktion: PDF generieren und herunterladen
-        const printWindow = window.open("", "_blank");
-        if (printWindow) {
-            printSanitizedHtml(printWindow, `
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <title>BR-Mitteilung - ${employeeName}</title>
-                    <style>
-                        body { font-family: Arial, sans-serif; padding: 40px; }
-                        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-                        td { padding: 8px; border: 1px solid #ddd; }
-                        .br-legal-notice { background: #f5f5f5; padding: 15px; margin-top: 30px; }
-                    </style>
-                </head>
-                <body>
-                    ${previewHtml}
-                </body>
-                </html>
-            `);
-            printWindow.document.close();
-            printWindow.print();
+        if (previewHtml) {
+            printSanitizedHtml(previewHtml, `BR-Mitteilung - ${employeeName}`);
         }
     };
 

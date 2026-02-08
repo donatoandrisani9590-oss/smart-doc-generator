@@ -1,83 +1,133 @@
-# AI Coding Starter Kit
+# Smart Document Generator
 
-> A Next.js template with an AI-powered development workflow using 6 specialized agents
-
-## Vision
-Build web applications faster with AI agents handling Requirements, Architecture, Development, QA, and Deployment. Each agent has clear responsibilities and a human-in-the-loop workflow for quality control.
+> KI-gestuetzter Dokumentengenerator fuer Arbeitsvertraege, HR-Dokumente und juristische Schriftstuecke
 
 ---
 
-## Aktueller Status
-Template ready - Start by defining your first feature!
+## Zentrale Architektur-Dokumentation
+
+**WICHTIG: Lies zuerst [`ARCHITECTURE.md`](./ARCHITECTURE.md)** - Dort steht die komplette Cloud-Architektur, alle Service-URLs, Environment Variables und Deployment-Regeln.
+
+---
+
+## Grundprinzip
+
+Diese App laeuft **ausschliesslich in der Cloud** (Vercel + Railway + GitHub).
+Lokal wird nur entwickelt, niemals betrieben.
+Siehe [`ARCHITECTURE.md`](./ARCHITECTURE.md) Abschnitt 1 fuer Details.
 
 ---
 
 ## Tech Stack
 
-### Frontend
-- **Framework:** Next.js 16 (App Router)
-- **Sprache:** TypeScript
+### Frontend (auf Vercel)
+- **Framework:** React 19 + Vite + TypeScript
 - **Styling:** Tailwind CSS
-- **UI Library:** shadcn/ui (copy-paste components)
+- **UI Library:** shadcn/ui
+- **State:** TanStack React Query (Server) + Context API (UI)
+- **Hosting:** Vercel (Auto-Deploy via GitHub)
 
-### Backend
-- **Database:** Supabase (PostgreSQL with Auth)
-- **State Management:** React useState / Context API
-- **Data Fetching:** React Server Components / fetch
+### Backend (auf Railway)
+- **Framework:** FastAPI (Python 3.11)
+- **ORM:** SQLAlchemy 2.0 (async)
+- **Migrations:** Alembic
+- **Auth:** JWT (python-jose) mit Access + Refresh Tokens
+- **Async Tasks:** Celery + Redis
+- **PDF-Generierung:** python-docx + LibreOffice (headless)
+- **Hosting:** Railway (Docker-basiert)
 
-### Deployment
-- **Hosting:** Vercel (oder Netlify)
+### Datenbank & Cache (auf Railway)
+- **Datenbank:** PostgreSQL 16 (Railway Plugin)
+- **Cache:** Redis 7 (Railway Plugin)
+
+### Versionskontrolle
+- **Repository:** GitHub (`donatoandrisani9590-oss/smart-doc-generator`)
+- **Branch-Strategie:** Feature-Branches → Pull Request → Merge in `main`
 
 ---
 
-## Features Roadmap
+## Aktueller Status
 
-### Your Features Will Appear Here
+- Frontend: Live auf Vercel
+- Backend: Live auf Railway
+- Datenbank: PostgreSQL auf Railway
+- Alle 7 Feature-Branches gemergt (Security Hardening, AI Clauses, Approval Workflow, Upload Fixes)
 
-Start by defining your first feature using the Requirements Engineer agent:
+---
+
+## Projektstruktur
+
 ```
-Read .claude/agents/requirements-engineer.md and create a feature spec for [your feature idea]
+smart-doc-generator/
+├── .claude/
+│   └── agents/                  ← 6 AI Agents (Requirements, Architect, Frontend, Backend, QA, DevOps)
+├── backend/
+│   ├── app/
+│   │   ├── api/v1/endpoints/    ← FastAPI Endpoints (admin, auth, documents, smart, user)
+│   │   ├── core/                ← Config, Security, Settings
+│   │   ├── models/              ← SQLAlchemy Models
+│   │   ├── schemas/             ← Pydantic Schemas (Validation)
+│   │   ├── services/            ← Business Logic (clause_ai_bridge, etc.)
+│   │   ├── db.py                ← Database Engine Setup
+│   │   └── main.py              ← FastAPI App + Router Registration
+│   ├── migrations/              ← Alembic Database Migrations
+│   ├── scripts/                 ← Admin-Scripts (create_admin.py)
+│   ├── Dockerfile               ← Railway Build-Anweisung
+│   ├── requirements.txt         ← Python Dependencies
+│   └── .env.example             ← Environment Template
+├── frontend/
+│   ├── src/
+│   │   ├── components/          ← React Components (admin, auth, clauses, composer, documents, generator)
+│   │   ├── contexts/            ← React Contexts (Auth, FeatureSettings, Toast)
+│   │   ├── hooks/               ← Custom Hooks (useApi, wizard/)
+│   │   ├── lib/                 ← Utilities (api-client, logger, sentry)
+│   │   ├── pages/               ← Page Components (Dashboard, Generator, Admin, etc.)
+│   │   ├── utils/               ← Helpers (sanitize, secureStorage)
+│   │   └── App.tsx              ← Router + Lazy Loading
+│   ├── .vercel/                 ← Vercel Project Link
+│   └── package.json             ← npm Dependencies
+├── features/                    ← Feature Specifications
+├── ARCHITECTURE.md              ← ZENTRALE ARCHITEKTUR-DOKU (lies diese zuerst!)
+├── SYSTEM_BLUEPRINT.md          ← Technisches Blueprint (ER-Diagramme, API-Specs)
+├── PRODUCTION_DEPLOYMENT_GUIDE.md
+├── DEPLOYMENT_CHECKLIST.md
+├── SECURITY_HARDENING_KONZEPT.md
+├── DEPLOY_README.md
+├── deploy.sh
+└── docker-compose.yml
 ```
-
-Example roadmap structure:
-- [PROJ-1] Your First Feature → 🔵 Planned → [Spec](/features/PROJ-1-feature-name.md)
-- [PROJ-2] Your Second Feature → ⚪ Backlog
-
----
-
-## Status-Legende
-- ⚪ Backlog (noch nicht gestartet)
-- 🔵 Planned (Requirements geschrieben)
-- 🟡 In Review (User reviewt)
-- 🟢 In Development (Wird gebaut)
-- ✅ Done (Live + getestet)
-
----
-
-## Development Workflow
-
-1. **Requirements Engineer** erstellt Feature Spec → User reviewt
-2. **Solution Architect** designed Schema/Architecture → User approved
-3. **PROJECT_CONTEXT.md** Roadmap updaten (Status: 🔵 Planned → 🟢 In Development)
-4. **Frontend + Backend Devs** implementieren → User testet
-5. **QA Engineer** führt Tests aus → Bugs werden gemeldet
-6. **DevOps** deployed → Status: ✅ Done
 
 ---
 
 ## Environment Variables
 
-For projects using Supabase:
+### Frontend (Vercel Dashboard)
 ```bash
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+VITE_API_URL=https://web-production-96d24.up.railway.app
+# Optional:
+VITE_SENTRY_DSN=
+VITE_APP_VERSION=1.0.0
 ```
 
-See `.env.local.example` for full list.
+### Backend (Railway Dashboard)
+```bash
+DATABASE_URL=${{Postgres.DATABASE_URL}}    # Railway Referenz
+REDIS_URL=${{Redis.REDIS_URL}}             # Railway Referenz
+SECRET_KEY=<generiert>                      # JWT Access Token
+REFRESH_SECRET_KEY=<generiert>              # JWT Refresh Token
+CORS_ORIGINS=https://frontend-drab-tau-99.vercel.app
+DEBUG=false
+ENVIRONMENT=production
+PORT=8000
+```
+
+Vollstaendige Liste: Siehe [`ARCHITECTURE.md`](./ARCHITECTURE.md) Abschnitt 3.
 
 ---
 
 ## Agent-Team Verantwortlichkeiten
+
+Alle Agents MUESSEN [`ARCHITECTURE.md`](./ARCHITECTURE.md) Abschnitt 8 beachten!
 
 - **Requirements Engineer** (`.claude/agents/requirements-engineer.md`)
   - Feature Specs in `/features` erstellen
@@ -85,116 +135,53 @@ See `.env.local.example` for full list.
 
 - **Solution Architect** (`.claude/agents/solution-architect.md`)
   - Database Schema + Component Architecture designen
-  - Tech-Entscheidungen treffen
+  - Tech-Entscheidungen treffen (Cloud-kompatibel!)
 
 - **Frontend Developer** (`.claude/agents/frontend-dev.md`)
   - UI Components bauen (React + Tailwind + shadcn/ui)
-  - Responsive Design + Accessibility
+  - MUSS auf Vercel fehlerfrei bauen (`tsc -b && vite build`)
 
 - **Backend Developer** (`.claude/agents/backend-dev.md`)
-  - Supabase Queries + Row Level Security Policies
-  - API Routes + Server-Side Logic
+  - FastAPI Endpoints + SQLAlchemy Models
+  - MUSS auf Railway fehlerfrei starten (Docker)
 
 - **QA Engineer** (`.claude/agents/qa-engineer.md`)
   - Features gegen Acceptance Criteria testen
   - Bugs dokumentieren + priorisieren
 
 - **DevOps** (`.claude/agents/devops.md`)
-  - Deployment zu Vercel
+  - Deployment zu Vercel (Frontend) und Railway (Backend)
   - Environment Variables verwalten
-  - Production-Ready Essentials (Error Tracking, Security Headers, Performance)
+  - KEIN Docker lokal - nur Cloud-Deployment!
 
 ---
 
-## Production-Ready Features
-
-This template includes production-readiness guides integrated into the agents:
-
-- **Error Tracking:** Sentry setup instructions (DevOps Agent)
-- **Security Headers:** XSS/Clickjacking protection (DevOps Agent)
-- **Performance:** Database indexing, query optimization (Backend Agent)
-- **Input Validation:** Zod schemas for API safety (Backend Agent)
-- **Caching:** Next.js caching strategies (Backend Agent)
-
-All guides are practical and include code examples ready to copy-paste.
-
----
-
-## Design Decisions
-
-Document your architectural decisions here as your project evolves.
-
-**Template:**
-- **Why did we choose X over Y?**
-  → Reason 1
-  → Reason 2
-
----
-
-## Folder Structure
+## Deployment Workflow
 
 ```
-ai-coding-starter-kit/
-├── .claude/
-│   └── agents/              ← 6 AI Agents (Requirements, Architect, Frontend, Backend, QA, DevOps)
-├── features/                ← Feature Specs (Requirements Engineer creates these)
-│   └── README.md            ← Documentation on how to write feature specs
-├── src/
-│   ├── app/                 ← Pages (Next.js App Router)
-│   ├── components/          ← React Components
-│   │   └── ui/              ← shadcn/ui components (add as needed)
-│   └── lib/                 ← Utility functions
-│       ├── supabase.ts      ← Supabase client (commented out by default)
-│       └── utils.ts         ← Helper functions
-├── public/                  ← Static files
-├── PROJECT_CONTEXT.md       ← This file - update as project grows
-└── package.json
+1. Code aendern (lokal)
+2. TypeScript pruefen: cd frontend && npx tsc --noEmit
+3. Committen + Pushen auf main
+4. Frontend: npx vercel --prod (oder Auto-Deploy via GitHub)
+5. Backend: cd backend && railway up
+6. Testen: curl https://web-production-96d24.up.railway.app/health
 ```
 
----
-
-## Getting Started
-
-1. **Install dependencies:**
-   ```bash
-   npm install
-   ```
-
-2. **Setup Environment Variables (if using Supabase):**
-   ```bash
-   cp .env.local.example .env.local
-   # Add your Supabase credentials
-   ```
-
-3. **Start development server:**
-   ```bash
-   npm run dev
-   ```
-
-4. **Start using the AI Agent workflow:**
-   - Tell Claude to read `.claude/agents/requirements-engineer.md` and define your first feature
-   - Follow the workflow: Requirements → Architecture → Development → QA → Deployment
+Vollstaendige Anleitung: Siehe [`ARCHITECTURE.md`](./ARCHITECTURE.md) Abschnitt 5.
 
 ---
 
-## Next Steps
+## Weitere Dokumentation
 
-1. **Define your first feature idea**
-   - Think about what you want to build
-
-2. **Start with Requirements Engineer**
-   - Tell Claude: "Read .claude/agents/requirements-engineer.md and create a feature spec for [your idea]"
-   - The agent will ask clarifying questions and create a detailed spec
-
-3. **Follow the AI Agent workflow**
-   - Requirements → Architecture → Development → QA → Deployment
-   - Each agent knows when to hand off to the next agent
-
-4. **Track progress via Git**
-   - Feature specs in `/features/PROJ-X.md` show status (Planned → In Progress → Deployed)
-   - Git commits track all implementation details
-   - Use `git log --grep="PROJ-X"` to see feature history
+| Dokument | Inhalt |
+|----------|--------|
+| [`ARCHITECTURE.md`](./ARCHITECTURE.md) | Cloud-Architektur, Services, Regeln (PFLICHTLEKTUERE) |
+| [`SYSTEM_BLUEPRINT.md`](./SYSTEM_BLUEPRINT.md) | ER-Diagramme, API-Specs, Datenfluesse |
+| [`SECURITY_HARDENING_KONZEPT.md`](./SECURITY_HARDENING_KONZEPT.md) | Security-Framework |
+| [`PRODUCTION_DEPLOYMENT_GUIDE.md`](./PRODUCTION_DEPLOYMENT_GUIDE.md) | Detaillierte Deployment-Anleitung |
+| [`DEPLOYMENT_CHECKLIST.md`](./DEPLOYMENT_CHECKLIST.md) | Pre-Deployment Checkliste |
+| [`ROADMAP_6_MONATE.md`](./ROADMAP_6_MONATE.md) | 6-Monats-Produktroadmap |
 
 ---
 
-**Built with AI Agent Team System + Claude Code**
+**Cloud-First. Immer online. Vercel + Railway + GitHub.**

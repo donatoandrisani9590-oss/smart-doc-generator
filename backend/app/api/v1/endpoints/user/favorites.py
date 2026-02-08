@@ -186,7 +186,7 @@ async def add_favorite(
     if existing:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="Already in favorites"
+            detail="Bereits in Favoriten"
         )
 
     # Get max display_order for new favorite
@@ -261,7 +261,7 @@ async def remove_favorite(
     if not favorite:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Favorite not found"
+            detail="Favorit nicht gefunden"
         )
 
     await db.delete(favorite)

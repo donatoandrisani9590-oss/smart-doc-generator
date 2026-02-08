@@ -12,7 +12,9 @@ import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { Sidebar } from "./Sidebar";
 import { NotificationDropdown } from "@/components/notifications/NotificationDropdown";
+import { ThemeToggle } from "./ThemeToggle";
 import { CountrySelector } from "./CountrySelector";
+import { useTheme } from "@/contexts/ThemeContext";
 import { KeyboardShortcutsDialog } from "./KeyboardShortcutsDialog";
 import { OnboardingTour } from "@/components/onboarding/OnboardingTour";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
@@ -43,6 +45,7 @@ export const Layout = () => {
     const [pageAnnouncement, setPageAnnouncement] = useState("");
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [showTour, setShowTour] = useState(false);
+    const { resolvedTheme } = useTheme();
 
     // Announce page changes for screen readers
     useEffect(() => {
@@ -117,7 +120,12 @@ export const Layout = () => {
                 <header
                     className="h-16 px-8 flex items-center justify-between glass-header z-10 sticky top-0"
                     role="banner"
-                    style={{ backdropFilter: 'blur(12px)', backgroundColor: 'rgba(255, 255, 255, 0.8)' }}
+                    style={{
+                        backdropFilter: 'blur(12px)',
+                        backgroundColor: resolvedTheme === 'dark'
+                            ? 'rgba(20, 22, 30, 0.85)'
+                            : 'rgba(252, 249, 245, 0.85)',
+                    }}
                 >
                     <div className="flex items-center gap-4">
                         {/* Mobile menu button */}
@@ -131,12 +139,13 @@ export const Layout = () => {
                         >
                             <Menu className="w-5 h-5" />
                         </Button>
-                        <h1 className="text-lg font-semibold text-gray-900 tracking-tight" aria-live="polite">
+                        <h1 className="text-lg font-semibold text-foreground tracking-tight" aria-live="polite">
                             {pageTitle}
                         </h1>
                     </div>
 
                     <nav className="flex items-center gap-2" aria-label="Schnellaktionen">
+                        <ThemeToggle />
                         <CountrySelector />
                         <div className="w-px h-6 bg-border mx-1" />
                         <NotificationDropdown />
@@ -146,7 +155,7 @@ export const Layout = () => {
                 {/* Content Area with Transitions */}
                 <div
                     id="main-content"
-                    className="flex-1 overflow-y-auto overflow-x-hidden bg-muted/30 scroll-smooth"
+                    className="flex-1 overflow-y-auto overflow-x-hidden bg-background scroll-smooth"
                     tabIndex={-1}
                 >
                     <div className="p-8 max-w-7xl mx-auto w-full">

@@ -102,7 +102,7 @@ export const DocumentWizardDialog = ({
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-2xl bg-white/95 backdrop-blur-sm shadow-2xl border-white/20 p-0 overflow-hidden gap-0">
-                <div className="p-6 border-b bg-gray-50/50">
+                <div className="p-6 border-b bg-warm-50/50">
                     <DialogHeader>
                         <DialogTitle className="text-xl">Neues Dokument</DialogTitle>
                         <DialogDescription>
@@ -160,7 +160,7 @@ export const DocumentWizardDialog = ({
                                     <span className="text-sm font-medium text-muted-foreground">
                                         Alle Dokumenttypen
                                     </span>
-                                    <div className="flex-1 h-px bg-gray-200" />
+                                    <div className="flex-1 h-px bg-warm-200" />
                                 </div>
                             )}
 
@@ -169,22 +169,22 @@ export const DocumentWizardDialog = ({
                                 <button
                                     key={type.id}
                                     onClick={() => handleSelectType(type.id)}
-                                    className="flex items-start gap-3 p-4 rounded-xl border border-gray-100 bg-gray-50/30 hover:bg-primary/5 hover:border-primary/20 text-left transition-all group"
+                                    className="flex items-start gap-3 p-4 rounded-xl border border-warm-100 bg-warm-50/30 hover:bg-primary/5 hover:border-primary/20 text-left transition-all group"
                                 >
-                                    <div className="p-2.5 bg-white rounded-lg shadow-sm border border-gray-100 group-hover:border-primary/20 group-hover:text-primary transition-colors">
-                                        <FileText className="h-5 w-5 text-gray-500 group-hover:text-primary" />
+                                    <div className="p-2.5 bg-white rounded-lg shadow-sm border border-warm-100 group-hover:border-primary/20 group-hover:text-primary transition-colors">
+                                        <FileText className="h-5 w-5 text-muted-foreground group-hover:text-primary" />
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <div className="font-medium text-gray-900 group-hover:text-primary truncate">
+                                        <div className="font-medium text-foreground group-hover:text-primary truncate">
                                             {type.name}
                                         </div>
                                         {type.description && (
-                                            <p className="text-xs text-gray-500 line-clamp-2 mt-0.5">
+                                            <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">
                                                 {type.description}
                                             </p>
                                         )}
                                     </div>
-                                    <ChevronRight className="h-4 w-4 text-gray-300 group-hover:text-primary/50 self-center" />
+                                    <ChevronRight className="h-4 w-4 text-warm-300 group-hover:text-primary/50 self-center" />
                                 </button>
                             ))}
                             {filteredTypes.length === 0 && (
@@ -197,7 +197,7 @@ export const DocumentWizardDialog = ({
                     )}
                 </div>
 
-                <div className="p-4 bg-gray-50 border-t flex justify-end">
+                <div className="p-4 bg-warm-50 border-t flex justify-end">
                     <Button variant="ghost" onClick={() => onOpenChange(false)}>
                         Abbrechen
                     </Button>

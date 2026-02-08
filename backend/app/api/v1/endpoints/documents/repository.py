@@ -94,8 +94,8 @@ async def list_documents(
     has_corrections: Optional[bool] = None,
     include_archived: bool = False,  # By default, hide archived docs
     # Sorting
-    sort_by: str = Query("created_at", regex="^(created_at|employee_name|document_type|title)$"),
-    sort_order: str = Query("desc", regex="^(asc|desc)$"),
+    sort_by: str = Query("created_at", pattern="^(created_at|employee_name|document_type|title)$"),
+    sort_order: str = Query("desc", pattern="^(asc|desc)$"),
 ) -> Any:
     """
     List all documents with filtering, sorting and pagination.
@@ -616,7 +616,7 @@ async def perform_bulk_action(
 async def export_document_list(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[core_models.User, Depends(deps.get_current_user)],
-    format: str = Query("csv", regex="^(csv|xlsx)$"),
+    format: str = Query("csv", pattern="^(csv|xlsx)$"),
     # Same filters as list endpoint
     search: Optional[str] = None,
     document_type_id: Optional[int] = None,

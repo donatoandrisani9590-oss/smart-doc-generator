@@ -271,7 +271,7 @@ export function MagicWordImport({ onSuccess, onCancel }: MagicWordImportProps) {
                         <Sparkles className="w-6 h-6 text-yellow-500" />
                         Magic Word-Import
                     </CardTitle>
-                    <p className="text-gray-500">
+                    <p className="text-muted-foreground">
                         Ziehen Sie Ihr Word-Dokument hierher - wir erkennen automatisch alle
                         Platzhalter
                     </p>
@@ -286,7 +286,7 @@ export function MagicWordImport({ onSuccess, onCancel }: MagicWordImportProps) {
                             "border-2 border-dashed rounded-lg p-12 text-center transition-all cursor-pointer",
                             isDragging
                                 ? "border-blue-500 bg-blue-50"
-                                : "border-gray-300 hover:border-gray-400 hover:bg-gray-50"
+                                : "border-warm-300 hover:border-warm-400 hover:bg-warm-50"
                         )}
                         onClick={() => document.getElementById("file-input")?.click()}
                     >
@@ -304,7 +304,7 @@ export function MagicWordImport({ onSuccess, onCancel }: MagicWordImportProps) {
                         <Upload
                             className={cn(
                                 "w-16 h-16 mx-auto mb-4",
-                                isDragging ? "text-blue-500" : "text-gray-400"
+                                isDragging ? "text-blue-500" : "text-warm-400"
                             )}
                         />
 
@@ -313,7 +313,7 @@ export function MagicWordImport({ onSuccess, onCancel }: MagicWordImportProps) {
                                 ? "Datei hier ablegen..."
                                 : "Klicken oder Datei hierher ziehen"}
                         </p>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-muted-foreground">
                             Unterstützt: .docx (max. 10 MB)
                         </p>
                     </div>
@@ -338,21 +338,21 @@ export function MagicWordImport({ onSuccess, onCancel }: MagicWordImportProps) {
                         <div className="p-4 bg-green-50 rounded-lg">
                             <CheckCircle2 className="w-8 h-8 mx-auto mb-2 text-green-500" />
                             <p className="text-sm font-medium">Automatische Erkennung</p>
-                            <p className="text-xs text-gray-500">
+                            <p className="text-xs text-muted-foreground">
                                 Daten, Beträge, Namen
                             </p>
                         </div>
                         <div className="p-4 bg-blue-50 rounded-lg">
                             <Sparkles className="w-8 h-8 mx-auto mb-2 text-blue-500" />
                             <p className="text-sm font-medium">KI-Vorschläge</p>
-                            <p className="text-xs text-gray-500">
+                            <p className="text-xs text-muted-foreground">
                                 Intelligente Zuordnung
                             </p>
                         </div>
                         <div className="p-4 bg-purple-50 rounded-lg">
                             <FileText className="w-8 h-8 mx-auto mb-2 text-purple-500" />
                             <p className="text-sm font-medium">Ein-Klick Import</p>
-                            <p className="text-xs text-gray-500">
+                            <p className="text-xs text-muted-foreground">
                                 Keine IT-Kenntnisse nötig
                             </p>
                         </div>
@@ -373,12 +373,12 @@ export function MagicWordImport({ onSuccess, onCancel }: MagicWordImportProps) {
                 <CardContent className="pt-8 pb-8">
                     <Loader2 className="w-16 h-16 mx-auto mb-4 text-blue-500 animate-spin" />
                     <h3 className="text-xl font-semibold mb-2">Dokument wird analysiert...</h3>
-                    <p className="text-gray-500 mb-4">
+                    <p className="text-muted-foreground mb-4">
                         Wir erkennen automatisch alle potentiellen Platzhalter
                     </p>
 
                     {file && (
-                        <div className="flex items-center justify-center gap-2 text-sm text-gray-600">
+                        <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
                             <FileText className="w-4 h-4" />
                             {file.name}
                         </div>
@@ -402,7 +402,7 @@ export function MagicWordImport({ onSuccess, onCancel }: MagicWordImportProps) {
             <Card>
                 <CardHeader>
                     <CardTitle>Klausel erstellen</CardTitle>
-                    <p className="text-gray-500">
+                    <p className="text-muted-foreground">
                         {Object.keys(placeholderMapping).length} Platzhalter werden zugeordnet
                     </p>
                 </CardHeader>
@@ -450,9 +450,9 @@ export function MagicWordImport({ onSuccess, onCancel }: MagicWordImportProps) {
                     </div>
 
                     {/* Summary */}
-                    <div className="p-4 bg-gray-50 rounded-lg">
+                    <div className="p-4 bg-warm-50 rounded-lg">
                         <h4 className="font-medium mb-2">Zusammenfassung</h4>
-                        <ul className="text-sm text-gray-600 space-y-1">
+                        <ul className="text-sm text-muted-foreground space-y-1">
                             <li>
                                 Datei: <strong>{analysisResult?.original_filename}</strong>
                             </li>
@@ -526,7 +526,7 @@ export function MagicWordImport({ onSuccess, onCancel }: MagicWordImportProps) {
                     </motion.div>
 
                     <h3 className="text-2xl font-semibold mb-2">Import erfolgreich!</h3>
-                    <p className="text-gray-500 mb-6">
+                    <p className="text-muted-foreground mb-6">
                         Die Klausel wurde erstellt und kann sofort verwendet werden.
                     </p>
 
@@ -595,7 +595,7 @@ export function MagicWordImport({ onSuccess, onCancel }: MagicWordImportProps) {
                                                   step
                                               ) > i
                                             ? "border-green-500 bg-green-500 text-white"
-                                            : "border-gray-300 text-gray-400"
+                                            : "border-warm-300 text-warm-400"
                                     )}
                                 >
                                     {["upload", "analyzing", "mapping", "generating", "complete"].indexOf(
@@ -614,7 +614,7 @@ export function MagicWordImport({ onSuccess, onCancel }: MagicWordImportProps) {
                                                 step
                                             ) > i
                                                 ? "bg-green-500"
-                                                : "bg-gray-200"
+                                                : "bg-warm-200"
                                         )}
                                     />
                                 )}
@@ -622,7 +622,7 @@ export function MagicWordImport({ onSuccess, onCancel }: MagicWordImportProps) {
                         )
                     )}
                 </div>
-                <div className="flex justify-between mt-2 text-xs text-gray-500">
+                <div className="flex justify-between mt-2 text-xs text-muted-foreground">
                     <span>Upload</span>
                     <span>Analyse</span>
                     <span>Mapping</span>

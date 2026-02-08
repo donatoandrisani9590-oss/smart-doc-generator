@@ -214,11 +214,11 @@ function ToastItem({ toast, onClose }: { toast: Toast; onClose: () => void }) {
                     )}
                 />
                 <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                    <p className="text-sm font-medium text-foreground">
                         {toast.title}
                     </p>
                     {toast.description && (
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                        <p className="text-sm text-muted-foreground mt-1">
                             {toast.description}
                         </p>
                     )}
@@ -230,7 +230,7 @@ function ToastItem({ toast, onClose }: { toast: Toast; onClose: () => void }) {
                         className="flex-shrink-0 p-1 rounded-md hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
                         aria-label="Schließen"
                     >
-                        <X className="w-4 h-4 text-gray-500" />
+                        <X className="w-4 h-4 text-muted-foreground" />
                     </button>
                 )}
             </div>

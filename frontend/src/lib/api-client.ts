@@ -175,6 +175,7 @@ async function request<T>(
     // Build headers - don't set Content-Type for FormData (browser sets it with boundary)
     const requestHeaders: Record<string, string> = {
         ...(!isFormData && { "Content-Type": "application/json" }),
+        "X-Requested-With": "XMLHttpRequest",  // CSRF protection
         ...headers,
     };
 
@@ -353,15 +354,17 @@ export function isApiError(error: unknown): error is ApiError {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Raw fetch wrapper (drop-in replacement for authFetch)
+// Raw fetch wrapper for TanStack Query hooks
 // ═══════════════════════════════════════════════════════════════════════════
 
 /**
  * Authenticated fetch wrapper that returns a raw Response.
  *
- * Use this in TanStack Query hooks where you need the raw Response
- * for fine-grained control (status checks, streaming, etc.).
- * For simpler use cases prefer the `api` object above.
+ * **When to use which client:**
+ * - `api.get/post/put/delete` → Direct calls with built-in retry, timeout,
+ *   and error handling. Use in event handlers, effects, standalone logic.
+ * - `apiFetch` → Returns raw `Response` for TanStack Query hooks where
+ *   react-query handles caching, retries, and error state.
  */
 export async function apiFetch(
     input: string,
@@ -378,6 +381,9 @@ export async function apiFetch(
         headers.set("Authorization", `Bearer ${token}`);
     }
 
+    // CSRF protection
+    headers.set("X-Requested-With", "XMLHttpRequest");
+
     // Auto-set Content-Type for JSON bodies
     if (init?.body && !headers.has("Content-Type") && !(init.body instanceof FormData)) {
         headers.set("Content-Type", "application/json");
@@ -385,38 +391,6 @@ export async function apiFetch(
 
     return fetch(url, { ...init, headers });
 }
-
-/**
- * Convenience methods wrapping apiFetch for common HTTP verbs.
- */
-export const fetchApi = {
-    get: (url: string, options?: RequestInit) =>
-        apiFetch(url, { ...options, method: "GET" }),
-
-    post: (url: string, body?: unknown, options?: RequestInit) =>
-        apiFetch(url, {
-            ...options,
-            method: "POST",
-            body: body ? JSON.stringify(body) : undefined,
-        }),
-
-    put: (url: string, body?: unknown, options?: RequestInit) =>
-        apiFetch(url, {
-            ...options,
-            method: "PUT",
-            body: body ? JSON.stringify(body) : undefined,
-        }),
-
-    patch: (url: string, body?: unknown, options?: RequestInit) =>
-        apiFetch(url, {
-            ...options,
-            method: "PATCH",
-            body: body ? JSON.stringify(body) : undefined,
-        }),
-
-    delete: (url: string, options?: RequestInit) =>
-        apiFetch(url, { ...options, method: "DELETE" }),
-};
 
 /**
  * Get user-friendly error message

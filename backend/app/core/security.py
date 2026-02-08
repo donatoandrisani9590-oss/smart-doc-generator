@@ -43,6 +43,42 @@ def create_refresh_token(subject: Union[str, Any]) -> str:
     return encoded_jwt
 
 
+def create_pre_auth_token(subject: Union[str, Any]) -> str:
+    """Create a very short-lived token for 2FA verification (5 minutes)."""
+    expire = datetime.now(timezone.utc) + timedelta(minutes=5)
+    to_encode = {"exp": expire, "sub": str(subject), "type": "pre_auth"}
+    return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+
+
+def verify_pre_auth_token(token: str) -> Optional[str]:
+    """Verify pre-auth token and return user ID if valid."""
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        if payload.get("type") != "pre_auth":
+            return None
+        return payload.get("sub")
+    except jwt.JWTError:
+        return None
+
+
+def create_password_reset_token(subject: Union[str, Any]) -> str:
+    """Create a short-lived token for password reset (1 hour)."""
+    expire = datetime.now(timezone.utc) + timedelta(hours=1)
+    to_encode = {"exp": expire, "sub": str(subject), "type": "password_reset"}
+    return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+
+
+def verify_password_reset_token(token: str) -> Optional[str]:
+    """Verify password reset token and return user ID if valid."""
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        if payload.get("type") != "password_reset":
+            return None
+        return payload.get("sub")
+    except jwt.JWTError:
+        return None
+
+
 def verify_refresh_token(token: str) -> Optional[str]:
     """Verify refresh token and return user ID if valid.
 

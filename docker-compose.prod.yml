@@ -34,7 +34,11 @@ services:
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
       - STORAGE_PATH=/storage
       - SECRET_KEY=${SECRET_KEY}
+      - REFRESH_SECRET_KEY=${REFRESH_SECRET_KEY}
       - DEBUG=false
+      - ALLOW_AUTH_BYPASS=false
+      - SHOW_API_DOCS=false
+      - ENVIRONMENT=production
       - CORS_ORIGINS=${CORS_ORIGINS}
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
     volumes:
