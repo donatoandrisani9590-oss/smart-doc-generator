@@ -339,8 +339,8 @@ export const WIZARD_STEPS = [
     },
     {
         id: "clauses",
-        label: "Klauseln",
-        description: "Vertragsklauseln anpassen",
+        label: "Textbausteine",
+        description: "Textbausteine anpassen",
         optional: true,
     },
     {

@@ -37,7 +37,7 @@ export const DeleteConfirmDialog = ({
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2 text-destructive">
                         <AlertTriangle className="w-5 h-5" aria-hidden="true" />
-                        Klausel löschen
+                        Textbaustein löschen
                     </DialogTitle>
                     <DialogDescription id="delete-clause-description">
                         Diese Aktion kann nicht rückgängig gemacht werden.
@@ -53,10 +53,10 @@ export const DeleteConfirmDialog = ({
                                     <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" aria-hidden="true" />
                                     <div>
                                         <p className="text-sm font-medium text-amber-800">
-                                            Diese Klausel wird verwendet
+                                            Dieser Textbaustein wird verwendet
                                         </p>
                                         <p className="text-xs text-amber-700 mt-1">
-                                            {usageCount} Dokumenttyp{usageCount !== 1 ? "en" : ""} verwenden diese Klausel:
+                                            {usageCount} Dokumenttyp{usageCount !== 1 ? "en" : ""} verwenden diesen Textbaustein:
                                         </p>
                                         {usedInTypes.length > 0 && (
                                             <ul className="text-xs text-amber-700 mt-1 list-disc list-inside">
@@ -78,13 +78,13 @@ export const DeleteConfirmDialog = ({
                     <Card className="border-destructive/30 bg-destructive/5">
                         <CardContent className="py-3">
                             <p className="text-sm text-destructive">
-                                Sind Sie sicher, dass Sie die Klausel{" "}
+                                Sind Sie sicher, dass Sie den Textbaustein{" "}
                                 <strong>"{clause.title}"</strong> löschen möchten?
                             </p>
                             <p className="text-xs text-destructive/80 mt-2">
                                 {hasUsage
-                                    ? "Die Klausel wird aus allen oben genannten Dokumenttypen entfernt. Bestehende Dokumente sind nicht betroffen."
-                                    : "Diese Klausel wird derzeit nicht verwendet."}
+                                    ? "Der Textbaustein wird aus allen oben genannten Dokumenttypen entfernt. Bestehende Dokumente sind nicht betroffen."
+                                    : "Dieser Textbaustein wird derzeit nicht verwendet."}
                             </p>
                         </CardContent>
                     </Card>
@@ -102,7 +102,7 @@ export const DeleteConfirmDialog = ({
                         variant="destructive"
                         onClick={onConfirm}
                         disabled={isDeleting}
-                        aria-label={`Klausel ${clause.title} endgültig löschen`}
+                        aria-label={`Textbaustein ${clause.title} endgültig löschen`}
                     >
                         {isDeleting ? (
                             <Loader2 className="w-4 h-4 mr-2 animate-spin" aria-hidden="true" />

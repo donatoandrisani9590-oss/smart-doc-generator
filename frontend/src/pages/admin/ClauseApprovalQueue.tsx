@@ -98,7 +98,7 @@ export const ClauseApprovalQueue = () => {
                 setClauses(response.data.clauses);
             } catch (error) {
                 logError("Failed to load pending clauses", { error });
-                toast.error("Fehler", "Ausstehende Klauseln konnten nicht geladen werden");
+                toast.error("Fehler", "Ausstehende Textbausteine konnten nicht geladen werden");
             } finally {
                 setIsLoading(false);
             }
@@ -111,10 +111,10 @@ export const ClauseApprovalQueue = () => {
         try {
             await api.post(`/api/v1/clause-approval/${clauseId}/approve`);
             setClauses((prev) => prev.filter((c) => c.id !== clauseId));
-            toast.success("Klausel freigegeben", "Die Klausel ist jetzt in der Bibliothek verfügbar");
+            toast.success("Textbaustein freigegeben", "Der Textbaustein ist jetzt in der Bibliothek verfügbar");
         } catch (error) {
             logError("Failed to approve clause", { error });
-            toast.error("Fehler", "Klausel konnte nicht freigegeben werden");
+            toast.error("Fehler", "Textbaustein konnte nicht freigegeben werden");
         } finally {
             setIsProcessing(false);
         }
@@ -137,10 +137,10 @@ export const ClauseApprovalQueue = () => {
             setClauses((prev) => prev.filter((c) => c.id !== rejectingClauseId));
             setRejectDialogOpen(false);
             setRejectingClauseId(null);
-            toast.success("Klausel abgelehnt", "Der Ersteller wurde benachrichtigt");
+            toast.success("Textbaustein abgelehnt", "Der Ersteller wurde benachrichtigt");
         } catch (error) {
             logError("Failed to reject clause", { error });
-            toast.error("Fehler", "Klausel konnte nicht abgelehnt werden");
+            toast.error("Fehler", "Textbaustein konnte nicht abgelehnt werden");
         } finally {
             setIsProcessing(false);
         }
@@ -173,9 +173,9 @@ export const ClauseApprovalQueue = () => {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold">Klausel-Freigaben</h1>
+                    <h1 className="text-2xl font-bold">Textbaustein-Freigaben</h1>
                     <p className="text-muted-foreground">
-                        Prüfen und genehmigen Sie eingereichte Klauseln für die Bibliothek
+                        Prüfen und genehmigen Sie eingereichte Textbausteine für die Bibliothek
                     </p>
                 </div>
 
@@ -204,7 +204,7 @@ export const ClauseApprovalQueue = () => {
                         </div>
                         <h3 className="text-lg font-semibold mb-2">Keine ausstehenden Freigaben</h3>
                         <p className="text-muted-foreground text-center">
-                            Alle eingereichten Klauseln wurden bearbeitet.
+                            Alle eingereichten Textbausteine wurden bearbeitet.
                         </p>
                     </CardContent>
                 </Card>
@@ -309,7 +309,7 @@ export const ClauseApprovalQueue = () => {
                     <DialogHeader>
                         <DialogTitle>{previewClause?.title}</DialogTitle>
                         <DialogDescription>
-                            Vollständige Vorschau des Klauselinhalts
+                            Vollständige Vorschau des Textbausteins
                         </DialogDescription>
                     </DialogHeader>
                     <div
@@ -332,7 +332,7 @@ export const ClauseApprovalQueue = () => {
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2">
                             <AlertTriangle className="w-5 h-5 text-red-500" />
-                            Klausel ablehnen
+                            Textbaustein ablehnen
                         </DialogTitle>
                         <DialogDescription>
                             Bitte geben Sie einen Grund für die Ablehnung an. Der Ersteller wird benachrichtigt.

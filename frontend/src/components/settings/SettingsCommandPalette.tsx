@@ -170,7 +170,7 @@ const SETTINGS_GROUPS: SettingsGroup[] = [
       },
       {
         id: "clauses-manage",
-        label: "Klauseln verwalten",
+        label: "Textbausteine verwalten",
         description: "Textbausteine erstellen und bearbeiten",
         keywords: ["klausel", "textbaustein", "clause", "baustein", "text", "absatz"],
         icon: BookOpen,
@@ -178,7 +178,7 @@ const SETTINGS_GROUPS: SettingsGroup[] = [
       },
       {
         id: "clauses-categories",
-        label: "Klausel-Kategorien",
+        label: "Textbaustein-Kategorien",
         description: "Kategorien für Textbausteine",
         keywords: ["kategorie", "category", "gruppe", "ordner"],
         icon: BookOpen,

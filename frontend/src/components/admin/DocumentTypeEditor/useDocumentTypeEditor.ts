@@ -133,7 +133,7 @@ export function useDocumentTypeEditor({
 
     const validateStep2 = useCallback(() => {
         if (selectedClauses.length === 0) {
-            setErrors({ clauses: "Mindestens eine Klausel ist erforderlich" });
+            setErrors({ clauses: "Mindestens ein Textbaustein ist erforderlich" });
             return false;
         }
         setErrors({});

@@ -109,7 +109,7 @@ export const ClauseSelectionStep = ({
                         className="bg-white hover:bg-red-100 text-red-700 border-red-300"
                     >
                         <Plus className="w-4 h-4 mr-1" />
-                        Klausel erstellen
+                        Textbaustein erstellen
                     </Button>
                 </div>
             )}
@@ -123,7 +123,7 @@ export const ClauseSelectionStep = ({
                     className="gap-2"
                 >
                     <Plus className="w-4 h-4" />
-                    Neue Klausel erstellen
+                    Neuen Textbaustein erstellen
                 </Button>
             </div>
 
@@ -133,7 +133,7 @@ export const ClauseSelectionStep = ({
                     <CardHeader className="py-3 bg-warm-50">
                         <CardTitle className="text-sm flex items-center gap-2">
                             <FileText className="w-4 h-4" />
-                            Verfügbare Klauseln
+                            Verfügbare Textbausteine
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="p-0 overflow-y-auto h-[calc(100%-48px)]">
@@ -146,7 +146,7 @@ export const ClauseSelectionStep = ({
                                 {selectedClauses.length === 0 ? (
                                     <>
                                         <FileText className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                                        <p className="text-sm">Noch keine Klauseln vorhanden</p>
+                                        <p className="text-sm">Noch keine Textbausteine vorhanden</p>
                                         <Button
                                             size="sm"
                                             variant="outline"
@@ -154,11 +154,11 @@ export const ClauseSelectionStep = ({
                                             onClick={() => setShowClauseCreator(true)}
                                         >
                                             <Plus className="w-4 h-4 mr-1" />
-                                            Klausel erstellen
+                                            Textbaustein erstellen
                                         </Button>
                                     </>
                                 ) : (
-                                    <>Alle Klauseln wurden hinzugefügt</>
+                                    <>Alle Textbausteine wurden hinzugefügt</>
                                 )}
                             </div>
                         ) : (
@@ -203,16 +203,16 @@ export const ClauseSelectionStep = ({
                     <CardHeader className="py-3 bg-primary/5">
                         <CardTitle className="text-sm flex items-center gap-2">
                             <Settings2 className="w-4 h-4" />
-                            Ausgewählte Klauseln ({selectedClauses.length})
+                            Ausgewählte Textbausteine ({selectedClauses.length})
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="p-0 overflow-y-auto h-[calc(100%-48px)]">
                         {selectedClauses.length === 0 ? (
                             <div className="p-4 text-center text-muted-foreground">
                                 <FileText className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                                <p className="text-sm">Keine Klauseln ausgewählt</p>
+                                <p className="text-sm">Keine Textbausteine ausgewählt</p>
                                 <p className="text-xs">
-                                    Klicken Sie links auf eine Klausel, um sie hinzuzufügen
+                                    Klicken Sie links auf einen Textbaustein, um ihn hinzuzufügen
                                 </p>
                             </div>
                         ) : (
@@ -294,7 +294,7 @@ export const ClauseSelectionStep = ({
                     </div>
                 </div>
                 <p className="text-xs text-muted-foreground mb-3">
-                    Varianten-Gruppen ermöglichen es dem Benutzer im Generator zwischen verschiedenen Klausel-Varianten zu wählen (z.B. verschiedene Kündigungsfristen).
+                    Varianten-Gruppen ermöglichen es dem Benutzer im Generator zwischen verschiedenen Textbaustein-Varianten zu wählen (z.B. verschiedene Kündigungsfristen).
                 </p>
 
                 <div className="grid grid-cols-2 gap-4 h-[250px]">

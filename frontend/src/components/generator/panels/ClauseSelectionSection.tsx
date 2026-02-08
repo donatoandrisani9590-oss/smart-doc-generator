@@ -76,7 +76,7 @@ export const ClauseSelectionSection = () => {
     if (documentClauses.length === 0) {
         return (
             <div className="p-3 bg-muted/30 rounded-lg text-center text-sm text-muted-foreground">
-                Keine Klauseln für diesen Dokumenttyp verfügbar.
+                Keine Textbausteine für diesen Dokumenttyp verfügbar.
             </div>
         );
     }

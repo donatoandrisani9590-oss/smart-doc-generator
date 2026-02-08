@@ -55,7 +55,7 @@ export const ConditionEditor = ({
             {enabled && (
                 <div className="space-y-4 p-4 bg-muted/30 rounded-lg">
                     <div className="space-y-2">
-                        <Label>Zeige Klausel wenn Feld...</Label>
+                        <Label>Zeige Textbaustein wenn Feld...</Label>
                         <Select value={field} onValueChange={setField}>
                             <SelectTrigger>
                                 <SelectValue placeholder="Feld wählen" />

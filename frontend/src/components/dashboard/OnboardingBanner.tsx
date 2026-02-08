@@ -76,7 +76,7 @@ export function OnboardingBanner({
             {
                 id: "clauses",
                 label: "Textbausteine",
-                description: "Klauseln und Paragraphen anlegen",
+                description: "Textbausteine und Paragraphen anlegen",
                 icon: FileText,
                 href: "/settings?tab=clauses",
                 isComplete: clauseCount > 0,

@@ -69,8 +69,8 @@ export function AIAssemblyProgress({
       },
       {
         id: "load-library",
-        label: "Lade Klauseln aus Bibliothek...",
-        detail: totalClauses > 0 ? `${totalClauses} Klauseln verfuegbar` : undefined,
+        label: "Lade Textbausteine aus Bibliothek...",
+        detail: totalClauses > 0 ? `${totalClauses} Textbausteine verfügbar` : undefined,
         icon: Library,
         duration: 600,
       },
@@ -81,7 +81,7 @@ export function AIAssemblyProgress({
     shownClauses.forEach((title, i) => {
       steps.push({
         id: `clause-${i}`,
-        label: `Waehle Klausel "${title}"...`,
+        label: `Wähle Textbaustein "${title}"...`,
         icon: BookOpen,
         duration: 400,
       });
@@ -90,7 +90,7 @@ export function AIAssemblyProgress({
     if (clauseTitles.length > 5) {
       steps.push({
         id: "clause-remaining",
-        label: `...und ${clauseTitles.length - 5} weitere Klauseln`,
+        label: `...und ${clauseTitles.length - 5} weitere Textbausteine`,
         icon: Blocks,
         duration: 300,
       });

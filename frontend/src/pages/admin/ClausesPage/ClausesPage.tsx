@@ -219,10 +219,10 @@ export const ClausesPage = () => {
             await deleteMutation.mutateAsync(clauseToDelete.id);
             setShowDeleteConfirm(false);
             setClauseToDelete(null);
-            toast.success("Klausel gelöscht", `"${clauseToDelete.title}" wurde erfolgreich gelöscht`);
+            toast.success("Textbaustein gelöscht", `"${clauseToDelete.title}" wurde erfolgreich gelöscht`);
         } catch (error) {
             console.error("Delete failed:", error);
-            toast.error("Löschen fehlgeschlagen", "Die Klausel konnte nicht gelöscht werden");
+            toast.error("Löschen fehlgeschlagen", "Der Textbaustein konnte nicht gelöscht werden");
         }
     };
 
@@ -238,11 +238,11 @@ export const ClausesPage = () => {
             };
 
             await createMutation.mutateAsync(duplicateData);
-            toast.success("Klausel dupliziert", `Kopie von "${clause.title}" wurde erstellt`);
+            toast.success("Textbaustein dupliziert", `Kopie von "${clause.title}" wurde erstellt`);
             refetch();
         } catch (error) {
             console.error("Duplicate failed:", error);
-            toast.error("Duplizieren fehlgeschlagen", "Die Klausel konnte nicht kopiert werden");
+            toast.error("Duplizieren fehlgeschlagen", "Der Textbaustein konnte nicht kopiert werden");
         }
     };
 
@@ -259,9 +259,9 @@ export const ClausesPage = () => {
 
         // Toast-Feedback
         if (wasEditing) {
-            toast.success("Klausel aktualisiert", `"${clause.title}" wurde gespeichert`);
+            toast.success("Textbaustein aktualisiert", `"${clause.title}" wurde gespeichert`);
         } else {
-            toast.success("Klausel erstellt", `"${clause.title}" wurde erfolgreich erstellt`);
+            toast.success("Textbaustein erstellt", `"${clause.title}" wurde erfolgreich erstellt`);
         }
     };
 
@@ -432,7 +432,7 @@ export const ClausesPage = () => {
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                                 <Input
                                     ref={searchInputRef}
-                                    placeholder="Klauseln durchsuchen... (Strg+K)"
+                                    placeholder="Textbausteine durchsuchen... (Strg+K)"
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                     className="pl-10"

@@ -110,7 +110,7 @@ export const DuplicateDocumentTypeDialog = ({
                             "{result.name}" wurde erstellt.
                         </p>
                         <div className="text-sm text-muted-foreground space-y-1">
-                            <p>{result.clauses_copied} Klauseln kopiert</p>
+                            <p>{result.clauses_copied} Textbausteine kopiert</p>
                             <p>{result.attachments_copied} Anhänge kopiert</p>
                             <p>{result.form_fields_copied} Formularfelder kopiert</p>
                         </div>
@@ -167,7 +167,7 @@ export const DuplicateDocumentTypeDialog = ({
                                         htmlFor="includeClauses"
                                         className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                                     >
-                                        Klausel-Zuordnungen
+                                        Textbaustein-Zuordnungen
                                     </label>
                                 </div>
 

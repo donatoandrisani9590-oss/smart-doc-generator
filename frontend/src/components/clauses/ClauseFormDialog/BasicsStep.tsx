@@ -66,7 +66,7 @@ export const BasicsStep = ({
         <div className="space-y-2">
             <div className="flex items-center justify-between">
                 <Label htmlFor="title" className="text-sm font-medium">
-                    Titel der Klausel <span className="text-red-500">*</span>
+                    Titel des Textbausteins <span className="text-red-500">*</span>
                 </Label>
                 <span className={cn(
                     "text-xs",
@@ -237,7 +237,7 @@ export const BasicsStep = ({
                     maxLength={500}
                 />
                 <p className="text-xs text-muted-foreground">
-                    Beschreiben Sie kurz den Zweck der Klausel. Die KI nutzt diese Beschreibung, um die richtige Klausel auszuwählen.
+                    Beschreiben Sie kurz den Zweck des Textbausteins. Die KI nutzt diese Beschreibung, um den richtigen Textbaustein auszuwählen.
                 </p>
             </div>
 
@@ -284,7 +284,7 @@ export const BasicsStep = ({
 
             {/* Tone selector */}
             <div className="space-y-2">
-                <Label className="text-sm">Ton der Klausel</Label>
+                <Label className="text-sm">Ton des Textbausteins</Label>
                 <Select value={tone} onValueChange={setTone}>
                     <SelectTrigger className="w-full">
                         <SelectValue />
@@ -311,9 +311,9 @@ export const BasicsStep = ({
                     <Lightbulb className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
                     <div className="text-sm text-foreground">
                         <strong>Tipp:</strong> Verwenden Sie eindeutige Titel, die den Inhalt
-                        der Klausel beschreiben. Das erleichtert das spätere Auffinden.
+                        des Textbausteins beschreiben. Das erleichtert das spätere Auffinden.
                         Die KI-Metadaten (Tags, Beschreibung, Ton) sind optional, verbessern
-                        aber die automatische Klausel-Auswahl erheblich.
+                        aber die automatische Textbaustein-Auswahl erheblich.
                     </div>
                 </div>
             </CardContent>

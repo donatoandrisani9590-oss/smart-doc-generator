@@ -293,7 +293,7 @@ export const DocumentDesigner = () => {
     const handleTestPreview = async () => {
         const clauseIds = assignedClauses.map(c => c.id);
         if (clauseIds.length === 0) {
-            alert("Bitte fügen Sie mindestens eine Klausel hinzu");
+            alert("Bitte fügen Sie mindestens einen Textbaustein hinzu");
             return;
         }
 
@@ -406,7 +406,7 @@ export const DocumentDesigner = () => {
                             {isNewDocument ? "Neuer Dokumenttyp" : "Dokumenten-Designer"}
                         </h1>
                         <p className="text-muted-foreground">
-                            Klauseln per Drag & Drop zusammenstellen
+                            Textbausteine per Drag & Drop zusammenstellen
                         </p>
                     </div>
                 </div>
@@ -429,7 +429,7 @@ export const DocumentDesigner = () => {
                             </TooltipTrigger>
                             <TooltipContent className="max-w-xs">
                                 <p>
-                                    Extrahiert Platzhalter aus den Klauseln und erstellt automatisch
+                                    Extrahiert Platzhalter aus den Textbausteinen und erstellt automatisch
                                     die entsprechenden Formularfelder für die Dokumenterstellung.
                                 </p>
                             </TooltipContent>
@@ -540,7 +540,7 @@ export const DocumentDesigner = () => {
                                 <TabsList className="grid w-full grid-cols-2">
                                     <TabsTrigger value="clauses" className="flex items-center gap-2">
                                         <FolderOpen className="w-4 h-4" />
-                                        Klauseln
+                                        Textbausteine
                                     </TabsTrigger>
                                     <TabsTrigger value="variants" className="flex items-center gap-2">
                                         <Layers className="w-4 h-4" />
@@ -563,7 +563,7 @@ export const DocumentDesigner = () => {
                                         <Input
                                             value={searchQuery}
                                             onChange={(e) => setSearchQuery(e.target.value)}
-                                            placeholder="Klausel suchen..."
+                                            placeholder="Textbaustein suchen..."
                                             className="pl-10"
                                         />
                                     </div>
@@ -664,7 +664,7 @@ export const DocumentDesigner = () => {
                                                 <Layers className="w-8 h-8 mx-auto mb-2 opacity-50" />
                                                 <p className="text-sm">Keine Varianten-Gruppen vorhanden</p>
                                                 <p className="text-xs mt-1">
-                                                    Erstellen Sie Varianten in der Klauselverwaltung
+                                                    Erstellen Sie Varianten in der Textbaustein-Verwaltung
                                                 </p>
                                             </div>
                                         ) : (
@@ -831,8 +831,8 @@ export const DocumentDesigner = () => {
                             <CardTitle className="flex items-center justify-between">
                                 <span>Dokument-Struktur</span>
                                 <span className="text-sm font-normal text-muted-foreground">
-                                    {assignedClauses.length} Klausel
-                                    {assignedClauses.length !== 1 ? "n" : ""}
+                                    {assignedClauses.length} Textbaustein
+                                    {assignedClauses.length !== 1 ? "e" : ""}
                                 </span>
                             </CardTitle>
                         </CardHeader>
@@ -841,11 +841,11 @@ export const DocumentDesigner = () => {
                                 <div className="border-2 border-dashed border-border rounded-lg p-12 text-center drop-zone">
                                     <FileText className="w-12 h-12 mx-auto mb-4 text-muted-foreground/50" />
                                     <h3 className="text-lg font-medium mb-2">
-                                        Keine Klauseln zugewiesen
+                                        Keine Textbausteine zugewiesen
                                     </h3>
                                     <p className="text-muted-foreground">
-                                        Klicken Sie auf <Plus className="w-4 h-4 inline" /> bei einer
-                                        Klausel links, um sie hinzuzufügen.
+                                        Klicken Sie auf <Plus className="w-4 h-4 inline" /> bei einem
+                                        Textbaustein links, um ihn hinzuzufügen.
                                     </p>
                                 </div>
                             ) : (
@@ -982,7 +982,7 @@ export const DocumentDesigner = () => {
                     <DialogHeader>
                         <DialogTitle>Bedingung bearbeiten</DialogTitle>
                         <DialogDescription>
-                            Legen Sie fest, wann die Klausel "{editingClause?.title}" angezeigt
+                            Legen Sie fest, wann der Textbaustein "{editingClause?.title}" angezeigt
                             werden soll.
                         </DialogDescription>
                     </DialogHeader>
@@ -1046,7 +1046,7 @@ export const DocumentDesigner = () => {
                             Formularfelder synchronisiert
                         </DialogTitle>
                         <DialogDescription>
-                            Die Platzhalter aus den Klauseln wurden analysiert und die Formularfelder aktualisiert.
+                            Die Platzhalter aus den Textbausteinen wurden analysiert und die Formularfelder aktualisiert.
                         </DialogDescription>
                     </DialogHeader>
 

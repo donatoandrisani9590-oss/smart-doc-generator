@@ -511,7 +511,7 @@ export const ClauseFormDialog = ({
                             ) : (
                                 <Save className="w-4 h-4 mr-2" />
                             )}
-                            {isEditMode ? "Änderungen speichern" : "Klausel erstellen"}
+                            {isEditMode ? "Änderungen speichern" : "Textbaustein erstellen"}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

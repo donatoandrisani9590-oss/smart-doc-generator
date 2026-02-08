@@ -95,7 +95,7 @@ export const PreviewStep = ({
                             <div>
                                 <Label className="font-medium">Status</Label>
                                 <p className="text-sm text-muted-foreground">
-                                    Inaktive Klauseln sind nicht in Dokumenttypen verfügbar
+                                    Inaktive Textbausteine sind nicht in Dokumenttypen verfügbar
                                 </p>
                             </div>
                             <button
@@ -176,7 +176,7 @@ export const ImpactTab = ({
                 </h4>
                 {impactData?.affected_document_types.length === 0 ? (
                     <div className="text-center p-8 border rounded-lg bg-muted/10 border-dashed">
-                        <p className="text-muted-foreground">Diese Klausel wird aktuell in keinem Dokumenttyp verwendet.</p>
+                        <p className="text-muted-foreground">Dieser Textbaustein wird aktuell in keinem Dokumenttyp verwendet.</p>
                     </div>
                 ) : (
                     <div className="space-y-2">

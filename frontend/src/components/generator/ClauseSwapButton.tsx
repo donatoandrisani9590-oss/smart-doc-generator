@@ -107,7 +107,7 @@ export function ClauseSwapButton({
           )}
         >
           <ArrowLeftRight className="w-3 h-3" />
-          Klausel wechseln
+          Textbaustein wechseln
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-80 p-0" align="end">
