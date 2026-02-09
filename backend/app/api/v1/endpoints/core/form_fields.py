@@ -241,7 +241,7 @@ async def update_form_field(
     return FormFieldResponse.model_validate(field)
 
 
-@router.post("/", response_model=FormFieldResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=FormFieldResponse, status_code=status.HTTP_201_CREATED)
 async def create_form_field(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[core_models.User, Depends(deps.get_current_user)],

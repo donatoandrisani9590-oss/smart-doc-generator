@@ -82,7 +82,7 @@ class CopyFromTemplateRequest(BaseModel):
     copy_variant_groups: bool = False
 
 
-@router.get("/", response_model=List[schemas.DocumentType])
+@router.get("", response_model=List[schemas.DocumentType])
 async def read_document_types(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[models.Base, Depends(deps.get_current_user)],
@@ -191,7 +191,7 @@ async def get_document_type_with_variant_groups(
     }
 
 
-@router.post("/", response_model=schemas.DocumentType)
+@router.post("", response_model=schemas.DocumentType)
 async def create_document_type(
     *,
     db: Annotated[AsyncSession, Depends(get_db)],

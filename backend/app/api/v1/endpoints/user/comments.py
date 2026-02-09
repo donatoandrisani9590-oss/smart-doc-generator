@@ -484,7 +484,7 @@ async def get_comments(
     )
 
 
-@router.post("/", response_model=CommentResponse)
+@router.post("", response_model=CommentResponse)
 async def create_comment(
     request: CreateCommentRequest,
     background_tasks: BackgroundTasks,

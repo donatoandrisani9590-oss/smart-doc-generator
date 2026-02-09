@@ -56,7 +56,7 @@ class FavoriteReorderRequest(BaseModel):
 # ENDPOINTS
 # ═══════════════════════════════════════════════════════════════════════════
 
-@router.get("/", response_model=List[FavoriteResponse])
+@router.get("", response_model=List[FavoriteResponse])
 async def list_favorites(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[core_models.User, Depends(deps.get_current_user)],
@@ -130,7 +130,7 @@ async def list_favorites(
     return response
 
 
-@router.post("/", response_model=FavoriteResponse)
+@router.post("", response_model=FavoriteResponse)
 async def add_favorite(
     favorite_in: FavoriteCreate,
     db: Annotated[AsyncSession, Depends(get_db)],

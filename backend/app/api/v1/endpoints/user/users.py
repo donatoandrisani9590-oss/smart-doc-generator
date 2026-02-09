@@ -83,7 +83,7 @@ def require_admin(current_user: core_models.User):
 # ENDPOINTS
 # ═══════════════════════════════════════════════════════════════════════════
 
-@router.get("/", response_model=UserListResponse)
+@router.get("", response_model=UserListResponse)
 async def list_users(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[core_models.User, Depends(deps.get_current_user)],
@@ -173,7 +173,7 @@ async def get_user(
     )
 
 
-@router.post("/", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def create_user(
     user_data: UserCreate,
     db: Annotated[AsyncSession, Depends(get_db)],

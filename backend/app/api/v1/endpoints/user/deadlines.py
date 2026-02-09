@@ -95,7 +95,7 @@ def calculate_deadline_info(deadline: DocumentDeadline) -> dict:
 # ══════════════════════════════════════════════════════════════════════════════
 # ENDPOINTS
 # ══════════════════════════════════════════════════════════════════════════════
-@router.get("/", response_model=List[DeadlineResponse])
+@router.get("", response_model=List[DeadlineResponse])
 async def list_deadlines(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[Any, Depends(deps.get_current_user)],
@@ -225,7 +225,7 @@ async def get_deadline_summary(
     )
 
 
-@router.post("/", response_model=DeadlineResponse)
+@router.post("", response_model=DeadlineResponse)
 async def create_deadline(
     deadline_in: DeadlineCreate,
     db: Annotated[AsyncSession, Depends(get_db)],

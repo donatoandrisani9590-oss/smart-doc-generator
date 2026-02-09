@@ -77,7 +77,7 @@ class BulkActionRequest(BaseModel):
 # ENDPOINTS
 # ═══════════════════════════════════════════════════════════════════════════
 
-@router.get("/", response_model=RepositoryResponse)
+@router.get("", response_model=RepositoryResponse)
 async def list_documents(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[core_models.User, Depends(deps.get_current_user)],

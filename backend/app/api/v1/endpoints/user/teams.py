@@ -132,7 +132,7 @@ async def check_team_permission(
 # TEAM CRUD
 # ═══════════════════════════════════════════════════════════════════════════
 
-@router.get("/", response_model=List[TeamResponse])
+@router.get("", response_model=List[TeamResponse])
 async def list_my_teams(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[core_models.User, Depends(deps.get_current_user)],
@@ -184,7 +184,7 @@ async def list_my_teams(
     return teams
 
 
-@router.post("/", response_model=TeamResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=TeamResponse, status_code=status.HTTP_201_CREATED)
 async def create_team(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[core_models.User, Depends(deps.get_current_user)],

@@ -89,7 +89,7 @@ def matches_query(text: str, query: str) -> bool:
 # ENDPOINTS
 # ═══════════════════════════════════════════════════════════════════════════
 
-@router.get("/", response_model=SearchResponse)
+@router.get("", response_model=SearchResponse)
 async def global_search(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[core_models.User, Depends(deps.get_current_user)],

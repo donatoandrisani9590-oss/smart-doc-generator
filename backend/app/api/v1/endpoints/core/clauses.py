@@ -35,7 +35,7 @@ class ClauseImpactAnalysis(BaseModel):
     total_usage_30_days: int
 
 
-@router.get("/", response_model=List[schemas.Clause])
+@router.get("", response_model=List[schemas.Clause])
 async def read_clauses(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[models.Base, Depends(deps.get_current_user)],
@@ -161,7 +161,7 @@ async def read_clause(
     return clause
 
 
-@router.post("/", response_model=schemas.Clause)
+@router.post("", response_model=schemas.Clause)
 async def create_clause(
     *,
     db: Annotated[AsyncSession, Depends(get_db)],

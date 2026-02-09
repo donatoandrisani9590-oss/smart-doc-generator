@@ -55,7 +55,7 @@ class ValidationResponse(BaseModel):
     known_placeholders_used: List[str]
 
 
-@router.get("/", response_model=List[PlaceholderResponse])
+@router.get("", response_model=List[PlaceholderResponse])
 async def list_placeholders(
     current_user: Annotated[models.Base, Depends(deps.get_current_user)],
 ) -> Any:
