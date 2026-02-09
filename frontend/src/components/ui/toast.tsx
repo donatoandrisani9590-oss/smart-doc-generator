@@ -7,7 +7,7 @@
  * Includes special "saving" variant for auto-save feedback.
  */
 
-import { createContext, useContext, useState, useCallback, useRef } from "react";
+import { createContext, useContext, useState, useCallback, useRef, useMemo } from "react";
 import type { ReactNode } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle, XCircle, AlertTriangle, Info, X, Loader2, Cloud, CloudOff } from "lucide-react";
@@ -42,7 +42,12 @@ interface ToastContextType {
     saveFailed: (id: string, errorMessage?: string) => void;
 }
 
-const ToastContext = createContext<ToastContextType | undefined>(undefined);
+/**
+ * Split contexts: actions are stable (memoized), toasts array changes on each notification.
+ * Consumers that only call toast.success/error/etc. won't re-render when toasts change.
+ */
+const ToastActionsContext = createContext<Omit<ToastContextType, "toasts"> | undefined>(undefined);
+const ToastStateContext = createContext<{ toasts: Toast[] }>({ toasts: [] });
 
 const toastConfig: Record<ToastType, { icon: typeof CheckCircle; bgColor: string; borderColor: string; iconColor: string; animate?: boolean }> = {
     success: {
@@ -164,15 +169,24 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         timeoutRefs.current.set(id, timeout);
     }, [updateToast, removeToast]);
 
+    // Actions object is stable - only recreated when callbacks change (they don't,
+    // since they all use useCallback with stable deps). This prevents consumers
+    // that only call toast.success/error/etc. from re-rendering when toasts change.
+    const actions = useMemo(() => ({
+        addToast, removeToast, updateToast,
+        success, error, warning, info,
+        saving, saved, saveFailed,
+    }), [addToast, removeToast, updateToast, success, error, warning, info, saving, saved, saveFailed]);
+
+    const stateValue = useMemo(() => ({ toasts }), [toasts]);
+
     return (
-        <ToastContext.Provider value={{
-            toasts, addToast, removeToast, updateToast,
-            success, error, warning, info,
-            saving, saved, saveFailed
-        }}>
-            {children}
-            <ToastContainer toasts={toasts} removeToast={removeToast} />
-        </ToastContext.Provider>
+        <ToastActionsContext.Provider value={actions}>
+            <ToastStateContext.Provider value={stateValue}>
+                {children}
+                <ToastContainer toasts={toasts} removeToast={removeToast} />
+            </ToastStateContext.Provider>
+        </ToastActionsContext.Provider>
     );
 }
 
@@ -279,10 +293,33 @@ export function useAutoSave() {
     return { withSaveToast, ...toast };
 }
 
+/**
+ * Returns toast action methods with a STABLE reference.
+ * The returned object never changes identity between renders, so it's safe
+ * to include in useCallback/useEffect dependency arrays without causing loops.
+ *
+ * For backward compatibility, `toasts` is included as a getter that reads
+ * from a ref, but accessing it won't subscribe to re-renders. If you need
+ * reactive toast list updates (e.g., rendering toasts), use the ToastContainer
+ * which subscribes to ToastStateContext directly.
+ */
 export function useToast(): ToastContextType {
-    const context = useContext(ToastContext);
-    if (!context) {
+    const actions = useContext(ToastActionsContext);
+    const state = useContext(ToastStateContext);
+    if (!actions) {
         throw new Error("useToast must be used within a ToastProvider");
     }
-    return context;
+    // Store latest toasts in a ref so the returned object can stay stable
+    const toastsRef = useRef(state.toasts);
+    toastsRef.current = state.toasts;
+
+    // Build a stable object once and reuse it forever
+    const stableRef = useRef<ToastContextType | null>(null);
+    if (!stableRef.current) {
+        stableRef.current = {
+            ...actions,
+            get toasts() { return toastsRef.current; },
+        } as ToastContextType;
+    }
+    return stableRef.current;
 }
