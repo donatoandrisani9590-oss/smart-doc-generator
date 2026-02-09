@@ -6,7 +6,7 @@
  * "recover draft from localStorage" flow.
  */
 
-import { useState, useCallback, useEffect, useMemo } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAutoSave } from "@/hooks/useAutoSave";
 import { useToast } from "@/components/ui/toast";
@@ -283,12 +283,19 @@ export function useWizardDrafts(params: UseWizardDraftsParams): UseWizardDraftsR
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [navigate, setFormDataRaw, setDocumentTypeIdState, setDocumentTitle, setCurrentStep, setIsLoading]);
 
-    // Load draft on mount if ID provided
+    // Keep a ref to loadDraft so the mount-effect doesn't depend on it.
+    // loadDraft is recreated when setFormDataRaw changes (from useUndoRedo),
+    // which would cause an infinite loop if used directly as an effect dependency.
+    const loadDraftRef = useRef(loadDraft);
+    loadDraftRef.current = loadDraft;
+
+    // Load draft on mount if ID provided (runs only once per initialDraftId)
     useEffect(() => {
         if (initialDraftId) {
-            loadDraft(initialDraftId);
+            loadDraftRef.current(initialDraftId);
         }
-    }, [initialDraftId, loadDraft]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [initialDraftId]);
 
     // ── Manual Save Draft ───────────────────────────────────────────────────
 
