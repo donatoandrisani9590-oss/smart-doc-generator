@@ -91,9 +91,11 @@ export const LoginPage: React.FC = () => {
           <CardHeader className="space-y-1 pb-6">
             {/* Logo */}
             <div className="flex justify-center mb-4">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-lg">
-                <span className="text-2xl font-bold text-white">NW</span>
-              </div>
+              <img
+                src="/niederwieser-logo-blue.svg"
+                alt="Niederwieser"
+                className="h-10"
+              />
             </div>
 
             <CardTitle className="text-2xl text-center font-bold">
@@ -211,7 +213,7 @@ export const LoginPage: React.FC = () => {
                       className="w-full gap-3 h-11 hover:bg-warm-50"
                       onClick={() => {
                         // Redirect to backend SSO authorize endpoint
-                        const apiBase = import.meta.env.VITE_API_URL || "";
+                        const apiBase = (import.meta.env.VITE_API_URL || "").trim();
                         window.location.href = `${apiBase}${provider.authorize_url}`;
                       }}
                       disabled={isLoading}
