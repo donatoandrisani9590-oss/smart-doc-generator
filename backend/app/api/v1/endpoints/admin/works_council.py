@@ -5,7 +5,7 @@ Verwaltung von Betriebsrat-Mitteilungs-Templates und
 Generierung von BR-Dokumenten aus Arbeitsverträgen.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -177,7 +177,7 @@ async def create_template(
         included_fields=json.dumps(data.included_fields) if data.included_fields else None,
         excluded_fields=json.dumps(data.excluded_fields) if data.excluded_fields else None,
         is_active=data.is_active,
-        created_at=datetime.utcnow().isoformat(),
+        created_at=datetime.now(timezone.utc),
     )
 
     db.add(template)
@@ -225,7 +225,7 @@ async def update_template(
     template.included_fields = json.dumps(data.included_fields) if data.included_fields else None
     template.excluded_fields = json.dumps(data.excluded_fields) if data.excluded_fields else None
     template.is_active = data.is_active
-    template.updated_at = datetime.utcnow().isoformat()
+    template.updated_at = datetime.now(timezone.utc)
     template.version = template.version + 1
 
     await db.commit()
@@ -329,7 +329,7 @@ async def generate_br_notification(
         notification_type=request.notification_type,
         content_html=content_html,
         status="erstellt",
-        created_at=datetime.utcnow().isoformat(),
+        created_at=datetime.now(timezone.utc),
     )
 
     db.add(notification)
@@ -423,9 +423,9 @@ async def update_notification_status(
 
     notification.status = status
     if status == "versendet":
-        notification.sent_at = datetime.utcnow().isoformat()
+        notification.sent_at = datetime.now(timezone.utc)
     elif status == "bestaetigt":
-        notification.confirmed_at = datetime.utcnow().isoformat()
+        notification.confirmed_at = datetime.now(timezone.utc)
 
     await db.commit()
 

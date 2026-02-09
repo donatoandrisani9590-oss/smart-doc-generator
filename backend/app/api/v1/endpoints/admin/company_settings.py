@@ -7,7 +7,7 @@ Zentrale Firmendaten für automatisches Ausfüllen:
 """
 from __future__ import annotations
 from typing import Any, Annotated, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -155,8 +155,8 @@ async def update_company_settings(
     for field, value in update_data.items():
         setattr(settings, field, value)
 
-    settings.updated_at = datetime.utcnow().isoformat()
-    settings.updated_by = getattr(current_user, "full_name", "Admin")
+    settings.updated_at = datetime.now(timezone.utc)
+    settings.updated_by = current_user.email or "Admin"
 
     await db.commit()
     await db.refresh(settings)

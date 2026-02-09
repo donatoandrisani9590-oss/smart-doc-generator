@@ -13,7 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from pydantic import BaseModel
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app.db import get_db
 from app.api import deps
@@ -171,7 +171,7 @@ async def create_variant_group(
         category=group_in.category,
         country_code=group_in.country_code,
         base_clause_id=group_in.base_clause_id,
-        created_at=datetime.utcnow().isoformat(),
+        created_at=datetime.now(timezone.utc),
         created_by=str(getattr(current_user, 'id', 'system')),
         is_active=True,
     )

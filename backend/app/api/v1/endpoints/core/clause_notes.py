@@ -8,7 +8,7 @@ Interne Notizen pro Klausel für HR/Admin:
 """
 from __future__ import annotations
 from typing import Any, List, Annotated, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, delete
@@ -108,7 +108,7 @@ async def create_clause_note(
         note_type=note_in.note_type,
         created_by_user_id=getattr(current_user, "id", "unknown"),
         created_by_user_name=getattr(current_user, "full_name", "Unbekannt"),
-        created_at=datetime.utcnow().isoformat(),
+        created_at=datetime.now(timezone.utc),
     )
 
     db.add(note)

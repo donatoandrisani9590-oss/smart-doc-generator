@@ -8,7 +8,7 @@ Tracking von:
 """
 from __future__ import annotations
 from typing import Any, List, Annotated, Optional
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_, or_
@@ -245,7 +245,7 @@ async def create_deadline(
         notes=deadline_in.notes,
         generated_document_id=deadline_in.generated_document_id,
         status="pending",
-        created_at=datetime.utcnow().isoformat(),
+        created_at=datetime.now(timezone.utc),
         created_by=getattr(current_user, "full_name", "System"),
     )
 

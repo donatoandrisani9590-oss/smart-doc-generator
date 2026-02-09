@@ -9,7 +9,7 @@ Textbaustein-Freigabe-Workflow API (v4.2 Feature: Kapitel 15.3)
 """
 from __future__ import annotations
 from typing import Any, List, Annotated, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, or_
@@ -192,7 +192,7 @@ async def request_approval(
         )
 
     clause.approval_status = "pending"
-    clause.approval_requested_at = datetime.utcnow().isoformat()
+    clause.approval_requested_at = datetime.now(timezone.utc)
     clause.approval_requested_by = getattr(current_user, "full_name", "Unbekannt")
     clause.approval_comment = request.comment
     clause.approval_reviewed_at = None
@@ -233,7 +233,7 @@ async def review_clause(
             detail=f"Textbaustein ist nicht zur Prüfung eingereicht (aktueller Status: {clause.approval_status})"
         )
 
-    clause.approval_reviewed_at = datetime.utcnow().isoformat()
+    clause.approval_reviewed_at = datetime.now(timezone.utc)
     clause.approval_reviewed_by = getattr(current_user, "full_name", "Admin")
     clause.approval_comment = decision.comment
 
@@ -314,7 +314,7 @@ async def approve_clause(
 
     clause.approval_status = "active"
     clause.is_active = True
-    clause.approval_reviewed_at = datetime.utcnow().isoformat()
+    clause.approval_reviewed_at = datetime.now(timezone.utc)
     clause.approval_reviewed_by = getattr(current_user, "full_name", "Admin")
 
     # Optional: Kommentar speichern
@@ -370,7 +370,7 @@ async def reject_clause(
         )
 
     clause.approval_status = "rejected"
-    clause.approval_reviewed_at = datetime.utcnow().isoformat()
+    clause.approval_reviewed_at = datetime.now(timezone.utc)
     clause.approval_reviewed_by = getattr(current_user, "full_name", "Admin")
     clause.approval_comment = request.reason
 
