@@ -164,7 +164,7 @@ export const TemplateHeaderFooterEditor = ({
 
   const loadAvailableTemplates = async () => {
     try {
-      const res = await api.get<DocumentType[]>("/api/v1/document-types/");
+      const res = await api.get<DocumentType[]>("/api/v1/document-types");
       setAvailableTemplates(res.data.filter((t) => t.id !== documentTypeId));
     } catch (error) {
       console.error("Failed to load templates:", error);

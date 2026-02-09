@@ -64,7 +64,7 @@ export const DocumentWizardDialog = ({
             const loadTypes = async () => {
                 setIsLoading(true);
                 try {
-                    const response = await api.get<DocumentType[]>("/api/v1/document-types/");
+                    const response = await api.get<DocumentType[]>("/api/v1/document-types");
                     setTypes(response.data.filter((t) => t.is_active));
                 } catch (error) {
                     logError("Failed to load document types", { error });

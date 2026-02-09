@@ -145,7 +145,7 @@ export function useCreateComment() {
 
     return useMutation({
         mutationFn: async (data: CreateCommentRequest): Promise<Comment> => {
-            const response = await api.post<Comment>("/api/v1/comments/", data);
+            const response = await api.post<Comment>("/api/v1/comments", data);
             return response.data;
         },
         onSuccess: (_, variables) => {

@@ -122,7 +122,7 @@ export const UnifiedDocumentComposer = () => {
         const loadDocumentTypes = async () => {
             setIsLoadingTypes(true);
             try {
-                const response = await api.get<DocumentTypeResponse[]>("/api/v1/document-types/");
+                const response = await api.get<DocumentTypeResponse[]>("/api/v1/document-types");
                 const activeTypes = response.data.filter((t) => t.is_active);
                 setDocumentTypes(activeTypes);
 

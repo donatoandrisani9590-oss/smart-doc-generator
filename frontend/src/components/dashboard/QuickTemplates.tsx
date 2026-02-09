@@ -107,7 +107,7 @@ export const QuickTemplates = ({ className }: QuickTemplatesProps) => {
     useEffect(() => {
         const loadTypes = async () => {
             try {
-                const response = await api.get<DocumentType[]>("/api/v1/document-types/");
+                const response = await api.get<DocumentType[]>("/api/v1/document-types");
                 // Nur aktive Types, Top 3
                 const activeTypes = response.data.filter((t) => t.is_active).slice(0, 3);
                 setTypes(activeTypes);
