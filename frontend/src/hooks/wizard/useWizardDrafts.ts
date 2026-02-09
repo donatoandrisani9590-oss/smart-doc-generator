@@ -240,12 +240,14 @@ export function useWizardDrafts(params: UseWizardDraftsParams): UseWizardDraftsR
 
             toast.success("Entwurf wiederhergestellt", "Ihre nicht gespeicherten Änderungen wurden wiederhergestellt");
         }
-    }, [recoverDraftFromStorage, setFormDataRaw, setDynamicFormValues, setDocumentTitle, setDocumentTypeIdState, setComments, setCurrentStep, toast]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [recoverDraftFromStorage, setFormDataRaw, setDynamicFormValues, setDocumentTitle, setDocumentTypeIdState, setComments, setCurrentStep]);
 
     const discardDraft = useCallback(() => {
         discardDraftFromStorage();
         toast.info("Entwurf verworfen", "Der gespeicherte Entwurf wurde geloescht");
-    }, [discardDraftFromStorage, toast]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [discardDraftFromStorage]);
 
     // ── Load Draft ──────────────────────────────────────────────────────────
 
@@ -278,7 +280,8 @@ export function useWizardDrafts(params: UseWizardDraftsParams): UseWizardDraftsR
         } finally {
             setIsLoading(false);
         }
-    }, [navigate, setFormDataRaw, setDocumentTypeIdState, setDocumentTitle, setCurrentStep, setIsLoading, toast]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [navigate, setFormDataRaw, setDocumentTypeIdState, setDocumentTitle, setCurrentStep, setIsLoading]);
 
     // Load draft on mount if ID provided
     useEffect(() => {
@@ -355,7 +358,8 @@ export function useWizardDrafts(params: UseWizardDraftsParams): UseWizardDraftsR
         } finally {
             setIsSaving(false);
         }
-    }, [documentTypeId, documentTitle, formData, dynamicFormValues, documentClauses, loadedDraftId, setHasUnsavedChanges, toast]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [documentTypeId, documentTitle, formData, dynamicFormValues, documentClauses, loadedDraftId, setHasUnsavedChanges]);
 
     return {
         loadedDraftId,

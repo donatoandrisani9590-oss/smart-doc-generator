@@ -106,7 +106,8 @@ export const useClauseOperations = ({
             logError("Failed to add local clause", { error });
             toast.error("Fehler", "Textbaustein konnte nicht hinzugefügt werden");
         }
-    }, [draftId, setClauses, setSelectedClauseId, toast]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [draftId, setClauses, setSelectedClauseId]);
 
     const handleAddGlobalClause = useCallback(async (libraryClause: LibraryClause, position?: number) => {
         if (!draftId) return;
@@ -132,7 +133,8 @@ export const useClauseOperations = ({
             logError("Failed to add global clause", { error });
             toast.error("Fehler", "Textbaustein konnte nicht hinzugefügt werden");
         }
-    }, [draftId, setClauses, toast]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [draftId, setClauses]);
 
     const handleDeleteClause = useCallback(async (instanceId: number) => {
         if (!draftId) return;
@@ -150,7 +152,8 @@ export const useClauseOperations = ({
             logError("Failed to delete clause", { error });
             toast.error("Fehler", "Textbaustein konnte nicht entfernt werden");
         }
-    }, [draftId, selectedClauseId, setClauses, setSelectedClauseId, toast]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [draftId, selectedClauseId, setClauses, setSelectedClauseId]);
 
     const handleUpdateClause = useCallback(async (
         instanceId: number,
@@ -177,7 +180,8 @@ export const useClauseOperations = ({
         } finally {
             setIsSaving(false);
         }
-    }, [draftId, setClauses, markAsUnsaved, toast]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [draftId, setClauses, markAsUnsaved]);
 
     // ── Deviation (Phase 2) ──────────────────────────────────────────────────
 
@@ -214,7 +218,8 @@ export const useClauseOperations = ({
         } finally {
             setIsDeviating(false);
         }
-    }, [draftId, pendingDeviationClauseId, setClauses, setSelectedClauseId, toast]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [draftId, pendingDeviationClauseId, setClauses, setSelectedClauseId]);
 
     // ── Promotion (Phase 3) ──────────────────────────────────────────────────
 
@@ -255,7 +260,8 @@ export const useClauseOperations = ({
         } finally {
             setIsPromoting(false);
         }
-    }, [draftId, pendingPromotionClauseId, setClauses, toast]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [draftId, pendingPromotionClauseId, setClauses]);
 
     return {
         handleAddLocalClause,

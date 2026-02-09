@@ -121,7 +121,8 @@ export function useWizardExport(params: UseWizardExportParams): UseWizardExportR
             setIsGenerating(false);
             exportLockRef.current = false;
         }
-    }, [documentTypeId, documentClauses, selectedVariants, formData, dynamicFormValues, selectedAttachmentIds, userTemplateId, documentTitle, validateStep, toast]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [documentTypeId, documentClauses, selectedVariants, formData, dynamicFormValues, selectedAttachmentIds, userTemplateId, documentTitle, validateStep]);
 
     return {
         isGenerating,

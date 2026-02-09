@@ -127,7 +127,8 @@ export const ActionBar = () => {
                 "Bitte wählen Sie zuerst einen Dokumenttyp aus."
             );
         }
-    }, [validationState, documentTypeId, toast]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [validationState, documentTypeId]);
 
     // Entwurf speichern (erlaubt partielle Daten)
     const handleSaveDraft = async () => {

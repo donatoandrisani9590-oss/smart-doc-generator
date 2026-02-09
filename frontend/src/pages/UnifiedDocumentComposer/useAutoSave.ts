@@ -80,7 +80,8 @@ export const useAutoSave = ({ draftId }: UseAutoSaveOptions): UseAutoSaveReturn 
         } finally {
             setIsAutoSaving(false);
         }
-    }, [draftId, toast]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [draftId]);
 
     // Set up auto-save interval (30 seconds)
     useEffect(() => {

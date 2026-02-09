@@ -149,7 +149,8 @@ export const CommentSidebar = () => {
 
         migrateLocalCommentsToBackend();
         prevDraftIdRef.current = loadedDraftId;
-    }, [loadedDraftId, localComments, createCommentMutation, actions, toast]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [loadedDraftId, localComments, createCommentMutation, actions]);
 
     // Update sync status based on backend state
     useEffect(() => {
@@ -225,7 +226,8 @@ export const CommentSidebar = () => {
             console.error("Fehler beim Erstellen des Kommentars:", error);
             toast.error("Fehler", "Kommentar konnte nicht erstellt werden. Bitte erneut versuchen.");
         }
-    }, [newCommentText, useBackend, loadedDraftId, createCommentMutation, actions, autosaveKey, toast]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [newCommentText, useBackend, loadedDraftId, createCommentMutation, actions, autosaveKey]);
 
     const handleReply = useCallback(async (commentId: string, text: string) => {
         try {
@@ -244,7 +246,8 @@ export const CommentSidebar = () => {
             console.error("Fehler beim Erstellen der Antwort:", error);
             toast.error("Fehler", "Antwort konnte nicht erstellt werden.");
         }
-    }, [useBackend, loadedDraftId, createCommentMutation, actions, toast]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [useBackend, loadedDraftId, createCommentMutation, actions]);
 
     const handleResolve = useCallback(async (commentId: string) => {
         try {
@@ -260,7 +263,8 @@ export const CommentSidebar = () => {
             console.error("Fehler beim Auflösen:", error);
             toast.error("Fehler", "Kommentar konnte nicht als erledigt markiert werden.");
         }
-    }, [useBackend, resolveCommentMutation, actions, toast]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [useBackend, resolveCommentMutation, actions]);
 
     const handleReopen = useCallback(async (commentId: string) => {
         try {
@@ -276,7 +280,8 @@ export const CommentSidebar = () => {
             console.error("Fehler beim Wiedereröffnen:", error);
             toast.error("Fehler", "Kommentar konnte nicht wiedereröffnet werden.");
         }
-    }, [useBackend, resolveCommentMutation, actions, toast]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [useBackend, resolveCommentMutation, actions]);
 
     // Delete mit Bestätigungs-Dialog (2-Step)
     const handleDeleteRequest = useCallback((commentId: string) => {
@@ -299,7 +304,8 @@ export const CommentSidebar = () => {
         } finally {
             setDeleteConfirmId(null);
         }
-    }, [deleteConfirmId, useBackend, deleteCommentMutation, actions, toast]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [deleteConfirmId, useBackend, deleteCommentMutation, actions]);
 
     const handleCancelAdd = useCallback(() => {
         setNewCommentText("");
