@@ -238,7 +238,7 @@ export function useWizardDrafts(params: UseWizardDraftsParams): UseWizardDraftsR
                 setCurrentStep(recovered.currentStep);
             }
 
-            toast.success("Entwurf wiederhergestellt", "Ihre nicht gespeicherten Aenderungen wurden wiederhergestellt");
+            toast.success("Entwurf wiederhergestellt", "Ihre nicht gespeicherten Änderungen wurden wiederhergestellt");
         }
     }, [recoverDraftFromStorage, setFormDataRaw, setDynamicFormValues, setDocumentTitle, setDocumentTypeIdState, setComments, setCurrentStep, toast]);
 

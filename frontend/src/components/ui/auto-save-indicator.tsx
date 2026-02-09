@@ -69,14 +69,14 @@ const statusConfig: Record<SaveStatus, StatusConfig> = {
     idle: {
         icon: Cloud,
         label: "Gespeichert",
-        description: "Alle Aenderungen sind gespeichert",
+        description: "Alle Änderungen sind gespeichert",
         color: "text-muted-foreground",
         bgColor: "bg-muted/50",
     },
     pending: {
         icon: Clock,
-        label: "Aenderungen",
-        description: "Aenderungen werden bald gespeichert...",
+        label: "Änderungen",
+        description: "Änderungen werden bald gespeichert...",
         color: "text-amber-600 dark:text-amber-400",
         bgColor: "bg-amber-50 dark:bg-amber-950/30",
     },

@@ -55,7 +55,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/components/ui/toast";
-import { api } from "@/lib/api-client";
+import { api, getApiBaseUrl } from "@/lib/api-client";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Types
@@ -256,7 +256,7 @@ export const CopilotStudioSettings = () => {
   };
 
   const handleCopyOpenApiUrl = () => {
-    const url = `${window.location.origin}/api/v1/openapi.json`;
+    const url = `${getApiBaseUrl()}/api/v1/openapi.json`;
     navigator.clipboard.writeText(url);
     toast.success("Kopiert", "OpenAPI URL wurde in die Zwischenablage kopiert");
   };
@@ -475,7 +475,7 @@ export const CopilotStudioSettings = () => {
                 <div className="space-y-2">
                   <Label>OpenAPI Specification URL</Label>
                   <div className="flex gap-2">
-                    <Input value={`${window.location.origin}/api/v1/openapi.json`} readOnly className="font-mono text-sm" />
+                    <Input value={`${getApiBaseUrl()}/api/v1/openapi.json`} readOnly className="font-mono text-sm" />
                     <Button variant="outline" size="icon" onClick={handleCopyOpenApiUrl}>
                       <Copy className="w-4 h-4" />
                     </Button>

@@ -810,7 +810,7 @@ export function SignatureWizard({
         })),
         fields,
         subject: `Bitte unterschreiben: ${documentTitle}`,
-        message: `Sie wurden gebeten, das Dokument "${documentTitle}" zu unterschreiben. Bitte klicken Sie auf den Link in dieser E-Mail, um das Dokument zu ueberpruefen und zu unterschreiben.`,
+        message: `Sie wurden gebeten, das Dokument "${documentTitle}" zu unterschreiben. Bitte klicken Sie auf den Link in dieser E-Mail, um das Dokument zu überprüfen und zu unterschreiben.`,
         expiresInDays: Math.max(1, expiresInDays),
       };
 

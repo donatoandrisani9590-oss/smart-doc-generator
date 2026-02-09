@@ -367,6 +367,9 @@ app = FastAPI(
     - Jede REST-fähige Anwendung
     """,
     version="1.0.0",
+    # Disable trailing slash redirects - they break CORS preflight
+    # (307 redirects don't carry CORS headers, causing browser fetch failures)
+    redirect_slashes=False,
     # API docs controlled via SHOW_API_DOCS (independent from DEBUG)
     openapi_url=f"{settings.API_V1_STR}/openapi.json" if settings.SHOW_API_DOCS else None,
     docs_url=f"{settings.API_V1_STR}/docs" if settings.SHOW_API_DOCS else None,

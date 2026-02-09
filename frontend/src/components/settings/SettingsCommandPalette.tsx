@@ -85,7 +85,7 @@ const SETTINGS_GROUPS: SettingsGroup[] = [
       {
         id: "company-logo",
         label: "Firmenlogo",
-        description: "Logo hochladen oder aendern",
+        description: "Logo hochladen oder ändern",
         keywords: ["logo", "bild", "image", "branding", "marke"],
         icon: Image,
         tab: "general",
@@ -108,7 +108,7 @@ const SETTINGS_GROUPS: SettingsGroup[] = [
       {
         id: "feature-dashboard",
         label: "Dashboard Features",
-        description: "Statistiken, Aktivitaeten, Quick Actions",
+        description: "Statistiken, Aktivitäten, Quick Actions",
         keywords: ["dashboard", "statistik", "uebersicht", "home", "start"],
         icon: LayoutDashboard,
         tab: "features",
@@ -140,7 +140,7 @@ const SETTINGS_GROUPS: SettingsGroup[] = [
       {
         id: "feature-sidebar",
         label: "Sidebar anpassen",
-        description: "Menuepunkte ein- und ausblenden",
+        description: "Menüpunkte ein- und ausblenden",
         keywords: ["sidebar", "menu", "navigation", "anpassen"],
         icon: ToggleRight,
         tab: "features",
@@ -331,13 +331,13 @@ const QUICK_ACTIONS = [
   {
     id: "recent-documents",
     label: "Letzte Dokumente",
-    description: "Kuerzlich bearbeitete Dokumente",
+    description: "Kürzlich bearbeitete Dokumente",
     icon: Clock,
   },
   {
     id: "activity-log",
-    label: "Aktivitaeten",
-    description: "Letzte Aenderungen anzeigen",
+    label: "Aktivitäten",
+    description: "Letzte Änderungen anzeigen",
     icon: Activity,
   },
 ];
@@ -470,20 +470,20 @@ export function SettingsCommandPalette({
             <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium">
               <span className="text-xs">Enter</span>
             </kbd>
-            <span>Oeffnen</span>
+            <span>Öffnen</span>
           </span>
           <span className="flex items-center gap-1">
             <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium">
               <span className="text-xs">Esc</span>
             </kbd>
-            <span>Schliessen</span>
+            <span>Schließen</span>
           </span>
         </div>
         <span className="flex items-center gap-1">
           <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium">
             {navigator.platform.includes("Mac") ? "Cmd" : "Ctrl"}+K
           </kbd>
-          <span>Oeffnen</span>
+          <span>Öffnen</span>
         </span>
       </div>
     </CommandDialog>

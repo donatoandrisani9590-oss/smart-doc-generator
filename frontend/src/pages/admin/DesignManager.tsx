@@ -255,7 +255,7 @@ export const DesignManager = () => {
                     <AlertCircle className="w-5 h-5 text-red-500" />
                     <p className="text-red-700">{error}</p>
                     <Button variant="ghost" size="sm" onClick={() => setError(null)} className="ml-auto">
-                        Schliessen
+                        Schließen
                     </Button>
                 </div>
             )}

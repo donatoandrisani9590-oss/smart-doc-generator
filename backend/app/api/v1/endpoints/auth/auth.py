@@ -202,7 +202,7 @@ async def register_user(
     if existing_result.scalar_one_or_none():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Registrierung fehlgeschlagen. Bitte ueberpruefen Sie Ihre Eingaben."
+            detail="Registrierung fehlgeschlagen. Bitte überprüfen Sie Ihre Eingaben."
         )
 
     # Create new user

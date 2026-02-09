@@ -643,7 +643,7 @@ export function UserTemplatesPage() {
                 <div>
                     <h2 className="text-xl font-semibold text-foreground">Vorlagen</h2>
                     <p className="text-sm text-muted-foreground mt-1">
-                        DOCX-Vorlagen mit Firmen-Branding fuer die Dokumentenerstellung. Geteilte Vorlagen anderer Nutzer sind ebenfalls sichtbar.
+                        DOCX-Vorlagen mit Firmen-Branding für die Dokumentenerstellung. Geteilte Vorlagen anderer Nutzer sind ebenfalls sichtbar.
                     </p>
                 </div>
                 <Button onClick={() => setUploadOpen(true)} className="gap-2">

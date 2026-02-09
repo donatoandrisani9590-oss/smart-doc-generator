@@ -159,7 +159,7 @@ export const DocumentCorrectionDialog = ({
                         Das Dokument konnte nicht geladen werden.
                     </p>
                     <DialogFooter>
-                        <Button onClick={() => onOpenChange(false)}>Schliessen</Button>
+                        <Button onClick={() => onOpenChange(false)}>Schließen</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

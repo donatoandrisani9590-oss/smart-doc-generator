@@ -326,7 +326,7 @@ export const UsersPage = () => {
                         onClick={() => setError(null)}
                         className="ml-auto"
                     >
-                        Schliessen
+                        Schließen
                     </Button>
                 </div>
             )}

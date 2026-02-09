@@ -290,7 +290,7 @@ export const ShareWithTeamDialog = ({
 
                 <DialogFooter>
                     <Button variant="outline" onClick={() => onOpenChange(false)}>
-                        {success ? "Schliessen" : "Abbrechen"}
+                        {success ? "Schließen" : "Abbrechen"}
                     </Button>
                     {!success && teams.length > 0 && (
                         <Button

@@ -305,8 +305,8 @@ export function DraftRecoveryDialog({
                             Entwurf verwerfen?
                         </AlertDialogTitle>
                         <AlertDialogDescription>
-                            Dieser Vorgang kann nicht rueckgaengig gemacht werden. Der gespeicherte Entwurf
-                            wird dauerhaft geloescht und alle nicht gespeicherten Aenderungen gehen verloren.
+                            Dieser Vorgang kann nicht rückgängig gemacht werden. Der gespeicherte Entwurf
+                            wird dauerhaft gelöscht und alle nicht gespeicherten Änderungen gehen verloren.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
