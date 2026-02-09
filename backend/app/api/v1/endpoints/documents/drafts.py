@@ -73,7 +73,12 @@ def calculate_expires_at(created_at: datetime) -> datetime:
 def calculate_days_remaining(created_at: datetime) -> int:
     """Berechnet verbleibende Tage bis zum Ablauf."""
     expires_at = calculate_expires_at(created_at)
-    remaining = (expires_at - datetime.utcnow()).days
+    from datetime import timezone
+    now = datetime.now(timezone.utc)
+    # Ensure expires_at is timezone-aware
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+    remaining = (expires_at - now).days
     return max(0, remaining)
 
 
