@@ -49,7 +49,8 @@ export const DocumentGenerator = () => {
             }
         };
         loadDocumentTypes();
-    }, [toast]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     // Loading State
     if (isLoading) {

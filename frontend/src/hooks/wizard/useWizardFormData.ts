@@ -95,7 +95,8 @@ export function useWizardFormData(): UseWizardFormDataReturn {
             }
         };
         loadDocumentTypes();
-    }, [toast]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     // ── Form Actions ────────────────────────────────────────────────────────
 
