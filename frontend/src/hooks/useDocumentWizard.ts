@@ -92,6 +92,7 @@ export function useDocumentWizard(initialDraftId?: number): WizardContextValue {
         setCurrentStep: nav.setCurrentStep,
         setHasUnsavedChanges: form.setHasUnsavedChanges,
         setIsLoading: form.setIsLoading,
+        enterSplitScreenMode: nav.enterSplitScreenMode,
     });
 
     // ── 7. User Template Selection (optional layout template) ──────────────

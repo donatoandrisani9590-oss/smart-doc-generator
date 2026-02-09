@@ -67,6 +67,7 @@ export interface UseWizardDraftsParams {
     setCurrentStep: (step: number) => void;
     setHasUnsavedChanges: (value: boolean) => void;
     setIsLoading: (value: boolean) => void;
+    enterSplitScreenMode: () => void;
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -118,6 +119,7 @@ export function useWizardDrafts(params: UseWizardDraftsParams): UseWizardDraftsR
         setCurrentStep,
         setHasUnsavedChanges,
         setIsLoading,
+        enterSplitScreenMode,
     } = params;
 
     const toast = useToast();
@@ -271,6 +273,10 @@ export function useWizardDrafts(params: UseWizardDraftsParams): UseWizardDraftsR
 
             const jumpToStep = calculateDraftStep(draft.form_data as Partial<FormData>);
             setCurrentStep(jumpToStep);
+
+            // Switch to split-screen mode so the form editor is rendered
+            // (without this, the wizard stays on step 0 document-type selection)
+            enterSplitScreenMode();
 
             toast.success("Entwurf geladen", `"${draft.name || draft.document_type_name}" wurde geladen`);
         } catch (error) {
