@@ -2,7 +2,7 @@
 Unified Document Composer API
 
 Smart UX Konzept Endpoints:
-- Klausel-Instanzen verwalten (CRUD)
+- Textbaustein-Instanzen verwalten (CRUD)
 - Bibliothek durchsuchen
 - Deviation-Flow (Phase 2)
 - Promotion-Flow (Phase 3)
@@ -79,15 +79,15 @@ async def get_clause_instance(
     instance_id: int,
     user_id: str
 ) -> DocumentClauseInstance:
-    """Lädt eine Klausel-Instanz und prüft Ownership."""
+    """Lädt eine Textbaustein-Instanz und prüft Ownership."""
     # Erst Draft-Ownership prüfen
     await get_draft_for_user(db, draft_id, user_id)
 
     instance = await db.get(DocumentClauseInstance, instance_id)
     if not instance:
-        raise HTTPException(status_code=404, detail="Klausel-Instanz nicht gefunden")
+        raise HTTPException(status_code=404, detail="Textbaustein-Instanz nicht gefunden")
     if instance.document_draft_id != draft_id:
-        raise HTTPException(status_code=403, detail="Klausel gehört nicht zu diesem Draft")
+        raise HTTPException(status_code=403, detail="Textbaustein gehört nicht zu diesem Draft")
     return instance
 
 
@@ -104,8 +104,8 @@ async def create_composer_draft(
     """
     Erstellt einen neuen Composer-Draft.
 
-    Der Draft wird mit den Standard-Klauseln des DocumentTypes initialisiert.
-    Alle Standard-Klauseln werden als 'global' hinzugefügt.
+    Der Draft wird mit den Standard-Textbausteine des DocumentTypes initialisiert.
+    Alle Standard-Textbausteine werden als 'global' hinzugefügt.
     """
     # DocumentType laden
     doc_type = await db.get(DocumentType, draft_data.document_type_id)
@@ -123,7 +123,7 @@ async def create_composer_draft(
     db.add(draft)
     await db.flush()  # ID generieren
 
-    # Standard-Klauseln des DocumentTypes als globale Instanzen hinzufügen
+    # Standard-Textbausteine des DocumentTypes als globale Instanzen hinzufügen
     result = await db.execute(
         select(DocumentTypeClause)
         .where(DocumentTypeClause.document_type_id == draft_data.document_type_id)
@@ -134,7 +134,7 @@ async def create_composer_draft(
     display_order_counter = 0
 
     for dtc in doc_type_clauses:
-        # Klausel laden für Titel
+        # Textbaustein laden für Titel
         clause = await db.get(Clause, dtc.clause_id)
         if not clause or not clause.is_active:
             continue
@@ -207,7 +207,7 @@ async def create_composer_draft(
         # Lade Varianten-Gruppe für den Namen
         variant_group = await db.get(ClauseVariantGroup, dtvg.variant_group_id)
 
-        # Erstelle Klausel-Instanz vom Typ VARIANT
+        # Erstelle Textbaustein-Instanz vom Typ VARIANT
         instance = DocumentClauseInstance(
             document_draft_id=draft.id,
             clause_origin=ClauseOrigin.VARIANT.value if hasattr(ClauseOrigin, 'VARIANT') else ClauseOrigin.GLOBAL.value,
@@ -288,7 +288,7 @@ async def update_draft_form_data(
 
 
 async def _get_clause_stats(db: AsyncSession, draft_id: int) -> dict:
-    """Zählt Klauseln nach Origin."""
+    """Zählt Textbausteine nach Origin."""
     result = await db.execute(
         select(
             DocumentClauseInstance.clause_origin,
@@ -317,9 +317,9 @@ async def get_draft_clauses(
     current_user=Depends(get_current_user)
 ):
     """
-    Lädt alle Klausel-Instanzen eines Drafts.
+    Lädt alle Textbaustein-Instanzen eines Drafts.
 
-    Bei globalen Klauseln wird der Content aus der Clause-Tabelle geladen.
+    Bei globalen Textbausteine wird der Content aus der Clause-Tabelle geladen.
     """
     draft = await get_draft_for_user(db, draft_id, str(current_user.id))
 
@@ -330,7 +330,7 @@ async def get_draft_clauses(
     )
     instances = result.scalars().all()
 
-    # Content für globale Klauseln laden
+    # Content für globale Textbausteine laden
     clauses_response = []
     for inst in instances:
         content_html = inst.content_html
@@ -379,18 +379,18 @@ async def add_clause_to_draft(
     current_user=Depends(get_current_user)
 ):
     """
-    Fügt eine Klausel zum Draft hinzu.
+    Fügt einen Textbaustein zum Draft hinzu.
 
     Zwei Modi:
-    1. source_clause_id gegeben → Globale Klausel aus Bibliothek referenzieren
-    2. content_html gegeben → Lokale Klausel erstellen
+    1. source_clause_id gegeben → Globale Textbaustein aus Bibliothek referenzieren
+    2. content_html gegeben → Lokale Textbaustein erstellen
     """
     draft = await get_draft_for_user(db, draft_id, str(current_user.id))
 
     # Position bestimmen
     if clause_data.position is not None:
         position = clause_data.position
-        # Bestehende Klauseln nach hinten verschieben
+        # Bestehende Textbausteine nach hinten verschieben
         await db.execute(
             DocumentClauseInstance.__table__.update()
             .where(and_(
@@ -410,10 +410,10 @@ async def add_clause_to_draft(
 
     # Global oder Local?
     if clause_data.source_clause_id:
-        # Globale Klausel
+        # Globaler Textbaustein
         clause = await db.get(Clause, clause_data.source_clause_id)
         if not clause:
-            raise HTTPException(status_code=404, detail="Klausel nicht in Bibliothek gefunden")
+            raise HTTPException(status_code=404, detail="Textbaustein nicht in Bibliothek gefunden")
 
         instance = DocumentClauseInstance(
             document_draft_id=draft_id,
@@ -426,7 +426,7 @@ async def add_clause_to_draft(
         )
         content_html = clause.content_html
     else:
-        # Lokale Klausel
+        # Lokaler Textbaustein
         instance = DocumentClauseInstance(
             document_draft_id=draft_id,
             clause_origin=ClauseOrigin.LOCAL.value,
@@ -465,18 +465,18 @@ async def update_clause_instance(
     current_user=Depends(get_current_user)
 ):
     """
-    Aktualisiert eine Klausel-Instanz.
+    Aktualisiert eine Textbaustein-Instanz.
 
     WICHTIG: Nur für local/deviation erlaubt!
-    Globale Klauseln müssen erst "aufgebrochen" werden (deviate).
+    Globale Textbausteine müssen erst "aufgebrochen" werden (deviate).
     """
     instance = await get_clause_instance(db, draft_id, instance_id, str(current_user.id))
 
     if instance.clause_origin == ClauseOrigin.GLOBAL.value:
         raise HTTPException(
             status_code=400,
-            detail="Globale Klauseln können nicht direkt bearbeitet werden. "
-                   "Verwenden Sie den 'deviate'-Endpoint, um die Klausel aufzubrechen."
+            detail="Globale Textbausteine können nicht direkt bearbeitet werden. "
+                   "Verwenden Sie den 'deviate'-Endpoint, um den Textbaustein aufzubrechen."
         )
 
     if update.title is not None:
@@ -511,7 +511,7 @@ async def remove_clause_from_draft(
     db: AsyncSession = Depends(get_db),
     current_user=Depends(get_current_user)
 ):
-    """Entfernt eine Klausel-Instanz vom Draft."""
+    """Entfernt eine Textbaustein-Instanz vom Draft."""
     instance = await get_clause_instance(db, draft_id, instance_id, str(current_user.id))
 
     deleted_order = instance.display_order
@@ -539,7 +539,7 @@ async def reorder_draft_clauses(
     current_user=Depends(get_current_user)
 ):
     """
-    Ändert die Reihenfolge der Klauseln.
+    Ändert die Reihenfolge der Textbausteine.
 
     Input: Liste von {instance_id, position}
     """
@@ -579,26 +579,26 @@ async def deviate_clause(
     3. Setzt origin = "deviation"
     4. Setzt deviated_at, deviated_by_user_id
 
-    Ab jetzt ist die Klausel editierbar.
+    Ab jetzt ist den Textbaustein editierbar.
     """
     instance = await get_clause_instance(db, draft_id, instance_id, str(current_user.id))
 
     if instance.clause_origin != ClauseOrigin.GLOBAL.value:
         raise HTTPException(
             status_code=400,
-            detail="Nur globale Klauseln können aufgebrochen werden"
+            detail="Nur globale Textbausteine können aufgebrochen werden"
         )
 
     if not instance.source_clause_id:
         raise HTTPException(
             status_code=400,
-            detail="Keine Quell-Klausel verknüpft"
+            detail="Keine Quell-Textbaustein verknüpft"
         )
 
-    # Original-Klausel laden
+    # Original-Textbaustein laden
     source_clause = await db.get(Clause, instance.source_clause_id)
     if not source_clause:
-        raise HTTPException(status_code=404, detail="Quell-Klausel nicht gefunden")
+        raise HTTPException(status_code=404, detail="Quell-Textbaustein nicht gefunden")
 
     # Content kopieren
     instance.content_html = source_clause.content_html
@@ -618,7 +618,7 @@ async def deviate_clause(
         origin=ClauseOriginEnum.DEVIATION,
         content_html=instance.content_html,
         deviated_at=instance.deviated_at,
-        message="Klausel wurde aufgebrochen und kann jetzt bearbeitet werden"
+        message="Textbaustein wurde aufgebrochen und kann jetzt bearbeitet werden"
     )
 
 
@@ -635,7 +635,7 @@ async def promote_to_library(
     current_user=Depends(get_current_user)
 ):
     """
-    "In Bibliothek aufnehmen" - Erstellt neue globale Klausel.
+    "In Bibliothek aufnehmen" - Erstellt neue globaler Textbaustein.
 
     1. Prüft dass instance.origin == "local" oder "deviation"
     2. Erstellt neue Clause in clauses-Tabelle (Status: pending)
@@ -649,16 +649,16 @@ async def promote_to_library(
     if instance.clause_origin == ClauseOrigin.GLOBAL.value:
         raise HTTPException(
             status_code=400,
-            detail="Globale Klauseln können nicht erneut promotet werden"
+            detail="Globale Textbausteine können nicht erneut promotet werden"
         )
 
     if not instance.content_html:
         raise HTTPException(
             status_code=400,
-            detail="Klausel hat keinen Inhalt"
+            detail="Textbaustein hat keinen Inhalt"
         )
 
-    # Neue globale Klausel erstellen (Status: pending)
+    # Neue globale Textbaustein erstellen (Status: pending)
     new_clause = Clause(
         title=request.title,
         content_html=instance.content_html,
@@ -703,7 +703,7 @@ async def promote_to_library(
         status="submitted",
         new_clause_id=new_clause.id,
         approval_required=True,
-        message="Klausel wurde zur Prüfung eingereicht. Nach Freigabe steht sie in der Bibliothek bereit."
+        message="Textbaustein wurde zur Prüfung eingereicht. Nach Freigabe steht sie in der Bibliothek bereit."
     )
 
 
@@ -722,17 +722,17 @@ async def search_library(
     current_user=Depends(get_current_user)
 ):
     """
-    Durchsucht die Klausel-Bibliothek für Drag & Drop.
+    Durchsucht die Textbaustein-Bibliothek für Drag & Drop.
 
-    Gibt nur aktive und freigegebene Klauseln zurück.
+    Gibt nur aktive und freigegebene Textbausteine zurück.
     """
-    # Base Query (Tenant-isoliert: nur eigene + globale Klauseln)
+    # Base Query (Tenant-isoliert: nur eigene + globale Textbausteine)
     query = select(Clause).where(
         and_(
             Clause.is_active == True,
             or_(
                 Clause.country_code == country_code,
-                Clause.country_code == None  # Länderübergreifende Klauseln
+                Clause.country_code == None  # Länderübergreifende Textbausteine
             ),
             Clause.approval_status.in_(["active", "approved"]),
             or_(

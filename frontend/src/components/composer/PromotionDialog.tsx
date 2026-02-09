@@ -33,7 +33,7 @@ import { cn } from "@/lib/utils";
 import { sanitizeHtml } from "@/utils/sanitize";
 import type { ClauseInstance } from "./types";
 
-// Vordefinierte Kategorien für Klauseln
+// Vordefinierte Kategorien für Textbausteine
 const CLAUSE_CATEGORIES = [
     { value: "allgemein", label: "Allgemeine Bestimmungen" },
     { value: "arbeitszeit", label: "Arbeitszeit" },
@@ -148,7 +148,7 @@ export const PromotionDialog = ({
                         <div className="flex items-start gap-2">
                             <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
                             <div className="text-sm text-amber-800">
-                                <strong>Hinweis:</strong> Die Klausel wird zur Prüfung eingereicht.
+                                <strong>Hinweis:</strong> Der Textbaustein wird zur Prüfung eingereicht.
                                 Nach Freigabe durch einen Administrator steht sie in der Bibliothek bereit.
                             </div>
                         </div>
@@ -218,7 +218,7 @@ export const PromotionDialog = ({
                             </SelectContent>
                         </Select>
                         <p className="text-xs text-muted-foreground">
-                            Die Klausel wird nur für Dokumente dieses Landes verfügbar sein.
+                            Der Textbaustein wird nur für Dokumente dieses Landes verfügbar sein.
                         </p>
                     </div>
 
@@ -229,7 +229,7 @@ export const PromotionDialog = ({
                             id="promotion-notes"
                             value={notes}
                             onChange={(e) => setNotes(e.target.value)}
-                            placeholder="z.B. Kontext, warum diese Klausel nützlich ist..."
+                            placeholder="z.B. Kontext, warum diesen Textbaustein nützlich ist..."
                             rows={2}
                             className="resize-none"
                         />
@@ -248,11 +248,11 @@ export const PromotionDialog = ({
                                     htmlFor="convert-to-global"
                                     className="text-sm font-medium cursor-pointer"
                                 >
-                                    Nach Freigabe zu Standard-Klausel umwandeln
+                                    Nach Freigabe zu Standard-Textbaustein umwandeln
                                 </Label>
                                 <p className="text-xs text-muted-foreground">
-                                    Die Klausel in diesem Dokument wird nach der Freigabe automatisch
-                                    mit der neuen Bibliotheks-Klausel verknüpft.
+                                    Der Textbaustein in diesem Dokument wird nach der Freigabe automatisch
+                                    mit der neuen Bibliotheks-Textbaustein verknüpft.
                                 </p>
                             </div>
                         </div>

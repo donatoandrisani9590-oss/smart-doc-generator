@@ -133,7 +133,7 @@ export const ClauseBlock = ({
                                     </div>
                                 </TooltipTrigger>
                                 <TooltipContent>
-                                    <p>Standard-Klausel aus der Bibliothek</p>
+                                    <p>Standard-Textbaustein aus der Bibliothek</p>
                                     <p className="text-xs text-muted-foreground">
                                         Klicken Sie auf "Aufbrechen", um sie anzupassen
                                     </p>
@@ -149,7 +149,7 @@ export const ClauseBlock = ({
                                     </div>
                                 </TooltipTrigger>
                                 <TooltipContent>
-                                    <p>{isDeviation ? "Angepasste Klausel" : "Individuelle Klausel"}</p>
+                                    <p>{isDeviation ? "Angepasster Textbaustein" : "Individueller Textbaustein"}</p>
                                     <p className="text-xs text-muted-foreground">Frei editierbar</p>
                                 </TooltipContent>
                             </Tooltip>
@@ -184,7 +184,7 @@ export const ClauseBlock = ({
                                 <TooltipContent>
                                     <p>Schloss öffnen</p>
                                     <p className="text-xs text-muted-foreground">
-                                        Klausel vom Standard abwandeln
+                                        Textbaustein vom Standard abwandeln
                                     </p>
                                 </TooltipContent>
                             </Tooltip>
@@ -218,7 +218,7 @@ export const ClauseBlock = ({
                                 </Button>
                             </TooltipTrigger>
                             <TooltipContent>
-                                <p>Klausel entfernen</p>
+                                <p>Textbaustein entfernen</p>
                             </TooltipContent>
                         </Tooltip>
                     </TooltipProvider>
@@ -240,7 +240,7 @@ export const ClauseBlock = ({
             {!clause.is_condition_met && (
                 <div className="mt-2 pl-8 flex items-center gap-1 text-xs text-amber-600">
                     <Info className="w-3 h-3" />
-                    <span>Diese Klausel wird nur angezeigt, wenn die Bedingung erfüllt ist</span>
+                    <span>Dieser Textbaustein wird nur angezeigt, wenn die Bedingung erfüllt ist</span>
                 </div>
             )}
 
@@ -249,7 +249,7 @@ export const ClauseBlock = ({
                 <div className="mt-3 pl-8 p-2 bg-green-50 rounded text-xs text-green-700 flex items-center gap-2">
                     <Info className="w-4 h-4" />
                     <span>
-                        Standard-Klausel. Um sie anzupassen, klicken Sie auf{" "}
+                        Standard-Textbaustein. Um sie anzupassen, klicken Sie auf{" "}
                         <Unlock className="w-3 h-3 inline" /> "Aufbrechen".
                     </span>
                 </div>

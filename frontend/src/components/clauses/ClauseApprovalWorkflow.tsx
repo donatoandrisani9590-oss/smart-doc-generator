@@ -1,11 +1,11 @@
 /**
- * ClauseApprovalWorkflow - 4-Augen-Prinzip für Klauseln
+ * ClauseApprovalWorkflow - 4-Augen-Prinzip für Textbausteine
  *
  * v4.2 Feature (Kapitel 15.3):
  * - HRBP erstellt Entwurf
  * - Rechtsabteilung prüft
  * - HR-Leitung gibt frei
- * - Klausel wird aktiv
+ * - Textbaustein wird aktiv
  */
 
 import { useState } from "react";
@@ -285,7 +285,7 @@ export function ClauseApprovalWorkflow({
                     <DialogHeader>
                         <DialogTitle>Freigabe anfordern</DialogTitle>
                         <DialogDescription>
-                            Reichen Sie die Klausel "{clauseTitle}" zur Prüfung ein.
+                            Reichen Sie den Textbaustein "{clauseTitle}" zur Prüfung ein.
                         </DialogDescription>
                     </DialogHeader>
 
@@ -321,9 +321,9 @@ export function ClauseApprovalWorkflow({
             <Dialog open={showReviewDialog} onOpenChange={setShowReviewDialog}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Klausel prüfen</DialogTitle>
+                        <DialogTitle>Textbaustein prüfen</DialogTitle>
                         <DialogDescription>
-                            Prüfen Sie die Klausel "{clauseTitle}" und treffen Sie eine Entscheidung.
+                            Prüfen Sie den Textbaustein "{clauseTitle}" und treffen Sie eine Entscheidung.
                         </DialogDescription>
                     </DialogHeader>
 

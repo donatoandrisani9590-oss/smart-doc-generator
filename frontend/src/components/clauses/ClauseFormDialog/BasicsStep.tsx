@@ -232,7 +232,7 @@ export const BasicsStep = ({
                     id="description"
                     value={description}
                     onChange={(e) => setDescription(e.target.value.slice(0, 500))}
-                    placeholder="z.B. Strenge Kündigungsklausel mit kurzer Frist für Führungskräfte"
+                    placeholder="z.B. Strenge Kündigungs-Textbaustein mit kurzer Frist für Führungskräfte"
                     className="text-sm"
                     maxLength={500}
                 />
@@ -278,7 +278,7 @@ export const BasicsStep = ({
                     </div>
                 )}
                 <p className="text-xs text-muted-foreground">
-                    Tags helfen der KI, diese Klausel zu finden. z.B. "kuendigung", "streng", "fristlos"
+                    Tags helfen der KI, diesen Textbaustein zu finden. z.B. "kuendigung", "streng", "fristlos"
                 </p>
             </div>
 
@@ -297,7 +297,7 @@ export const BasicsStep = ({
                     </SelectContent>
                 </Select>
                 <p className="text-xs text-muted-foreground">
-                    Bestimmt, wann die KI diese Klausel bevorzugt. "Wasserdicht" = streng, "Fair" = arbeitnehmerfreundlich.
+                    Bestimmt, wann die KI diesen Textbaustein bevorzugt. "Wasserdicht" = streng, "Fair" = arbeitnehmerfreundlich.
                 </p>
             </div>
         </div>

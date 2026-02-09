@@ -6,7 +6,7 @@
  * - Unterzeichner-Feld
  * - Scrollbare Dokumentvorschau
  * - Export-Buttons (PDF, DOCX, Entwurf)
- * - Link zu Klauseln anpassen
+ * - Link zu Textbausteine anpassen
  */
 
 import { CheckCircle, ArrowLeft, Download, Save, FileText, Edit, Loader2 } from "lucide-react";
@@ -18,6 +18,7 @@ import { Separator } from "@/components/ui/separator";
 import { sanitizeHtml } from "@/utils/sanitize";
 import { useWizardContext } from "../WizardContext";
 import { VariableHighlighter } from "../VariableHighlighter";
+import { ComplianceChecker } from "@/components/ai/ComplianceChecker";
 import "@/styles/preview.css";
 
 interface DocumentType {
@@ -134,14 +135,14 @@ export const StepReview = ({ documentTypes }: StepReviewProps) => {
                             </div>
                             <Separator />
                             <div className="flex justify-between">
-                                <span className="text-muted-foreground">Klauseln</span>
+                                <span className="text-muted-foreground">Textbausteine</span>
                                 <span className="font-medium">
                                     {enabledClausesCount} aktiv
                                     {!showClausesStep && " (Standard)"}
                                 </span>
                             </div>
 
-                            {/* Link zu Klauseln */}
+                            {/* Link zu Textbausteine */}
                             {!showClausesStep && (
                                 <button
                                     type="button"
@@ -149,7 +150,7 @@ export const StepReview = ({ documentTypes }: StepReviewProps) => {
                                     className="w-full mt-2 text-xs text-primary hover:underline flex items-center justify-center gap-1"
                                 >
                                     <FileText className="w-3 h-3" />
-                                    Klauseln anpassen
+                                    Textbausteine anpassen
                                 </button>
                             )}
                         </CardContent>
@@ -276,6 +277,22 @@ export const StepReview = ({ documentTypes }: StepReviewProps) => {
                     </CardContent>
                 </Card>
             </div>
+
+            {/* KI-Compliance-Prüfung */}
+            {documentTypeId && (
+                <ComplianceChecker
+                    documentTypeId={documentTypeId}
+                    enabledClauseIds={documentClauses.filter(c => c.is_enabled).map(c => c.id)}
+                    formData={formData as unknown as Record<string, unknown>}
+                    countryCode="DE"
+                    availableClauses={documentClauses.map(c => ({ id: c.id, name: c.name, title: c.name }))}
+                    onAddClause={(clauseId) => {
+                        const clause = documentClauses.find(c => c.id === clauseId);
+                        if (clause) actions.toggleClause(clause.unique_id);
+                    }}
+                    documentTypeName={documentTypeName}
+                />
+            )}
 
             {/* Navigation */}
             <div className="flex justify-between pt-4">

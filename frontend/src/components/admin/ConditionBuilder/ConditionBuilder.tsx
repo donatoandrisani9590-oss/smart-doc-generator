@@ -363,7 +363,7 @@ export const ConditionBuilder = ({
                                                 Bedingung testen
                                             </DialogTitle>
                                             <DialogDescription>
-                                                Prüfen Sie, ob die Klausel mit bestimmten Werten angezeigt wird.
+                                                Prüfen Sie, ob den Textbaustein mit bestimmten Werten angezeigt wird.
                                             </DialogDescription>
                                         </DialogHeader>
                                         <ConditionTester
@@ -420,7 +420,7 @@ export const ConditionBuilder = ({
                         <p className="flex items-start gap-2">
                             <HelpCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
                             <span>
-                                Definieren Sie, wann diese Klausel erscheint. Verknüpfen Sie Bedingungen mit{" "}
+                                Definieren Sie, wann diesen Textbaustein erscheint. Verknüpfen Sie Bedingungen mit{" "}
                                 <strong className="text-blue-600">UND</strong> (alle müssen zutreffen) oder{" "}
                                 <strong className="text-amber-600">ODER</strong> (mindestens eine muss zutreffen).
                                 Ziehen Sie Bedingungen per Drag & Drop in die gewünschte Reihenfolge.
@@ -465,7 +465,7 @@ export const ConditionBuilder = ({
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <p className="text-sm font-medium text-muted-foreground mb-1">
-                                        Vorschau — Die Klausel wird angezeigt wenn:
+                                        Vorschau — Der Textbaustein wird angezeigt wenn:
                                     </p>
                                     <p className="text-base font-medium break-words">
                                         {previewText}
@@ -515,7 +515,7 @@ export const ConditionBuilder = ({
                     <div className="flex items-center justify-center gap-3 text-muted-foreground">
                         <EyeOff className="w-5 h-5" />
                         <span className="text-sm">
-                            Diese Klausel wird <strong>immer</strong> angezeigt (keine Bedingung aktiv).
+                            Dieser Textbaustein wird <strong>immer</strong> angezeigt (keine Bedingung aktiv).
                         </span>
                     </div>
                 </CardContent>

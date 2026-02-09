@@ -18,7 +18,7 @@ router = APIRouter()
 # IMPACT ANALYSIS SCHEMAS (v4.2 Feature: Auswirkungsanalyse)
 # ══════════════════════════════════════════════════════════════════════════════
 class DocumentTypeUsage(BaseModel):
-    """Ein Dokumenttyp, der die Klausel verwendet."""
+    """Ein Dokumenttyp, der den Textbaustein verwendet."""
     id: int
     name: str
     category: Optional[str]
@@ -26,7 +26,7 @@ class DocumentTypeUsage(BaseModel):
     usage_count_30_days: int = 0  # Wie oft in letzten 30 Tagen verwendet
 
 class ClauseImpactAnalysis(BaseModel):
-    """Auswirkungsanalyse für eine Klausel."""
+    """Auswirkungsanalyse für einen Textbaustein."""
     clause_id: int
     clause_title: str
     clause_version: int
@@ -60,7 +60,7 @@ async def read_clauses(
 
 # ══════════════════════════════════════════════════════════════════════════════
 # IMPACT ANALYSIS ENDPOINT (v4.2 Feature: Kapitel 15.2.5)
-# Zeigt alle Dokumenttypen, die eine Klausel verwenden
+# Zeigt alle Dokumenttypen, die einen Textbaustein verwenden
 # ══════════════════════════════════════════════════════════════════════════════
 @router.get("/{clause_id}/impact", response_model=ClauseImpactAnalysis)
 async def get_clause_impact_analysis(
@@ -69,23 +69,23 @@ async def get_clause_impact_analysis(
     current_user: Annotated[models.Base, Depends(deps.get_current_user)],
 ) -> Any:
     """
-    Auswirkungsanalyse für eine Klausel.
+    Auswirkungsanalyse für einen Textbaustein.
 
-    Zeigt alle Dokumenttypen, die diese Klausel verwenden,
+    Zeigt alle Dokumenttypen, die diesen Textbaustein verwenden,
     sowie Nutzungsstatistiken der letzten 30 Tage.
 
     Gemäß Spezifikation v4.2, Kapitel 15.2.5:
-    - "Diese Klausel wird in 4 Dokumenttypen verwendet"
+    - "Dieser Textbaustein wird in 4 Dokumenttypen verwendet"
     - Nutzung in den letzten 30 Tagen anzeigen
     """
-    # Klausel laden (mit Tenant-Prüfung)
+    # Textbaustein laden (mit Tenant-Prüfung)
     clause = await db.get(models.Clause, clause_id)
     if not clause:
-        raise HTTPException(status_code=404, detail="Klausel nicht gefunden")
+        raise HTTPException(status_code=404, detail="Textbaustein nicht gefunden")
     if clause.user_id is not None and clause.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Zugriff verweigert")
 
-    # Alle Dokumenttypen finden, die diese Klausel verwenden
+    # Alle Dokumenttypen finden, die diesen Textbaustein verwenden
     query = (
         select(
             models.DocumentType.id,
@@ -154,7 +154,7 @@ async def read_clause(
     """Einzelne Klausel abrufen (Tenant-isoliert)."""
     clause = await db.get(models.Clause, clause_id)
     if not clause:
-        raise HTTPException(status_code=404, detail="Klausel nicht gefunden")
+        raise HTTPException(status_code=404, detail="Textbaustein nicht gefunden")
     # Tenant Isolation: Block access to other users' private clauses
     if clause.user_id is not None and clause.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Zugriff verweigert")
@@ -169,7 +169,7 @@ async def create_clause(
     current_user: Annotated[models.Base, Depends(deps.get_current_active_admin)],
 ) -> Any:
     """
-    Neue Klausel erstellen.
+    Neuer Textbaustein erstellen.
 
     Erfordert Admin-Rechte. Setzt user_id für Tenant Isolation.
     """
@@ -194,11 +194,11 @@ async def update_clause(
     Klausel aktualisieren.
 
     Erfordert Admin-Rechte. Die Versionsnummer wird automatisch erhöht.
-    Tenant-isoliert: Nur eigene oder globale Klauseln dürfen bearbeitet werden.
+    Tenant-isoliert: Nur eigene oder globale Textbausteine dürfen bearbeitet werden.
     """
     clause = await db.get(models.Clause, clause_id)
     if not clause:
-        raise HTTPException(status_code=404, detail="Klausel nicht gefunden")
+        raise HTTPException(status_code=404, detail="Textbaustein nicht gefunden")
     # Tenant Isolation: Only owner or global clauses
     if clause.user_id is not None and clause.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Zugriff verweigert")
@@ -227,12 +227,12 @@ async def delete_clause(
     """
     Klausel löschen.
 
-    Erfordert Admin-Rechte. Entfernt die Klausel auch aus allen Dokumenttypen.
-    Tenant-isoliert: Nur eigene Klauseln dürfen gelöscht werden.
+    Erfordert Admin-Rechte. Entfernt den Textbaustein auch aus allen Dokumenttypen.
+    Tenant-isoliert: Nur eigene Textbausteine dürfen gelöscht werden.
     """
     clause = await db.get(models.Clause, clause_id)
     if not clause:
-        raise HTTPException(status_code=404, detail="Klausel nicht gefunden")
+        raise HTTPException(status_code=404, detail="Textbaustein nicht gefunden")
     if clause.user_id is not None and clause.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Zugriff verweigert")
 
@@ -245,7 +245,7 @@ async def delete_clause(
     usage_result = await db.execute(usage_query)
     usage_count = usage_result.scalar() or 0
 
-    # Entferne Klausel aus allen Dokumenttypen
+    # Entferne Textbaustein aus allen Dokumenttypen
     if usage_count > 0:
         delete_links_query = (
             models.DocumentTypeClause.__table__.delete()
@@ -253,11 +253,11 @@ async def delete_clause(
         )
         await db.execute(delete_links_query)
 
-    # Lösche die Klausel selbst
+    # Lösche den Textbaustein selbst
     await db.delete(clause)
     await db.commit()
 
     return {
-        "message": "Klausel erfolgreich gelöscht",
+        "message": "Textbaustein erfolgreich gelöscht",
         "removed_from_document_types": usage_count
     }

@@ -3,7 +3,7 @@
  *
  * v4.2 Feature (Kapitel 16.13):
  * - Varianten-Gruppen erstellen und verwalten
- * - Mehrere Varianten einer Klausel definieren
+ * - Mehrere Varianten eines Textbausteins definieren
  * - Standard-Variante festlegen
  * - Bedingungen für automatische Auswahl
  */

@@ -3,7 +3,7 @@
  *
  * v4.2 Feature (Kapitel 15.2.8):
  * - DOCX hochladen und analysieren
- * - Abschnitte als Klauseln erkennen
+ * - Abschnitte als Textbausteine erkennen
  * - Duplikate warnen
  * - Ausgewählte Abschnitte importieren
  */
@@ -275,7 +275,7 @@ export function WordImportWizard({
                         Word-Vorlage importieren
                     </DialogTitle>
                     <DialogDescription>
-                        Importieren Sie bestehende Word-Dokumente als wiederverwendbare Klauseln
+                        Importieren Sie bestehende Word-Dokumente als wiederverwendbare Textbausteine
                     </DialogDescription>
                 </DialogHeader>
 
@@ -475,7 +475,7 @@ export function WordImportWizard({
                                 <CardHeader>
                                     <CardTitle className="text-base">Import-Einstellungen</CardTitle>
                                     <CardDescription>
-                                        Konfigurieren Sie wie die Klauseln importiert werden
+                                        Konfigurieren Sie wie die Textbausteine importiert werden
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
@@ -536,7 +536,7 @@ export function WordImportWizard({
                                         </div>
                                         <div className="flex justify-between">
                                             <span className="text-muted-foreground">Zu importieren:</span>
-                                            <span className="font-medium">{selectedCount} Klauseln</span>
+                                            <span className="font-medium">{selectedCount} Textbausteine</span>
                                         </div>
                                         <div className="flex justify-between">
                                             <span className="text-muted-foreground">Übersprungen:</span>
@@ -556,7 +556,7 @@ export function WordImportWizard({
                                     Hinweis
                                 </div>
                                 <p className="text-blue-700 dark:text-blue-300">
-                                    Die importierten Klauseln werden als "Entwurf" gespeichert.
+                                    Die importierten Textbausteine werden als "Entwurf" gespeichert.
                                     Bitte prüfen Sie diese und fügen Sie Platzhalter ({"{{ name }}"}) manuell ein.
                                 </p>
                             </div>
@@ -571,22 +571,22 @@ export function WordImportWizard({
                             </div>
                             <h3 className="text-xl font-semibold">Import erfolgreich!</h3>
                             <p className="text-muted-foreground">
-                                {importedIds.length} Klausel(n) wurden importiert.
+                                {importedIds.length} Textbaustein(e) wurden importiert.
                             </p>
 
                             <div className="bg-muted/50 rounded-lg p-4 max-w-md mx-auto text-sm">
                                 <p className="font-medium mb-2">Nächste Schritte:</p>
                                 <ul className="text-left space-y-1 text-muted-foreground">
-                                    <li>• Importierte Klauseln in der Bibliothek prüfen</li>
+                                    <li>• Importierte Textbausteine in der Bibliothek prüfen</li>
                                     <li>• Platzhalter {"{{ name }}"} hinzufügen</li>
                                     <li>• Formatierung anpassen wenn nötig</li>
-                                    <li>• Klauseln freigeben (4-Augen-Prinzip)</li>
+                                    <li>• Textbausteine freigeben (4-Augen-Prinzip)</li>
                                 </ul>
                             </div>
 
                             <Button onClick={() => { handleClose(); navigate("/settings?tab=clauses"); }}>
                                 <Sparkles className="w-4 h-4 mr-2" />
-                                Zur Klausel-Bibliothek
+                                Zur Textbaustein-Bibliothek
                             </Button>
                         </div>
                     )}
@@ -623,7 +623,7 @@ export function WordImportWizard({
                                 </Button>
                                 <Button onClick={handleImport} disabled={isLoading}>
                                     {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                                    {selectedCount} Klauseln importieren
+                                    {selectedCount} Textbausteine importieren
                                 </Button>
                             </>
                         )}

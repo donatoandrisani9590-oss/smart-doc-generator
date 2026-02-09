@@ -40,7 +40,7 @@ async def get_clause_versions(
     clause = result.scalar_one_or_none()
     
     if not clause:
-        raise HTTPException(status_code=404, detail="Klausel nicht gefunden")
+        raise HTTPException(status_code=404, detail="Textbaustein nicht gefunden")
     
     # Get versions
     versions_result = await db.execute(
@@ -83,7 +83,7 @@ async def create_version_snapshot(
     clause = result.scalar_one_or_none()
     
     if not clause:
-        raise HTTPException(status_code=404, detail="Klausel nicht gefunden")
+        raise HTTPException(status_code=404, detail="Textbaustein nicht gefunden")
     
     # Create version snapshot
     version = ClauseVersion(
@@ -119,7 +119,7 @@ async def restore_version(
     clause = result.scalar_one_or_none()
     
     if not clause:
-        raise HTTPException(status_code=404, detail="Klausel nicht gefunden")
+        raise HTTPException(status_code=404, detail="Textbaustein nicht gefunden")
     
     # Get version to restore
     version_result = await db.execute(
@@ -203,7 +203,7 @@ async def get_version_diff(
     clause = result.scalar_one_or_none()
     
     if not clause:
-        raise HTTPException(status_code=404, detail="Klausel nicht gefunden")
+        raise HTTPException(status_code=404, detail="Textbaustein nicht gefunden")
     
     # Get version
     version_result = await db.execute(

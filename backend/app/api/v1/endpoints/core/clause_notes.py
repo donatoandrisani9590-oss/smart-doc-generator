@@ -1,5 +1,5 @@
 """
-Klausel-Notizen API (v4.2 Feature: Kapitel 15.5.6)
+Textbaustein-Notizen API (v4.2 Feature: Kapitel 15.5.6)
 
 Interne Notizen pro Klausel für HR/Admin:
 - "RA Müller hat geprüft"
@@ -27,7 +27,7 @@ async def _get_clause_with_access_check(
     """Load clause and verify tenant access."""
     clause = await db.get(Clause, clause_id)
     if not clause:
-        raise HTTPException(status_code=404, detail="Klausel nicht gefunden")
+        raise HTTPException(status_code=404, detail="Textbaustein nicht gefunden")
     if clause.user_id is not None and clause.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Zugriff verweigert")
     return clause
@@ -72,7 +72,7 @@ async def get_clause_notes(
     current_user: Annotated[Any, Depends(deps.get_current_user)],
 ) -> Any:
     """
-    Alle Notizen für eine Klausel abrufen (Tenant-isoliert).
+    Alle Notizen für einen Textbaustein abrufen (Tenant-isoliert).
     Sortiert: Angeheftete zuerst, dann nach Datum (neueste zuerst).
     """
     # Prüfen ob Klausel existiert + Tenant-Check
@@ -95,7 +95,7 @@ async def create_clause_note(
     current_user: Annotated[Any, Depends(deps.get_current_user)],
 ) -> Any:
     """
-    Neue Notiz zu einer Klausel hinzufügen (Tenant-isoliert).
+    Neue Notiz zu eines Textbausteins hinzufügen (Tenant-isoliert).
     """
     # Prüfen ob Klausel existiert + Tenant-Check
     clause = await _get_clause_with_access_check(clause_id, db, current_user)
@@ -128,7 +128,7 @@ async def update_clause_note(
     """
     Notiz aktualisieren (nur eigene Notizen oder Admin).
     """
-    # Tenant-Check auf die Klausel
+    # Tenant-Check auf den Textbaustein
     await _get_clause_with_access_check(clause_id, db, current_user)
 
     note = await db.get(ClauseNote, note_id)
@@ -163,7 +163,7 @@ async def delete_clause_note(
     """
     Notiz löschen (nur Admins, Tenant-isoliert).
     """
-    # Tenant-Check auf die Klausel
+    # Tenant-Check auf den Textbaustein
     await _get_clause_with_access_check(clause_id, db, current_user)
 
     note = await db.get(ClauseNote, note_id)

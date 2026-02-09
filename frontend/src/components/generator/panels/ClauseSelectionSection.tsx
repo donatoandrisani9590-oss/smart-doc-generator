@@ -1,7 +1,7 @@
 /**
- * ClauseSelectionSection - Klausel-Auswahl für den Split-Screen Editor
+ * ClauseSelectionSection - Textbaustein-Auswahl für den Split-Screen Editor
  *
- * Zeigt eine Liste von Klauseln mit Checkboxen zum Ein-/Ausschalten.
+ * Zeigt eine Liste von Textbausteine mit Checkboxen zum Ein-/Ausschalten.
  * Ein "Feineinstellung" Button öffnet das detaillierte ClauseReorderPanel.
  */
 
@@ -128,7 +128,7 @@ export const ClauseSelectionSection = () => {
                 </DialogTrigger>
                 <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden">
                     <DialogHeader>
-                        <DialogTitle>Klauseln anpassen</DialogTitle>
+                        <DialogTitle>Textbausteine anpassen</DialogTitle>
                     </DialogHeader>
                     <div className="overflow-y-auto max-h-[60vh]">
                         <ClauseReorderPanel

@@ -1,9 +1,9 @@
 /**
- * DynamicFormFields - Dynamische Formularfelder basierend auf Klauseln/Varianten
+ * DynamicFormFields - Dynamische Formularfelder basierend auf Textbausteine/Varianten
  *
  * v4.2 Feature:
  * - Laedt FormFields dynamisch vom Backend
- * - Zeigt Felder basierend auf aktivierten Klauseln
+ * - Zeigt Felder basierend auf aktivierten Textbausteine
  * - Unterstuetzt bedingte Sichtbarkeit (show_condition)
  * - Kaskadierender Flow: Klausel aktiviert -> Variante waehlen -> Felder anzeigen
  *
@@ -82,7 +82,7 @@ export interface FormFieldDefinition {
 
 interface DynamicFormFieldsProps {
     documentTypeId: number | null;
-    /** Aktuell aktivierte Klausel-IDs */
+    /** Aktuell aktivierte Textbaustein-IDs */
     enabledClauseIds: number[];
     /** Aktuell ausgewählte Varianten-IDs */
     selectedVariantIds: number[];
@@ -546,7 +546,7 @@ export const DynamicFormFields = ({
                     {field.source_clause_id && enabledClauseIds.includes(field.source_clause_id) && (
                         <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-purple-50 text-purple-700 border-purple-200">
                             <Sparkles className="w-2.5 h-2.5 mr-0.5" />
-                            Klausel
+                            Textbaustein
                         </Badge>
                     )}
                 </div>

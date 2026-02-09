@@ -1,8 +1,8 @@
 /**
- * VariantSelector - Auswahl von Klausel-Varianten im Dokument-Generator
+ * VariantSelector - Auswahl von Textbaustein-Varianten im Dokument-Generator
  *
  * v4.2 Feature (Kapitel 16.13):
- * - Zeigt Radio-Buttons für Varianten einer Klausel-Gruppe
+ * - Zeigt Radio-Buttons für Varianten einer Textbaustein-Gruppe
  * - Standard-Variante ist vorausgewählt
  * - Beschreibung hilft bei der Auswahl
  */

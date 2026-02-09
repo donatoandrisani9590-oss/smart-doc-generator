@@ -1,9 +1,9 @@
 /**
- * ClauseImpactDialog - Auswirkungsanalyse für Klausel-Änderungen
+ * ClauseImpactDialog - Auswirkungsanalyse für Textbaustein-Änderungen
  *
  * v4.2 Feature (Kapitel 15.2.5):
- * Zeigt vor dem Speichern einer Klausel-Änderung:
- * - Welche Dokumenttypen verwenden diese Klausel?
+ * Zeigt vor dem Speichern eines Textbausteins-Änderung:
+ * - Welche Dokumenttypen verwenden diesen Textbaustein?
  * - Wie oft wurde sie in den letzten 30 Tagen genutzt?
  * - Warning bei vielen Auswirkungen
  */
@@ -150,7 +150,7 @@ export function ClauseImpactDialog({
                                 <div>
                                     <div className="font-medium text-destructive">Hohe Auswirkung</div>
                                     <div className="text-sm text-muted-foreground">
-                                        Diese Klausel wird intensiv genutzt. Änderungen wirken sich auf viele bestehende Dokumenttypen aus.
+                                        Dieser Textbaustein wird intensiv genutzt. Änderungen wirken sich auf viele bestehende Dokumenttypen aus.
                                     </div>
                                 </div>
                             </div>
@@ -160,7 +160,7 @@ export function ClauseImpactDialog({
                         {impactData.affected_document_types.length > 0 ? (
                             <div className="border rounded-lg overflow-hidden">
                                 <div className="bg-muted px-4 py-2 text-sm font-medium">
-                                    Diese Klausel wird verwendet in:
+                                    Dieser Textbaustein wird verwendet in:
                                 </div>
                                 <div className="divide-y max-h-[250px] overflow-y-auto">
                                     {impactData.affected_document_types.map((dt) => (
@@ -195,7 +195,7 @@ export function ClauseImpactDialog({
                                 <div>
                                     <div className="font-medium text-green-800 dark:text-green-200">Keine Auswirkungen</div>
                                     <div className="text-sm text-green-700 dark:text-green-300">
-                                        Diese Klausel wird aktuell in keinem aktiven Dokumenttyp verwendet.
+                                        Dieser Textbaustein wird aktuell in keinem aktiven Dokumenttyp verwendet.
                                     </div>
                                 </div>
                             </div>

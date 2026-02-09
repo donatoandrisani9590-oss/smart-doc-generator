@@ -111,7 +111,7 @@ export interface WizardState {
     // Navigation
     currentStep: number;
     mode: "wizard" | "editor" | "split-screen";
-    showClausesStep: boolean; // Klauseln-Schritt wird standardmäßig übersprungen
+    showClausesStep: boolean; // Textbausteine-Schritt wird standardmäßig übersprungen
 
     // Dokument
     documentTypeId: number | null;
@@ -125,7 +125,7 @@ export interface WizardState {
     formData: FormData;
     dynamicFormValues: Record<string, string | number | boolean>;
 
-    // Klauseln
+    // Textbausteine
     documentClauses: DocumentClause[];
     selectedVariants: Record<number, SelectedVariant>;
     variantGroups: VariantGroup[];
@@ -181,7 +181,7 @@ export interface WizardActions {
     updateDynamicField: (name: string, value: string | number | boolean) => void;
     setFormData: (data: Partial<FormData>) => void;
 
-    // Klauseln
+    // Textbausteine
     toggleClause: (uniqueId: string) => void;
     reorderClauses: (clauses: DocumentClause[]) => void;
     selectVariant: (groupId: number, variantId: number, clauseId: number) => void;
@@ -356,8 +356,8 @@ export const WIZARD_STEPS = [
     },
 ] as const;
 
-// Standard-Flow überspringt Schritt 4 (Klauseln)
-export const STANDARD_STEP_ORDER = [0, 1, 2, 4]; // Schritt 3 (Klauseln) wird übersprungen
+// Standard-Flow überspringt Schritt 4 (Textbausteine)
+export const STANDARD_STEP_ORDER = [0, 1, 2, 4]; // Schritt 3 (Textbausteine) wird übersprungen
 export const FULL_STEP_ORDER = [0, 1, 2, 3, 4]; // Alle Schritte
 
 export type StepId = (typeof WIZARD_STEPS)[number]["id"];

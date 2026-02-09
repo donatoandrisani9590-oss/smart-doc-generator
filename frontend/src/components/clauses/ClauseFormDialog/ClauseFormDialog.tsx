@@ -1,8 +1,8 @@
 /**
- * ClauseFormDialog - Vollständiger Dialog für Klauselerstellung/-bearbeitung
+ * ClauseFormDialog - Vollständiger Dialog für Textbaustein-Erstellung/-bearbeitung
  *
  * Features:
- * - Mehrstufiger Wizard für neue Klauseln
+ * - Mehrstufiger Wizard für neue Textbausteine
  * - Integrierter TipTap WYSIWYG Editor
  * - Platzhalter-Picker mit Validierung
  * - Kategorie-Auswahl mit Vorschlägen
@@ -222,7 +222,7 @@ export const ClauseFormDialog = ({
                 c.id !== editClause?.id
         );
         if (duplicate) {
-            newErrors.title = "Eine Klausel mit diesem Titel existiert bereits";
+            newErrors.title = "Ein Textbaustein mit diesem Titel existiert bereits";
         }
 
         if (!effectiveCategory) {
@@ -243,9 +243,9 @@ export const ClauseFormDialog = ({
         // Strip HTML tags and check for actual content
         const textContent = content.replace(/<[^>]*>/g, "").trim();
         if (!textContent) {
-            newErrors.content = "Klauseltext ist erforderlich";
+            newErrors.content = "Textbaustein-Inhalt ist erforderlich";
         } else if (textContent.length < 10) {
-            newErrors.content = "Klauseltext muss mindestens 10 Zeichen haben";
+            newErrors.content = "Textbaustein-Inhalt muss mindestens 10 Zeichen haben";
         }
 
         setErrors((prev) => ({ ...prev, ...newErrors }));

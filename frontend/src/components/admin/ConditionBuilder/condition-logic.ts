@@ -37,10 +37,10 @@ export const conditionToNaturalLanguage = (
         // Handle clause_active conditions
         if (conditionKind === "clause_active" && condition.clauseId) {
             const clause = clauses.find(c => c.id === condition.clauseId);
-            const clauseName = clause?.title || `Klausel #${condition.clauseId}`;
+            const clauseName = clause?.title || `Textbaustein #${condition.clauseId}`;
             const isActive = condition.value === true;
             const operatorNot = condition.operator === "!=" ? "nicht " : "";
-            return `Klausel „${clauseName}" ist ${operatorNot}${isActive ? "aktiv" : "inaktiv"}`;
+            return `Textbaustein „${clauseName}" ist ${operatorNot}${isActive ? "aktiv" : "inaktiv"}`;
         }
 
         // Handle variant_selected conditions

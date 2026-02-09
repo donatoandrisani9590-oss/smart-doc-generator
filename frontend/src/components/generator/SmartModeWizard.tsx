@@ -8,7 +8,7 @@
  * - Auto-suggestions and hints
  * - Quick completion with Enter key
  *
- * Privacy: Uses Mistral (EU) or Ollama (local)
+ * Privacy: Uses Groq (free), Mistral (EU) or Ollama (local)
  */
 
 import { useState, useCallback, useRef, useEffect } from "react";
@@ -141,8 +141,13 @@ export function SmartModeWizard({
     ? Math.round((currentFieldIndex / allFields.length) * 100)
     : 0;
 
+  // Stable reference for initialData to prevent infinite re-renders
+  const initialDataRef = useRef(initialData);
+
   // Initialize smart mode
   useEffect(() => {
+    let cancelled = false;
+
     const initSmartMode = async () => {
       setIsLoading(true);
       setError(null);
@@ -154,8 +159,10 @@ export function SmartModeWizard({
           prefilled_data: Record<string, unknown>;
         }>("/api/v1/smart-mode/start", {
           document_type_id: documentTypeId,
-          initial_context: initialData,
+          initial_context: initialDataRef.current,
         });
+
+        if (cancelled) return;
 
         setConfig(response.data.config);
         setFormData(response.data.prefilled_data);
@@ -186,19 +193,27 @@ export function SmartModeWizard({
         // Add first question
         if (startIndex < fields.length) {
           setTimeout(() => {
-            addQuestion(fields[startIndex]);
+            if (!cancelled) addQuestion(fields[startIndex]);
           }, 500);
         }
-      } catch (err) {
+      } catch (err: unknown) {
+        if (cancelled) return;
         console.error("Smart mode init failed:", err);
-        setError("Fehler beim Laden. Bitte versuchen Sie es erneut.");
+        const errorMsg = err instanceof Error ? err.message : String(err);
+        if (errorMsg.includes("No LLM provider") || errorMsg.includes("fetch")) {
+          setError("Kein KI-Service verfügbar. Bitte konfigurieren Sie einen LLM-Provider (Groq, Mistral oder Ollama) in den Umgebungsvariablen.");
+        } else {
+          setError(`Smart Mode konnte nicht gestartet werden: ${errorMsg}`);
+        }
       } finally {
-        setIsLoading(false);
+        if (!cancelled) setIsLoading(false);
       }
     };
 
     initSmartMode();
-  }, [documentTypeId, initialData]);
+
+    return () => { cancelled = true; };
+  }, [documentTypeId]);
 
   // Scroll to bottom when conversation changes
   useEffect(() => {
@@ -375,11 +390,19 @@ export function SmartModeWizard({
   // Error state
   if (error) {
     return (
-      <div className={cn("text-center space-y-4 py-8", className)}>
-        <p className="text-destructive">{error}</p>
-        <Button variant="outline" onClick={onCancel}>
-          Zurück
-        </Button>
+      <div className={cn("text-center space-y-6 py-8 px-4", className)}>
+        <div className="mx-auto w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center">
+          <Sparkles className="w-6 h-6 text-destructive" />
+        </div>
+        <div className="space-y-2">
+          <h3 className="font-semibold text-lg">Smart Mode nicht verfügbar</h3>
+          <p className="text-sm text-muted-foreground max-w-md mx-auto">{error}</p>
+        </div>
+        <div className="flex gap-3 justify-center">
+          <Button variant="outline" onClick={onCancel}>
+            Manuell erstellen
+          </Button>
+        </div>
       </div>
     );
   }

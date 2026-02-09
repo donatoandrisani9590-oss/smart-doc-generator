@@ -4,7 +4,7 @@
  * Importiert Word-Dokumente als neue Dokumententypen inkl.:
  * - Automatische Klausel-Erkennung
  * - Platzhalter-Erkennung
- * - Varianten-Zuordnung zu existierenden Klauseln
+ * - Varianten-Zuordnung zu existierenden Textbausteine
  * - Formularfeld-Erstellung
  */
 
@@ -295,7 +295,7 @@ export function DocumentTypeImportWizard({
 
     const getActionLabel = (action: string) => {
         switch (action) {
-            case "create_new": return "Neue Klausel erstellen";
+            case "create_new": return "Neuer Textbaustein erstellen";
             case "use_existing": return "Existierende verwenden";
             case "add_variant": return "Als Variante hinzufügen";
             case "skip": return "Überspringen";
@@ -311,7 +311,7 @@ export function DocumentTypeImportWizard({
                         Dokumententyp aus Word importieren
                     </DialogTitle>
                     <DialogDescription>
-                        Importieren Sie ein komplettes Word-Dokument als neuen Dokumententyp mit Klauseln
+                        Importieren Sie ein komplettes Word-Dokument als neuen Dokumententyp mit Textbausteine
                     </DialogDescription>
                 </DialogHeader>
 
@@ -326,7 +326,7 @@ export function DocumentTypeImportWizard({
                             2. Analyse
                         </span>
                         <span className={step === "clauses" ? "font-medium text-foreground" : ""}>
-                            3. Klauseln
+                            3. Textbausteine
                         </span>
                         <span className={step === "placeholders" ? "font-medium text-foreground" : ""}>
                             4. Platzhalter
@@ -531,7 +531,7 @@ export function DocumentTypeImportWizard({
                                                         <RadioGroupItem value="create_new" id={`new-${section.index}`} />
                                                         <Label htmlFor={`new-${section.index}`} className="flex items-center gap-2">
                                                             <PlusCircle className="w-4 h-4 text-green-600" />
-                                                            Neue Klausel erstellen
+                                                            Neuer Textbaustein erstellen
                                                         </Label>
                                                     </div>
 
@@ -586,7 +586,7 @@ export function DocumentTypeImportWizard({
                                                         checked={section.is_mandatory}
                                                         onCheckedChange={(v) => updateSection(section.index, { is_mandatory: !!v })}
                                                     />
-                                                    <Label htmlFor={`mandatory-${section.index}`}>Pflichtklausel</Label>
+                                                    <Label htmlFor={`mandatory-${section.index}`}>Pflicht-Textbaustein</Label>
                                                 </div>
 
                                                 {/* Content Preview */}
@@ -677,7 +677,7 @@ export function DocumentTypeImportWizard({
                             <div className="grid grid-cols-4 gap-4 max-w-lg mx-auto">
                                 <Card className="p-3 text-center">
                                     <div className="text-2xl font-bold text-green-600">{importResult.clauses_created}</div>
-                                    <div className="text-xs text-muted-foreground">Klauseln erstellt</div>
+                                    <div className="text-xs text-muted-foreground">Textbausteine erstellt</div>
                                 </Card>
                                 <Card className="p-3 text-center">
                                     <div className="text-2xl font-bold text-blue-600">{importResult.clauses_linked}</div>
@@ -696,7 +696,7 @@ export function DocumentTypeImportWizard({
                             <div className="bg-muted/50 rounded-lg p-4 max-w-md mx-auto text-sm text-left">
                                 <p className="font-medium mb-2">Nächste Schritte:</p>
                                 <ul className="space-y-1 text-muted-foreground">
-                                    <li>• Klauseln im Klausel-Editor prüfen</li>
+                                    <li>• Textbausteine im Textbaustein-Editor prüfen</li>
                                     <li>• Platzhalter anpassen wenn nötig</li>
                                     <li>• Formularfelder konfigurieren</li>
                                     <li>• Dokumententyp testen</li>

@@ -1,9 +1,9 @@
 /**
- * ClauseVariantManager - Verwaltung von Klausel-Varianten
+ * ClauseVariantManager - Verwaltung von Textbaustein-Varianten
  *
  * v4.2 Feature (Kapitel 16.13):
  * - Varianten-Gruppen erstellen und verwalten
- * - Mehrere Varianten einer Klausel definieren
+ * - Mehrere Varianten eines Textbausteins definieren
  * - Standard-Variante festlegen
  * - Bedingungen für automatische Auswahl
  *
@@ -152,10 +152,10 @@ export const ClauseVariantManager = ({
                 <div>
                     <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
                         <Layers className="w-5 h-5 text-primary" />
-                        Klausel-Varianten
+                        Textbaustein-Varianten
                     </h2>
                     <p className="text-sm text-muted-foreground">
-                        Verwalten Sie alternative Versionen von Klauseln
+                        Verwalten Sie alternative Versionen von Textbausteine
                     </p>
                 </div>
                 <Button
@@ -181,7 +181,7 @@ export const ClauseVariantManager = ({
                                 </h3>
                                 <p className="text-sm text-muted-foreground mb-3">
                                     <strong>Varianten-Gruppen</strong> ermöglichen es, verschiedene Versionen
-                                    einer Klausel zu definieren. Beispiel: Eine Gruppe "Kündigungsfristen" enthält
+                                    eines Textbausteins zu definieren. Beispiel: Eine Gruppe "Kündigungsfristen" enthält
                                     Varianten für 3, 6 oder 12 Monate. Bei der Dokumenterstellung kann der Benutzer
                                     dann die passende Variante auswählen.
                                 </p>

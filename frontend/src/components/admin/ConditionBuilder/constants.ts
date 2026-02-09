@@ -199,21 +199,21 @@ export const DEFAULT_CONDITION_FIELDS: FieldDefinition[] = [
         name: "wettbewerbsverbot",
         label: "Wettbewerbsverbot",
         type: "boolean",
-        category: "Sonderklauseln",
+        category: "Sonder-Textbausteine",
         description: "Ist ein nachvertragliches Wettbewerbsverbot vereinbart?",
     },
     {
         name: "geheimhaltung",
         label: "Erweiterte Geheimhaltung",
         type: "boolean",
-        category: "Sonderklauseln",
+        category: "Sonder-Textbausteine",
         description: "Sind erweiterte Geheimhaltungspflichten vereinbart?",
     },
     {
         name: "erfindungen",
-        label: "Erfindungsklausel",
+        label: "Erfindungs-Textbaustein",
         type: "boolean",
-        category: "Sonderklauseln",
+        category: "Sonder-Textbausteine",
         description: "Sollen Regelungen zu Arbeitnehmererfindungen aufgenommen werden?",
     },
 ];
@@ -268,7 +268,7 @@ const sparklesIcon = createElement(Sparkles, { className: "w-4 h-4" });
 export const QUICK_TEMPLATES: QuickTemplate[] = [
     {
         id: "firmenwagen",
-        name: "Firmenwagen-Klausel",
+        name: "Firmenwagen-Textbaustein",
         description: "Zeige wenn Firmenwagen = Ja",
         icon: sparklesIcon,
         condition: {
@@ -309,7 +309,7 @@ export const QUICK_TEMPLATES: QuickTemplate[] = [
     },
     {
         id: "befristet",
-        name: "Befristungsklausel",
+        name: "Befristungs-Textbaustein",
         description: "Zeige bei befristeten Verträgen",
         icon: sparklesIcon,
         condition: {

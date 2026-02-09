@@ -40,11 +40,11 @@ export interface ClauseSuggestionsProps {
   documentTypeId: number;
   /** Aktuelle Formulardaten */
   formData: Record<string, unknown>;
-  /** IDs der bereits aktivierten Klauseln */
+  /** IDs der bereits aktivierten Textbausteine */
   enabledClauseIds: number[];
-  /** Alle verfügbaren Klauseln */
+  /** Alle verfügbaren Textbausteine */
   availableClauses: Clause[];
-  /** Callback wenn eine Klausel hinzugefügt wird */
+  /** Callback wenn einen Textbaustein hinzugefügt wird */
   onAddClause: (clauseId: number) => void;
   /** Optionale CSS-Klassen */
   className?: string;
@@ -63,7 +63,7 @@ interface SuggestedClause {
 // ============================================================================
 
 /**
- * Findet Klauseln die zu einer Empfehlungsregel passen
+ * Findet Textbausteine die zu einer Empfehlungsregel passen
  */
 function findMatchingClauses(
   rule: ClauseSuggestionRule,
@@ -71,12 +71,12 @@ function findMatchingClauses(
   enabledClauseIds: number[]
 ): Clause[] {
   return availableClauses.filter(clause => {
-    // Bereits aktivierte Klauseln überspringen
+    // Bereits aktivierte Textbausteine überspringen
     if (enabledClauseIds.includes(clause.id)) {
       return false;
     }
 
-    // Prüfen ob die Klausel zur Regel passt
+    // Prüfen ob den Textbaustein zur Regel passt
     const normalizedClauseName = normalizeClauseName(clause.name);
     const normalizedClauseTitle = clause.title ? normalizeClauseName(clause.title) : '';
 
@@ -93,7 +93,7 @@ function findMatchingClauses(
 }
 
 /**
- * Generiert Klausel-Vorschläge basierend auf Formulardaten
+ * Generiert Textbaustein-Vorschläge basierend auf Formulardaten
  */
 function generateSuggestions(
   formData: Record<string, unknown>,
@@ -113,7 +113,7 @@ function generateSuggestions(
       continue;
     }
 
-    // Finde passende Klauseln
+    // Finde passende Textbausteine
     const matchingClauses = findMatchingClauses(rule, availableClauses, enabledClauseIds);
 
     for (const clause of matchingClauses) {
@@ -272,7 +272,7 @@ export function ClauseSuggestions({
                   <Lightbulb className="h-4 w-4" />
                 </div>
                 <CardTitle className="text-base font-medium">
-                  Empfohlene Klauseln
+                  Empfohlene Textbausteine
                 </CardTitle>
                 <Badge variant="secondary" className="ml-2">
                   {suggestions.length}
@@ -292,7 +292,7 @@ export function ClauseSuggestions({
         <CollapsibleContent>
           <CardContent className="pt-0">
             <p className="text-sm text-muted-foreground mb-4">
-              Basierend auf Ihren Eingaben empfehlen wir folgende Klauseln:
+              Basierend auf Ihren Eingaben empfehlen wir folgende Textbausteine:
             </p>
 
             <div className="space-y-3">

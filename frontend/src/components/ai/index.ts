@@ -4,7 +4,7 @@
  * KI-gesteuerte Komponenten für intelligente Dokumentenerstellung
  */
 
-// Klausel-Vorschläge basierend auf Kontext
+// Textbaustein-Vorschläge basierend auf Kontext
 export { ClauseSuggestions } from './ClauseSuggestions';
 export type { ClauseSuggestionsProps, Clause as ClauseSuggestionClause } from './ClauseSuggestions';
 

@@ -1,8 +1,8 @@
 /**
- * BulkClauseImportDialog - Freitext-Import für Klauseln
+ * BulkClauseImportDialog - Freitext-Import für Textbausteine
  *
  * Ermöglicht es, einen ganzen Vertragstext einzufügen und
- * §-Paragraphen automatisch als einzelne Klauseln zu erkennen.
+ * §-Paragraphen automatisch als einzelne Textbausteine zu erkennen.
  * Nutzt die bestehende /api/v1/word-import/import API.
  */
 
@@ -287,7 +287,7 @@ export function BulkClauseImportDialog({
                     </DialogTitle>
                     <DialogDescription>
                         Fügen Sie einen Vertragstext ein und die App erkennt
-                        automatisch die §-Paragraphen als einzelne Klauseln.
+                        automatisch die §-Paragraphen als einzelne Textbausteine.
                     </DialogDescription>
                 </DialogHeader>
 
@@ -471,7 +471,7 @@ export function BulkClauseImportDialog({
                                 </p>
                                 <p className="text-sm text-muted-foreground">
                                     Wählen Sie die Standard-Kategorie für alle
-                                    importierten Klauseln.
+                                    importierten Textbausteine.
                                 </p>
                             </div>
 
@@ -551,7 +551,7 @@ export function BulkClauseImportDialog({
                                     Import erfolgreich!
                                 </h3>
                                 <p className="text-muted-foreground">
-                                    {importedIds.length} Klauseln wurden
+                                    {importedIds.length} Textbausteine wurden
                                     erstellt.
                                 </p>
                             </div>
@@ -624,7 +624,7 @@ export function BulkClauseImportDialog({
                                 ) : (
                                     <>
                                         <Sparkles className="w-4 h-4 mr-2" />
-                                        {selectedCount} Klauseln erstellen
+                                        {selectedCount} Textbausteine erstellen
                                     </>
                                 )}
                             </Button>

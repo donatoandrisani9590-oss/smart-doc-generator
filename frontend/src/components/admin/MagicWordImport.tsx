@@ -151,7 +151,7 @@ export function MagicWordImport({ onSuccess, onCancel }: MagicWordImportProps) {
         onSuccess: (result) => {
             setAnalysisResult(result);
             setClauseTitle(
-                result.original_filename.replace(/\.docx?$/i, "") || "Importierte Klausel"
+                result.original_filename.replace(/\.docx?$/i, "") || "Importierter Textbaustein"
             );
             setStep("mapping");
         },
@@ -401,7 +401,7 @@ export function MagicWordImport({ onSuccess, onCancel }: MagicWordImportProps) {
         >
             <Card>
                 <CardHeader>
-                    <CardTitle>Klausel erstellen</CardTitle>
+                    <CardTitle>Textbaustein erstellen</CardTitle>
                     <p className="text-muted-foreground">
                         {Object.keys(placeholderMapping).length} Platzhalter werden zugeordnet
                     </p>
@@ -497,7 +497,7 @@ export function MagicWordImport({ onSuccess, onCancel }: MagicWordImportProps) {
                                 </>
                             ) : (
                                 <>
-                                    Klausel erstellen
+                                    Textbaustein erstellen
                                     <ArrowRight className="w-4 h-4 ml-2" />
                                 </>
                             )}
@@ -527,7 +527,7 @@ export function MagicWordImport({ onSuccess, onCancel }: MagicWordImportProps) {
 
                     <h3 className="text-2xl font-semibold mb-2">Import erfolgreich!</h3>
                     <p className="text-muted-foreground mb-6">
-                        Die Klausel wurde erstellt und kann sofort verwendet werden.
+                        Der Textbaustein wurde erstellt und kann sofort verwendet werden.
                     </p>
 
                     {generatedClause && (
@@ -536,7 +536,7 @@ export function MagicWordImport({ onSuccess, onCancel }: MagicWordImportProps) {
                                 {generatedClause.clause_title}
                             </h4>
                             <ul className="text-sm text-green-700 space-y-1">
-                                <li>Klausel-ID: #{generatedClause.clause_id}</li>
+                                <li>Textbaustein-ID: #{generatedClause.clause_id}</li>
                                 <li>
                                     Platzhalter eingefügt: {generatedClause.placeholder_count}
                                 </li>
@@ -555,7 +555,7 @@ export function MagicWordImport({ onSuccess, onCancel }: MagicWordImportProps) {
                                 }
                             }}
                         >
-                            Zur Klausel
+                            Zum Textbaustein
                             <ArrowRight className="w-4 h-4 ml-2" />
                         </Button>
                     </div>

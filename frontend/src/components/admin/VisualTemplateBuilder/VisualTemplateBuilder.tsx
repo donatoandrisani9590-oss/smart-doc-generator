@@ -2,8 +2,8 @@
  * VisualTemplateBuilder - Split-Screen Canvas Editor
  *
  * PandaDoc-style Layout:
- * - Toolbox (links): Kategorisierte Klauseln zum Draggen
- * - Canvas (mitte): Drop-Zone mit sortierbaren Klausel-Karten und Sections
+ * - Toolbox (links): Kategorisierte Textbausteine zum Draggen
+ * - Canvas (mitte): Drop-Zone mit sortierbaren Textbaustein-Karten und Sections
  * - Preview (rechts): Live-Vorschau des gerenderten Outputs
  */
 

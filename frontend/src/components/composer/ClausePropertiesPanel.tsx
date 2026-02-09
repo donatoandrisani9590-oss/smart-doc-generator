@@ -3,7 +3,7 @@
  *
  * Smart UX Konzept Phase 2:
  * - Zeigt Details der ausgewählten Klausel
- * - Rich Text Editor für Local/Deviation Klauseln
+ * - Rich Text Editor für Local/Deviation Textbausteine
  * - Deviation-Info mit Original-Vergleich
  * - Aktionen: Aufbrechen, In Bibliothek aufnehmen
  */
@@ -84,7 +84,7 @@ export const ClausePropertiesPanel = ({
             setHasChanges(false);
             setShowOriginal(false);
         } else {
-            // Reset wenn keine Klausel ausgewählt
+            // Reset wenn keinen Textbaustein ausgewählt
             setEditedTitle("");
             setEditedContent("");
             setHasChanges(false);
@@ -121,7 +121,7 @@ export const ClausePropertiesPanel = ({
         setHasChanges(true);
     };
 
-    // Keine Klausel ausgewählt
+    // Keinen Textbaustein ausgewählt
     if (!clause) {
         return (
             <div className="w-80 flex-shrink-0 border-l bg-muted/30 flex flex-col h-full">
@@ -134,7 +134,7 @@ export const ClausePropertiesPanel = ({
                             <Info className="w-6 h-6 text-muted-foreground" />
                         </div>
                         <p className="text-sm text-muted-foreground">
-                            Wählen Sie eine Klausel aus, um ihre Eigenschaften zu sehen
+                            Wählen Sie einen Textbaustein aus, um ihre Eigenschaften zu sehen
                         </p>
                     </div>
                 </div>
@@ -185,15 +185,15 @@ export const ClausePropertiesPanel = ({
                                 <Edit3 className="w-4 h-4 text-blue-600" />
                             )}
                             <CardTitle className="text-sm">
-                                {isGlobal ? "Standard-Klausel" : isDeviation ? "Abgewandelte Klausel" : "Individuelle Klausel"}
+                                {isGlobal ? "Standard-Textbaustein" : isDeviation ? "Abgewandelter Textbaustein" : "Individueller Textbaustein"}
                             </CardTitle>
                         </div>
                     </CardHeader>
                     <CardContent>
                         <CardDescription className="text-xs">
-                            {isGlobal && "Diese Klausel stammt aus der Bibliothek und ist schreibgeschützt."}
-                            {isDeviation && "Diese Klausel wurde vom Standard abgewandelt."}
-                            {isLocal && "Diese Klausel wurde speziell für dieses Dokument erstellt."}
+                            {isGlobal && "Dieser Textbaustein stammt aus der Bibliothek und ist schreibgeschützt."}
+                            {isDeviation && "Dieser Textbaustein wurde vom Standard abgewandelt."}
+                            {isLocal && "Dieser Textbaustein wurde speziell für dieses Dokument erstellt."}
                         </CardDescription>
                     </CardContent>
                 </Card>
@@ -236,7 +236,7 @@ export const ClausePropertiesPanel = ({
                     )}
                 </div>
 
-                {/* Content - Rich Text Editor für editierbare Klauseln */}
+                {/* Content - Rich Text Editor für editierbare Textbausteine */}
                 <div className="space-y-2">
                     <div className="flex items-center justify-between">
                         <Label htmlFor="clause-content" className="text-xs font-medium">
@@ -290,7 +290,7 @@ export const ClausePropertiesPanel = ({
                         <RichTextEditor
                             value={editedContent}
                             onChange={handleContentChange}
-                            placeholder="Klauseltext eingeben..."
+                            placeholder="Textbaustein-Inhalt eingeben..."
                             minHeight="200px"
                             autoFocus={isDeviation}
                         />
@@ -345,9 +345,9 @@ export const ClausePropertiesPanel = ({
                                     </Button>
                                 </TooltipTrigger>
                                 <TooltipContent side="left">
-                                    <p>Klausel vom Standard abwandeln</p>
+                                    <p>Textbaustein vom Standard abwandeln</p>
                                     <p className="text-xs text-muted-foreground">
-                                        Ermöglicht das Bearbeiten dieser Klausel
+                                        Ermöglicht das Bearbeiten dieses Textbausteins
                                     </p>
                                 </TooltipContent>
                             </Tooltip>
@@ -369,9 +369,9 @@ export const ClausePropertiesPanel = ({
                                     </Button>
                                 </TooltipTrigger>
                                 <TooltipContent side="left">
-                                    <p>Als Standard-Klausel speichern</p>
+                                    <p>Als Standard-Textbaustein speichern</p>
                                     <p className="text-xs text-muted-foreground">
-                                        Macht diese Klausel für alle Dokumente verfügbar
+                                        Macht diesen Textbaustein für alle Dokumente verfügbar
                                     </p>
                                 </TooltipContent>
                             </Tooltip>

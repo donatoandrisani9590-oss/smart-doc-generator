@@ -184,7 +184,7 @@ export const StepContractDetails = () => {
                 </CardContent>
             </Card>
 
-            {/* Klauseln anpassen Link */}
+            {/* Textbausteine anpassen Link */}
             {!showClausesStep && (
                 <Card className="bg-muted/30 border-dashed">
                     <CardContent className="py-4">
@@ -194,7 +194,7 @@ export const StepContractDetails = () => {
                             className="w-full flex items-center justify-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors"
                         >
                             <FileText className="w-4 h-4" />
-                            Vertragsklauseln anpassen (optional)
+                            Textbausteine anpassen (optional)
                         </button>
                     </CardContent>
                 </Card>

@@ -112,7 +112,7 @@ export const ClauseEditor = ({
     const editorLang = countryCode === "IT" ? "it-IT" : "de-DE"
     const placeholderText = countryCode === "IT"
         ? "Inserisci il testo della clausola..."
-        : "Klauseltext hier eingeben..."
+        : "Textbaustein-Inhalt hier eingeben..."
 
     // Bekannte Platzhalter-Namen für Validierung extrahieren
     const knownPlaceholderNames = placeholders?.map(p => p.name) || []

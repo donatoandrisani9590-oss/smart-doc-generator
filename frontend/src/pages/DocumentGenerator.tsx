@@ -5,7 +5,7 @@
  * - Schritt 1: Dokumenttyp und Titel wählen
  * - Schritt 2: Mitarbeiterdaten eingeben
  * - Schritt 3: Vertragsdetails eingeben
- * - Schritt 4: Klauseln anpassen (optional, standardmäßig übersprungen)
+ * - Schritt 4: Textbausteine anpassen (optional, standardmäßig übersprungen)
  * - Schritt 5: Vorschau und Export
  *
  * Der Split-Screen Editor-Modus ist optional verfügbar.

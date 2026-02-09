@@ -1,8 +1,8 @@
 /**
- * ClauseApprovalQueue - Admin-Seite für ausstehende Klausel-Freigaben
+ * ClauseApprovalQueue - Admin-Seite für ausstehende Textbaustein-Freigaben
  *
  * Smart UX Phase 3:
- * - Zeigt alle zur Prüfung eingereichten Klauseln
+ * - Zeigt alle zur Prüfung eingereichten Textbausteine
  * - Ermöglicht Freigabe oder Ablehnung
  * - Zeigt Vorschau und Kontext
  */

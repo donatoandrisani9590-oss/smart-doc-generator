@@ -3,7 +3,7 @@
  *
  * Shows a transparent, step-by-step assembly process:
  * 1. "Suche passendes Template..."
- * 2. "Lade Klauseln aus Bibliothek..."
+ * 2. "Lade Textbausteine aus Bibliothek..."
  * 3. "Wähle Klausel 'Gehalt (Jahresbasis)'..."
  * 4. "Prüfe auf Konsistenz..."
  * 5. "Dokument zusammengebaut."

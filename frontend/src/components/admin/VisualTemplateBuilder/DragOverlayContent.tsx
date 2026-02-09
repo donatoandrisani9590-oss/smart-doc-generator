@@ -14,7 +14,7 @@ export const DragOverlayContent = ({ clause, section, type }: DragOverlayContent
                     <Layers className="w-4 h-4 text-blue-600" />
                     <span className="font-semibold text-sm">{section.title}</span>
                     <Badge variant="secondary" className="ml-auto text-xs">
-                        {section.clauses.length} Klauseln
+                        {section.clauses.length} Textbausteine
                     </Badge>
                 </div>
             </div>

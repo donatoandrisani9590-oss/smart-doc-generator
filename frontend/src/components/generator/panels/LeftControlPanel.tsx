@@ -4,7 +4,7 @@
  * Clean Design nach UX-Audit:
  * - Dokumenttitel (editierbar)
  * - Formularfelder (IMMER sichtbar, nicht collapsible)
- * - Klauseln (kompakter Link mit Modal)
+ * - Textbausteine (kompakter Link mit Modal)
  * - Anlagen (kompakter Link mit Modal)
  * - Export-Buttons
  *
@@ -45,7 +45,7 @@ export const LeftControlPanel = ({ documentTypes }: LeftControlPanelProps) => {
     const { state, actions } = useWizardContext();
     const { documentTitle, documentTypeId, documentClauses, selectedAttachmentIds } = state;
 
-    // Modal states für Klauseln und Anlagen
+    // Modal states für Textbausteine und Anlagen
     const [showClausesModal, setShowClausesModal] = useState(false);
     const [showAttachmentsModal, setShowAttachmentsModal] = useState(false);
 
@@ -94,7 +94,7 @@ export const LeftControlPanel = ({ documentTypes }: LeftControlPanelProps) => {
                         <FormFieldsSection countryCode={documentCountryCode} />
                     </div>
 
-                    {/* Klauseln - Kompakter Link mit Modal */}
+                    {/* Textbausteine - Kompakter Link mit Modal */}
                     {totalClausesCount > 0 && (
                         <Button
                             variant="ghost"
@@ -103,7 +103,7 @@ export const LeftControlPanel = ({ documentTypes }: LeftControlPanelProps) => {
                         >
                             <div className="flex items-center gap-2">
                                 <Layers className="w-4 h-4 text-primary" />
-                                <span className="font-medium text-sm">Klauseln</span>
+                                <span className="font-medium text-sm">Textbausteine</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <Badge variant="secondary" className="text-xs">
@@ -141,13 +141,13 @@ export const LeftControlPanel = ({ documentTypes }: LeftControlPanelProps) => {
             {/* Action Bar (fixiert unten) */}
             <ActionBar />
 
-            {/* Klauseln Modal */}
+            {/* Textbausteine Modal */}
             <Dialog open={showClausesModal} onOpenChange={setShowClausesModal}>
                 <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2">
                             <Layers className="w-5 h-5 text-primary" />
-                            Klauseln anpassen
+                            Textbausteine anpassen
                         </DialogTitle>
                     </DialogHeader>
                     <div className="flex-1 overflow-auto py-4">

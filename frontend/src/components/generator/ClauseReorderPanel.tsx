@@ -1,10 +1,10 @@
 /**
- * ClauseReorderPanel - Klausel-Reihenfolge für HRBP-Benutzer
+ * ClauseReorderPanel - Textbaustein-Reihenfolge für HRBP-Benutzer
  *
  * v4.2 Feature (Kapitel 3.3):
- * - Optionale Klauseln ein-/ausschalten
+ * - Optionale Textbausteine ein-/ausschalten
  * - Varianten auswählen (wenn verfügbar)
- * - Reihenfolge per Drag & Drop ändern (für nicht-gesperrte Klauseln)
+ * - Reihenfolge per Drag & Drop ändern (für nicht-gesperrte Textbausteine)
  */
 
 import { useState } from "react";
@@ -91,7 +91,7 @@ interface ClausePreviewTooltipProps {
 }
 
 /**
- * Tooltip mit Klausel-Vorschau (erste 200 Zeichen)
+ * Tooltip mit Textbaustein-Vorschau (erste 200 Zeichen)
  */
 const ClausePreviewTooltip = ({ content, title, children }: ClausePreviewTooltipProps) => {
     if (!content || content.trim().length === 0) {
@@ -141,11 +141,11 @@ export interface DocumentClause {
     id: number;
     uniqueId: string;
     title: string;
-    content?: string; // Klausel-Inhalt fuer Tooltip-Vorschau
+    content?: string; // Textbaustein-Inhalt fuer Tooltip-Vorschau
     is_mandatory: boolean;
     is_enabled: boolean;
     is_order_locked: boolean;
-    is_recommended?: boolean; // Empfohlene Klausel (faellt zurueck auf is_mandatory wenn nicht gesetzt)
+    is_recommended?: boolean; // Empfohlener Textbaustein (faellt zurueck auf is_mandatory wenn nicht gesetzt)
     order: number;
     clause_type: "standard" | "optional" | "conditional" | "variant";
     // Variant support
@@ -300,7 +300,7 @@ const SortableClauseItem = ({
                                 </Badge>
                             </TooltipTrigger>
                             <TooltipContent>
-                                <p>Diese Klausel wird für diesen Vertragstyp empfohlen</p>
+                                <p>Dieser Textbaustein wird für diesen Vertragstyp empfohlen</p>
                             </TooltipContent>
                         </Tooltip>
                     </TooltipProvider>
@@ -314,7 +314,7 @@ const SortableClauseItem = ({
                                 </Badge>
                             </TooltipTrigger>
                             <TooltipContent>
-                                <p>Diese Klausel ist verpflichtend und kann nicht deaktiviert werden</p>
+                                <p>Dieser Textbaustein ist verpflichtend und kann nicht deaktiviert werden</p>
                             </TooltipContent>
                         </Tooltip>
                     </TooltipProvider>
@@ -342,7 +342,7 @@ const SortableClauseItem = ({
                     <TooltipContent>
                         <p>
                             {clause.is_mandatory
-                                ? "Pflichtklausel kann nicht deaktiviert werden"
+                                ? "Pflicht-Textbaustein kann nicht deaktiviert werden"
                                 : clause.is_enabled
                                 ? "Textbaustein deaktivieren"
                                 : "Textbaustein aktivieren"}
@@ -434,7 +434,7 @@ export const ClauseReorderPanel = ({
                 <div className="flex items-center justify-between">
                     <CardTitle className="text-base flex items-center gap-2">
                         <Settings2 className="w-4 h-4 text-primary" />
-                        Klauseln anpassen
+                        Textbausteine anpassen
                     </CardTitle>
                     <div className="flex items-center gap-3">
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -471,9 +471,9 @@ export const ClauseReorderPanel = ({
                                 <div className="flex items-start gap-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
                                     <Info className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
                                     <p className="text-xs text-blue-800">
-                                        Optionale Klauseln können ein-/ausgeschaltet werden.
+                                        Optionale Textbausteine können ein-/ausgeschaltet werden.
                                         {variantCount > 0 && " Bei Varianten wählen Sie die passende Version."}
-                                        {optionalCount > 0 && " Ziehen Sie Klauseln zum Umsortieren (außer gesperrte)."}
+                                        {optionalCount > 0 && " Ziehen Sie Textbausteine zum Umsortieren (außer gesperrte)."}
                                     </p>
                                 </div>
                             )}

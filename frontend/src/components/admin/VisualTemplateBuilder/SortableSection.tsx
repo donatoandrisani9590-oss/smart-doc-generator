@@ -174,7 +174,7 @@ export const SortableSection = ({
 
                     {/* Clause Count */}
                     <Badge variant="secondary" className="text-xs">
-                        {section.clauses.length} Klausel{section.clauses.length !== 1 ? "n" : ""}
+                        {section.clauses.length} Textbaustein{section.clauses.length !== 1 ? "e" : ""}
                     </Badge>
 
                     {/* Delete Section */}
@@ -200,7 +200,7 @@ export const SortableSection = ({
                     >
                         {section.clauses.length === 0 ? (
                             <div className="flex items-center justify-center h-12 border-2 border-dashed border-slate-300 rounded text-sm text-muted-foreground">
-                                Klauseln hier ablegen
+                                Textbausteine hier ablegen
                             </div>
                         ) : (
                             <SortableContext

@@ -1,8 +1,8 @@
 /**
- * StepClauses - Schritt 4: Vertragsklauseln anpassen
+ * StepClauses - Schritt 4: Textbausteine anpassen
  *
- * Optionaler Schritt zur Anpassung der Vertragsklauseln:
- * - Klauseln ein/ausschalten
+ * Optionaler Schritt zur Anpassung der Textbausteine:
+ * - Textbausteine ein/ausschalten
  * - Reihenfolge ändern
  * - Varianten auswählen
  * - Anlagen hinzufügen
@@ -38,7 +38,7 @@ export const StepClauses = () => {
         id: clause.id,
         uniqueId: clause.unique_id,
         title: clause.name,
-        content: clause.content, // Fuer Klausel-Vorschau im Tooltip
+        content: clause.content, // Fuer Textbaustein-Vorschau im Tooltip
         is_mandatory: clause.is_required,
         is_enabled: clause.is_enabled,
         is_order_locked: false,
@@ -56,7 +56,7 @@ export const StepClauses = () => {
         order_index: reorderClause.order,
     });
 
-    // Handler für ClauseReorderPanel - onClausesChange wird mit allen Klauseln aufgerufen
+    // Handler für ClauseReorderPanel - onClausesChange wird mit allen Textbausteine aufgerufen
     const handleClausesChange = (reorderedClauses: ClauseReorderClause[]) => {
         const mappedClauses = reorderedClauses.map((rc) => {
             const original = documentClauses.find((dc) => dc.unique_id === rc.uniqueId);
@@ -105,19 +105,19 @@ export const StepClauses = () => {
                 <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center">
                     <FileText className="w-8 h-8 text-primary" />
                 </div>
-                <h2 className="text-2xl font-bold">Vertragsklauseln anpassen</h2>
+                <h2 className="text-2xl font-bold">Textbausteine anpassen</h2>
                 <p className="text-muted-foreground">
                     Passen Sie die Vertragsinhalte nach Ihren Wünschen an.
                 </p>
             </div>
 
-            {/* Klauseln */}
+            {/* Textbausteine */}
             <Card>
                 <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
                         <CardTitle className="text-base flex items-center gap-2">
                             <Layers className="w-4 h-4" />
-                            Klauseln
+                            Textbausteine
                         </CardTitle>
                         <Badge variant="secondary">
                             {enabledCount} von {totalCount} aktiv
@@ -133,7 +133,7 @@ export const StepClauses = () => {
                     ) : (
                         <div className="text-center py-8 text-muted-foreground">
                             <FileText className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                            <p>Keine Klauseln für diesen Dokumenttyp verfügbar.</p>
+                            <p>Keine Textbausteine für diesen Dokumenttyp verfügbar.</p>
                         </div>
                     )}
                 </CardContent>

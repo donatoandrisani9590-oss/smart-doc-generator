@@ -15,7 +15,11 @@ import traceback
 from contextlib import asynccontextmanager
 from typing import Callable
 
+from dotenv import load_dotenv
+load_dotenv()  # Load .env into os.environ (needed by llm_service, etc.)
+
 from fastapi import FastAPI, Request, status
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
@@ -350,7 +354,7 @@ app = FastAPI(
 
     ## Features
     - 35+ HR-Dokumenttypen (Arbeitsverträge, Kündigungen, Zeugnisse, etc.)
-    - Template-basierte Generierung mit Klausel-Library
+    - Template-basierte Generierung mit Textbaustein-Library
     - PDF & DOCX Export
     - Fristen-Management (Probezeit, Befristung)
     - Compliance-Prüfung
@@ -375,12 +379,43 @@ app = FastAPI(
         {"name": "auth", "description": "Authentifizierung & Token-Management"},
         {"name": "generation", "description": "Dokument-Generierung"},
         {"name": "document-types", "description": "Dokumenttyp-Verwaltung"},
-        {"name": "clauses", "description": "Klausel-Verwaltung"},
+        {"name": "clauses", "description": "Textbaustein-Verwaltung"},
         {"name": "drafts", "description": "Entwürfe"},
         {"name": "deadlines", "description": "Fristen-Management"},
         {"name": "search", "description": "Volltextsuche"},
     ]
 )
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# EXCEPTION HANDLERS
+# ═══════════════════════════════════════════════════════════════════════════
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    """Return user-friendly validation errors instead of raw Pydantic output."""
+    errors = []
+    for error in exc.errors():
+        field = " → ".join(str(loc) for loc in error["loc"] if loc != "body")
+        errors.append({
+            "field": field,
+            "message": error["msg"],
+            "type": error["type"],
+        })
+
+    logger.warning(
+        f"Validation error on {request.method} {request.url.path}: "
+        f"{len(errors)} error(s)"
+    )
+
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content={
+            "detail": "Validierungsfehler in der Anfrage",
+            "errors": errors,
+        },
+    )
+
 
 # Add middlewares (order matters - first added = outermost)
 app.add_middleware(ErrorHandlingMiddleware)

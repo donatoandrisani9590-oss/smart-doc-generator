@@ -46,7 +46,7 @@ export const CanvasWithSections = ({
                     <h2 className="font-semibold text-lg">Document Canvas</h2>
                     <p className="text-sm text-muted-foreground">
                         {sections.length} Section{sections.length !== 1 ? "s" : ""}, {totalClauses}{" "}
-                        Klausel{totalClauses !== 1 ? "n" : ""}
+                        Textbaustein{totalClauses !== 1 ? "e" : ""}
                     </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -121,7 +121,7 @@ export const Canvas = ({ clauses, onRemove, isOver }: CanvasProps) => {
                 <div>
                     <h2 className="font-semibold text-lg">Document Canvas</h2>
                     <p className="text-sm text-muted-foreground">
-                        {clauses.length} Klausel{clauses.length !== 1 ? "n" : ""} ausgewaehlt
+                        {clauses.length} Textbaustein{clauses.length !== 1 ? "e" : ""} ausgewaehlt
                     </p>
                 </div>
                 <Badge variant="outline">{clauses.length} Elemente</Badge>

@@ -862,7 +862,7 @@ async def copy_settings_from_template(
     - Fußzeile
     - Logo-Einstellungen
     - Seitenränder
-    - Klauseln
+    - Textbausteine
     - Varianten-Gruppen
     """
     # Get target document type
@@ -954,7 +954,7 @@ async def copy_settings_from_template(
             clauses_copied += 1
 
         if clauses_copied > 0:
-            copied_items.append(f"{clauses_copied} Klauseln")
+            copied_items.append(f"{clauses_copied} Textbausteine")
 
     # Copy variant groups if requested
     variant_groups_copied = 0

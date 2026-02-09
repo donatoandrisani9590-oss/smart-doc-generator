@@ -148,7 +148,7 @@ export const ConditionTester = ({ condition, fields, onClose }: ConditionTesterP
                             <CheckCircle2 className="w-6 h-6 text-green-600" />
                             <div>
                                 <p className="font-medium text-green-800 dark:text-green-200">Bedingung erfüllt!</p>
-                                <p className="text-sm text-green-700 dark:text-green-300">Die Klausel wird angezeigt.</p>
+                                <p className="text-sm text-green-700 dark:text-green-300">Der Textbaustein wird angezeigt.</p>
                             </div>
                         </>
                     ) : (
@@ -156,7 +156,7 @@ export const ConditionTester = ({ condition, fields, onClose }: ConditionTesterP
                             <X className="w-6 h-6 text-red-600" />
                             <div>
                                 <p className="font-medium text-red-800 dark:text-red-200">Bedingung nicht erfüllt</p>
-                                <p className="text-sm text-red-700 dark:text-red-300">Die Klausel wird ausgeblendet.</p>
+                                <p className="text-sm text-red-700 dark:text-red-300">Der Textbaustein wird ausgeblendet.</p>
                             </div>
                         </>
                     )}

@@ -125,7 +125,7 @@ def build_clause_catalog_prompt(clauses: List[Dict[str, Any]]) -> str:
     [ID:5] "Ordentliche Kündigung Standard"
       Tags: kuendigung, ordentlich, frist
       Ton: neutral
-      Beschreibung: Standard-Kündigungsklausel mit gesetzlicher Frist
+      Beschreibung: Standard-Kündigungs-Textbaustein mit gesetzlicher Frist
       Vorschau: Der Arbeitnehmer kann das Arbeitsverhältnis unter Einhaltung...
 
     [ID:8] "Fristlose Kündigung Streng"
@@ -135,9 +135,9 @@ def build_clause_catalog_prompt(clauses: List[Dict[str, Any]]) -> str:
     """
     if not clauses:
         return (
-            "HINWEIS: Es sind keine benutzerdefinierten Klauseln verfügbar. "
+            "HINWEIS: Es sind keine benutzerdefinierten Textbausteine verfügbar. "
             "Du darfst KEINEN eigenen Vertragstext erfinden. Weise den Nutzer darauf hin, "
-            "dass er zuerst Klauseln in den Einstellungen anlegen muss."
+            "dass er zuerst Textbausteine in den Einstellungen anlegen muss."
         )
 
     # Group by category
@@ -183,38 +183,38 @@ def build_ai_clause_system_prompt(
         "CH": "Schweiz (Schweizer Arbeitsrecht)",
     }.get(country_code, "Deutschland (deutsches Arbeitsrecht)")
 
-    return f"""Du bist ein KI-Assistent für die Vertragsklausel-Auswahl in {country_name}.
+    return f"""Du bist ein KI-Assistent für die Textbaustein-Auswahl in {country_name}.
 
 KERNREGEL: Du darfst KEINEN neuen Vertragstext erfinden. Du wählst ausschließlich
-aus den unten aufgeführten benutzerdefinierten Klauseln aus und stellst sie zusammen.
+aus den unten aufgeführten benutzerdefinierten Textbausteine aus und stellst sie zusammen.
 
 DEINE AUFGABE:
 1. Verstehe den Wunsch des Nutzers (z.B. "Mach den Vertrag wasserdicht")
-2. Wähle die passenden Klauseln aus dem Katalog aus
-3. Begründe kurz, warum du jede Klausel ausgewählt hast
+2. Wähle die passenden Textbausteine aus dem Katalog aus
+3. Begründe kurz, warum du jede Textbaustein ausgewählt hast
 4. Schlage eine Reihenfolge vor
 
 MATCHING-STRATEGIE:
-- Nutze die TAGS der Klauseln für semantisches Matching
+- Nutze die TAGS der Textbausteine für semantisches Matching
 - Nutze den TON (streng/neutral/arbeitnehmerfreundlich) für Stil-Matching
 - Nutze die BESCHREIBUNG für inhaltliches Verständnis
 - Nutze die KATEGORIE für strukturelle Gruppierung
-- "Wasserdicht" → bevorzuge Klauseln mit Tag "streng" oder Ton "streng"
-- "Arbeitnehmerfreundlich" → bevorzuge Klauseln mit Ton "arbeitnehmerfreundlich"
-- "Standard" → bevorzuge Klauseln mit Ton "neutral"
+- "Wasserdicht" → bevorzuge Textbausteine mit Tag "streng" oder Ton "streng"
+- "Arbeitnehmerfreundlich" → bevorzuge Textbausteine mit Ton "arbeitnehmerfreundlich"
+- "Standard" → bevorzuge Textbausteine mit Ton "neutral"
 
 ANTWORT-FORMAT (strikt JSON):
 {{
   "selected_clauses": [
     {{
       "clause_id": <int>,
-      "title": "<Klausel-Titel>",
-      "reason": "<Warum wurde diese Klausel gewählt?>",
+      "title": "<Textbaustein-Titel>",
+      "reason": "<Warum wurde diesen Textbaustein gewählt?>",
       "order": <int, Reihenfolge im Dokument>
     }}
   ],
   "explanation": "<Kurze Erklärung der Gesamtstrategie>",
-  "warnings": ["<Optionale Hinweise, z.B. fehlende Klauseln>"]
+  "warnings": ["<Optionale Hinweise, z.B. fehlende Textbausteine>"]
 }}
 
 {clause_catalog}{custom_instructions}"""
@@ -342,7 +342,7 @@ async def select_clauses_with_ai(
         logger.error(f"AI clause selection failed: {e}", exc_info=True)
         return {
             "selected_clauses": [],
-            "explanation": "Klausel-Auswahl fehlgeschlagen.",
+            "explanation": "Textbaustein-Auswahl fehlgeschlagen.",
             "warnings": [f"Fehler: {str(e)}"],
             "clauses_available": len(clauses),
         }

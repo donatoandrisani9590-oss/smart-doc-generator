@@ -30,7 +30,7 @@ export interface EmptyStateProps {
     title: string;
     /** Beschreibender Text */
     description?: string;
-    /** Primäre Aktion (z.B. "Neue Klausel erstellen") */
+    /** Primäre Aktion (z.B. "Neuer Textbaustein erstellen") */
     action?: EmptyStateAction;
     /** Sekundäre Aktion */
     secondaryAction?: EmptyStateAction;
@@ -243,11 +243,11 @@ export const EmptyStatePresets = {
         variant: "filter" as const,
     },
 
-    /** Keine Klauseln */
+    /** Keine Textbausteine */
     noClauses: {
         icon: FileText,
-        title: "Keine Klauseln vorhanden",
-        description: "Erstellen Sie Ihre erste Klausel oder importieren Sie aus Word.",
+        title: "Keine Textbausteine vorhanden",
+        description: "Erstellen Sie Ihren ersten Textbaustein oder importieren Sie aus Word.",
         variant: "default" as const,
     },
 

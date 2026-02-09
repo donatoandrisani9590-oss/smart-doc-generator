@@ -2,7 +2,7 @@
 Comments API - Phase 2: Async Collaboration
 
 Ermöglicht:
-- CRUD für Kommentare an Dokumenten/Klauseln/Entwürfen
+- CRUD für Kommentare an Dokumenten/Textbausteine/Entwürfen
 - Thread-basierte Antworten
 - @Mentions mit Notification-Trigger
 - Resolve/Unresolve Threads
@@ -205,11 +205,11 @@ async def validate_anchor_access(
         clause = result.scalar_one_or_none()
 
         if not clause:
-            raise HTTPException(status_code=404, detail="Klausel nicht gefunden")
+            raise HTTPException(status_code=404, detail="Textbaustein nicht gefunden")
 
         # Admin-only for clause comments
         if current_user.role != "admin":
-            raise HTTPException(status_code=403, detail="Nur Admins können Klauseln kommentieren")
+            raise HTTPException(status_code=403, detail="Nur Admins können Textbausteine kommentieren")
 
         return True
 
@@ -217,7 +217,7 @@ async def validate_anchor_access(
         # Clause instances are part of drafts - validate via parent draft
         # For now, just validate format (positive integer)
         if anchor_id <= 0:
-            raise HTTPException(status_code=400, detail="Ungültige Klausel-Instanz ID")
+            raise HTTPException(status_code=400, detail="Ungültige Textbaustein-Instanz ID")
         return True
 
     return False

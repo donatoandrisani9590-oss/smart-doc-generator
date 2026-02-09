@@ -42,6 +42,14 @@ class Settings(BaseSettings):
     # CORS: In Production explizite Domains setzen (Komma-getrennt in .env)
     CORS_ORIGINS: str = "http://localhost:5173,http://localhost:3000"
 
+    # LLM / KI Provider (mindestens einen konfigurieren)
+    GROQ_API_KEY: str = ""  # Free: https://console.groq.com/keys
+    GROQ_MODEL: str = "llama-3.1-8b-instant"
+    MISTRAL_API_KEY: str = ""
+    MISTRAL_MODEL: str = "mistral-small-latest"
+    OLLAMA_HOST: str = "http://localhost:11434"
+    OLLAMA_MODEL: str = "mistral:7b-instruct"
+
     # E-Mail (SMTP) – leave empty to disable email notifications
     MAIL_SERVER: str = ""
     MAIL_PORT: int = 587

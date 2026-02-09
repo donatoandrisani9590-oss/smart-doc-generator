@@ -1,11 +1,11 @@
 """
-API Endpoints: AI-gestützte Klausel-Auswahl.
+API Endpoints: AI-gestützte Textbaustein-Auswahl.
 
-Schließt den Zyklus: "User erstellt Klausel → KI nutzt Klausel"
+Schließt den Zyklus: "User erstellt Textbaustein → KI nutzt Klausel"
 
 Endpoints:
-- POST /ai-select    → KI wählt Klauseln basierend auf User-Intent
-- POST /ai-assemble  → Baut Dokument aus ausgewählten Klauseln zusammen
+- POST /ai-select    → KI wählt Textbausteine basierend auf User-Intent
+- POST /ai-assemble  → Baut Dokument aus ausgewählten Textbausteine zusammen
 """
 from typing import Annotated, Optional, List
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -90,22 +90,22 @@ async def ai_select_clauses(
     current_user: Annotated[deps.User, Depends(deps.get_current_user)],
 ):
     """
-    KI-gestützte Klausel-Auswahl aus der Benutzer-Bibliothek.
+    KI-gestützte Textbaustein-Auswahl aus der Benutzer-Bibliothek.
 
     Die KI erfindet KEINEN neuen Text, sondern wählt aus den vorhandenen
-    benutzerdefinierten Klauseln die passenden aus.
+    benutzerdefinierten Textbausteine die passenden aus.
 
     Flow:
-    1. Lädt alle aktiven Klauseln des Users (Mandanten-isoliert)
-    2. Injiziert den Klausel-Katalog in den System-Prompt
+    1. Lädt alle aktiven Textbausteine des Users (Mandanten-isoliert)
+    2. Injiziert den Textbaustein-Katalog in den System-Prompt
     3. LLM matched User-Intent gegen Tags, Beschreibung, Ton, Kategorie
-    4. Gibt ausgewählte Klausel-IDs mit Begründung zurück
+    4. Gibt ausgewählte Textbaustein-IDs mit Begründung zurück
 
     Beispiel:
         POST /clause-ai/ai-select
         {"user_intent": "Mach den Vertrag wasserdicht", "country_code": "DE"}
 
-        →  Wählt Klauseln mit Tags ["streng", "haftung", "geheimhaltung"] aus
+        →  Wählt Textbausteine mit Tags ["streng", "haftung", "geheimhaltung"] aus
     """
     from app.services.clause_ai_bridge import select_clauses_with_ai
 
@@ -128,13 +128,13 @@ async def ai_assemble_clauses(
     current_user: Annotated[deps.User, Depends(deps.get_current_user)],
 ):
     """
-    Baut den Dokumentinhalt aus ausgewählten Klausel-IDs zusammen.
+    Baut den Dokumentinhalt aus ausgewählten Textbaustein-IDs zusammen.
 
-    Mandanten-isoliert: Gibt nur Klauseln zurück, die dem User gehören
+    Mandanten-isoliert: Gibt nur Textbausteine zurück, die dem User gehören
     oder global sind. Ersetzt {{placeholders}} mit form_data.
 
     Typischer 2-Schritt-Flow:
-    1. POST /clause-ai/ai-select  → KI wählt Klauseln
+    1. POST /clause-ai/ai-select  → KI wählt Textbausteine
     2. POST /clause-ai/ai-assemble → Inhalt zusammenbauen
     """
     from app.services.clause_ai_bridge import assemble_clauses

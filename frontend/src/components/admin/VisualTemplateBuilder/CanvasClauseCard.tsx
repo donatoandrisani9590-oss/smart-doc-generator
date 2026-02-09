@@ -55,7 +55,7 @@ export const CanvasClauseCard = ({ clause, onRemove, inSection = false }: Canvas
                             "focus:outline-none focus:ring-2 focus:ring-primary",
                             isDragging && "cursor-grabbing"
                         )}
-                        aria-label="Klausel verschieben"
+                        aria-label="Textbaustein verschieben"
                     >
                         <GripVertical className="w-4 h-4" />
                     </button>

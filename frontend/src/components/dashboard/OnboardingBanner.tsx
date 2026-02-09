@@ -36,7 +36,7 @@ interface OnboardingStep {
 }
 
 interface OnboardingBannerProps {
-    /** Ob Klauseln vorhanden sind */
+    /** Ob Textbausteine vorhanden sind */
     clauseCount?: number;
     /** Ob Dokumenttypen vorhanden sind */
     documentTypeCount?: number;

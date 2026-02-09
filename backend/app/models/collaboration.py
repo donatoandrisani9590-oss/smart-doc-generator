@@ -2,7 +2,7 @@
 Collaboration Models - Phase 2: Async Collaboration
 
 Ermöglicht:
-- Kommentare an Dokumenten/Klauseln/Entwürfen
+- Kommentare an Dokumenten/Textbausteine/Entwürfen
 - @Mentions von Team-Mitgliedern
 - Thread-basierte Diskussionen
 - Activity Feed
@@ -22,7 +22,7 @@ from app.db import Base
 
 class Comment(Base):
     """
-    Kommentare an verschiedenen Entitäten (Dokumente, Klauseln, Entwürfe).
+    Kommentare an verschiedenen Entitäten (Dokumente, Textbausteine, Entwürfe).
 
     Unterstützt:
     - Thread-Antworten (parent_id)

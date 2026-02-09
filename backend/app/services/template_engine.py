@@ -245,7 +245,7 @@ class TemplateEngine:
     Implementiert die v3.0 Strategie mit dedizierten Master-Templates:
     1. Wähle Master-Template basierend auf country_code und category
     2. Lade design_settings aus DB
-    3. Assembliere Klauseln
+    3. Assembliere Textbausteine
     4. Ersetze Platzhalter
     5. Exportiere als DOCX/PDF
     """

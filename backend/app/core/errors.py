@@ -25,7 +25,7 @@ class ErrorMessages:
     DRAFT_EMPTY = "Entwurf nicht gefunden oder leer"
 
     # ── Clauses ───────────────────────────────────────────────────────────
-    CLAUSE_NOT_FOUND = "Klausel nicht gefunden"
+    CLAUSE_NOT_FOUND = "Textbaustein nicht gefunden"
     CLAUSE_REQUIRES_ID = "Mindestens eine clause_id ist erforderlich"
 
     # ── Documents ─────────────────────────────────────────────────────────

@@ -56,8 +56,8 @@ const DEFAULT_CONFIG: Required<Omit<RequestConfig, "signal" | "skipErrorHandling
     headers: {},
 };
 
-// Base URL
-const BASE_URL = import.meta.env.VITE_API_URL || "";
+// Base URL (trim whitespace/newlines — Vercel env vars can have trailing \n)
+const BASE_URL = (import.meta.env.VITE_API_URL || "").trim();
 
 /**
  * Get the API base URL for direct fetch calls

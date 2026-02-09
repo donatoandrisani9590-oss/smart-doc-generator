@@ -1,5 +1,5 @@
 /**
- * ClauseNotesPanel - Interne Notizen für Klauseln
+ * ClauseNotesPanel - Interne Notizen für Textbausteine
  *
  * v4.2 Feature (Kapitel 15.5.6):
  * - "RA Müller hat geprüft und freigegeben"

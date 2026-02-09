@@ -3,7 +3,7 @@
  *
  * Zeigt dem User visuell, wo er im Prozess steht:
  * 1. Entwurf - Dokumenttyp gewählt, Felder werden ausgefüllt
- * 2. Inhalte - Klauseln/Anlagen konfiguriert
+ * 2. Inhalte - Textbausteine/Anlagen konfiguriert
  * 3. Prüfung - Dokument wird überprüft/bearbeitet
  * 4. Export - Bereit zum Export
  *
@@ -50,7 +50,7 @@ function calculateCurrentStep(state: {
     );
     const hasRequiredFields = filledFields.length >= 3; // Mindestens 3 von 5
 
-    // Schritt 1: Inhalte - Klauseln konfiguriert
+    // Schritt 1: Inhalte - Textbausteine konfiguriert
     const hasEnabledClauses = documentClauses.some((c) => c.is_enabled);
 
     // Schritt 2: Prüfung - Vorschau generiert, möglicherweise bearbeitet

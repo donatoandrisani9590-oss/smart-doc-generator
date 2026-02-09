@@ -456,7 +456,7 @@ const testCases = [
 
   testCase(
     "Suche nach...",
-    "Suche nach Homeoffice-Klauseln",
+    "Suche nach Homeoffice-Textbausteine",
     {
       intentType: 'search',
     }

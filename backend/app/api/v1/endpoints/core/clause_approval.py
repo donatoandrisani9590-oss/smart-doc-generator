@@ -1,11 +1,11 @@
 """
-Klausel-Freigabe-Workflow API (v4.2 Feature: Kapitel 15.3)
+Textbaustein-Freigabe-Workflow API (v4.2 Feature: Kapitel 15.3)
 
-4-Augen-Prinzip für Klauseln:
+4-Augen-Prinzip für Textbausteine:
 - HRBP erstellt Entwurf
 - Rechtsabteilung prüft
 - HR-Leitung gibt frei
-- Klausel wird aktiv
+- Textbaustein wird aktiv
 """
 from __future__ import annotations
 from typing import Any, List, Annotated, Optional
@@ -43,7 +43,7 @@ class ApprovalDecision(BaseModel):
 
 
 class ClauseApprovalStatus(BaseModel):
-    """Status einer Klausel im Workflow."""
+    """Status eines Textbausteins im Workflow."""
     clause_id: int
     clause_title: str
     approval_status: str
@@ -78,12 +78,12 @@ class PendingApprovalResponse(BaseModel):
 
 
 class RejectRequest(BaseModel):
-    """Request zum Ablehnen einer Klausel."""
+    """Request zum Ablehnen eines Textbausteins."""
     reason: str
 
 
 class ApproveRequest(BaseModel):
-    """Request zum Genehmigen einer Klausel (optional mit Kommentar)."""
+    """Request zum Genehmigen eines Textbausteins (optional mit Kommentar)."""
     comment: Optional[str] = None
 
 
@@ -98,7 +98,7 @@ async def get_pending_approvals(
     status: Optional[str] = None,
 ) -> Any:
     """
-    Liste aller Klauseln, die auf Freigabe warten.
+    Liste aller Textbausteine, die auf Freigabe warten.
     Für HR-Leitung/Rechtsabteilung.
 
     Query-Parameter:
@@ -149,11 +149,11 @@ async def get_approval_status(
     current_user: Annotated[Any, Depends(deps.get_current_user)],
 ) -> Any:
     """
-    Freigabe-Status einer Klausel abrufen (Tenant-isoliert).
+    Freigabe-Status eines Textbausteins abrufen (Tenant-isoliert).
     """
     clause = await db.get(Clause, clause_id)
     if not clause:
-        raise HTTPException(status_code=404, detail="Klausel nicht gefunden")
+        raise HTTPException(status_code=404, detail="Textbaustein nicht gefunden")
     _check_clause_access(clause, current_user)
 
     return ClauseApprovalStatus(
@@ -176,19 +176,19 @@ async def request_approval(
     current_user: Annotated[Any, Depends(deps.get_current_user)],
 ) -> Any:
     """
-    Freigabe für eine Klausel anfordern (Tenant-isoliert).
+    Freigabe für einen Textbaustein anfordern (Tenant-isoliert).
 
     Status: draft → pending
     """
     clause = await db.get(Clause, clause_id)
     if not clause:
-        raise HTTPException(status_code=404, detail="Klausel nicht gefunden")
+        raise HTTPException(status_code=404, detail="Textbaustein nicht gefunden")
     _check_clause_access(clause, current_user)
 
     if clause.approval_status not in (None, "draft", "rejected", "active"):
         raise HTTPException(
             status_code=400,
-            detail=f"Klausel kann nicht zur Freigabe eingereicht werden (aktueller Status: {clause.approval_status})"
+            detail=f"Textbaustein kann nicht zur Freigabe eingereicht werden (aktueller Status: {clause.approval_status})"
         )
 
     clause.approval_status = "pending"
@@ -215,7 +215,7 @@ async def review_clause(
     current_user: Annotated[Any, Depends(deps.get_current_active_admin)],
 ) -> Any:
     """
-    Klausel prüfen und freigeben/ablehnen (Tenant-isoliert).
+    Textbaustein prüfen und freigeben/ablehnen (Tenant-isoliert).
 
     Status: pending → approved/rejected
     Bei Freigabe: approved → active
@@ -224,13 +224,13 @@ async def review_clause(
     """
     clause = await db.get(Clause, clause_id)
     if not clause:
-        raise HTTPException(status_code=404, detail="Klausel nicht gefunden")
+        raise HTTPException(status_code=404, detail="Textbaustein nicht gefunden")
     _check_clause_access(clause, current_user)
 
     if clause.approval_status != "pending":
         raise HTTPException(
             status_code=400,
-            detail=f"Klausel ist nicht zur Prüfung eingereicht (aktueller Status: {clause.approval_status})"
+            detail=f"Textbaustein ist nicht zur Prüfung eingereicht (aktueller Status: {clause.approval_status})"
         )
 
     clause.approval_reviewed_at = datetime.utcnow().isoformat()
@@ -240,10 +240,10 @@ async def review_clause(
     if decision.approved:
         clause.approval_status = "active"
         clause.is_active = True
-        message = "Klausel freigegeben und aktiviert"
+        message = "Textbaustein freigegeben und aktiviert"
     else:
         clause.approval_status = "rejected"
-        message = "Klausel abgelehnt"
+        message = "Textbaustein abgelehnt"
 
     await db.commit()
 
@@ -267,13 +267,13 @@ async def reset_to_draft(
     """
     clause = await db.get(Clause, clause_id)
     if not clause:
-        raise HTTPException(status_code=404, detail="Klausel nicht gefunden")
+        raise HTTPException(status_code=404, detail="Textbaustein nicht gefunden")
     _check_clause_access(clause, current_user)
 
     if clause.approval_status != "rejected":
         raise HTTPException(
             status_code=400,
-            detail="Nur abgelehnte Klauseln können zurückgesetzt werden"
+            detail="Nur abgelehnte Textbausteine können zurückgesetzt werden"
         )
 
     clause.approval_status = "draft"
@@ -281,7 +281,7 @@ async def reset_to_draft(
     await db.commit()
 
     return {
-        "message": "Klausel zurück zu Entwurf gesetzt",
+        "message": "Textbaustein zurück zu Entwurf gesetzt",
         "status": "draft",
         "clause_id": clause_id,
     }
@@ -303,13 +303,13 @@ async def approve_clause(
     """
     clause = await db.get(Clause, clause_id)
     if not clause:
-        raise HTTPException(status_code=404, detail="Klausel nicht gefunden")
+        raise HTTPException(status_code=404, detail="Textbaustein nicht gefunden")
     _check_clause_access(clause, current_user)
 
     if clause.approval_status != "pending":
         raise HTTPException(
             status_code=400,
-            detail=f"Klausel ist nicht zur Prüfung eingereicht (aktueller Status: {clause.approval_status})"
+            detail=f"Textbaustein ist nicht zur Prüfung eingereicht (aktueller Status: {clause.approval_status})"
         )
 
     clause.approval_status = "active"
@@ -342,7 +342,7 @@ async def approve_clause(
             pass  # Notification-Fehler blockieren nicht den Hauptflow
 
     return {
-        "message": "Klausel freigegeben und aktiviert",
+        "message": "Textbaustein freigegeben und aktiviert",
         "status": "active",
         "clause_id": clause_id,
     }
@@ -360,13 +360,13 @@ async def reject_clause(
     """
     clause = await db.get(Clause, clause_id)
     if not clause:
-        raise HTTPException(status_code=404, detail="Klausel nicht gefunden")
+        raise HTTPException(status_code=404, detail="Textbaustein nicht gefunden")
     _check_clause_access(clause, current_user)
 
     if clause.approval_status != "pending":
         raise HTTPException(
             status_code=400,
-            detail=f"Klausel ist nicht zur Prüfung eingereicht (aktueller Status: {clause.approval_status})"
+            detail=f"Textbaustein ist nicht zur Prüfung eingereicht (aktueller Status: {clause.approval_status})"
         )
 
     clause.approval_status = "rejected"
@@ -395,7 +395,7 @@ async def reject_clause(
             pass  # Notification-Fehler blockieren nicht den Hauptflow
 
     return {
-        "message": "Klausel abgelehnt",
+        "message": "Textbaustein abgelehnt",
         "status": "rejected",
         "clause_id": clause_id,
     }

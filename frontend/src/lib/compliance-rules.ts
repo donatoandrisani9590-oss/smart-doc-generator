@@ -137,7 +137,7 @@ export const complianceRulesDE: ComplianceRule[] = [
   {
     id: 'de-recommend-verschwiegenheit',
     name: 'Verschwiegenheitspflicht',
-    description: 'Eine Geheimhaltungsklausel wird empfohlen.',
+    description: 'Eine Geheimhaltungs-Textbaustein wird empfohlen.',
     severity: 'warning',
     satisfiedByClauseNames: ['verschwiegenheit', 'geheimhaltung', 'vertraulichkeit', 'nda'],
     applicableDocumentTypes: ['arbeitsvertrag', 'employment_contract', 'anstellungsvertrag', 'dienstleistungsvertrag'],
@@ -275,7 +275,7 @@ export const complianceRulesAT: ComplianceRule[] = [
   {
     id: 'at-datenschutz',
     name: 'Datenschutz',
-    description: 'Eine Datenschutzklausel ist nach DSGVO erforderlich.',
+    description: 'Eine Datenschutz-Textbaustein ist nach DSGVO erforderlich.',
     severity: 'error',
     satisfiedByClauseNames: ['datenschutz', 'dsgvo', 'datenschutzhinweis'],
     legalBasis: 'DSGVO, DSG',
@@ -308,7 +308,7 @@ export const complianceRulesCH: ComplianceRule[] = [
   {
     id: 'ch-datenschutz',
     name: 'Datenschutz',
-    description: 'Eine Datenschutzklausel wird empfohlen.',
+    description: 'Eine Datenschutz-Textbaustein wird empfohlen.',
     severity: 'warning',
     satisfiedByClauseNames: ['datenschutz', 'datenschutzhinweis'],
     legalBasis: 'nDSG (neues Datenschutzgesetz)',
@@ -425,7 +425,7 @@ export const clauseSuggestionRules: ClauseSuggestionRule[] = [
     id: 'it-geheimhaltung',
     suggestedClauseNames: ['geheimhaltung', 'verschwiegenheit', 'vertraulichkeit', 'nda'],
     reason: 'IT-Position',
-    explanation: 'IT-Mitarbeiter haben oft Zugang zu sensiblen Systemen und Daten. Eine Geheimhaltungsklausel ist daher besonders wichtig.',
+    explanation: 'IT-Mitarbeiter haben oft Zugang zu sensiblen Systemen und Daten. Eine Geheimhaltungs-Textbaustein ist daher besonders wichtig.',
     priority: 85,
     condition: (formData) => {
       const position = String(formData.position || formData.jobTitle || formData.department || '').toLowerCase();

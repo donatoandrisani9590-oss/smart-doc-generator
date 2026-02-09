@@ -2,8 +2,8 @@
  * DocumentDesigner - Visueller Drag & Drop Dokumenten-Designer
  *
  * Implementiert Kapitel 3.3 der v4.2 Spezifikation:
- * - Visuelles Zusammenstellen von Dokumenttypen aus Klauseln per Drag & Drop
- * - Klauseln aus Bibliothek in Dokument ziehen
+ * - Visuelles Zusammenstellen von Dokumenttypen aus Textbausteine per Drag & Drop
+ * - Textbausteine aus Bibliothek in Dokument ziehen
  * - Reihenfolge ändern per Drag & Drop
  * - Pflicht/Optional Toggle
  * - Bedingungen setzen (Conditional)
@@ -649,7 +649,7 @@ export const DocumentDesigner = () => {
                                         <Info className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
                                         <p className="text-xs text-blue-800">
                                             Varianten-Gruppen ermöglichen die Auswahl zwischen verschiedenen
-                                            Klausel-Versionen bei der Dokumenterstellung.
+                                            Textbaustein-Versionen bei der Dokumenterstellung.
                                         </p>
                                     </div>
 

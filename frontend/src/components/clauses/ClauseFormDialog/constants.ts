@@ -10,10 +10,10 @@ export const CATEGORIES: CategoryOption[] = [
     { value: "Urlaub", label: "Urlaub", description: "Urlaubsregelungen", group: "Arbeitsvertrag" },
     { value: "Pflichten", label: "Pflichten / Verhinderung", description: "Nebenpflichten, Krankmeldung, Verhinderung", group: "Arbeitsvertrag" },
     { value: "Kündigung", label: "Kündigung", description: "Kündigungsfristen und -bedingungen", group: "Arbeitsvertrag" },
-    { value: "Geheimhaltung", label: "Geheimhaltung", description: "Vertraulichkeitsklauseln", group: "Arbeitsvertrag" },
+    { value: "Geheimhaltung", label: "Geheimhaltung", description: "Vertraulichkeits-Textbausteine", group: "Arbeitsvertrag" },
     { value: "Nebentätigkeit", label: "Nebentätigkeit", description: "Regelungen zu Nebentätigkeiten", group: "Arbeitsvertrag" },
     { value: "Wettbewerb", label: "Wettbewerb", description: "Wettbewerbsverbote", group: "Arbeitsvertrag" },
-    { value: "Ausschlussfristen", label: "Ausschlussfristen", description: "Verfallklauseln und Ausschlussfristen", group: "Arbeitsvertrag" },
+    { value: "Ausschlussfristen", label: "Ausschlussfristen", description: "Verfall-Textbausteine und Ausschlussfristen", group: "Arbeitsvertrag" },
     { value: "Schlussbestimmungen", label: "Schlussbestimmungen", description: "Salvatorische Klausel, Schriftform, Gerichtsstand", group: "Arbeitsvertrag" },
     // HR-Korrespondenz-Kategorien
     { value: "Einladung", label: "Einladung", description: "Einladungsschreiben", group: "HR-Korrespondenz" },
@@ -22,7 +22,7 @@ export const CATEGORIES: CategoryOption[] = [
     { value: "Abmahnung", label: "Abmahnung", description: "Abmahnungen und Verwarnungen", group: "HR-Korrespondenz" },
     { value: "Zeugnis", label: "Zeugnis", description: "Arbeitszeugnisse", group: "HR-Korrespondenz" },
     // Allgemein
-    { value: "Sonstiges", label: "Sonstiges", description: "Weitere Klauseln", group: "Allgemein" },
+    { value: "Sonstiges", label: "Sonstiges", description: "Weitere Textbausteine", group: "Allgemein" },
 ];
 
 export const COUNTRIES: CountryOption[] = [

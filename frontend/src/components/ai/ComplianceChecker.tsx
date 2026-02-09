@@ -48,15 +48,15 @@ export interface Clause {
 export interface ComplianceCheckerProps {
   /** ID des Dokumenttyps */
   documentTypeId: number;
-  /** IDs der aktivierten Klauseln */
+  /** IDs der aktivierten Textbausteine */
   enabledClauseIds: number[];
   /** Aktuelle Formulardaten */
   formData: Record<string, unknown>;
   /** Ländercode (z.B. 'DE', 'IT', 'AT', 'CH') */
   countryCode: string;
-  /** Alle verfügbaren Klauseln */
+  /** Alle verfügbaren Textbausteine */
   availableClauses: Clause[];
-  /** Callback wenn eine Klausel hinzugefügt werden soll */
+  /** Callback wenn einen Textbaustein hinzugefügt werden soll */
   onAddClause?: (clauseId: number) => void;
   /** Dokumenttyp-Name für Filterung */
   documentTypeName?: string;
@@ -81,7 +81,7 @@ function performComplianceCheck(
   const rules = getComplianceRules(countryCode);
   const results: ComplianceResult[] = [];
 
-  // Aktivierte Klauseln mit Namen
+  // Aktivierte Textbausteine mit Namen
   const enabledClauses = availableClauses.filter(c =>
     enabledClauseIds.includes(c.id)
   );

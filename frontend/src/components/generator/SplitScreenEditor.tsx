@@ -2,7 +2,7 @@
  * SplitScreenEditor - Haupt-Container für den Split-Screen Document Editor
  *
  * Layout nach UX-Audit optimiert (30/70 Split):
- * - Linke Seite (320px): Formularfelder, Klauseln-Link, Anlagen-Link, Export-Buttons
+ * - Linke Seite (320px): Formularfelder, Textbausteine-Link, Anlagen-Link, Export-Buttons
  * - Rechte Seite (flex): Live WYSIWYG Editor (TinyMCE) - mehr Platz für Dokument
  * - Optional: Kommentar-Seitenleiste (280px)
  *

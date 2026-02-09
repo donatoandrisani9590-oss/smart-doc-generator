@@ -1,9 +1,9 @@
 """
-Klausel-Varianten API
+Textbaustein-Varianten API
 
 v4.2 Feature (Kapitel 16.13):
 - Varianten-Gruppen verwalten (z.B. "Kündigungsfristen")
-- Varianten einer Klausel definieren (3 Monate, 6 Monate, 12 Monate)
+- Varianten eines Textbausteins definieren (3 Monate, 6 Monate, 12 Monate)
 - Automatische Auswahl basierend auf Bedingungen
 """
 from __future__ import annotations
@@ -54,7 +54,7 @@ class ClauseVariantResponse(ClauseVariantBase):
     clause_id: int
     is_active: bool
 
-    # Klausel-Details (für Anzeige)
+    # Textbaustein-Details (für Anzeige)
     clause_title: Optional[str] = None
     clause_content_preview: Optional[str] = None
 
@@ -295,10 +295,10 @@ async def add_variant_to_group(
     if not group:
         raise HTTPException(status_code=404, detail="Varianten-Gruppe nicht gefunden")
 
-    # Klausel prüfen
+    # Textbaustein prüfen
     clause = await db.get(models.Clause, variant_in.clause_id)
     if not clause:
-        raise HTTPException(status_code=404, detail="Klausel nicht gefunden")
+        raise HTTPException(status_code=404, detail="Textbaustein nicht gefunden")
 
     # Falls diese die Default-Variante sein soll, andere Defaults entfernen
     if variant_in.is_default:
@@ -421,8 +421,8 @@ async def get_clause_variant_groups(
     current_user: Annotated[models.Base, Depends(deps.get_current_user)],
 ) -> Any:
     """
-    Finde alle Varianten-Gruppen, in denen eine Klausel enthalten ist.
-    Nützlich um zu sehen, ob eine Klausel Teil einer Varianten-Gruppe ist.
+    Finde alle Varianten-Gruppen, in denen einen Textbaustein enthalten ist.
+    Nützlich um zu sehen, ob einen Textbaustein Teil einer Varianten-Gruppe ist.
     """
     query = (
         select(models.ClauseVariant)

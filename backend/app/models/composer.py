@@ -2,7 +2,7 @@
 Unified Document Composer Models
 
 Smart UX Konzept - Phase 1:
-- DocumentClauseInstance: Klausel-Instanzen innerhalb eines Dokuments
+- DocumentClauseInstance: Textbaustein-Instanzen innerhalb eines Dokuments
 - Unterstützt Global (aus Bibliothek), Local (im Dokument erstellt), Deviation (aufgebrochen)
 """
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Text, CheckConstraint, Index
@@ -13,7 +13,7 @@ import enum
 
 
 class ClauseOrigin(str, enum.Enum):
-    """Herkunft einer Klausel-Instanz im Dokument."""
+    """Herkunft einer Textbaustein-Instanz im Dokument."""
     GLOBAL = "global"        # Aus Bibliothek, schreibgeschützt (grün)
     LOCAL = "local"          # Im Dokument erstellt (blau)
     DEVIATION = "deviation"  # War global, wurde aufgebrochen (blau mit Indikator)
@@ -22,7 +22,7 @@ class ClauseOrigin(str, enum.Enum):
 
 class DocumentClauseInstance(Base):
     """
-    Klausel-Instanz innerhalb eines Dokuments (Draft oder Generated).
+    Textbaustein-Instanz innerhalb eines Dokuments (Draft oder Generated).
 
     Smart UX Konzept - Visuelles System:
     - GLOBAL (grün): Referenz zu Clause-Tabelle, read-only, 🔒 Icon
@@ -104,7 +104,7 @@ class DocumentClauseInstance(Base):
     # ══════════════════════════════════════════════════════════════════════════
     # VARIANTEN-SUPPORT (Integration mit bestehendem System)
     # ══════════════════════════════════════════════════════════════════════════
-    variant_group_id = Column(Integer, nullable=True)  # Für Klauseln mit Varianten
+    variant_group_id = Column(Integer, nullable=True)  # Für Textbausteine mit Varianten
     selected_variant_id = Column(Integer, nullable=True)  # Aktuell ausgewählte Variante
 
     # ══════════════════════════════════════════════════════════════════════════
@@ -150,7 +150,7 @@ class DocumentClauseInstance(Base):
             "(document_draft_id IS NULL AND generated_document_id IS NOT NULL)",
             name="check_single_parent"
         ),
-        # Composite Index für schnelles Laden aller Klauseln eines Drafts
+        # Composite Index für schnelles Laden aller Textbausteine eines Drafts
         Index("ix_clause_instances_draft_order", "document_draft_id", "display_order"),
         # Composite Index für generierte Dokumente
         Index("ix_clause_instances_doc_order", "generated_document_id", "display_order"),
@@ -162,7 +162,7 @@ class DocumentClauseInstance(Base):
 
     @property
     def is_editable(self) -> bool:
-        """Kann diese Klausel bearbeitet werden?"""
+        """Kann diesen Textbaustein bearbeitet werden?"""
         return self.clause_origin != ClauseOrigin.GLOBAL.value
 
     @property

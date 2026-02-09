@@ -51,14 +51,14 @@ export const AddVariantDialog = ({
 
     const { data: clauses } = useClauses(countryCode);
 
-    // Bereits verwendete Klauseln in dieser Gruppe ausfiltern
+    // Bereits verwendete Textbausteine in dieser Gruppe ausfiltern
     const availableClauses = clauses?.filter(
         (c: Clause) => !group?.variants.some((v) => v.clause_id === c.id)
     );
 
     const handleSubmit = async () => {
         if (!variantName.trim() || !selectedClauseId || !group) {
-            setError("Name und Klausel sind erforderlich");
+            setError("Name und Textbaustein sind erforderlich");
             return;
         }
 
@@ -112,13 +112,13 @@ export const AddVariantDialog = ({
                         Variante hinzufügen
                     </DialogTitle>
                     <DialogDescription>
-                        Fügen Sie eine Klausel als Variante zu "{group.name}" hinzu
+                        Fügen Sie einen Textbaustein als Variante zu "{group.name}" hinzu
                     </DialogDescription>
                 </DialogHeader>
 
                 <div className="space-y-4 py-4">
                     <div className="space-y-2">
-                        <Label htmlFor="clause">Klausel auswählen *</Label>
+                        <Label htmlFor="clause">Textbaustein auswählen *</Label>
                         <Select
                             value={selectedClauseId?.toString() || ""}
                             onValueChange={(v) => setSelectedClauseId(parseInt(v))}

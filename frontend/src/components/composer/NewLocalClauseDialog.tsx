@@ -2,7 +2,7 @@
  * NewLocalClauseDialog - Dialog zum Erstellen einer neuen lokalen Klausel
  *
  * Smart UX Phase 3:
- * - Schnelle Erstellung individueller Klauseln
+ * - Schnelle Erstellung individueller Textbausteine
  * - Rich Text Editor für den Inhalt
  * - Optionale Positionierung
  */
@@ -97,13 +97,13 @@ export const NewLocalClauseDialog = ({
                         <div className="p-2 bg-blue-100 rounded-full">
                             <FileEdit className="w-5 h-5 text-blue-600" />
                         </div>
-                        Neue individuelle Klausel
+                        Neue individueller Textbaustein
                     </DialogTitle>
                     <DialogDescription>
-                        Erstellen Sie eine neue Klausel speziell für dieses Dokument.
+                        Erstellen Sie eine neuer Textbaustein speziell für dieses Dokument.
                         {position !== undefined && (
                             <span className="block mt-1 text-xs">
-                                Die Klausel wird an Position {position + 1} eingefügt.
+                                Der Textbaustein wird an Position {position + 1} eingefügt.
                             </span>
                         )}
                     </DialogDescription>
@@ -137,7 +137,7 @@ export const NewLocalClauseDialog = ({
                         <RichTextEditor
                             value={content}
                             onChange={setContent}
-                            placeholder="Klauseltext eingeben..."
+                            placeholder="Textbaustein-Inhalt eingeben..."
                             minHeight="200px"
                         />
                         <p className="text-xs text-muted-foreground">
@@ -150,7 +150,7 @@ export const NewLocalClauseDialog = ({
                         <div className="flex items-start gap-2">
                             <FileEdit className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
                             <div className="text-sm text-blue-800">
-                                <strong>Tipp:</strong> Individuelle Klauseln können später über
+                                <strong>Tipp:</strong> Individuelle Textbausteine können später über
                                 "In Bibliothek aufnehmen" als Standard-Bausteine für zukünftige
                                 Dokumente gespeichert werden.
                             </div>
@@ -174,7 +174,7 @@ export const NewLocalClauseDialog = ({
                         ) : (
                             <>
                                 <Plus className="w-4 h-4 mr-2" />
-                                Klausel erstellen
+                                Textbaustein erstellen
                             </>
                         )}
                     </Button>

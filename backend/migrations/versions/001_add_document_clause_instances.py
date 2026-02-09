@@ -5,7 +5,7 @@ Revises:
 Create Date: 2026-01-27
 
 Smart UX Konzept - Phase 1:
-Neue Tabelle für Klausel-Instanzen mit Global/Local/Deviation Support
+Neue Tabelle für Textbaustein-Instanzen mit Global/Local/Deviation Support
 """
 from alembic import op
 import sqlalchemy as sa

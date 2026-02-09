@@ -130,7 +130,7 @@ export const SortableConditionRow = ({
         const grouped: Record<number, { clauseTitle: string; variants: VariantReference[] }> = {};
         filteredVariants.forEach(v => {
             if (!grouped[v.clauseId]) {
-                grouped[v.clauseId] = { clauseTitle: v.clauseTitle || `Klausel ${v.clauseId}`, variants: [] };
+                grouped[v.clauseId] = { clauseTitle: v.clauseTitle || `Textbaustein ${v.clauseId}`, variants: [] };
             }
             grouped[v.clauseId].variants.push(v);
         });
@@ -360,7 +360,7 @@ export const SortableConditionRow = ({
                             ))}
                             {filteredClauses.length === 0 && (
                                 <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-                                    Keine Klauseln verfügbar
+                                    Keine Textbausteine verfügbar
                                 </div>
                             )}
                         </SelectContent>
@@ -532,7 +532,7 @@ export const SortableConditionRow = ({
                                 <SelectItem value="clause_active">
                                     <div className="flex items-center gap-2">
                                         <GitBranch className="w-4 h-4" />
-                                        Klausel
+                                        Textbaustein
                                     </div>
                                 </SelectItem>
                             )}

@@ -365,7 +365,7 @@ export function ApprovalRequestsWidget({
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Klausel genehmigen?</AlertDialogTitle>
+            <AlertDialogTitle>Textbaustein genehmigen?</AlertDialogTitle>
             <AlertDialogDescription>
               <strong>{selectedItem?.title}</strong> wird zur Verwendung
               freigegeben.
@@ -397,7 +397,7 @@ export function ApprovalRequestsWidget({
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Klausel ablehnen?</AlertDialogTitle>
+            <AlertDialogTitle>Textbaustein ablehnen?</AlertDialogTitle>
             <AlertDialogDescription>
               <strong>{selectedItem?.title}</strong> wird zur Überarbeitung
               zurückgewiesen.

@@ -10,11 +10,11 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 
-// API Base URL
-const API_BASE = import.meta.env.VITE_API_URL || "";
+// API Base URL (trim whitespace/newlines — env vars can have trailing \n)
+const API_BASE = (import.meta.env.VITE_API_URL || "").trim();
 
 // Dev Mode - skip auth validation for local testing
-const DEV_MODE = import.meta.env.DEV && !import.meta.env.VITE_API_URL;
+const DEV_MODE = import.meta.env.DEV && !(import.meta.env.VITE_API_URL || "").trim();
 
 // Types
 export interface User {

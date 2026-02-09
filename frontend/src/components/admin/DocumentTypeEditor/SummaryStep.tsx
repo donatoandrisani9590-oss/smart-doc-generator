@@ -110,7 +110,7 @@ export const SummaryStep = ({
 
                     <div className="border-t pt-4">
                         <p className="text-sm text-muted-foreground mb-2">
-                            Klauseln ({selectedClauses.length})
+                            Textbausteine ({selectedClauses.length})
                         </p>
                         <div className="space-y-2">
                             {selectedClauses.map((sc) => (
@@ -122,7 +122,7 @@ export const SummaryStep = ({
                                         {sc.display_order}
                                     </span>
                                     <span className="flex-1">
-                                        {sc.clause?.title || `Klausel ${sc.clause_id}`}
+                                        {sc.clause?.title || `Textbaustein ${sc.clause_id}`}
                                     </span>
                                     <span className={cn(
                                         "text-xs px-2 py-0.5 rounded",

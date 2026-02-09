@@ -2,8 +2,8 @@
  * DocumentCanvas - Mittlere Spalte mit dem Dokument-Editor
  *
  * Smart UX Konzept:
- * - Drop-Zone für Klauseln aus der Bibliothek
- * - Sortierbare Klausel-Blöcke
+ * - Drop-Zone für Textbausteine aus der Bibliothek
+ * - Sortierbare Textbaustein-Blöcke
  * - "Hier klicken für neuen Text" Insertion Points
  */
 
@@ -42,7 +42,7 @@ interface DocumentCanvasProps {
     isLoading?: boolean;
 }
 
-// Insertion Point zwischen Klauseln
+// Insertion Point zwischen Textbausteine
 const InsertionPoint = ({ onClick }: { onClick: () => void }) => {
     const [isHovered, setIsHovered] = useState(false);
 
@@ -112,13 +112,13 @@ export const DocumentCanvas = ({
             <AlertDialog open={deleteConfirmId !== null} onOpenChange={() => setDeleteConfirmId(null)}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Klausel entfernen?</AlertDialogTitle>
+                        <AlertDialogTitle>Textbaustein entfernen?</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Möchten Sie die Klausel "{clauseToDelete?.title}" wirklich aus dem Dokument entfernen?
+                            Möchten Sie den Textbaustein "{clauseToDelete?.title}" wirklich aus dem Dokument entfernen?
                             {clauseToDelete?.origin === "local" && (
                                 <span className="block mt-2 text-amber-600">
                                     <AlertCircle className="w-4 h-4 inline mr-1" />
-                                    Diese individuelle Klausel wird unwiderruflich gelöscht.
+                                    Diese individueller Textbaustein wird unwiderruflich gelöscht.
                                 </span>
                             )}
                         </AlertDialogDescription>
@@ -138,7 +138,7 @@ export const DocumentCanvas = ({
                     <AlertDialogHeader>
                         <AlertDialogTitle>Standard abwandeln?</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Wenn Sie die Klausel "{clauseToDeviate?.title}" anpassen, wird sie von der Bibliothek entkoppelt.
+                            Wenn Sie den Textbaustein "{clauseToDeviate?.title}" anpassen, wird sie von der Bibliothek entkoppelt.
                             <span className="block mt-2">
                                 Änderungen am Original wirken sich nicht mehr auf dieses Dokument aus.
                             </span>
@@ -162,7 +162,7 @@ export const DocumentCanvas = ({
                         <h2 className="font-semibold">{documentTypeName}</h2>
                     </div>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <span>{clauses.length} Klauseln</span>
+                        <span>{clauses.length} Textbausteine</span>
                         <span className="text-border">•</span>
                         <span className="flex items-center gap-1">
                             <span className="w-2 h-2 rounded-full bg-green-500" />
@@ -188,7 +188,7 @@ export const DocumentCanvas = ({
                         <div className="flex items-center justify-center h-64">
                             <div className="text-center">
                                 <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-                                <p className="text-muted-foreground">Klauseln werden geladen...</p>
+                                <p className="text-muted-foreground">Textbausteine werden geladen...</p>
                             </div>
                         </div>
                     ) : clauses.length === 0 ? (
@@ -199,7 +199,7 @@ export const DocumentCanvas = ({
                                 </div>
                                 <h3 className="font-medium mb-2">Dokument ist leer</h3>
                                 <p className="text-sm text-muted-foreground mb-4">
-                                    Ziehen Sie Klauseln aus der Bibliothek hierher oder erstellen Sie eine neue.
+                                    Ziehen Sie Textbausteine aus der Bibliothek hierher oder erstellen Sie eine neue.
                                 </p>
                                 <Button onClick={() => onAddLocalClause()}>
                                     <Plus className="w-4 h-4 mr-2" />
@@ -213,7 +213,7 @@ export const DocumentCanvas = ({
                                 <AnimatePresence>
                                     {clauses.map((clause, index) => (
                                         <div key={clause.id}>
-                                            {/* Insertion Point vor der Klausel */}
+                                            {/* Insertion Point vor des Textbausteins */}
                                             {index === 0 && (
                                                 <InsertionPoint onClick={() => onAddLocalClause(0)} />
                                             )}
@@ -233,7 +233,7 @@ export const DocumentCanvas = ({
                                                 />
                                             </div>
 
-                                            {/* Insertion Point nach der Klausel */}
+                                            {/* Insertion Point nach des Textbausteins */}
                                             <InsertionPoint onClick={() => onAddLocalClause(index + 1)} />
                                         </div>
                                     ))}
@@ -258,7 +258,7 @@ export const DocumentCanvas = ({
                     {isOver && (
                         <div className="fixed inset-x-0 bottom-20 flex justify-center pointer-events-none">
                             <div className="bg-primary text-primary-foreground px-4 py-2 rounded-full shadow-lg animate-pulse">
-                                Klausel hier ablegen
+                                Textbaustein hier ablegen
                             </div>
                         </div>
                     )}

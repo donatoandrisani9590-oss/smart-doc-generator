@@ -2,7 +2,7 @@
  * RichTextEditor - TipTap-basierter WYSIWYG-Editor
  *
  * Smart UX Phase 2:
- * - Inline-Editing für Local/Deviation Klauseln
+ * - Inline-Editing für Local/Deviation Textbausteine
  * - Minimale Toolbar für Klausel-typische Formatierung
  * - Auto-Save mit Debounce
  */
@@ -49,7 +49,7 @@ export const RichTextEditor = ({
     const editor = useEditor({
         extensions: [
             StarterKit.configure({
-                heading: false, // Keine Überschriften in Klauseln
+                heading: false, // Keine Überschriften in Textbausteine
                 codeBlock: false, // Kein Code
                 code: false,
                 blockquote: false,

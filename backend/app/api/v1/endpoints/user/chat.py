@@ -75,13 +75,13 @@ Du hilfst bei der Formulierung von Arbeitsverträgen, Kündigungsschreiben und a
 Antworte immer professionell und juristisch korrekt für den deutschen/österreichischen/Schweizer Rechtsraum.
 Halte deine Antworten präzise und auf den Punkt.""",
 
-    "clause": """Du bist ein Experte für arbeitsrechtliche Klauseln.
-Deine Aufgabe ist es, rechtssichere Vertragsklauseln zu formulieren.
+    "clause": """Du bist ein Experte für arbeitsrechtliche Textbausteine.
+Deine Aufgabe ist es, rechtssichere Textbausteine zu formulieren.
 Berücksichtige dabei:
 - Aktuelle Rechtsprechung (BAG, EuGH)
 - Branchenübliche Standards
 - Klarheit und Verständlichkeit
-Formuliere Klauseln immer in der dritten Person und verwende genderneutrale Sprache wo möglich.""",
+Formuliere Textbausteine immer in der dritten Person und verwende genderneutrale Sprache wo möglich.""",
 
     "formal": """Du hilfst beim Verfassen formeller Geschäftskorrespondenz.
 Achte auf:
@@ -243,7 +243,7 @@ async def chat(
         suggestions = []
         if request.mode == "clause":
             suggestions = [
-                "Kannst du diese Klausel vereinfachen?",
+                "Kannst du diesen Textbaustein vereinfachen?",
                 "Gibt es rechtliche Risiken bei dieser Formulierung?",
                 "Welche Alternativen gibt es?"
             ]
@@ -393,7 +393,7 @@ async def suggest_clause(
     from app.services.clause_ai_bridge import select_clauses_with_ai, assemble_clauses
 
     # Step 1: Try to find matching clauses from user's library
-    user_intent = f"Ich brauche eine Klausel zum Thema: {title}. {description}"
+    user_intent = f"Ich brauche einen Textbaustein zum Thema: {title}. {description}"
     ai_result = await select_clauses_with_ai(
         db=db,
         user_id=current_user.id,
@@ -429,7 +429,7 @@ async def suggest_clause(
             ],
             "explanation": ai_result.get("explanation", ""),
             "provider": ai_result.get("provider", "unknown"),
-            "disclaimer": "Diese Klauseln stammen aus Ihrer Bibliothek und wurden von der KI als passend ausgewählt.",
+            "disclaimer": "Diese Textbausteine stammen aus Ihrer Bibliothek und wurden von der KI als passend ausgewählt.",
         }
 
     # Fallback: No matching clauses found, generate with LLM
@@ -447,14 +447,14 @@ async def suggest_clause(
 
     country_name = "Deutschland" if country_code.upper() == "DE" else "Italien"
 
-    prompt = f"""Erstelle eine rechtssichere Arbeitsvertragsklausel für folgendes Thema:
+    prompt = f"""Erstelle eine rechtssichere Arbeitsvertrag-Textbaustein für folgendes Thema:
 
 Titel: {title}
 Beschreibung: {description}
 Land: {country_name}
 
-Formatiere die Klausel mit HTML-Tags (<p>, <ol>, <li>) für die Verwendung in einem Dokumenten-Editor.
-Die Klausel sollte:
+Formatiere den Textbaustein mit HTML-Tags (<p>, <ol>, <li>) für die Verwendung in einem Dokumenten-Editor.
+Der Textbaustein sollte:
 1. Rechtlich wasserdicht sein
 2. Klar und verständlich formuliert sein
 3. Branchenüblichen Standards entsprechen
@@ -480,16 +480,16 @@ Die Klausel sollte:
             "source": "generated",
             "content": response.content,
             "provider": response.provider,
-            "disclaimer": "Keine passende Klausel in Ihrer Bibliothek gefunden. Diese Klausel wurde automatisch generiert. Bitte prüfen und ggf. in die Bibliothek aufnehmen.",
+            "disclaimer": "Kein passender Textbaustein in Ihrer Bibliothek gefunden. Dieser Textbaustein wurde automatisch generiert. Bitte prüfen und ggf. in die Bibliothek aufnehmen.",
             "warnings": ai_result.get("warnings", []) + [
-                f"Es stehen {ai_result.get('clauses_available', 0)} Klauseln in Ihrer Bibliothek zur Verfügung, aber keine passte zum Thema '{title}'."
+                f"Es stehen {ai_result.get('clauses_available', 0)} Textbausteine in Ihrer Bibliothek zur Verfügung, aber keine passte zum Thema '{title}'."
             ],
         }
 
     except Exception as e:
         raise HTTPException(
             status_code=500,
-            detail=f"Klausel-Generierung fehlgeschlagen: {str(e)}"
+            detail=f"Textbaustein-Generierung fehlgeschlagen: {str(e)}"
         )
 
 

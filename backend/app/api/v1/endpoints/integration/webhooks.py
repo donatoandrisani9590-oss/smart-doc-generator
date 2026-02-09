@@ -249,7 +249,7 @@ async def list_webhook_events():
             },
             {
                 "name": "approval.requested",
-                "description": "Wird ausgelöst wenn eine Klausel zur Freigabe eingereicht wurde",
+                "description": "Wird ausgelöst wenn einen Textbaustein zur Freigabe eingereicht wurde",
                 "payload_example": {
                     "clause_id": 789,
                     "clause_title": "Homeoffice-Regelung",

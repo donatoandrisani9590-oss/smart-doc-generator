@@ -101,17 +101,17 @@ class Clause(Base):
     is_active = Column(Boolean, default=True, index=True)
 
     # ══════════════════════════════════════════════════════════════════════════
-    # AI-METADATEN (v4.3 Feature: KI-Klausel-Bridge)
-    # Ermöglicht semantisches Matching zwischen User-Intent und Klauseln.
-    # Ohne diese Felder kann die KI die Klauseln nicht intelligent auswählen.
+    # AI-METADATEN (v4.3 Feature: KI-Textbaustein-Bridge)
+    # Ermöglicht semantisches Matching zwischen User-Intent und Textbausteine.
+    # Ohne diese Felder kann die KI die Textbausteine nicht intelligent auswählen.
     # ══════════════════════════════════════════════════════════════════════════
     tags = Column(JSON, nullable=True, default=list)  # ["kuendigung", "streng", "fristlos"]
-    description = Column(Text, nullable=True)  # "Strenge Kündigungsklausel mit kurzer Frist"
+    description = Column(Text, nullable=True)  # "Strenge Kündigungs-Textbaustein mit kurzer Frist"
     tone = Column(String(50), nullable=True)  # neutral, streng, arbeitnehmerfreundlich, moderat
 
     # ══════════════════════════════════════════════════════════════════════════
     # TENANT ISOLATION (v4.3 Feature: Mandantentrennung)
-    # NULL = globale/geteilte Klausel, sonst gehört die Klausel diesem User.
+    # NULL = globale/geteilte Klausel, sonst gehört den Textbaustein diesem User.
     # ══════════════════════════════════════════════════════════════════════════
     user_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
 
@@ -127,11 +127,11 @@ class Clause(Base):
 
 class DocumentTypeClause(Base):
     """
-    Zuordnung von Klauseln zu Dokumenttypen.
+    Zuordnung von Textbausteine zu Dokumenttypen.
 
     v4.2 Feature (Kapitel 16.13):
     - 4 Klausel-Typen: standard, optional, conditional, variant
-    - Varianten-Gruppen für alternative Klauseln
+    - Varianten-Gruppen für alternative Textbausteine
     """
     __tablename__ = "document_type_clauses"
 
@@ -140,13 +140,13 @@ class DocumentTypeClause(Base):
     display_order = Column(Integer, nullable=False)
     is_mandatory = Column(Boolean, default=True)
 
-    # Klausel-Typ: standard, optional, conditional, variant
+    # Textbaustein-Typ: standard, optional, conditional, variant
     clause_type = Column(String(20), default="standard")
 
-    # Für optionale Klauseln: Standardmäßig ausgewählt?
+    # Für optionale Textbausteine: Standardmäßig ausgewählt?
     is_default_selected = Column(Boolean, default=True)
 
-    # Für bedingte Klauseln: Bedingung als JSON
+    # Für bedingte Textbausteine: Bedingung als JSON
     condition = Column(Text, nullable=True)  # JSON: {"field": "x", "operator": "=", "value": 1}
 
     # Für Varianten: Gruppierung
@@ -162,11 +162,11 @@ class DocumentTypeClause(Base):
 
 # ══════════════════════════════════════════════════════════════════════════════
 # KLAUSEL-VARIANTEN (v4.2 Feature: Kapitel 16.13.1)
-# Mehrere alternative Versionen einer Klausel
+# Mehrere alternative Versionen eines Textbausteins
 # ══════════════════════════════════════════════════════════════════════════════
 class ClauseVariantGroup(Base):
     """
-    Gruppe von zusammengehörigen Klausel-Varianten.
+    Gruppe von zusammengehörigen Textbaustein-Varianten.
 
     Beispiel: Kündigungsfristen
     - Variante A: 3 Monate (Standard)
@@ -181,7 +181,7 @@ class ClauseVariantGroup(Base):
     country_code = Column(String(2), default="DE", index=True)
     category = Column(String(100), nullable=True, index=True)  # z.B. "Arbeitsrecht"
 
-    # Die Basis-Klausel (parent)
+    # Die Basis-Textbaustein (parent)
     base_clause_id = Column(Integer, ForeignKey("clauses.id"), nullable=True)
 
     # Metadata
@@ -243,7 +243,7 @@ class DocumentTypeVariantGroup(Base):
     document_type_id = Column(Integer, ForeignKey("document_types.id", ondelete="CASCADE"), nullable=False, index=True)
     variant_group_id = Column(Integer, ForeignKey("clause_variant_groups.id", ondelete="CASCADE"), nullable=False, index=True)
 
-    # Position im Dokument (für Sortierung zusammen mit Klauseln)
+    # Position im Dokument (für Sortierung zusammen mit Textbausteine)
     display_order = Column(Integer, default=0)
 
     # Pflichtfeld oder optional?
@@ -272,9 +272,9 @@ class DocumentTypeVariantGroup(Base):
 # ══════════════════════════════════════════════════════════════════════════════
 class ClauseVersion(Base):
     """
-    Versionshistorie für Klauseln.
+    Versionshistorie für Textbausteine.
 
-    Speichert jeden Stand einer Klausel mit:
+    Speichert jeden Stand eines Textbausteins mit:
     - Vollständigem Inhalt
     - Änderungsgrund/Kommentar
     - Autor und Zeitstempel
@@ -318,7 +318,7 @@ class ClauseVersion(Base):
 # ══════════════════════════════════════════════════════════════════════════════
 class ClauseNote(Base):
     """
-    Interne Notizen für Klauseln.
+    Interne Notizen für Textbausteine.
 
     Gemäß Spezifikation v4.2, Kapitel 15.5.6:
     - "RA Müller hat geprüft und freigegeben"
@@ -463,7 +463,7 @@ class WorksCouncilTemplate(Base):
     Gemäß Spezifikation v4.2, Kapitel 15.4.6:
     - Standardisierte BR-Vorlagen für Neueinstellungen
     - Enthält nur die relevanten Informationen (§99 BetrVG)
-    - Separate Klauseln für verschiedene Szenarien
+    - Separate Textbausteine für verschiedene Szenarien
     """
     __tablename__ = "works_council_templates"
 

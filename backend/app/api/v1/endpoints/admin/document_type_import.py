@@ -1,8 +1,8 @@
 """
 Dokumententyp-Import API (v4.2 Feature)
 
-Importiert komplette Word-Dokumente als neue Dokumententypen inkl. Klauseln.
-Erkennt Platzhalter, findet ähnliche Klauseln und erstellt Formularfelder.
+Importiert komplette Word-Dokumente als neue Dokumententypen inkl. Textbausteine.
+Erkennt Platzhalter, findet ähnliche Textbausteine und erstellt Formularfelder.
 """
 
 import re
@@ -43,14 +43,14 @@ class ExtractedSection(BaseModel):
     content_html: str
     char_count: int
 
-    # Klausel-Zuordnung
+    # Textbaustein-Zuordnung
     action: str = "create_new"  # create_new, use_existing, add_variant, skip
     existing_clause_id: Optional[int] = None
     existing_clause_title: Optional[str] = None
     similarity_score: Optional[float] = None
 
     # Für Varianten
-    is_variant_of: Optional[int] = None  # ID der Haupt-Klausel
+    is_variant_of: Optional[int] = None  # ID der Haupt-Textbaustein
     variant_name: Optional[str] = None  # z.B. "6 Monate"
 
     # Dokumententyp-Einstellungen
@@ -85,7 +85,7 @@ class DocumentTypeAnalysisResult(BaseModel):
     images_ignored: int
     placeholders_detected: int
 
-    # Ähnliche Klauseln
+    # Ähnliche Textbausteine
     similar_clauses_found: int
 
 
@@ -234,7 +234,7 @@ async def find_similar_clauses(
     content: str,
     country_code: str,
 ) -> List[SimilarClause]:
-    """Findet ähnliche existierende Klauseln."""
+    """Findet ähnliche existierende Textbausteine."""
     similar = []
 
     # Titel-basierte Suche
@@ -400,7 +400,7 @@ async def analyze_document_for_import(
     Analysiert ein Word-Dokument für den Import als Dokumententyp.
 
     - Erkennt Abschnitte und Struktur
-    - Findet ähnliche existierende Klauseln
+    - Findet ähnliche existierende Textbausteine
     - Erkennt potenzielle Platzhalter
     """
     if not file.filename.endswith(('.docx', '.DOCX')):
@@ -420,7 +420,7 @@ async def analyze_document_for_import(
     similar_count = 0
 
     for idx, section in enumerate(result["sections"]):
-        # Ähnliche Klauseln suchen
+        # Ähnliche Textbausteine suchen
         similar = await find_similar_clauses(
             db, section["title"], section["content"], country_code
         )
@@ -470,7 +470,7 @@ async def import_as_document_type(
     Importiert das analysierte Dokument als neuen Dokumententyp.
 
     - Erstellt Dokumententyp
-    - Erstellt neue Klauseln oder verknüpft existierende
+    - Erstellt neue Textbausteine oder verknüpft existierende
     - Fügt Varianten hinzu
     - Erstellt Formularfelder
     """
@@ -506,7 +506,7 @@ async def import_as_document_type(
                     )
                     all_placeholders.add(ph.suggested_placeholder.strip("{}"))
 
-            # Neue Klausel erstellen
+            # Neuer Textbaustein erstellen
             clause = Clause(
                 title=section.title,
                 content_html=content_with_placeholders,
@@ -527,7 +527,7 @@ async def import_as_document_type(
 
         elif section.action == "add_variant" and section.is_variant_of:
             # Variante zur existierenden Klausel hinzufügen
-            # (Neue Klausel mit Referenz zur Haupt-Klausel)
+            # (Neuer Textbaustein mit Referenz zur Haupt-Textbaustein)
             original = await db.get(Clause, section.is_variant_of)
             if original:
                 content_with_placeholders = section.content_html
@@ -553,7 +553,7 @@ async def import_as_document_type(
                 clause_id = variant.id
                 variants_added += 1
 
-        # 3. Klausel mit Dokumententyp verknüpfen
+        # 3. Textbaustein mit Dokumententyp verknüpfen
         if clause_id:
             link = DocumentTypeClause(
                 document_type_id=doc_type.id,
@@ -604,7 +604,7 @@ async def get_placeholder_suggestions(
         "tips": [
             "Platzhalter werden automatisch erkannt: Namen, Daten, Beträge",
             "Sie können vorgeschlagene Platzhalter anpassen oder ablehnen",
-            "Gleiche Platzhalter in verschiedenen Klauseln werden zusammengeführt",
+            "Gleiche Platzhalter in verschiedenen Textbausteine werden zusammengeführt",
             "Formularfelder werden automatisch aus den Platzhaltern erstellt",
         ],
     }
@@ -617,6 +617,6 @@ async def find_similar_clauses_by_title(
     db: AsyncSession = Depends(get_db),
     current_user=Depends(get_current_active_admin),
 ):
-    """Sucht ähnliche Klauseln für manuelles Matching."""
+    """Sucht ähnliche Textbausteine für manuelles Matching."""
     similar = await find_similar_clauses(db, title, "", country_code)
     return {"similar_clauses": similar}

@@ -80,9 +80,9 @@ RISK_PATTERNS_DE: List[Dict[str, Any]] = [
         "pattern": r"verzicht(et|en)?\s+(auf|den)\s+\w*\s*(anspruch|recht|urlaub|gehalt|lohn|vergütung)",
         "severity": RiskSeverity.CRITICAL,
         "title": "Unzulässiger Rechtsverzicht",
-        "description": "Arbeitnehmer können nicht wirksam auf gesetzliche Mindestansprüche verzichten. Solche Klauseln sind unwirksam.",
+        "description": "Arbeitnehmer können nicht wirksam auf gesetzliche Mindestansprüche verzichten. Solche Textbausteine sind unwirksam.",
         "legal_reference": "§ 13 BUrlG, § 4 TzBfG, § 307 BGB",
-        "suggestion": "Klausel ersatzlos streichen. Gesetzliche Ansprüche können nicht abbedungen werden.",
+        "suggestion": "Textbaustein ersatzlos streichen. Gesetzliche Ansprüche können nicht abbedungen werden.",
         "category": "rechtsverzicht"
     },
     {
@@ -100,7 +100,7 @@ RISK_PATTERNS_DE: List[Dict[str, Any]] = [
         "title": "Verstoß gegen Koalitionsfreiheit",
         "description": "Einschränkungen der Gewerkschaftszugehörigkeit oder Betriebsratsarbeit sind verfassungswidrig.",
         "legal_reference": "Art. 9 Abs. 3 GG, § 119 BetrVG",
-        "suggestion": "Klausel ersatzlos streichen - verfassungswidrig.",
+        "suggestion": "Textbaustein ersatzlos streichen - verfassungswidrig.",
         "category": "grundrechte"
     },
 
@@ -198,7 +198,7 @@ RISK_PATTERNS_DE: List[Dict[str, Any]] = [
         "pattern": r"(salvatorische|teilnichtigkeit).{0,30}klausel",
         "severity": RiskSeverity.LOW,
         "title": "Salvatorische Klausel",
-        "description": "Standard-Klausel zur Vertragserhaltung - normalerweise unproblematisch.",
+        "description": "Standard-Textbaustein zur Vertragserhaltung - normalerweise unproblematisch.",
         "legal_reference": "§ 306 BGB",
         "suggestion": "Keine Änderung erforderlich, aber Einzelfallprüfung bei komplexen Verträgen.",
         "category": "allgemein"
@@ -441,8 +441,8 @@ AUFGABE: Analysiere den Vertragstext auf rechtliche Risiken, die NICHT durch ein
 
 FOKUS auf:
 1. Subtile Formulierungen die Arbeitnehmerrechte einschränken
-2. Unklare oder mehrdeutige Klauseln
-3. Kombinationen von Klauseln die problematisch sein könnten
+2. Unklare oder mehrdeutige Textbausteine
+3. Kombinationen von Textbausteine die problematisch sein könnten
 4. Fehlende wichtige Regelungen
 
 Bereits erkannte Risiken (NICHT wiederholen):

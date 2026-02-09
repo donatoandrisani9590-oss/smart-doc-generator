@@ -1,10 +1,10 @@
 /**
- * ClauseLibrarySidebar - Linke Spalte mit Klausel-Bibliothek
+ * ClauseLibrarySidebar - Linke Spalte mit Textbaustein-Bibliothek
  *
  * Smart UX Konzept:
- * - Suchfeld für Klauseln
+ * - Suchfeld für Textbausteine
  * - Kategorien-Filter
- * - Draggable Klausel-Karten
+ * - Draggable Textbaustein-Karten
  */
 
 import { useState, useEffect } from "react";
@@ -117,7 +117,7 @@ export const ClauseLibrarySidebar = ({
         loadCategories();
     }, [countryCode]);
 
-    // Klauseln laden
+    // Textbausteine laden
     useEffect(() => {
         const loadClauses = async () => {
             setIsLoading(true);
@@ -149,7 +149,7 @@ export const ClauseLibrarySidebar = ({
         return () => clearTimeout(debounce);
     }, [countryCode, searchQuery, selectedCategory]);
 
-    // Klauseln nach Kategorie gruppieren
+    // Textbausteine nach Kategorie gruppieren
     const clausesByCategory = clauses.reduce((acc, clause) => {
         const cat = clause.category || "Sonstiges";
         if (!acc[cat]) acc[cat] = [];
@@ -222,7 +222,7 @@ export const ClauseLibrarySidebar = ({
                         </div>
                     ) : Object.keys(clausesByCategory).length === 0 ? (
                         <div className="p-4 text-center text-sm text-muted-foreground">
-                            Keine Klauseln gefunden
+                            Keine Textbausteine gefunden
                         </div>
                     ) : (
                         Object.entries(clausesByCategory).map(([category, categoryClauses]) => (
@@ -259,7 +259,7 @@ export const ClauseLibrarySidebar = ({
             <div className="p-3 border-t bg-white text-xs text-muted-foreground">
                 <div className="flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full bg-green-500" />
-                    <span>Ziehen Sie Klauseln in das Dokument</span>
+                    <span>Ziehen Sie Textbausteine in das Dokument</span>
                 </div>
             </div>
         </div>

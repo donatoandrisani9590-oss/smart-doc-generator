@@ -10,7 +10,7 @@ from enum import Enum
 
 
 class ClauseOriginEnum(str, Enum):
-    """Herkunft einer Klausel-Instanz."""
+    """Herkunft einer Textbaustein-Instanz."""
     GLOBAL = "global"
     LOCAL = "local"
     DEVIATION = "deviation"
@@ -22,17 +22,17 @@ class ClauseOriginEnum(str, Enum):
 # ══════════════════════════════════════════════════════════════════════════════
 
 class ClauseInstanceBase(BaseModel):
-    """Basis-Schema für Klausel-Instanzen."""
+    """Basis-Schema für Textbaustein-Instanzen."""
     title: str = Field(..., min_length=1, max_length=255)
     display_order: int = Field(default=0, ge=0)
 
 
 class ClauseInstanceCreate(ClauseInstanceBase):
-    """Schema zum Erstellen einer Klausel-Instanz."""
-    # Für globale Klausel: source_clause_id angeben
+    """Schema zum Erstellen einer Textbaustein-Instanz."""
+    # Für globaler Textbaustein: source_clause_id angeben
     source_clause_id: Optional[int] = None
 
-    # Für lokale Klausel: content_html angeben
+    # Für lokaler Textbaustein: content_html angeben
     content_html: Optional[str] = Field(None, max_length=10000, description="HTML content of local clause")
 
     # Optional: Position im Dokument (wenn nicht angegeben → ans Ende)
@@ -56,13 +56,13 @@ class ClauseInstanceCreate(ClauseInstanceBase):
 
 
 class ClauseInstanceUpdate(BaseModel):
-    """Schema zum Aktualisieren einer Klausel-Instanz."""
+    """Schema zum Aktualisieren einer Textbaustein-Instanz."""
     title: Optional[str] = Field(None, min_length=1, max_length=255)
     content_html: Optional[str] = Field(None, max_length=10000, description="HTML content of clause")
 
 
 class ClauseInstanceResponse(ClauseInstanceBase):
-    """Schema für Klausel-Instanz Response."""
+    """Schema für Textbaustein-Instanz Response."""
     id: int
     origin: ClauseOriginEnum
     source_clause_id: Optional[int] = None
@@ -97,7 +97,7 @@ class ClauseInstanceResponse(ClauseInstanceBase):
 
 
 class ClauseInstanceListResponse(BaseModel):
-    """Response für Liste von Klausel-Instanzen."""
+    """Response für Liste von Textbaustein-Instanzen."""
     clauses: List[ClauseInstanceResponse]
     total: int
     draft_id: int
@@ -114,7 +114,7 @@ class ReorderItem(BaseModel):
 
 
 class ReorderRequest(BaseModel):
-    """Request zum Umsortieren von Klauseln."""
+    """Request zum Umsortieren von Textbausteine."""
     new_order: List[ReorderItem]
 
     class Config:
@@ -163,7 +163,7 @@ class DeviateResponse(BaseModel):
 # ══════════════════════════════════════════════════════════════════════════════
 
 class PromoteRequest(BaseModel):
-    """Request zum Aufnehmen einer Klausel in die Bibliothek."""
+    """Request zum Aufnehmen eines Textbausteins in die Bibliothek."""
     title: str = Field(..., min_length=1, max_length=255)
     category: str = Field(..., min_length=1, max_length=100)
     country_code: str = Field(default="DE", pattern="^(DE|IT)$")
@@ -196,7 +196,7 @@ class PromoteResponse(BaseModel):
 # ══════════════════════════════════════════════════════════════════════════════
 
 class LibraryClauseResponse(BaseModel):
-    """Schema für eine Klausel aus der Bibliothek (für Drag & Drop)."""
+    """Schema für einen Textbaustein aus der Bibliothek (für Drag & Drop)."""
     id: int
     title: str = Field(..., max_length=255, description="Clause title")
     category: Optional[str] = Field(None, max_length=255, description="Clause category")
@@ -259,7 +259,7 @@ class ComposerDraftResponse(BaseModel):
     name: Optional[str] = Field(None, max_length=255, description="Draft name")
     form_data: Optional[dict] = None
 
-    # Klausel-Statistik
+    # Textbaustein-Statistik
     clause_count: int
     global_clause_count: int
     local_clause_count: int

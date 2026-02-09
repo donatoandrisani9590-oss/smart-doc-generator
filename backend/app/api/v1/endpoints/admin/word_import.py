@@ -1,7 +1,7 @@
 """
 Word-Import Assistent API (v4.2 Feature: Kapitel 15.2.8)
 
-Importiert bestehende Word-Vorlagen und konvertiert sie zu Klauseln.
+Importiert bestehende Word-Vorlagen und konvertiert sie zu Textbausteine.
 
 Erweitert um Side-by-Side Mapping-Assistent (v4.2 Feature):
 - Analysiert Dokument mit Position-Tracking
@@ -73,14 +73,14 @@ class WordAnalysisResult(BaseModel):
 
 
 class ImportClauseRequest(BaseModel):
-    """Request zum Importieren ausgewählter Abschnitte als Klauseln."""
+    """Request zum Importieren ausgewählter Abschnitte als Textbausteine."""
     sections: List[ExtractedSection]
     country_code: str = "DE"
     category: str = "Importiert"
 
 
 class ImportResult(BaseModel):
-    """Ergebnis des Klausel-Imports."""
+    """Ergebnis des Textbaustein-Imports."""
     imported_count: int
     skipped_count: int
     clause_ids: List[int]
@@ -238,7 +238,7 @@ async def find_similar_clauses(
     country_code: str,
 ) -> Optional[Clause]:
     """
-    Sucht nach ähnlichen existierenden Klauseln.
+    Sucht nach ähnlichen existierenden Textbausteine.
     """
     # Exakte Titel-Übereinstimmung
     result = await db.execute(
@@ -268,7 +268,7 @@ async def analyze_word_document(
     Schritt 1 des Import-Wizards:
     - Lädt DOCX hoch
     - Extrahiert Text und erkennt Abschnitte
-    - Prüft auf ähnliche existierende Klauseln
+    - Prüft auf ähnliche existierende Textbausteine
     """
     # Dateiformat prüfen
     if not file.filename.endswith(('.docx', '.DOCX')):
@@ -321,7 +321,7 @@ async def analyze_word_document(
 
     duplicates = sum(1 for s in sections if s.has_existing_match)
     if duplicates > 0:
-        warnings.append(f"{duplicates} Abschnitt(e) haben ähnliche existierende Klauseln")
+        warnings.append(f"{duplicates} Abschnitt(e) haben ähnliche existierende Textbausteine")
 
     return WordAnalysisResult(
         filename=file.filename,
@@ -342,10 +342,10 @@ async def import_clauses_from_word(
     current_user=Depends(get_current_active_admin),
 ):
     """
-    Importiert ausgewählte Abschnitte als neue Klauseln.
+    Importiert ausgewählte Abschnitte als neue Textbausteine.
 
     Schritt 2 des Import-Wizards:
-    - Erstellt Klauseln aus den ausgewählten Abschnitten
+    - Erstellt Textbausteine aus den ausgewählten Abschnitten
     - Setzt Kategorie und Land
     """
     imported_ids = []
@@ -356,7 +356,7 @@ async def import_clauses_from_word(
             skipped += 1
             continue
 
-        # Neue Klausel erstellen
+        # Neuer Textbaustein erstellen
         clause = Clause(
             title=section.title,
             content_html=section.content_html or f"<p>{section.content}</p>",
@@ -364,7 +364,7 @@ async def import_clauses_from_word(
             category=request.category,
             version=1,
             is_active=True,
-            approval_status="draft",  # Importierte Klauseln starten als Entwurf
+            approval_status="draft",  # Importierte Textbausteine starten als Entwurf
         )
 
         db.add(clause)
@@ -503,7 +503,7 @@ class SimilarValuesResponse(BaseModel):
 
 
 class GenerateClausesRequest(BaseModel):
-    """Request zum Generieren von Klauseln aus dem Mapping."""
+    """Request zum Generieren von Textbausteine aus dem Mapping."""
     document_id: str
     placeholder_mapping: Dict[str, str]  # value_id -> placeholder_name
     clause_title: str
@@ -512,7 +512,7 @@ class GenerateClausesRequest(BaseModel):
 
 
 class GenerateClausesResponse(BaseModel):
-    """Antwort nach Generierung der Klauseln."""
+    """Antwort nach Generierung der Textbausteine."""
     clause_id: int
     clause_title: str
     content_html: str
@@ -885,12 +885,12 @@ async def generate_clause_from_mapping(
     current_user=Depends(get_current_active_admin),
 ):
     """
-    📝 Generiert eine neue Klausel aus dem bestätigten Mapping.
+    📝 Generiert eine neuer Textbaustein aus dem bestätigten Mapping.
 
     Finaler Schritt des Magic-Imports:
     - Ersetzt erkannte Werte durch Platzhalter {{ placeholder_name }}
-    - Erstellt eine neue Klausel in der Datenbank
-    - Die Klausel kann sofort im Dokumentengenerator verwendet werden
+    - Erstellt eine neuer Textbaustein in der Datenbank
+    - Der Textbaustein kann sofort im Dokumentengenerator verwendet werden
     """
     if request.document_id not in _analysis_cache:
         raise HTTPException(

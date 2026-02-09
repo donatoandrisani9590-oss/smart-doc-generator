@@ -460,7 +460,7 @@ async def sync_form_fields_from_clauses(
                 if ph not in placeholder_source_clause:
                     placeholder_source_clause[ph] = clause.id
             if placeholders:
-                details.append(f"Klausel '{clause.title}': {len(placeholders)} Platzhalter gefunden")
+                details.append(f"Textbaustein '{clause.title}': {len(placeholders)} Platzhalter gefunden")
 
     # 3. Get existing form fields for this document type
     existing_fields = await db.execute(

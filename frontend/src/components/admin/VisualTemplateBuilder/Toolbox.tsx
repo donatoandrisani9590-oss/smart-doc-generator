@@ -58,7 +58,7 @@ export const Toolbox = ({ clauses, searchQuery, onSearchChange }: ToolboxProps) 
                 <div className="p-2">
                     {categories.length === 0 ? (
                         <div className="p-4 text-center text-sm text-muted-foreground">
-                            Keine Klauseln gefunden
+                            Keine Textbausteine gefunden
                         </div>
                     ) : (
                         <Accordion
@@ -102,7 +102,7 @@ export const Toolbox = ({ clauses, searchQuery, onSearchChange }: ToolboxProps) 
             <div className="p-3 border-t bg-white text-xs text-muted-foreground">
                 <div className="flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full bg-green-500" />
-                    <span>Klauseln auf den Canvas ziehen</span>
+                    <span>Textbausteine auf den Canvas ziehen</span>
                 </div>
             </div>
         </div>

@@ -2,7 +2,7 @@
  * UnifiedDocumentComposer - Smart UX Konzept Hauptseite
  *
  * 3-Spalten-Layout:
- * - Links (20%): Klausel-Bibliothek (Drag-Source)
+ * - Links (20%): Textbaustein-Bibliothek (Drag-Source)
  * - Mitte (55%): Document Canvas (Drop-Zone + Editor)
  * - Rechts (25%): Properties Panel (Kontext-sensitiv)
  *

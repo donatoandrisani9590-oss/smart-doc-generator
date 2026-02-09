@@ -64,7 +64,7 @@ class TestClauseGet:
         from app.models.documents import Clause
 
         private_clause = Clause(
-            title="Private Klausel",
+            title="Privater Textbaustein",
             content_html="<p>Geheim</p>",
             country_code="DE",
             user_id=test_admin.id,

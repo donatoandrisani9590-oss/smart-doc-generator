@@ -224,7 +224,7 @@ export function ClauseVersionDiff({
                         Versionsvergleich: {clauseTitle}
                     </DialogTitle>
                     <DialogDescription>
-                        Vergleichen Sie zwei Versionen dieser Klausel
+                        Vergleichen Sie zwei Versionen dieses Textbausteins
                     </DialogDescription>
                 </DialogHeader>
 

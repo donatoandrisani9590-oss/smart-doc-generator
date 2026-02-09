@@ -6,7 +6,7 @@
  * - Dann: Split-Screen Editor mit Live-Preview
  *
  * Der Split-Screen zeigt:
- * - Links (40%): Formularfelder, Klauseln, Export-Buttons
+ * - Links (40%): Formularfelder, Textbausteine, Export-Buttons
  * - Rechts (60%): Live WYSIWYG Editor (TinyMCE)
  */
 

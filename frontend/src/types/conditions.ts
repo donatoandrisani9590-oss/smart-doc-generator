@@ -1,5 +1,5 @@
 /**
- * Condition Types - Erweiterte bedingte Logik fuer Klauseln und Formularfelder
+ * Condition Types - Erweiterte bedingte Logik fuer Textbausteine und Formularfelder
  *
  * Unterstuetzt:
  * - Einfache Bedingungen (Feld, Klausel, Variante)
@@ -41,7 +41,7 @@ export interface SimpleCondition {
   /** Feldname fuer type: 'field' */
   field?: string;
 
-  /** Klausel-ID fuer type: 'clause_enabled' */
+  /** Textbaustein-ID fuer type: 'clause_enabled' */
   clause_id?: number;
 
   /** Varianten-ID fuer type: 'variant_selected' */
@@ -81,7 +81,7 @@ export interface ConditionContext {
   /** Aktuelle Formularwerte */
   formData: Record<string, string | number | boolean | null | undefined>;
 
-  /** IDs der aktivierten Klauseln */
+  /** IDs der aktivierten Textbausteine */
   enabledClauseIds: number[];
 
   /** IDs der ausgewaehlten Varianten */
@@ -97,10 +97,10 @@ export interface ConditionContext {
  * @deprecated Nutze stattdessen das neue Condition-Format
  */
 export interface LegacyShowCondition {
-  /** Einzelne Klausel-ID */
+  /** Einzelne Textbaustein-ID */
   clause_id?: number;
 
-  /** Mehrere Klausel-IDs (OR-verknuepft) */
+  /** Mehrere Textbaustein-IDs (OR-verknuepft) */
   clause_ids?: number[];
 
   /** Einzelne Varianten-ID */
