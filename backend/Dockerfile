@@ -29,5 +29,5 @@ ENV PYTHONUNBUFFERED=1
 # Expose port
 EXPOSE 8000
 
-# Start command
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Start command: ensure DB schema is up to date, then start the app
+CMD ["sh", "-c", "python scripts/ensure_schema.py && uvicorn app.main:app --host 0.0.0.0 --port 8000"]

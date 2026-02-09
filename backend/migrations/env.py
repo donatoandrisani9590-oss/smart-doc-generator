@@ -11,7 +11,7 @@ from alembic import context
 from app.core.config import settings
 
 # target metadata
-from app.db import Base
+from app.db import Base, get_async_database_url
 from app.models.core import User, DesignSetting
 from app.models.documents import DocumentType, Clause, DocumentTypeClause
 from app.models.enterprise import GeneratedDocument, RetentionPolicy, BulkJob, CloudSyncConfig, DocumentShare
@@ -23,8 +23,8 @@ target_metadata = Base.metadata
 # access to the values within the .ini file in use.
 config = context.config
 
-# Override sqlalchemy.url from .env file
-config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
+# Override sqlalchemy.url from .env file (convert to asyncpg URL)
+config.set_main_option("sqlalchemy.url", get_async_database_url(settings.DATABASE_URL))
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
