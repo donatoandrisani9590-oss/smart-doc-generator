@@ -33,6 +33,10 @@ export const CountrySelector = () => {
         setIsOpen(false);
     };
 
+    // Hide selector when only one country is available
+    const countryCount = Object.keys(COUNTRIES).length;
+    if (countryCount <= 1) return null;
+
     return (
         <div className="relative" ref={dropdownRef}>
             <motion.button

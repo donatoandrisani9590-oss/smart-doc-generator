@@ -102,6 +102,7 @@ function App() {
                 <Route path="admin/clause-approvals" element={<Navigate to="/settings?tab=approvals" replace />} />
                 {/* Catch-all for any other /admin/* routes */}
                 <Route path="admin/*" element={<Navigate to="/settings" replace />} />
+                <Route path="templates" element={<Navigate to="/settings?tab=templates" replace />} />
 
                 {/* 404 Catch-all Route */}
                 <Route path="*" element={<NotFoundPage />} />

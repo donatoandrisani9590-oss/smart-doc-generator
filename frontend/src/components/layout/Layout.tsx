@@ -34,7 +34,7 @@ const getPageTitle = (pathname: string): string => {
     if (pathname.startsWith("/notifications")) return "Benachrichtigungen";
     if (pathname.startsWith("/settings")) return "Einstellungen";
     if (pathname.startsWith("/admin")) return "Einstellungen";
-    return "Übersicht";
+    return "Seite nicht gefunden";
 };
 
 export const Layout = () => {

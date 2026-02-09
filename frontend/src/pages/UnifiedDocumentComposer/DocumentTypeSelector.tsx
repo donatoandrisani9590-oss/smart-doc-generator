@@ -263,7 +263,7 @@ export const DocumentTypeSelector = ({
                                                         }</strong>
                                                     </p>
                                                     <p className="mt-2 text-muted-foreground">
-                                                        Die Klausel mit dieser Variante wird in Ihr Dokument eingefügt.
+                                                        Der Textbaustein mit dieser Variante wird in Ihr Dokument eingefügt.
                                                     </p>
                                                 </div>
                                             </CollapsibleContent>

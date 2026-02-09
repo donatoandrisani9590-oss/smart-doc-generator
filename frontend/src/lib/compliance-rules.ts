@@ -108,8 +108,8 @@ export const complianceRulesDE: ComplianceRule[] = [
   // --- GDPR/BDSG ---
   {
     id: 'de-dsgvo-datenschutz',
-    name: 'Datenschutz-Klausel',
-    description: 'Eine Datenschutz-Klausel ist nach DSGVO erforderlich.',
+    name: 'Datenschutz-Textbaustein',
+    description: 'Ein Datenschutz-Textbaustein ist nach DSGVO erforderlich.',
     severity: 'error',
     satisfiedByClauseNames: ['datenschutz', 'dsgvo', 'datenschutzhinweis', 'personenbezogene_daten'],
     legalBasis: 'Art. 13, 14 DSGVO, § 26 BDSG',

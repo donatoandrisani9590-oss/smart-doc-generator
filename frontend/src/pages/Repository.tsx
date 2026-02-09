@@ -8,7 +8,7 @@
  */
 
 import { useState, useMemo } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, Navigate } from "react-router-dom";
 // Card imports removed - using direct div styling for SimpleDocs design
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -262,22 +262,9 @@ export const RepositoryPage = () => {
         filters.has_corrections !== undefined
     );
 
-    // Feature disabled state
+    // Feature disabled state - redirect to dashboard
     if (!isEnabled) {
-        return (
-            <div className="flex flex-col items-center justify-center py-16 max-w-md mx-auto text-center">
-                <div className="w-16 h-16 mb-4 rounded-full bg-muted flex items-center justify-center">
-                    <FileText className="w-8 h-8 text-muted-foreground" />
-                </div>
-                <h2 className="text-xl font-semibold mb-2">Dokumentenübersicht deaktiviert</h2>
-                <p className="text-muted-foreground mb-4">
-                    Diese Funktion ist in Ihren Einstellungen deaktiviert.
-                </p>
-                <Button variant="outline" onClick={() => navigate("/settings?tab=features")}>
-                    Einstellungen öffnen
-                </Button>
-            </div>
-        );
+        return <Navigate to="/" replace />;
     }
 
     return (

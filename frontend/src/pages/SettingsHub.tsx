@@ -7,8 +7,9 @@
  * - Mobile: Horizontale Scroll-Leiste statt Sidebar
  */
 
-import { useState, useEffect, lazy, Suspense } from "react";
+import { useState, useEffect, useMemo, lazy, Suspense } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -60,6 +61,7 @@ interface SettingsNavItem {
     label: string;
     icon: React.ComponentType<{ className?: string }>;
     component: React.LazyExoticComponent<React.ComponentType>;
+    adminOnly?: boolean;
 }
 
 interface SettingsNavGroup {
@@ -101,17 +103,17 @@ const SETTINGS_NAV: SettingsNavGroup[] = [
         id: "verwaltung",
         label: "Verwaltung",
         items: [
-            { id: "users", label: "Benutzer", icon: Users, component: UsersPage },
-            { id: "approvals", label: "Freigaben", icon: CheckSquare, component: ClauseApprovalQueue },
-            { id: "works-council", label: "Betriebsrat", icon: UserCheck, component: WorksCouncilTemplatesPage },
+            { id: "users", label: "Benutzer", icon: Users, component: UsersPage, adminOnly: true },
+            { id: "approvals", label: "Freigaben", icon: CheckSquare, component: ClauseApprovalQueue, adminOnly: true },
+            { id: "works-council", label: "Betriebsrat", icon: UserCheck, component: WorksCouncilTemplatesPage, adminOnly: true },
         ],
     },
     {
         id: "compliance",
         label: "Compliance",
         items: [
-            { id: "retention", label: "Aufbewahrung", icon: Archive, component: RetentionPoliciesPage },
-            { id: "audit", label: "Protokoll", icon: Shield, component: AuditLogPage },
+            { id: "retention", label: "Aufbewahrung", icon: Archive, component: RetentionPoliciesPage, adminOnly: true },
+            { id: "audit", label: "Protokoll", icon: Shield, component: AuditLogPage, adminOnly: true },
         ],
     },
     {
@@ -123,8 +125,13 @@ const SETTINGS_NAV: SettingsNavGroup[] = [
     },
 ];
 
-// Flat lookup for quick access
+// Flat lookup for quick access (unfiltered, used for legacy route validation)
 const ALL_ITEMS = SETTINGS_NAV.flatMap(g => g.items);
+
+// Tab aliases: alternative URL params that map to existing tab IDs
+const TAB_ALIASES: Record<string, string> = {
+    branding: "design",
+};
 
 // Loading placeholder
 const TabSkeleton = () => (
@@ -165,20 +172,40 @@ const LEGACY_ROUTE_MAP: Record<string, string> = {
 export default function SettingsHub() {
     const [searchParams, setSearchParams] = useSearchParams();
     const navigate = useNavigate();
+    const { user } = useAuth();
     const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
+
+    const isAdmin = user?.role === "admin";
+
+    // Filter nav items based on user role
+    const filteredNav = useMemo(() => {
+        return SETTINGS_NAV
+            .map(group => ({
+                ...group,
+                items: group.items.filter(item => !item.adminOnly || isAdmin),
+            }))
+            .filter(group => group.items.length > 0);
+    }, [isAdmin]);
+
+    const visibleItems = useMemo(() => filteredNav.flatMap(g => g.items), [filteredNav]);
+
+    // Resolve tab aliases (e.g. "branding" → "design")
+    const resolveTab = (tab: string): string => TAB_ALIASES[tab] || tab;
 
     // Determine initial tab (with backward compatibility for ?tab=advanced&section=xxx)
     const getInitialTab = (): string => {
-        const tab = searchParams.get("tab") || "general";
+        const rawTab = searchParams.get("tab") || "general";
+        const tab = resolveTab(rawTab);
         const section = searchParams.get("section");
 
         // Legacy: ?tab=advanced&section=users -> users
-        if (tab === "advanced" && section) {
-            return ALL_ITEMS.some(i => i.id === section) ? section : "general";
+        if (rawTab === "advanced" && section) {
+            const resolved = resolveTab(section);
+            return visibleItems.some(i => i.id === resolved) ? resolved : "general";
         }
 
-        // Validate tab exists
-        if (ALL_ITEMS.some(i => i.id === tab)) {
+        // Validate tab exists and is visible to the user
+        if (visibleItems.some(i => i.id === tab)) {
             return tab;
         }
 
@@ -190,9 +217,12 @@ export default function SettingsHub() {
     // Sync URL → state: when user clicks Sidebar links (Vorlagen/Einstellungen),
     // the URL changes externally but activeTab must follow
     useEffect(() => {
-        const tabFromUrl = searchParams.get("tab");
-        if (tabFromUrl && tabFromUrl !== activeTab && ALL_ITEMS.some(i => i.id === tabFromUrl)) {
-            setActiveTab(tabFromUrl);
+        const rawTab = searchParams.get("tab");
+        if (rawTab) {
+            const tab = resolveTab(rawTab);
+            if (tab !== activeTab && visibleItems.some(i => i.id === tab)) {
+                setActiveTab(tab);
+            }
         }
     }, [searchParams]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -216,9 +246,9 @@ export default function SettingsHub() {
         }
     }, [navigate]);
 
-    // Render active content
-    const activeItem = ALL_ITEMS.find(i => i.id === activeTab);
-    const ActiveComponent = activeItem?.component;
+    // Render active content (use ALL_ITEMS so admin-only tabs resolve for legacy routes, but only render if visible)
+    const activeItem = visibleItems.find(i => i.id === activeTab) || ALL_ITEMS.find(i => i.id === activeTab);
+    const ActiveComponent = visibleItems.some(i => i.id === activeTab) ? activeItem?.component : undefined;
 
     return (
         <div className="max-w-6xl mx-auto">
@@ -256,7 +286,7 @@ export default function SettingsHub() {
                 {/* Mobile: Horizontal Scroll Nav */}
                 <div className="md:hidden overflow-x-auto border-b border-warm-200 dark:border-warm-200 bg-warm-50/50 dark:bg-muted/30 px-2 py-2">
                     <div className="flex gap-1 min-w-max">
-                        {ALL_ITEMS.map((item) => (
+                        {visibleItems.map((item) => (
                             <button
                                 key={item.id}
                                 onClick={() => setActiveTab(item.id)}
@@ -276,7 +306,7 @@ export default function SettingsHub() {
 
                 {/* Desktop: Sidebar Navigation */}
                 <nav className="hidden md:block w-[240px] shrink-0 border-r border-warm-200 dark:border-warm-200 overflow-y-auto scrollbar-hide py-4 bg-warm-50/30 dark:bg-warm-50/50">
-                    {SETTINGS_NAV.map((group) => (
+                    {filteredNav.map((group) => (
                         <div key={group.id} className="mb-4">
                             <h3 className="settings-nav-header px-4 py-1.5 text-[11px] font-semibold uppercase tracking-widest">
                                 {group.label}

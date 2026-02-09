@@ -109,6 +109,9 @@ export const UsersPage = () => {
             if (statusFilter !== "all") params.append("is_active", statusFilter === "active" ? "true" : "false");
 
             const response = await apiFetch(`/api/v1/users?${params.toString()}`);
+            if (response.status === 403) {
+                throw new Error("Keine Berechtigung. Diese Funktion ist nur für Administratoren verfügbar.");
+            }
             if (!response.ok) throw new Error("Fehler beim Laden der Benutzer");
 
             const data = await response.json();

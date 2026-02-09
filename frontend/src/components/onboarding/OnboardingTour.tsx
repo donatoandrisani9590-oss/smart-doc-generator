@@ -64,7 +64,7 @@ const DEFAULT_TOUR_STEPS: TourStep[] = [
         id: "search",
         title: "Globale Suche",
         description:
-            "Mit Cmd/Ctrl+K öffnen Sie die Schnellsuche. Finden Sie Dokumente, Klauseln und mehr in Sekundenschnelle.",
+            "Mit Cmd/Ctrl+K öffnen Sie die Schnellsuche. Finden Sie Dokumente, Textbausteine und mehr in Sekundenschnelle.",
         target: "[data-tour='search']",
         icon: Search,
         position: "bottom",
@@ -82,7 +82,7 @@ const DEFAULT_TOUR_STEPS: TourStep[] = [
         id: "admin",
         title: "Administration",
         description:
-            "Im Admin-Bereich verwalten Sie Klauseln, Dokumenttypen, Benutzer und Systemeinstellungen.",
+            "Im Admin-Bereich verwalten Sie Textbausteine, Dokumenttypen, Benutzer und Systemeinstellungen.",
         target: "[data-tour='admin']",
         icon: Settings,
         position: "right",

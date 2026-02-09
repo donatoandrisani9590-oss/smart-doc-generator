@@ -216,7 +216,7 @@ export const AuditLogPage = () => {
                         >
                             <option value="">Alle Kategorien</option>
                             <option value="document">Dokumente</option>
-                            <option value="clause">Klauseln</option>
+                            <option value="clause">Textbausteine</option>
                             <option value="form_field">Formularfelder</option>
                             <option value="user">Benutzer</option>
                             <option value="bulk">Bulk-Operationen</option>
@@ -274,7 +274,7 @@ export const AuditLogPage = () => {
                                 >
                                     <option value="">Alle</option>
                                     <option value="document">Dokument</option>
-                                    <option value="clause">Klausel</option>
+                                    <option value="clause">Textbaustein</option>
                                     <option value="document_type">Dokumenttyp</option>
                                     <option value="form_field">Formularfeld</option>
                                     <option value="user">Benutzer</option>

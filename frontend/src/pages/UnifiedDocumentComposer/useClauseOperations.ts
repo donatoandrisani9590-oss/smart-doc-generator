@@ -101,10 +101,10 @@ export const useClauseOperations = ({
             setClauses(clausesResponse.data.clauses);
             setSelectedClauseId(response.data.id);
 
-            toast.success("Klausel hinzugefugt", "Bearbeiten Sie den Inhalt im rechten Panel");
+            toast.success("Textbaustein hinzugefügt", "Bearbeiten Sie den Inhalt im rechten Panel");
         } catch (error) {
             logError("Failed to add local clause", { error });
-            toast.error("Fehler", "Klausel konnte nicht hinzugefugt werden");
+            toast.error("Fehler", "Textbaustein konnte nicht hinzugefügt werden");
         }
     }, [draftId, setClauses, setSelectedClauseId, toast]);
 
@@ -127,10 +127,10 @@ export const useClauseOperations = ({
             );
             setClauses(clausesResponse.data.clauses);
 
-            toast.success("Klausel hinzugefugt", `"${libraryClause.title}" wurde dem Dokument hinzugefugt`);
+            toast.success("Textbaustein hinzugefügt", `"${libraryClause.title}" wurde dem Dokument hinzugefügt`);
         } catch (error) {
             logError("Failed to add global clause", { error });
-            toast.error("Fehler", "Klausel konnte nicht hinzugefugt werden");
+            toast.error("Fehler", "Textbaustein konnte nicht hinzugefügt werden");
         }
     }, [draftId, setClauses, toast]);
 
@@ -145,10 +145,10 @@ export const useClauseOperations = ({
                 setSelectedClauseId(null);
             }
 
-            toast.success("Klausel entfernt");
+            toast.success("Textbaustein entfernt");
         } catch (error) {
             logError("Failed to delete clause", { error });
-            toast.error("Fehler", "Klausel konnte nicht entfernt werden");
+            toast.error("Fehler", "Textbaustein konnte nicht entfernt werden");
         }
     }, [draftId, selectedClauseId, setClauses, setSelectedClauseId, toast]);
 
@@ -207,10 +207,10 @@ export const useClauseOperations = ({
             setSelectedClauseId(pendingDeviationClauseId);
             setPendingDeviationClauseId(null);
 
-            toast.success("Klausel aufgebrochen", "Sie konnen die Klausel jetzt bearbeiten");
+            toast.success("Textbaustein aufgebrochen", "Sie können den Textbaustein jetzt bearbeiten");
         } catch (error) {
             logError("Failed to deviate clause", { error });
-            toast.error("Fehler", "Klausel konnte nicht aufgebrochen werden");
+            toast.error("Fehler", "Textbaustein konnte nicht aufgebrochen werden");
         } finally {
             setIsDeviating(false);
         }
@@ -247,11 +247,11 @@ export const useClauseOperations = ({
 
             toast.success(
                 "Zur Prufung eingereicht",
-                "Die Klausel wird nach Freigabe in der Bibliothek verfugbar sein"
+                "Der Textbaustein wird nach Freigabe in der Bibliothek verfügbar sein"
             );
         } catch (error) {
             logError("Failed to promote clause", { error });
-            toast.error("Fehler", "Klausel konnte nicht eingereicht werden");
+            toast.error("Fehler", "Textbaustein konnte nicht eingereicht werden");
         } finally {
             setIsPromoting(false);
         }

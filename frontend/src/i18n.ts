@@ -10,7 +10,7 @@ const resources = {
             'nav.documents': 'Meine Dokumente',
             'nav.drafts': 'Entwürfe',
             'nav.admin.settings': 'Design-Manager',
-            'nav.admin.clauses': 'Klausel-Bibliothek',
+            'nav.admin.clauses': 'Textbaustein-Bibliothek',
             'nav.admin.templates': 'Dokumentvorlagen',
             'nav.admin.countries': 'Länderkonfiguration',
             'nav.admin.locations': 'Standorte',
