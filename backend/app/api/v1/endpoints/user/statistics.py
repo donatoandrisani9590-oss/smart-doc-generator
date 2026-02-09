@@ -7,7 +7,7 @@ usage patterns, and team activity.
 
 from __future__ import annotations
 from typing import Any, Annotated, Optional
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, and_
@@ -15,9 +15,21 @@ from pydantic import BaseModel
 
 from app.db import get_db
 from app.api import deps
-from app.models import documents as models
+from app.models import documents as doc_models
 from app.models import core as core_models
 from app.models import enterprise as enterprise_models
+
+# Unified model references for statistics queries
+# DocumentType, Clause, DocumentTypeClause are in documents.py
+# GeneratedDocument, DocumentDraft, BulkJob are in enterprise.py
+class models:
+    """Namespace combining document and enterprise models for queries."""
+    DocumentType = doc_models.DocumentType
+    Clause = doc_models.Clause
+    DocumentTypeClause = doc_models.DocumentTypeClause
+    GeneratedDocument = enterprise_models.GeneratedDocument
+    DocumentDraft = enterprise_models.DocumentDraft
+    BulkJob = enterprise_models.BulkJob
 
 router = APIRouter()
 
@@ -75,7 +87,7 @@ async def get_dashboard_stats(
     Returns document counts, trends, top types, and team activity
     for the authenticated user's country/team.
     """
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
     last_month_start = (month_start - timedelta(days=1)).replace(day=1)
 
@@ -142,15 +154,12 @@ async def get_dashboard_stats(
         func.count(models.BulkJob.id),
         func.coalesce(func.sum(models.BulkJob.total_records), 0)
     ).where(
-        and_(
-            models.BulkJob.country_code == country_code,
-            models.BulkJob.created_at >= month_start,
-        )
+        models.BulkJob.created_at >= month_start,
     )
     bulk_result = await db.execute(bulk_jobs_query)
-    bulk_row = bulk_result.one()
-    bulk_jobs_this_month = bulk_row[0] or 0
-    bulk_documents_this_month = bulk_row[1] or 0
+    bulk_row = bulk_result.first()
+    bulk_jobs_this_month = (bulk_row[0] or 0) if bulk_row else 0
+    bulk_documents_this_month = (bulk_row[1] or 0) if bulk_row else 0
 
     # ═══════════════════════════════════════════════════════════════════════════
     # TOP DOCUMENT TYPES (last 30 days)
