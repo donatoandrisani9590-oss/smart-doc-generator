@@ -65,15 +65,81 @@ def format_currency_localized(value: Union[float, int], country_code: str) -> st
     return f"{formatted} EUR"
 
 
+def _guess_salutation(vorname: str, country_code: str = "DE") -> str:
+    """
+    Guess salutation (Herr/Frau) based on first name heuristic.
+    Returns empty string if unsure.
+    """
+    if not vorname:
+        return ""
+
+    # Common female name endings (German/Italian)
+    female_endings = ("a", "e", "ine", "ina", "ette", "elle", "ie")
+    # Common male names that end in 'a' or 'e' (exceptions)
+    male_exceptions = {
+        "luca", "andrea", "nicola", "sascha", "mischa", "joshua", "nikita",
+        "mustafa", "elia", "mattia", "mehmet", "ahmed", "mohammed", "ali",
+        "giuseppe", "carlo", "marco", "paolo", "mario", "antonio", "stefan",
+        "thomas", "michael", "peter", "hans", "karl", "andreas", "markus",
+        "johannes", "matthias", "tobias", "lukas", "jonas", "niklas", "elias",
+        "tim", "jan", "ben", "max", "felix", "leon", "paul", "david",
+        "alexander", "daniel", "philipp", "sebastian", "christian", "florian",
+    }
+    # Common female names (exceptions to male rules)
+    female_exceptions = {
+        "anna", "maria", "lisa", "laura", "sara", "emma", "lena", "julia",
+        "sophie", "hanna", "lea", "mia", "emily", "ella", "clara", "elena",
+        "alessandra", "francesca", "giovanna", "paola", "chiara", "silvia",
+    }
+
+    name_lower = vorname.strip().lower()
+
+    if name_lower in female_exceptions:
+        return "Frau" if country_code == "DE" else "Sig.ra"
+    if name_lower in male_exceptions:
+        return "Herr" if country_code == "DE" else "Sig."
+    if name_lower.endswith(female_endings) and name_lower not in male_exceptions:
+        return "Frau" if country_code == "DE" else "Sig.ra"
+
+    # Default: assume male for names not ending in female patterns
+    return "Herr" if country_code == "DE" else "Sig."
+
+
 def render_placeholders(content: str, form_data: dict, country_code: str = "DE") -> str:
     """
-    Replace {{ placeholder }} with formatted values.
+    Replace {{ placeholder }} and [placeholder] with formatted values.
     Handles date and currency fields with localization.
+    Supports alias mapping for common placeholder name variations.
     """
+    # Alias mapping: template placeholder name → form_data field name
+    # This handles cases where templates use different names than form fields
+    PLACEHOLDER_ALIASES = {
+        "bruttogehalt": "gehalt",
+        "gehalt_brutto": "gehalt",
+        "gehalt_brutto_monat": "gehalt",
+        "monatsgehalt": "gehalt",
+        "mitarbeiter_vorname": "vorname",
+        "mitarbeiter_nachname": "nachname",
+        "mitarbeiter_name": "nachname",
+        "mitarbeiter_adresse": "strasse",
+        "probezeit_monate": "probezeit",
+        "arbeitszeit": "wochenstunden",
+        "beginn": "eintrittsdatum",
+        "startdatum": "eintrittsdatum",
+        "vertragsbeginn": "eintrittsdatum",
+        "anrede": "_anrede",  # Special: computed field
+    }
+
     def replace_match(match: re.Match) -> str:
         placeholder = match.group(1).strip()
+
+        # Try direct lookup first, then alias mapping
         value = form_data.get(placeholder)
-        
+        if value is None:
+            alias = PLACEHOLDER_ALIASES.get(placeholder.lower())
+            if alias:
+                value = form_data.get(alias)
+
         if value is None:
             return f"[{placeholder}]"
         
@@ -90,7 +156,10 @@ def render_placeholders(content: str, form_data: dict, country_code: str = "DE")
         
         return str(value)
     
-    return re.sub(r"\{\{\s*(\w+)\s*\}\}", replace_match, content)
+    # Replace both {{ placeholder }} and [placeholder] patterns
+    content = re.sub(r"\{\{\s*(\w+)\s*\}\}", replace_match, content)
+    content = re.sub(r"\[(\w+)\]", replace_match, content)
+    return content
 
 
 def evaluate_condition(condition: dict, form_data: dict) -> bool:
@@ -310,6 +379,16 @@ def assemble_html_preview(
     nachname = form_data.get("nachname", "")
     employee_name = f"{vorname} {nachname}".strip() or "[Vorname Nachname]"
 
+    # Determine salutation based on explicit anrede field or name heuristic
+    anrede = form_data.get("anrede", "")
+    if not anrede and vorname:
+        anrede = _guess_salutation(vorname, country_code)
+    if not anrede:
+        anrede = "Herr/Frau" if country_code == "DE" else "Sig./Sig.ra"
+
+    # Inject computed anrede into form_data so [anrede] placeholders in clauses resolve
+    form_data["_anrede"] = anrede
+
     # Employee address - check multiple possible field names
     employee_address = (
         form_data.get("mitarbeiter_adresse") or
@@ -341,6 +420,7 @@ def assemble_html_preview(
         content=content_html,
         country_code=country_code,
         # Employee data for contract parties section
+        anrede=anrede,
         employee_name=employee_name,
         employee_address=employee_address,
         employee_city=employee_city,
@@ -392,7 +472,7 @@ PREVIEW_TEMPLATE = """
     </div>
 
     <div class="party-name">
-        {% if country_code == 'IT' %}Sig./Sig.ra{% else %}Herr/Frau{% endif %} {{ employee_name }}
+        {{ anrede }} {{ employee_name }}
     </div>
     {% if employee_address %}
     <div class="party-address">{{ employee_address }}</div>

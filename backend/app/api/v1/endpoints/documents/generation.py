@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field
 from app.api import deps
 from app.db import get_db
 from app.services.template_engine import TemplateEngine
-from app.services.preview import evaluate_condition
+from app.services.preview import evaluate_condition, _guess_salutation
 from app.services.html_converter import HtmlToDocxConverter
 from app.models import core as models
 from app.models.documents import DocumentType, Clause, DocumentTypeClause
@@ -156,7 +156,25 @@ def render_placeholders_extended(content: str, form_data: dict, country_code: st
     """
     Replace {{ placeholder }} and [placeholder] with formatted values.
     Extended version with localized date formatting.
+    Supports alias mapping for common placeholder name variations.
     """
+    # Alias mapping: template placeholder name → form_data field name
+    PLACEHOLDER_ALIASES = {
+        "bruttogehalt": "gehalt",
+        "gehalt_brutto": "gehalt",
+        "gehalt_brutto_monat": "gehalt",
+        "monatsgehalt": "gehalt",
+        "mitarbeiter_vorname": "vorname",
+        "mitarbeiter_nachname": "nachname",
+        "mitarbeiter_name": "nachname",
+        "mitarbeiter_adresse": "strasse",
+        "probezeit_monate": "probezeit",
+        "arbeitszeit": "wochenstunden",
+        "beginn": "eintrittsdatum",
+        "startdatum": "eintrittsdatum",
+        "vertragsbeginn": "eintrittsdatum",
+    }
+
     def replace_match(match: re.Match) -> str:
         placeholder = match.group(1).strip()
 
@@ -168,7 +186,12 @@ def render_placeholders_extended(content: str, form_data: dict, country_code: st
             # Fallback to current date
             return format_date_localized(datetime.now().strftime("%Y-%m-%d"), country_code)
 
+        # Try direct lookup first, then alias mapping
         value = form_data.get(placeholder)
+        if value is None:
+            alias = PLACEHOLDER_ALIASES.get(placeholder.lower())
+            if alias:
+                value = form_data.get(alias)
 
         if value is None:
             return f"[{placeholder}]"
@@ -459,7 +482,12 @@ def create_document_from_clauses(
     employee_plz_ort = form_data.get('plz_ort', '')
 
     emp_para = doc.add_paragraph()
-    emp_prefix = loc_text["employee_prefix"]
+    # Determine salutation: use form_data anrede, or guess from first name, or fallback
+    emp_prefix = form_data.get("anrede", "")
+    if not emp_prefix and form_data.get("vorname"):
+        emp_prefix = _guess_salutation(form_data["vorname"], country_code)
+    if not emp_prefix:
+        emp_prefix = loc_text["employee_prefix"]
     if employee_street:
         emp_run = emp_para.add_run(f"{emp_prefix} {employee_name}\n{employee_street}")
     else:
