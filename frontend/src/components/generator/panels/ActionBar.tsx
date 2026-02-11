@@ -274,7 +274,7 @@ export const ActionBar = () => {
             {/* Hinweis wenn nicht exportierbar */}
             {!canExport && !validationState.isValid && (
                 <p className="text-xs text-muted-foreground text-center">
-                    Bitte füllen Sie alle Pflichtfelder aus.
+                    Bitte füllen Sie alle Pflichtfelder und den Dokumenttitel aus.
                 </p>
             )}
             {!canExport && validationState.isValid && !documentTypeId && (

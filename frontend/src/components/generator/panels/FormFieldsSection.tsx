@@ -115,16 +115,18 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
     const lang: LanguageCode = countryCode?.toUpperCase() === "IT" ? "it" : "de";
     const labels = FIELD_LABELS[lang];
 
-    // Berechne ausgefüllte Pflichtfelder
+    // Berechne ausgefüllte Pflichtfelder (inkl. Dokumenttitel für konsistente Zählung)
     const requiredFieldsProgress = useMemo(() => {
-        const filled = REQUIRED_FIELDS.filter((field) => {
+        const filledFormFields = REQUIRED_FIELDS.filter((field) => {
             const value = formData[field];
             return value !== undefined && value !== null && value !== "";
         }).length;
-        const total = REQUIRED_FIELDS.length;
+        const titleFilled = state.documentTitle?.trim() ? 1 : 0;
+        const filled = filledFormFields + titleFilled;
+        const total = REQUIRED_FIELDS.length + 1; // +1 für Dokumenttitel
         const percentage = Math.round((filled / total) * 100);
         return { filled, total, percentage };
-    }, [formData]);
+    }, [formData, state.documentTitle]);
 
     const getError = (field: string) =>
         validationErrors.find((e) => e.field === field)?.message;

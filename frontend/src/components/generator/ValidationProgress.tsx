@@ -193,7 +193,7 @@ export const ValidationProgress = ({
                                 ) : (
                                     <>
                                         {validation.missingFields.length > 0 && (
-                                            <span>Bitte {validation.missingFields.length} Pflichtfeld{validation.missingFields.length !== 1 ? "er" : ""} ausfüllen</span>
+                                            <span>Bitte {validation.missingFields.length} Pflichtfeld{validation.missingFields.length !== 1 ? "er" : ""} ausfüllen - klicken für Details</span>
                                         )}
                                         {validation.errors.length > 0 && validation.missingFields.length > 0 && " · "}
                                         {validation.errors.length > 0 && (

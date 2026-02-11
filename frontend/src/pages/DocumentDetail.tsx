@@ -42,6 +42,66 @@ import {
     CheckCircle,
 } from "lucide-react";
 
+// Deutsche Labels für Formulardaten-Anzeige
+const FORM_FIELD_LABELS: Record<string, string> = {
+    signatory_name: "Unterzeichner",
+    vorname: "Vorname",
+    nachname: "Nachname",
+    eintrittsdatum: "Eintrittsdatum",
+    geburtsdatum: "Geburtsdatum",
+    position: "Position",
+    gehalt: "Gehalt",
+    wochenstunden: "Wochenstunden",
+    urlaubstage: "Urlaubstage",
+    probezeit: "Probezeit",
+    strasse: "Straße",
+    plz: "PLZ",
+    ort: "Ort",
+    firmenwagen: "Firmenwagen",
+    homeoffice: "Home Office",
+    adresse: "Adresse",
+};
+
+function formatFieldLabel(key: string): string {
+    if (FORM_FIELD_LABELS[key]) return FORM_FIELD_LABELS[key];
+    // Fallback: Underscores ersetzen + erster Buchstabe groß
+    const label = key.replace(/_/g, " ");
+    return label.charAt(0).toUpperCase() + label.slice(1);
+}
+
+function formatFieldValue(key: string, value: unknown): string {
+    if (value === undefined || value === null || value === "") return "-";
+    if (typeof value === "boolean") return value ? "Ja" : "Nein";
+
+    const strValue = String(value);
+
+    // Datumsfelder (ISO yyyy-mm-dd → dd.mm.yyyy)
+    if (key.toLowerCase().includes("datum") && /^\d{4}-\d{2}-\d{2}$/.test(strValue)) {
+        const [y, m, d] = strValue.split("-");
+        return `${d}.${m}.${y}`;
+    }
+
+    // Gehalt mit € formatieren
+    if (key === "gehalt") {
+        const num = parseFloat(strValue);
+        if (!isNaN(num)) {
+            return num.toLocaleString("de-DE") + " \u20AC";
+        }
+    }
+
+    // Wochenstunden mit Einheit
+    if (key === "wochenstunden") {
+        return `${strValue} Std./Woche`;
+    }
+
+    // Urlaubstage mit Einheit
+    if (key === "urlaubstage") {
+        return `${strValue} Tage`;
+    }
+
+    return strValue;
+}
+
 export const DocumentDetailPage = () => {
     const { documentId } = useParams<{ documentId: string }>();
     const navigate = useNavigate();
@@ -270,12 +330,10 @@ export const DocumentDetailPage = () => {
                                             className="p-3 bg-warm-50/50 rounded-lg"
                                         >
                                             <p className="text-xs text-muted-foreground mb-1">
-                                                {key.replace(/_/g, " ")}
+                                                {formatFieldLabel(key)}
                                             </p>
                                             <p className="font-medium text-sm">
-                                                {typeof value === "boolean"
-                                                    ? value ? "Ja" : "Nein"
-                                                    : String(value) || "-"}
+                                                {formatFieldValue(key, value)}
                                             </p>
                                         </div>
                                     ))}

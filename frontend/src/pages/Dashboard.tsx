@@ -291,6 +291,16 @@ export const Dashboard = () => {
                                             );
                                         })}
                                     </div>
+                                ) : hasOpenDrafts ? (
+                                    <div className="text-center py-12">
+                                        <div className="p-3 bg-amber-50 dark:bg-amber-950/30 rounded-full w-fit mx-auto mb-3">
+                                            <FileText className="w-6 h-6 text-amber-600 dark:text-amber-400" />
+                                        </div>
+                                        <p className="text-sm font-medium text-foreground">{stats?.open_drafts} offene Entwürfe</p>
+                                        <p className="text-xs text-muted-foreground mt-1">
+                                            <Link to="/documents" className="text-primary hover:underline">Alle Dokumente anzeigen</Link>
+                                        </p>
+                                    </div>
                                 ) : (
                                     <div className="text-center py-12">
                                         <div className="p-3 bg-green-50 dark:bg-green-950/30 rounded-full w-fit mx-auto mb-3">
@@ -344,6 +354,16 @@ export const Dashboard = () => {
                                                 <ChevronRight className="w-4 h-4 text-warm-400 group-hover:text-primary transition-colors" />
                                             </Link>
                                         ))}
+                                    </div>
+                                ) : (stats?.documents_total ?? 0) > 0 ? (
+                                    <div className="text-center py-12">
+                                        <div className="p-3 bg-warm-100 rounded-full w-fit mx-auto mb-3">
+                                            <FileText className="w-6 h-6 text-warm-500" />
+                                        </div>
+                                        <p className="text-sm font-medium text-foreground">{stats?.documents_total} Dokumente vorhanden</p>
+                                        <p className="text-xs text-muted-foreground mt-1">
+                                            <Link to="/documents" className="text-primary hover:underline">Alle Dokumente anzeigen</Link>
+                                        </p>
                                     </div>
                                 ) : (
                                     <div className="text-center py-12">

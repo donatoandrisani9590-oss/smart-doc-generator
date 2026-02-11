@@ -50,6 +50,21 @@ interface UserTemplateOption {
     is_own: boolean;
 }
 
+// Übersetzung der Kategorie-Labels (DB speichert englische Keys)
+const CATEGORY_LABELS: Record<string, string> = {
+    contract: "Vertrag",
+    letter: "Brief",
+    memo: "Mitteilung",
+    certificate: "Bescheinigung",
+    amendment: "Nachtrag",
+    default: "Allgemein",
+};
+
+function translateCategory(category: string): string {
+    const lower = category.toLowerCase();
+    return CATEGORY_LABELS[lower] || category;
+}
+
 export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeProps) => {
     const { state, actions } = useWizardContext();
     const [searchQuery, setSearchQuery] = useState("");
@@ -57,6 +72,7 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
     const [isSmartModeOpen, setIsSmartModeOpen] = useState(false);
     const [userTemplates, setUserTemplates] = useState<UserTemplateOption[]>([]);
     const [templateSectionOpen, setTemplateSectionOpen] = useState(false);
+    const [showTypeList, setShowTypeList] = useState(true);
 
     // Fetch user templates
     useEffect(() => {
@@ -100,6 +116,7 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
     const handleDocumentTypeChange = (typeId: number) => {
         actions.setDocumentType(typeId);
         saveRecentType(typeId);
+        setShowTypeList(false);
     };
 
     // Gefilterte Dokumenttypen basierend auf Suche
@@ -182,14 +199,14 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
                         <span className="font-medium text-foreground">{selectedType.name}</span>
                         {selectedType.category && (
                             <Badge variant="outline" className="text-xs bg-white">
-                                {selectedType.category}
+                                {translateCategory(selectedType.category)}
                             </Badge>
                         )}
                         <Button
                             variant="ghost"
                             size="icon"
                             className="ml-auto h-6 w-6 text-warm-400 hover:text-muted-foreground"
-                            onClick={() => actions.setDocumentType(0)}
+                            onClick={() => { actions.setDocumentType(0); setShowTypeList(true); }}
                         >
                             <X className="w-3 h-3" />
                         </Button>
@@ -197,7 +214,7 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
                 )}
 
                 {/* Dokumenttyp-Liste - Saubere Gruppierung */}
-                <div className="border border-warm-200 rounded-lg overflow-hidden bg-white">
+                {showTypeList && <div className="border border-warm-200 rounded-lg overflow-hidden bg-white">
                     <ScrollArea className="h-[300px]">
                         <div className="divide-y divide-warm-100">
                             {/* Zuletzt verwendet */}
@@ -233,7 +250,7 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
                                                 </div>
                                                 {type.category && (
                                                     <span className="text-[11px] px-2 py-0.5 bg-warm-100 text-muted-foreground rounded">
-                                                        {type.category}
+                                                        {translateCategory(type.category)}
                                                     </span>
                                                 )}
                                             </button>
@@ -247,7 +264,7 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
                                 <div key={category}>
                                     <div className="px-4 py-2.5 bg-warm-50/80 border-b border-warm-100">
                                         <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
-                                            {category}
+                                            {translateCategory(category)}
                                         </span>
                                     </div>
                                     <div>
@@ -286,7 +303,7 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
                             )}
                         </div>
                     </ScrollArea>
-                </div>
+                </div>}
 
                 {/* Dokumenttitel */}
                 <div className="space-y-2 pt-4">

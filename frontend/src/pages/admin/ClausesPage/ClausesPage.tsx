@@ -88,8 +88,13 @@ import { ClausePreviewDialog } from "./ClausePreviewDialog";
  * e.g. "&amp;sect;" becomes "§", "&amp;auml;" becomes "ä"
  */
 function decodeHtmlEntities(text: string): string {
-    const doc = new DOMParser().parseFromString(text, "text/html");
-    return doc.body.textContent || "";
+    // Leerzeichen vor Block-Element-Schließungen einfügen, damit
+    // "§ 2 Probezeit</p><p>Die ersten..." → "§ 2 Probezeit Die ersten..."
+    const withSpaces = text
+        .replace(/<\/(p|div|h[1-6]|li|tr|blockquote)>/gi, " ")
+        .replace(/<br\s*\/?>/gi, " ");
+    const doc = new DOMParser().parseFromString(withSpaces, "text/html");
+    return (doc.body.textContent || "").replace(/\s{2,}/g, " ").trim();
 }
 
 export const ClausesPage = () => {
