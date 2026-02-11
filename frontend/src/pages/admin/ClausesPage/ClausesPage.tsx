@@ -83,6 +83,15 @@ import { VersionHistoryDialog } from "./VersionHistoryDialog";
 import { DeleteConfirmDialog } from "./DeleteConfirmDialog";
 import { ClausePreviewDialog } from "./ClausePreviewDialog";
 
+/**
+ * Decodes HTML entities and strips tags using the browser's DOMParser.
+ * e.g. "&amp;sect;" becomes "§", "&amp;auml;" becomes "ä"
+ */
+function decodeHtmlEntities(text: string): string {
+    const doc = new DOMParser().parseFromString(text, "text/html");
+    return doc.body.textContent || "";
+}
+
 export const ClausesPage = () => {
     // View Mode State mit localStorage Persistenz
     const [viewMode, setViewMode] = useState<'cards' | 'table'>(() => {
@@ -766,8 +775,8 @@ export const ClausesPage = () => {
                             </CardHeader>
                             <CardContent>
                                 <p className="text-sm text-muted-foreground line-clamp-2">
-                                    {clause.content?.replace(/<[^>]*>/g, "").slice(0, 200)}
-                                    {(clause.content?.length || 0) > 200 ? "..." : ""}
+                                    {decodeHtmlEntities(clause.content || "").slice(0, 200)}
+                                    {decodeHtmlEntities(clause.content || "").length > 200 ? "..." : ""}
                                 </p>
                                 {clause.placeholders && clause.placeholders.length > 0 && (
                                     <div className="mt-3 flex flex-wrap gap-1">

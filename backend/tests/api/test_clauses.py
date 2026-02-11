@@ -89,8 +89,8 @@ class TestClauseCreate:
         response = await client.post(
             "/api/v1/clauses/",
             json={
-                "title": "Kuendigungsfrist",
-                "content_html": "<p>Die Kuendigungsfrist betraegt 4 Wochen.</p>",
+                "title": "Kündigungsfrist",
+                "content_html": "<p>Die Kündigungsfrist beträgt 4 Wochen.</p>",
                 "country_code": "DE",
                 "category": "Arbeitsrecht",
             },
@@ -98,7 +98,7 @@ class TestClauseCreate:
         )
         assert response.status_code == 200
         data = response.json()
-        assert data["title"] == "Kuendigungsfrist"
+        assert data["title"] == "Kündigungsfrist"
 
     async def test_create_clause_non_admin_forbidden(
         self, client: AsyncClient, test_user

@@ -218,6 +218,54 @@ def render_placeholders_extended(content: str, form_data: dict, country_code: st
     return content
 
 
+def renumber_clause_sections(clauses: list[dict]) -> list[dict]:
+    """
+    Renumber § (section) headings sequentially after conditional clause filtering.
+
+    When conditional clauses are excluded (e.g. Firmenwagen §12, Home Office §13),
+    the remaining clauses would have gaps in their numbering. This function
+    renumbers them sequentially starting from §1.
+
+    Only replaces the heading occurrence inside <strong> tags to avoid
+    modifying cross-references to legal paragraphs (e.g. "§ 622 BGB").
+
+    Handles both HTML entity (&sect;) and literal § character, with optional
+    whitespace or &nbsp; between the symbol and the number.
+    """
+    # Pattern: § or &sect; followed by optional spaces/&nbsp; and a number,
+    # but ONLY inside <strong> tags (the clause heading).
+    # This avoids renumbering cross-references like "§ 622 BGB" in body text.
+    heading_pattern = re.compile(
+        r'(<strong[^>]*>\s*)'           # Opening <strong> tag (capture group 1)
+        r'(§|&sect;)'                   # Section symbol: literal § or HTML entity (group 2)
+        r'(\s*(?:&nbsp;)?\s*)'          # Optional whitespace/&nbsp; (group 3)
+        r'(\d+)'                        # The section number to replace (group 4)
+        r'(\s)',                         # Space after number (group 5) - ensures it's a heading, not "§622"
+        re.IGNORECASE
+    )
+
+    renumbered = []
+    for idx, clause in enumerate(clauses, start=1):
+        content = clause.get("content", "")
+        if not content:
+            renumbered.append(clause)
+            continue
+
+        # Replace only the FIRST heading match per clause
+        new_content, count = heading_pattern.subn(
+            lambda m, n=idx: f"{m.group(1)}{m.group(2)}{m.group(3)}{n}{m.group(5)}",
+            content,
+            count=1  # Only replace the first occurrence
+        )
+
+        if count > 0:
+            renumbered.append({**clause, "content": new_content})
+        else:
+            renumbered.append(clause)
+
+    return renumbered
+
+
 class GenerateDocumentRequest(BaseModel):
     """Request body for document generation."""
     # Required field - signatory must always be provided (min 2 characters)
@@ -718,6 +766,11 @@ async def generate_document_by_type(
                     "content": clause.content_html,
                     "is_mandatory": ref.is_mandatory,
                 })
+
+    # 5b. Renumber § sections sequentially after conditional filtering
+    # When conditional clauses (e.g. Firmenwagen, Home Office) are excluded,
+    # the remaining clauses must have sequential § numbers with no gaps.
+    active_clauses = renumber_clause_sections(active_clauses)
 
     # 6. Generate document
     try:

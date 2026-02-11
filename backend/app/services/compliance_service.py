@@ -328,9 +328,13 @@ class ComplianceService:
                 continue
 
             regex = pattern_def["pattern"]
-            matches = re.finditer(regex, plain_text_lower, re.IGNORECASE)
+            # Use re.search instead of re.finditer to produce at most ONE
+            # risk per pattern definition, avoiding duplicate warnings when
+            # a pattern (e.g. "vertragsstrafe|konventionalstrafe") matches
+            # multiple times in the same document.
+            match = re.search(regex, plain_text_lower, re.IGNORECASE)
 
-            for match in matches:
+            if match:
                 # Check value condition if present
                 value_check = pattern_def.get("value_check")
                 if value_check and not self._check_value_condition(match, value_check):

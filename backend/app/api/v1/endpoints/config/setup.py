@@ -235,7 +235,7 @@ async def migrate_schema(
 
 ARBEITSVERTRAG_CLAUSES = [
     {
-        "title": "Beginn und Dauer des Arbeitsverhaltnisses",
+        "title": "Beginn und Dauer des Arbeitsverhältnisses",
         "content_html": '<p><strong>&sect; 1 Beginn und Dauer des Arbeitsverh&auml;ltnisses</strong></p><p>Das Arbeitsverh&auml;ltnis beginnt am <strong>[eintrittsdatum]</strong> und wird auf unbestimmte Zeit geschlossen.</p>',
         "category": "Arbeitsrecht", "tags": ["beginn", "dauer"], "tone": "neutral",
         "is_mandatory": True, "display_order": 1,
@@ -249,9 +249,9 @@ ARBEITSVERTRAG_CLAUSES = [
         "condition": '{"field": "probezeit", "operator": "!=", "value": "Keine"}',
     },
     {
-        "title": "Taetigkeit und Aufgabengebiet",
+        "title": "Tätigkeit und Aufgabengebiet",
         "content_html": '<p><strong>&sect; 3 T&auml;tigkeit und Aufgabengebiet</strong></p><p>Der Arbeitnehmer wird als <strong>[position]</strong> eingestellt. Der Arbeitgeber beh&auml;lt sich vor, dem Arbeitnehmer im Rahmen des Direktionsrechts auch andere zumutbare T&auml;tigkeiten zuzuweisen, die seinen Kenntnissen und F&auml;higkeiten entsprechen.</p><p>Der Arbeitnehmer verpflichtet sich, die ihm &uuml;bertragenen Aufgaben gewissenhaft und sorgf&auml;ltig auszuf&uuml;hren und die Interessen des Arbeitgebers zu wahren.</p>',
-        "category": "Arbeitsrecht", "tags": ["taetigkeit", "position"], "tone": "neutral",
+        "category": "Arbeitsrecht", "tags": ["tätigkeit", "position"], "tone": "neutral",
         "is_mandatory": True, "display_order": 3,
     },
     {
@@ -267,9 +267,9 @@ ARBEITSVERTRAG_CLAUSES = [
         "is_mandatory": True, "display_order": 5,
     },
     {
-        "title": "Verguetung",
+        "title": "Vergütung",
         "content_html": '<p><strong>&sect; 6 Verg&uuml;tung</strong></p><p>Der Arbeitnehmer erh&auml;lt ein monatliches Bruttogehalt in H&ouml;he von <strong>[bruttogehalt]</strong>. Die Zahlung erfolgt bargeldlos jeweils zum Ende eines Kalendermonats auf ein vom Arbeitnehmer benanntes Konto.</p><p>Mit der vereinbarten Verg&uuml;tung sind etwaige &Uuml;berstunden bis zu einem Umfang von 10 % der vereinbarten w&ouml;chentlichen Arbeitszeit abgegolten.</p>',
-        "category": "Arbeitsrecht", "tags": ["verguetung", "gehalt", "bruttogehalt"], "tone": "neutral",
+        "category": "Arbeitsrecht", "tags": ["vergütung", "gehalt", "bruttogehalt"], "tone": "neutral",
         "is_mandatory": True, "display_order": 6,
     },
     {
@@ -291,15 +291,15 @@ ARBEITSVERTRAG_CLAUSES = [
         "is_mandatory": True, "display_order": 9,
     },
     {
-        "title": "Nebentaetigkeit",
+        "title": "Nebentätigkeit",
         "content_html": '<p><strong>&sect; 10 Nebent&auml;tigkeit</strong></p><p>Jede entgeltliche oder zeitlich umfangreiche Nebent&auml;tigkeit bedarf der vorherigen schriftlichen Zustimmung des Arbeitgebers. Die Zustimmung ist zu erteilen, wenn berechtigte Interessen des Arbeitgebers nicht beeintr&auml;chtigt werden.</p>',
-        "category": "Arbeitsrecht", "tags": ["nebentaetigkeit"], "tone": "neutral",
+        "category": "Arbeitsrecht", "tags": ["nebentätigkeit"], "tone": "neutral",
         "is_mandatory": True, "display_order": 10,
     },
     {
-        "title": "Kuendigung",
+        "title": "Kündigung",
         "content_html": '<p><strong>&sect; 11 K&uuml;ndigung</strong></p><p>Nach Ablauf der Probezeit kann das Arbeitsverh&auml;ltnis von beiden Seiten mit einer Frist von vier Wochen zum F&uuml;nfzehnten oder zum Ende eines Kalendermonats gek&uuml;ndigt werden. Es gelten im &Uuml;brigen die gesetzlichen K&uuml;ndigungsfristen gem&auml;&szlig; &sect; 622 BGB.</p><p>Die K&uuml;ndigung bedarf der Schriftform. Das Recht zur fristlosen K&uuml;ndigung aus wichtigem Grund bleibt unber&uuml;hrt.</p>',
-        "category": "Arbeitsrecht", "tags": ["kuendigung", "kuendigungsfrist"], "tone": "neutral",
+        "category": "Arbeitsrecht", "tags": ["kündigung", "kündigungsfrist"], "tone": "neutral",
         "is_mandatory": True, "display_order": 11,
     },
     {

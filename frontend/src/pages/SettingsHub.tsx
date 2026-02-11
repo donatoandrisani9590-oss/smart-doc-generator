@@ -284,7 +284,7 @@ export default function SettingsHub() {
             </div>
 
             {/* Main Layout: Sidebar + Content */}
-            <div className="flex flex-col md:flex-row border border-warm-200 dark:border-warm-200 rounded-lg bg-white dark:bg-card overflow-hidden min-h-[600px]">
+            <div className="flex flex-col md:flex-row border border-warm-200 dark:border-warm-200 rounded-lg bg-white dark:bg-card overflow-hidden min-h-[600px] md:h-[calc(100vh-10rem)]">
 
                 {/* Mobile: Horizontal Scroll Nav */}
                 <div className="md:hidden overflow-x-auto border-b border-warm-200 dark:border-warm-200 bg-warm-50/50 dark:bg-muted/30 px-2 py-2">

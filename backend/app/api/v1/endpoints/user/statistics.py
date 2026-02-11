@@ -99,22 +99,26 @@ async def get_dashboard_stats(
     # DOCUMENT COUNTS
     # ═══════════════════════════════════════════════════════════════════════════
 
-    # Documents this month
+    # Documents this month (exclude deleted and archived)
     docs_this_month_query = select(func.count(models.GeneratedDocument.id)).where(
         and_(
             models.GeneratedDocument.country_code == country_code,
             models.GeneratedDocument.created_at >= month_start,
+            models.GeneratedDocument.is_deleted == False,
+            models.GeneratedDocument.is_archived == False,
         )
     )
     docs_this_month_result = await db.execute(docs_this_month_query)
     documents_this_month = docs_this_month_result.scalar() or 0
 
-    # Documents last month (for comparison)
+    # Documents last month (for comparison, exclude deleted and archived)
     docs_last_month_query = select(func.count(models.GeneratedDocument.id)).where(
         and_(
             models.GeneratedDocument.country_code == country_code,
             models.GeneratedDocument.created_at >= last_month_start,
             models.GeneratedDocument.created_at < month_start,
+            models.GeneratedDocument.is_deleted == False,
+            models.GeneratedDocument.is_archived == False,
         )
     )
     docs_last_month_result = await db.execute(docs_last_month_query)
@@ -126,9 +130,12 @@ async def get_dashboard_stats(
     else:
         change_percent = 100.0 if documents_this_month > 0 else 0.0
 
-    # Total documents
+    # Total documents (exclude deleted)
     total_docs_query = select(func.count(models.GeneratedDocument.id)).where(
-        models.GeneratedDocument.country_code == country_code
+        and_(
+            models.GeneratedDocument.country_code == country_code,
+            models.GeneratedDocument.is_deleted == False,
+        )
     )
     total_docs_result = await db.execute(total_docs_query)
     documents_total = total_docs_result.scalar() or 0
@@ -178,6 +185,8 @@ async def get_dashboard_stats(
             and_(
                 models.GeneratedDocument.country_code == country_code,
                 models.GeneratedDocument.created_at >= thirty_days_ago,
+                models.GeneratedDocument.is_deleted == False,
+                models.GeneratedDocument.is_archived == False,
             )
         )
         .group_by(models.GeneratedDocument.document_type_id, models.DocumentType.name)
@@ -274,12 +283,14 @@ async def get_dashboard_stats(
         team_member_ids = [row[0] for row in team_members_result.all()]
 
         if team_member_ids:
-            # Team-Dokumente zählen (diesen Monat)
+            # Team-Dokumente zählen (diesen Monat, ohne gelöschte/archivierte)
             team_docs_query = select(func.count(models.GeneratedDocument.id)).where(
                 and_(
                     models.GeneratedDocument.country_code == country_code,
                     models.GeneratedDocument.created_by.in_(team_member_ids),
                     models.GeneratedDocument.created_at >= month_start,
+                    models.GeneratedDocument.is_deleted == False,
+                    models.GeneratedDocument.is_archived == False,
                 )
             )
             team_docs_result = await db.execute(team_docs_query)
@@ -298,11 +309,13 @@ async def get_dashboard_stats(
             # Aktivität pro Team-Mitglied
             team_members = []
             for member_id in team_member_ids:
-                # Dokumente des Mitglieds
+                # Dokumente des Mitglieds (ohne gelöschte/archivierte)
                 member_docs_query = select(func.count(models.GeneratedDocument.id)).where(
                     and_(
                         models.GeneratedDocument.country_code == country_code,
                         models.GeneratedDocument.created_by == member_id,
+                        models.GeneratedDocument.is_deleted == False,
+                        models.GeneratedDocument.is_archived == False,
                     )
                 )
                 member_docs_result = await db.execute(member_docs_query)
@@ -382,7 +395,7 @@ async def get_my_activity(
     """
     user_id = str(current_user.id)
 
-    # Recent documents
+    # Recent documents (exclude deleted and archived)
     docs_query = (
         select(
             models.GeneratedDocument.id,
@@ -392,7 +405,13 @@ async def get_my_activity(
             models.GeneratedDocument.form_data,
         )
         .join(models.DocumentType, models.GeneratedDocument.document_type_id == models.DocumentType.id)
-        .where(models.GeneratedDocument.created_by == user_id)
+        .where(
+            and_(
+                models.GeneratedDocument.created_by == user_id,
+                models.GeneratedDocument.is_deleted == False,
+                models.GeneratedDocument.is_archived == False,
+            )
+        )
         .order_by(models.GeneratedDocument.created_at.desc())
         .limit(limit)
     )

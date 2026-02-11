@@ -63,11 +63,13 @@ import { cn } from "@/lib/utils";
 // ══════════════════════════════════════════════════════════════════════════════
 
 /**
- * Entfernt HTML-Tags und kuerzt den Text auf maxLength Zeichen
+ * Decodes HTML entities and strips tags using the browser's DOMParser,
+ * then truncates the text to maxLength characters.
  */
 const stripHtmlAndTruncate = (html: string, maxLength: number = 200): string => {
-    // HTML-Tags entfernen
-    const text = html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+    // DOMParser decodes entities AND strips tags in one step
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    const text = (doc.body.textContent || "").replace(/\s+/g, " ").trim();
 
     if (text.length <= maxLength) {
         return text;
@@ -99,7 +101,8 @@ const ClausePreviewTooltip = ({ content, title, children }: ClausePreviewTooltip
     }
 
     const previewText = stripHtmlAndTruncate(content, 200);
-    const hasMoreContent = content.replace(/<[^>]*>/g, '').length > 200;
+    const decoded = new DOMParser().parseFromString(content, "text/html").body.textContent || "";
+    const hasMoreContent = decoded.length > 200;
 
     return (
         <TooltipProvider delayDuration={300}>
