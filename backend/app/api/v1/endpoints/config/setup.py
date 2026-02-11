@@ -448,3 +448,69 @@ async def seed_arbeitsvertrag_clauses(
         "links_created": linked,
         "total_clauses": len(ARBEITSVERTRAG_CLAUSES),
     }
+
+
+# Mapping of old ASCII-encoded titles to correct German umlaut titles
+UMLAUT_TITLE_MIGRATIONS = {
+    "Beginn und Dauer des Arbeitsverhaltnisses": "Beginn und Dauer des Arbeitsverhältnisses",
+    "Taetigkeit und Aufgabengebiet": "Tätigkeit und Aufgabengebiet",
+    "Verguetung": "Vergütung",
+    "Nebentaetigkeit": "Nebentätigkeit",
+    "Kuendigung": "Kündigung",
+}
+
+UMLAUT_TAG_MIGRATIONS = {
+    "taetigkeit": "tätigkeit",
+    "verguetung": "vergütung",
+    "nebentaetigkeit": "nebentätigkeit",
+    "kuendigung": "kündigung",
+    "kuendigungsfrist": "kündigungsfrist",
+}
+
+
+@router.post("/fix-umlauts")
+async def fix_clause_umlauts(
+    current_user: Annotated[User, Depends(deps.get_current_active_admin)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+):
+    """
+    Fix ASCII-encoded umlauts in existing clause titles and tags (admin-only).
+
+    Renames titles like 'Taetigkeit' → 'Tätigkeit' and tags like 'kuendigung' → 'kündigung'.
+    Safe to run multiple times.
+    """
+    fixed_titles = 0
+    fixed_tags = 0
+
+    for old_title, new_title in UMLAUT_TITLE_MIGRATIONS.items():
+        result = await db.execute(
+            select(Clause).where(
+                Clause.title == old_title,
+                Clause.country_code == "DE",
+            )
+        )
+        clause = result.scalar_one_or_none()
+        if clause:
+            clause.title = new_title
+            fixed_titles += 1
+            logger.info(f"Fixed title: '{old_title}' → '{new_title}'")
+
+    # Fix tags on all DE clauses
+    result = await db.execute(
+        select(Clause).where(Clause.country_code == "DE")
+    )
+    clauses = result.scalars().all()
+    for clause in clauses:
+        if clause.tags:
+            new_tags = [UMLAUT_TAG_MIGRATIONS.get(t, t) for t in clause.tags]
+            if new_tags != clause.tags:
+                clause.tags = new_tags
+                fixed_tags += 1
+
+    await db.commit()
+
+    return {
+        "status": "success",
+        "titles_fixed": fixed_titles,
+        "tags_fixed": fixed_tags,
+    }
