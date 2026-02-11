@@ -58,11 +58,15 @@ def format_date_localized(value: Union[date, datetime, str], country_code: str) 
 
 
 def format_currency_localized(value: Union[float, int], country_code: str) -> str:
-    """Format currency according to country standards (e.g., 5.000,00 EUR)."""
+    """Format currency according to country standards (e.g., 5.000,00 €).
+
+    Returns formatted number with € symbol. Does NOT append 'EUR' to avoid
+    duplication when clause templates already contain 'EUR' after the placeholder.
+    """
     formatted = f"{value:,.2f}"
     # German/Italian style: swap . and ,
     formatted = formatted.replace(",", "X").replace(".", ",").replace("X", ".")
-    return f"{formatted} EUR"
+    return f"{formatted} €"
 
 
 def _guess_salutation(vorname: str, country_code: str = "DE") -> str:
