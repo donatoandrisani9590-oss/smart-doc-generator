@@ -8,8 +8,9 @@
  * - Toolbar mit Word-ähnlichen Funktionen
  */
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { Loader2, MessageSquarePlus, MessagesSquare, AlertTriangle } from "lucide-react";
+import type { Editor as TinyMCEEditor } from "tinymce";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -18,23 +19,59 @@ import {
     PopoverTrigger,
 } from "@/components/ui/popover";
 import { DocumentEditor } from "@/components/editor/DocumentEditor";
+import { StationeryCanvas } from "./StationeryCanvas";
+import { AIToolbar } from "./AIToolbar";
 import { useWizardContext } from "../WizardContext";
+import { useCountry } from "@/hooks/useCountry";
 import { WorkflowStepper } from "../WorkflowStepper";
 import { ComplianceRiskBanner } from "../ComplianceRiskBanner";
 
 export const RightEditorPanel = () => {
     const { state, actions } = useWizardContext();
+    const { country } = useCountry();
     const {
         previewHtml,
         editorContent,
         hasLocalEdits,
         isPreviewLoading,
         showCommentSidebar,
+        userTemplateId,
+        stationeryZones,
     } = state;
 
     // Quick comment popover state
     const [isAddCommentOpen, setIsAddCommentOpen] = useState(false);
     const [quickCommentText, setQuickCommentText] = useState("");
+
+    // Editor reference for AI toolbar text selection
+    const editorRef = useRef<TinyMCEEditor | null>(null);
+
+    // Callback to capture editor instance from DocumentEditor
+    const handleEditorInit = useCallback((editor: TinyMCEEditor) => {
+        editorRef.current = editor;
+    }, []);
+
+    // AI Toolbar callbacks
+    const getSelectedText = useCallback(() => {
+        if (!editorRef.current) return "";
+        return editorRef.current.selection.getContent({ format: "html" }) ||
+               editorRef.current.selection.getContent({ format: "text" }) || "";
+    }, []);
+
+    const replaceSelectedText = useCallback((newText: string) => {
+        if (!editorRef.current) return;
+        // Verify there's actually a selection to replace
+        const currentSelection = editorRef.current.selection.getContent({ format: "text" });
+        if (!currentSelection) {
+            // No selection — insert at cursor position instead
+            editorRef.current.insertContent(newText);
+        } else {
+            editorRef.current.selection.setContent(newText);
+        }
+        // Trigger content change
+        const content = editorRef.current.getContent();
+        actions.setEditorContent(content, true);
+    }, [actions]);
 
     // Content to display: use editorContent if available, otherwise previewHtml
     const displayContent = editorContent || previewHtml || "";
@@ -108,6 +145,18 @@ export const RightEditorPanel = () => {
                 </div>
 
                 <div className="flex items-center gap-1">
+                    {/* AI Refinement Toolbar */}
+                    <AIToolbar
+                        getSelectedText={getSelectedText}
+                        replaceSelectedText={replaceSelectedText}
+                        documentContext={state.documentTitle || undefined}
+                        countryCode={country}
+                        documentTypeId={state.documentTypeId}
+                    />
+
+                    {/* Separator */}
+                    <div className="w-px h-5 bg-warm-200 mx-1" />
+
                     {/* Add comment button with popover */}
                     <Popover open={isAddCommentOpen} onOpenChange={setIsAddCommentOpen}>
                         <PopoverTrigger asChild>
@@ -180,23 +229,33 @@ export const RightEditorPanel = () => {
                         {/* Compliance Risk Banner - proaktive Risikoerkennung */}
                         <ComplianceRiskBanner
                             contentHtml={displayContent}
-                            countryCode="DE"
+                            countryCode={country}
                             className="mb-4"
                         />
 
                         {/* A4 Paper Container with shadow */}
-                        <div
-                            className="bg-white rounded shadow-[0_2px_10px_rgba(0,0,0,0.15)]"
-                        >
-                            <DocumentEditor
+                        {userTemplateId && stationeryZones ? (
+                            <StationeryCanvas
+                                zones={stationeryZones}
                                 value={displayContent}
                                 onChange={handleEditorChange}
                                 onUserEdit={handleUserEdit}
+                                onEditorInit={handleEditorInit}
                                 isLoading={isPreviewLoading}
-                                className="split-screen-editor"
-                                compact
                             />
-                        </div>
+                        ) : (
+                            <div className="bg-white rounded shadow-[0_2px_10px_rgba(0,0,0,0.15)]">
+                                <DocumentEditor
+                                    value={displayContent}
+                                    onChange={handleEditorChange}
+                                    onUserEdit={handleUserEdit}
+                                    onEditorInit={handleEditorInit}
+                                    isLoading={isPreviewLoading}
+                                    className="split-screen-editor"
+                                    compact
+                                />
+                            </div>
+                        )}
                     </div>
                 )}
             </div>

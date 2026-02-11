@@ -162,3 +162,85 @@ def inject_freetext_into_template(
 def get_user_template_path(user_id: int, stored_filename: str) -> Path:
     """Get the full file path for a user template."""
     return USER_TEMPLATE_STORAGE / str(user_id) / stored_filename
+
+
+def extract_template_zones(template_path: Path) -> dict:
+    """
+    Extrahiert Header-/Footer-Bilder und Text aus einer DOCX-Vorlage.
+
+    Gibt base64-kodierte Bilder und Textinhalte zurueck, die fuer
+    die Canvas-Vorschau im Frontend verwendet werden koennen.
+
+    Args:
+        template_path: Pfad zur DOCX-Vorlage
+
+    Returns:
+        Dict mit header_images, footer_images, header_text, footer_text, page_margins
+    """
+    import base64
+    from docx.shared import Emu
+
+    doc = Document(str(template_path))
+    result = {
+        "header_images": [],
+        "footer_images": [],
+        "header_text": "",
+        "footer_text": "",
+        "page_margins": {
+            "top": 0,
+            "bottom": 0,
+            "left": 0,
+            "right": 0,
+        },
+    }
+
+    # Seitenraender extrahieren (EMU -> cm)
+    for section in doc.sections:
+        result["page_margins"] = {
+            "top": round(section.top_margin / 914400 * 2.54, 2) if section.top_margin else 1.27,
+            "bottom": round(section.bottom_margin / 914400 * 2.54, 2) if section.bottom_margin else 1.27,
+            "left": round(section.left_margin / 914400 * 2.54, 2) if section.left_margin else 1.27,
+            "right": round(section.right_margin / 914400 * 2.54, 2) if section.right_margin else 1.27,
+        }
+
+        # Header-Inhalt extrahieren
+        header = section.header
+        if header and header.paragraphs:
+            texts = []
+            for para in header.paragraphs:
+                if para.text.strip():
+                    texts.append(para.text.strip())
+            result["header_text"] = "\n".join(texts)
+
+        # Footer-Inhalt extrahieren
+        footer = section.footer
+        if footer and footer.paragraphs:
+            texts = []
+            for para in footer.paragraphs:
+                if para.text.strip():
+                    texts.append(para.text.strip())
+            result["footer_text"] = "\n".join(texts)
+
+    # Bilder aus dem DOCX-Paket extrahieren
+    try:
+        import zipfile
+        with zipfile.ZipFile(str(template_path), 'r') as zf:
+            # Alle Bilddateien finden
+            image_files = [n for n in zf.namelist() if n.startswith('word/media/')]
+
+            for img_name in image_files:
+                img_data = zf.read(img_name)
+                ext = img_name.rsplit('.', 1)[-1].lower()
+                mime = f"image/{ext}" if ext != 'jpg' else "image/jpeg"
+                b64 = base64.b64encode(img_data).decode('utf-8')
+
+                # Alle Bilder werden zunaechst als Header-Bilder behandelt.
+                # Das erste Bild ist in der Regel das Firmenlogo.
+                result["header_images"].append({
+                    "data": f"data:{mime};base64,{b64}",
+                    "filename": img_name.split('/')[-1],
+                })
+    except Exception as e:
+        logger.warning(f"Konnte Bilder nicht aus Vorlage extrahieren: {e}")
+
+    return result

@@ -8,6 +8,10 @@ Templates can be scoped as:
 - 'company': visible to all users (default)
 - 'team': visible to members of a specific team
 - 'private': visible only to the creator
+
+Template types:
+- 'stationery': Blanko-Briefpapier (nur Layout, Header/Footer)
+- 'content': Inhaltsvorlage (enthält bereits Text-Bausteine)
 """
 import os
 import re
@@ -18,7 +22,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Annotated, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Query
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, UploadFile, File, Query
 from fastapi.responses import FileResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, delete, or_, and_
@@ -69,6 +73,11 @@ async def _can_access_template(db: AsyncSession, template: UserTemplate, user: U
 
 def _template_to_dict(t: UserTemplate, current_user_id: int) -> dict:
     """Convert a UserTemplate to a response dict."""
+    # Thumbnail-URL konstruieren (falls vorhanden)
+    thumbnail_url = None
+    if t.thumbnail_path:
+        thumbnail_url = f"/api/v1/user-templates/{t.id}/thumbnail"
+
     return {
         "id": t.id,
         "name": t.name,
@@ -83,6 +92,9 @@ def _template_to_dict(t: UserTemplate, current_user_id: int) -> dict:
         "scope": t.scope,
         "team_id": t.team_id,
         "category": t.category,
+        "template_type": t.template_type,
+        "is_default": t.is_default,
+        "thumbnail_url": thumbnail_url,
         "is_own": t.user_id == current_user_id,
         "created_at": t.created_at.isoformat() if t.created_at else None,
         "updated_at": t.updated_at.isoformat() if t.updated_at else None,
@@ -166,6 +178,125 @@ def _analyze_docx(file_path: Path) -> dict:
         }
 
 
+def _generate_thumbnail_background(template_id: int, docx_path: Path, db_url: str):
+    """
+    Background-Task: Thumbnail generieren und Pfad in DB speichern.
+
+    Wird nach dem Upload asynchron ausgeführt, damit der Upload-Request
+    nicht auf die LibreOffice-Konvertierung warten muss.
+    """
+    from app.services.thumbnail_service import generate_thumbnail
+
+    thumb_path = generate_thumbnail(docx_path)
+    if thumb_path is None:
+        logger.warning(f"Thumbnail-Generierung für Template {template_id} fehlgeschlagen")
+        return
+
+    # Thumbnail-Pfad in DB speichern (synchron, da BackgroundTask)
+    try:
+        import asyncio
+        from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession as AS
+        from sqlalchemy.orm import sessionmaker
+
+        async def _save_path():
+            engine = create_async_engine(db_url, pool_size=1, max_overflow=0)
+            async_session = sessionmaker(engine, class_=AS, expire_on_commit=False)
+            try:
+                async with async_session() as session:
+                    template = await session.get(UserTemplate, template_id)
+                    if template:
+                        template.thumbnail_path = str(thumb_path)
+                        await session.commit()
+                        logger.info(f"Thumbnail-Pfad gespeichert für Template {template_id}")
+                    else:
+                        # Template wurde zwischenzeitlich gelöscht — Thumbnail-Datei aufräumen
+                        if thumb_path.exists():
+                            thumb_path.unlink(missing_ok=True)
+                            logger.info(f"Verwaistes Thumbnail gelöscht für Template {template_id}")
+            finally:
+                await engine.dispose()
+
+        asyncio.run(_save_path())
+    except Exception as e:
+        logger.error(f"Fehler beim Speichern des Thumbnail-Pfads: {e}")
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# FIXED-PATH ENDPOINTS (müssen VOR /{template_id} registriert werden)
+# ═══════════════════════════════════════════════════════════════════════════
+
+@router.get("/suggest")
+async def suggest_template(
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: AsyncSession = Depends(get_db),
+    country_code: Optional[str] = None,
+    category: Optional[str] = None,
+):
+    """
+    Schlägt die passende Standard-Briefpapier-Vorlage vor.
+
+    Logik:
+    1. Suche nach is_default=True für das Land/die Kategorie
+    2. Fallback: neueste Briefpapier-Vorlage für das Land
+    """
+    user_id_str = str(current_user.id)
+
+    # Zugriffsfilter (wie bei list)
+    team_ids_result = await db.execute(
+        select(TeamMember.team_id).where(TeamMember.user_id == user_id_str)
+    )
+    user_team_ids = [row[0] for row in team_ids_result.all()]
+
+    access_conditions = [
+        UserTemplate.user_id == current_user.id,
+        UserTemplate.scope == "company",
+    ]
+    if user_team_ids:
+        access_conditions.append(
+            and_(
+                UserTemplate.scope == "team",
+                UserTemplate.team_id.in_(user_team_ids),
+            )
+        )
+
+    # Nur Briefpapier-Vorlagen
+    base_filter = and_(
+        or_(*access_conditions),
+        UserTemplate.template_type == "stationery",
+    )
+
+    # 1. Versuch: Standard-Vorlage für Land/Kategorie
+    query = select(UserTemplate).where(
+        and_(base_filter, UserTemplate.is_default == True)
+    )
+    if country_code:
+        query = query.where(UserTemplate.country_code == country_code.upper())
+    if category:
+        query = query.where(UserTemplate.category == category)
+
+    result = await db.execute(query.limit(1))
+    template = result.scalar_one_or_none()
+
+    # 2. Fallback: neueste Briefpapier-Vorlage für das Land
+    if not template:
+        query = select(UserTemplate).where(base_filter)
+        if country_code:
+            query = query.where(UserTemplate.country_code == country_code.upper())
+        query = query.order_by(UserTemplate.created_at.desc())
+
+        result = await db.execute(query.limit(1))
+        template = result.scalar_one_or_none()
+
+    if not template:
+        return {"template": None, "message": "Keine passende Briefpapier-Vorlage gefunden"}
+
+    return {"template": _template_to_dict(template, current_user.id)}
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# LIST & CREATE
+# ═══════════════════════════════════════════════════════════════════════════
+
 @router.get("")
 async def list_user_templates(
     current_user: Annotated[User, Depends(get_current_user)],
@@ -174,6 +305,7 @@ async def list_user_templates(
     scope: Optional[str] = None,
     team_id: Optional[int] = None,
     category: Optional[str] = None,
+    template_type: Optional[str] = None,
 ):
     """List all templates accessible to the current user."""
     user_id_str = str(current_user.id)
@@ -210,6 +342,8 @@ async def list_user_templates(
         query = query.where(UserTemplate.team_id == team_id)
     if category:
         query = query.where(UserTemplate.category == category)
+    if template_type:
+        query = query.where(UserTemplate.template_type == template_type)
 
     result = await db.execute(query)
     templates = result.scalars().all()
@@ -222,6 +356,7 @@ async def list_user_templates(
 
 @router.post("")
 async def upload_user_template(
+    background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     name: str = Query(..., min_length=1, max_length=255, description="Name der Vorlage"),
     description: Optional[str] = Query(None, max_length=1000),
@@ -229,6 +364,7 @@ async def upload_user_template(
     scope: str = Query("company", pattern="^(company|team|private)$"),
     team_id: Optional[int] = Query(None),
     category: Optional[str] = Query(None, max_length=100),
+    template_type: str = Query("stationery", pattern="^(stationery|content)$"),
     current_user: Annotated[User, Depends(get_current_user)] = None,
     db: AsyncSession = Depends(get_db),
 ):
@@ -236,6 +372,7 @@ async def upload_user_template(
     Upload a new DOCX template.
 
     The template will be analyzed for headers, footers, logos and font.
+    For stationery templates, a thumbnail is generated in the background.
     """
     # Validate file type
     if not file.filename or not file.filename.lower().endswith('.docx'):
@@ -250,19 +387,19 @@ async def upload_user_template(
 
     # Validate magic bytes (DOCX is a ZIP file)
     if not content[:4] == DOCX_MAGIC:
-        raise HTTPException(status_code=400, detail="Ungueltige DOCX-Datei")
+        raise HTTPException(status_code=400, detail="Ungültige DOCX-Datei")
 
     # Validate country code if provided
     if country_code:
         country_code = country_code.upper()
         if not re.match(r'^[A-Z]{2}$', country_code):
-            raise HTTPException(status_code=400, detail="Ungueltiger Laendercode (2 Buchstaben)")
+            raise HTTPException(status_code=400, detail="Ungültiger Ländercode (2 Buchstaben)")
 
     # Validate scope + team_id combination
     if scope == "team" and not team_id:
-        raise HTTPException(status_code=400, detail="team_id ist erforderlich fuer Team-Vorlagen")
+        raise HTTPException(status_code=400, detail="team_id ist erforderlich für Team-Vorlagen")
     if scope != "team" and team_id:
-        raise HTTPException(status_code=400, detail="team_id nur fuer Team-Vorlagen erlaubt")
+        raise HTTPException(status_code=400, detail="team_id nur für Team-Vorlagen erlaubt")
 
     # Verify team membership if team scope
     if team_id:
@@ -290,7 +427,7 @@ async def upload_user_template(
 
     # Verify path is within storage directory (prevent traversal)
     if not file_path.resolve().is_relative_to(USER_TEMPLATE_STORAGE.resolve()):
-        raise HTTPException(status_code=400, detail="Ungueltiger Dateipfad")
+        raise HTTPException(status_code=400, detail="Ungültiger Dateipfad")
 
     # Save file
     async with aiofiles.open(file_path, 'wb') as f:
@@ -311,6 +448,7 @@ async def upload_user_template(
         scope=scope,
         team_id=team_id if scope == "team" else None,
         category=category,
+        template_type=template_type,
         has_header=metadata["has_header"],
         has_footer=metadata["has_footer"],
         has_logo=metadata["has_logo"],
@@ -320,10 +458,27 @@ async def upload_user_template(
     await db.commit()
     await db.refresh(template)
 
-    logger.info(f"User template uploaded: id={template.id}, user={current_user.id}, name={name}, scope={scope}")
+    logger.info(
+        f"User template uploaded: id={template.id}, user={current_user.id}, "
+        f"name={name}, scope={scope}, type={template_type}"
+    )
+
+    # Thumbnail im Hintergrund generieren (nur für Briefpapier)
+    if template_type == "stationery":
+        from app.core.config import settings
+        background_tasks.add_task(
+            _generate_thumbnail_background,
+            template.id,
+            file_path,
+            settings.DATABASE_URL,
+        )
 
     return _template_to_dict(template, current_user.id)
 
+
+# ═══════════════════════════════════════════════════════════════════════════
+# SINGLE TEMPLATE ENDPOINTS (/{template_id}/...)
+# ═══════════════════════════════════════════════════════════════════════════
 
 @router.get("/{template_id}")
 async def get_user_template(
@@ -368,6 +523,160 @@ async def download_user_template(
     )
 
 
+@router.get("/{template_id}/thumbnail")
+async def get_template_thumbnail(
+    template_id: int,
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Gibt das PNG-Thumbnail einer Briefpapier-Vorlage zurück.
+
+    Falls kein Thumbnail existiert, wird versucht es on-the-fly zu generieren.
+    """
+    template = await db.get(UserTemplate, template_id)
+    if not template:
+        raise HTTPException(status_code=404, detail="Vorlage nicht gefunden")
+
+    if not await _can_access_template(db, template, current_user):
+        raise HTTPException(status_code=404, detail="Vorlage nicht gefunden")
+
+    # Thumbnail-Pfad prüfen (mit Path-Traversal-Schutz)
+    thumb_path = None
+    if template.thumbnail_path:
+        thumb_path = Path(template.thumbnail_path).resolve()
+        # Sicherheitscheck: Pfad muss innerhalb des Storage-Verzeichnisses liegen
+        from app.services.thumbnail_service import THUMBNAIL_STORAGE
+        if not str(thumb_path).startswith(str(THUMBNAIL_STORAGE.resolve())):
+            logger.warning(f"Path traversal attempt: {template.thumbnail_path}")
+            thumb_path = None
+
+    # Falls kein Thumbnail vorhanden, on-the-fly generieren
+    if not thumb_path or not thumb_path.exists():
+        from app.services.thumbnail_service import generate_thumbnail
+
+        docx_path = USER_TEMPLATE_STORAGE / str(template.user_id) / template.stored_filename
+        if not docx_path.exists():
+            raise HTTPException(status_code=404, detail="Template-Datei nicht gefunden")
+
+        thumb_path = generate_thumbnail(docx_path)
+        if thumb_path is None:
+            raise HTTPException(
+                status_code=503,
+                detail="Thumbnail-Generierung fehlgeschlagen (LibreOffice nicht verfügbar?)"
+            )
+
+        # Pfad in DB speichern für nächstes Mal
+        template.thumbnail_path = str(thumb_path)
+        await db.commit()
+
+    return FileResponse(
+        str(thumb_path),
+        media_type="image/png",
+        filename=f"thumbnail_{template_id}.png",
+    )
+
+
+@router.get("/{template_id}/zones")
+async def get_template_zones(
+    template_id: int,
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Extrahiert Header-/Footer-Bilder, Text und Seitenränder aus einer DOCX-Vorlage.
+
+    Wird für die Canvas-Vorschau im Frontend verwendet.
+    """
+    template = await db.get(UserTemplate, template_id)
+    if not template:
+        raise HTTPException(status_code=404, detail="Vorlage nicht gefunden")
+
+    if not await _can_access_template(db, template, current_user):
+        raise HTTPException(status_code=404, detail="Vorlage nicht gefunden")
+
+    file_path = USER_TEMPLATE_STORAGE / str(template.user_id) / template.stored_filename
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="Template-Datei nicht gefunden")
+
+    from app.services.user_template_service import extract_template_zones
+    try:
+        zones = extract_template_zones(file_path)
+    except Exception as e:
+        logger.error(f"Fehler beim Extrahieren der Zonen aus Template {template_id}: {e}")
+        raise HTTPException(
+            status_code=422,
+            detail="Die DOCX-Datei konnte nicht verarbeitet werden. Möglicherweise ist sie beschädigt."
+        )
+
+    return {
+        "template_id": template.id,
+        "template_name": template.name,
+        **zones,
+    }
+
+
+@router.put("/{template_id}/default")
+async def set_default_template(
+    template_id: int,
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Markiert eine Briefpapier-Vorlage als Standard für ihr Land.
+
+    Entfernt is_default von allen anderen Vorlagen mit gleichem country_code.
+    Nur der Ersteller oder Nutzer mit company-scope dürfen das setzen.
+    """
+    template = await db.get(UserTemplate, template_id)
+    if not template:
+        raise HTTPException(status_code=404, detail="Vorlage nicht gefunden")
+
+    # Nur Owner oder company-scope Vorlagen können als Default gesetzt werden
+    is_owner = template.user_id == current_user.id
+    is_company_scope = template.scope == "company"
+
+    if not is_owner and not is_company_scope:
+        raise HTTPException(
+            status_code=403,
+            detail="Nur der Ersteller oder Admins können Standardvorlagen festlegen"
+        )
+
+    # Alle anderen Vorlagen mit gleichem country_code auf is_default=False setzen
+    country_filter = (
+        UserTemplate.country_code == template.country_code
+        if template.country_code is not None
+        else UserTemplate.country_code.is_(None)
+    )
+    unset_query = (
+        select(UserTemplate)
+        .where(
+            and_(
+                country_filter,
+                UserTemplate.is_default == True,
+                UserTemplate.id != template_id,
+                UserTemplate.template_type == "stationery",
+            )
+        )
+    )
+    result = await db.execute(unset_query)
+    other_defaults = result.scalars().all()
+    for other in other_defaults:
+        other.is_default = False
+
+    # Diese Vorlage als Standard setzen
+    template.is_default = True
+    await db.commit()
+    await db.refresh(template)
+
+    logger.info(
+        f"Template {template_id} als Standard gesetzt "
+        f"(country={template.country_code}, user={current_user.id})"
+    )
+
+    return _template_to_dict(template, current_user.id)
+
+
 @router.delete("/{template_id}")
 async def delete_user_template(
     template_id: int,
@@ -383,6 +692,12 @@ async def delete_user_template(
     file_path = USER_TEMPLATE_STORAGE / str(current_user.id) / template.stored_filename
     if file_path.exists():
         os.remove(file_path)
+
+    # Remove thumbnail if exists
+    if template.thumbnail_path:
+        thumb_path = Path(template.thumbnail_path)
+        if thumb_path.exists():
+            os.remove(thumb_path)
 
     # Remove DB record
     await db.delete(template)

@@ -56,6 +56,9 @@ interface DocumentEditorProps {
 
   /** Callback specifically for user-initiated edits (keyboard input, formatting) */
   onUserEdit?: (html: string) => void;
+
+  /** Callback to expose the TinyMCE editor instance */
+  onEditorInit?: (editor: TinyMCEEditor) => void;
 }
 
 // Compact single-line toolbar for split-screen mode
@@ -75,6 +78,7 @@ export const DocumentEditor = ({
   className,
   compact = false,
   onUserEdit,
+  onEditorInit,
 }: DocumentEditorProps) => {
   const editorRef = useRef<TinyMCEEditor | null>(null);
   const [isEditorReady, setIsEditorReady] = useState(false);
@@ -159,6 +163,7 @@ export const DocumentEditor = ({
         onInit={(_evt, editor) => {
           editorRef.current = editor;
           setIsEditorReady(true);
+          if (onEditorInit) onEditorInit(editor);
         }}
         initialValue={value}
         onEditorChange={handleEditorChange}

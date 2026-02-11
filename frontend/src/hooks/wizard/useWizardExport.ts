@@ -24,6 +24,8 @@ export interface UseWizardExportParams {
     selectedVariants: Record<number, { variantId: number; clauseId: number }>;
     selectedAttachmentIds: number[];
     userTemplateId: number | null;
+    editorContent: string;
+    hasLocalEdits: boolean;
     validateStep: (step: number) => boolean;
 }
 
@@ -50,6 +52,8 @@ export function useWizardExport(params: UseWizardExportParams): UseWizardExportR
         selectedVariants,
         selectedAttachmentIds,
         userTemplateId,
+        editorContent,
+        hasLocalEdits,
         validateStep,
     } = params;
 
@@ -93,6 +97,7 @@ export function useWizardExport(params: UseWizardExportParams): UseWizardExportR
                     attachment_ids: selectedAttachmentIds,
                     clause_ids: allClauseIds,
                     ...(userTemplateId ? { user_template_id: userTemplateId } : {}),
+                    ...(hasLocalEdits && editorContent ? { editor_html_content: editorContent } : {}),
                 }),
             });
 
@@ -122,7 +127,7 @@ export function useWizardExport(params: UseWizardExportParams): UseWizardExportR
             exportLockRef.current = false;
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [documentTypeId, documentClauses, selectedVariants, formData, dynamicFormValues, selectedAttachmentIds, userTemplateId, documentTitle, validateStep]);
+    }, [documentTypeId, documentClauses, selectedVariants, formData, dynamicFormValues, selectedAttachmentIds, userTemplateId, editorContent, hasLocalEdits, documentTitle, validateStep]);
 
     return {
         isGenerating,

@@ -28,6 +28,7 @@ import { FormFieldsSection } from "./FormFieldsSection";
 import { ClauseSelectionSection } from "./ClauseSelectionSection";
 import { ActionBar } from "./ActionBar";
 import { AttachmentSelector } from "../AttachmentSelector";
+import { StationeryPicker } from "./StationeryPicker";
 import { DocumentStatusBadge, useDocumentStatus } from "@/components/documents/DocumentStatusBadge";
 
 interface DocumentType {
@@ -79,6 +80,20 @@ export const LeftControlPanel = ({ documentTypes }: LeftControlPanelProps) => {
                     onChange={(e) => actions.setDocumentTitle(e.target.value)}
                     placeholder="Dokumenttitel eingeben..."
                     className="font-medium text-sm h-9"
+                />
+            </div>
+
+            {/* Briefpapier-Auswahl */}
+            <div className="px-3 py-2.5 border-b border-warm-100">
+                <StationeryPicker
+                    value={state.userTemplateId}
+                    onChange={(id) => {
+                        actions.setUserTemplateId(id);
+                        if (id) {
+                            actions.loadStationeryZones(id);
+                        }
+                    }}
+                    countryCode={documentCountryCode}
                 />
             </div>
 

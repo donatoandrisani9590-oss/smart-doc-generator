@@ -31,6 +31,7 @@ import {
     Search,
     Bot,
     LayoutTemplate,
+    Stamp,
 } from "lucide-react";
 import { SettingsCommandPalette } from "@/components/settings/SettingsCommandPalette";
 
@@ -51,6 +52,7 @@ const TemplatePreviewPage = lazy(() => import("./admin/TemplatePreviewPage").the
 const FeatureSettingsPanel = lazy(() => import("@/components/settings/FeatureSettingsPanel").then(m => ({ default: m.FeatureSettingsPanel })));
 const CopilotStudioSettings = lazy(() => import("@/components/settings/CopilotStudioSettings").then(m => ({ default: m.CopilotStudioSettings })));
 const UserTemplatesPage = lazy(() => import("./admin/UserTemplatesPage").then(m => ({ default: m.UserTemplatesPage })));
+const StationeryGalleryPage = lazy(() => import("./admin/StationeryGalleryPage").then(m => ({ default: m.StationeryGalleryPage })));
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Navigation Structure - 6 Groups, 16 Items
@@ -95,6 +97,7 @@ const SETTINGS_NAV: SettingsNavGroup[] = [
         label: "Design & Layout",
         items: [
             { id: "design", label: "Branding", icon: Palette, component: DesignManager },
+            { id: "stationery", label: "Briefpapier", icon: Stamp, component: StationeryGalleryPage },
             { id: "designer", label: "Layout-Editor", icon: Layout, component: DocumentDesigner },
             { id: "preview", label: "Vorschau", icon: Eye, component: TemplatePreviewPage },
         ],

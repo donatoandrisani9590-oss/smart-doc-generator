@@ -58,7 +58,7 @@ from app.api.v1.endpoints.admin import (
 from app.api.v1.endpoints import user_templates
 
 # Smart UX
-from app.api.v1.endpoints.smart import composer, smart_mode, compliance, clause_ai_selection
+from app.api.v1.endpoints.smart import composer, smart_mode, compliance, clause_ai_selection, refine
 
 # Integration (Copilot Studio, Power Platform)
 from app.api.v1.endpoints.integration import actions, webhooks, copilot_studio
@@ -527,6 +527,9 @@ app.include_router(smart_mode.router, prefix=f"{settings.API_V1_STR}/smart-mode"
 
 # AI Clause Selection - Bridges user clauses to LLM (v4.3)
 app.include_router(clause_ai_selection.router, prefix=f"{settings.API_V1_STR}", tags=["clause-ai"])
+
+# AI Text Refinement (Inline Editor)
+app.include_router(refine.router, prefix=f"{settings.API_V1_STR}", tags=["smart-refine"])
 
 # User Feature Settings (Toggles)
 app.include_router(feature_settings.router, prefix=f"{settings.API_V1_STR}/feature-settings", tags=["feature-settings"])

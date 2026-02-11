@@ -17,6 +17,7 @@ import {
     initialFormData,
 } from "@/components/generator/WizardContext";
 import { getStorageKey } from "./wizard/types";
+import { apiFetch } from "@/lib/api-client";
 import {
     useWizardNavigation,
     useWizardFormData,
@@ -97,24 +98,57 @@ export function useDocumentWizard(initialDraftId?: number): WizardContextValue {
 
     // ── 7. User Template Selection (optional layout template) ──────────────
 
-    const [userTemplateId, setUserTemplateId] = useState<number | null>(null);
+    const [userTemplateId, setUserTemplateIdState] = useState<number | null>(null);
 
-    // ── 8. Export ────────────────────────────────────────────────────────────
+    // ── 7b. Stationery Zones (Header/Footer from Blanko template) ────────
 
-    const exportHook = useWizardExport({
-        documentTypeId: form.documentTypeId,
-        documentTitle: form.documentTitle,
-        formData: form.formData,
-        dynamicFormValues: form.dynamicFormValues,
-        documentClauses: clauses.documentClauses,
-        selectedVariants: clauses.selectedVariants,
-        selectedAttachmentIds: clauses.selectedAttachmentIds,
-        userTemplateId,
-        validateStep: nav.validateStep,
-    });
+    const [stationeryZones, setStationeryZones] = useState<WizardState["stationeryZones"]>(null);
 
-    // ── 9. Split-Screen Editor State ────────────────────────────────────────
-    //    Kept here because it is small and tightly coupled to previewHtml.
+    const loadStationeryZones = useCallback(async (templateId: number) => {
+        try {
+            const response = await apiFetch(`/api/v1/user-templates/${templateId}/zones`);
+            if (response.ok) {
+                const data: {
+                    template_id: number;
+                    template_name: string;
+                    header_images: Array<{ data: string; filename: string }>;
+                    footer_images: Array<{ data: string; filename: string }>;
+                    header_text: string;
+                    footer_text: string;
+                    page_margins: { top: number; bottom: number; left: number; right: number };
+                } = await response.json();
+                setStationeryZones({
+                    headerImages: data.header_images || [],
+                    footerImages: data.footer_images || [],
+                    headerText: data.header_text || "",
+                    footerText: data.footer_text || "",
+                    pageMargins: data.page_margins || { top: 1.27, bottom: 1.27, left: 1.27, right: 1.27 },
+                });
+            } else {
+                // Template nicht gefunden oder Zugriff verweigert
+                console.warn(`Briefpapier-Zonen konnten nicht geladen werden (HTTP ${response.status})`);
+                setStationeryZones(null);
+                // Template-Auswahl zurücksetzen, falls 404
+                if (response.status === 404) {
+                    setUserTemplateIdState(null);
+                }
+            }
+        } catch {
+            // Zones are optional, don't block document creation
+            setStationeryZones(null);
+        }
+    }, []);
+
+    // Clear zones when template is unselected
+    const handleSetUserTemplateId = useCallback((id: number | null) => {
+        setUserTemplateIdState(id);
+        if (!id) {
+            setStationeryZones(null);
+        }
+    }, []);
+
+    // ── 8. Split-Screen Editor State ────────────────────────────────────────
+    //    Declared before Export so editorContent/hasLocalEdits can be passed.
 
     const [editorContent, setEditorContentState] = useState("");
     const [hasLocalEdits, setHasLocalEdits] = useState(false);
@@ -144,6 +178,22 @@ export function useDocumentWizard(initialDraftId?: number): WizardContextValue {
         setShowCommentSidebar(prev => !prev);
     }, []);
 
+    // ── 9. Export ────────────────────────────────────────────────────────────
+
+    const exportHook = useWizardExport({
+        documentTypeId: form.documentTypeId,
+        documentTitle: form.documentTitle,
+        formData: form.formData,
+        dynamicFormValues: form.dynamicFormValues,
+        documentClauses: clauses.documentClauses,
+        selectedVariants: clauses.selectedVariants,
+        selectedAttachmentIds: clauses.selectedAttachmentIds,
+        userTemplateId,
+        editorContent,
+        hasLocalEdits,
+        validateStep: nav.validateStep,
+    });
+
     // ── 10. Utility: clearForm ──────────────────────────────────────────────
 
     const clearForm = useCallback(() => {
@@ -155,6 +205,7 @@ export function useDocumentWizard(initialDraftId?: number): WizardContextValue {
         setEditorContentState("");
         setHasLocalEdits(false);
         commentsHook.setComments([]);
+        setStationeryZones(null);
 
         if (form.documentTypeId) {
             localStorage.removeItem(getStorageKey(form.documentTypeId));
@@ -175,6 +226,7 @@ export function useDocumentWizard(initialDraftId?: number): WizardContextValue {
         documentTitle: form.documentTitle,
         loadedDraftId: drafts.loadedDraftId,
         userTemplateId,
+        stationeryZones,
         // Form
         formData: form.formData,
         dynamicFormValues: form.dynamicFormValues,
@@ -217,7 +269,8 @@ export function useDocumentWizard(initialDraftId?: number): WizardContextValue {
         // Document / Form
         setDocumentType: form.setDocumentType,
         setDocumentTitle: form.setDocumentTitle,
-        setUserTemplateId,
+        setUserTemplateId: handleSetUserTemplateId,
+        loadStationeryZones,
         updateFormField: form.updateFormField,
         updateDynamicField: form.updateDynamicField,
         setFormData: form.setFormData,

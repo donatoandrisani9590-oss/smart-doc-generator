@@ -34,6 +34,11 @@ class UserTemplate(Base):
     team_id = Column(Integer, ForeignKey("teams.id", ondelete="SET NULL"), nullable=True, index=True)
     category = Column(String(100), nullable=True, index=True)  # z.B. "HR", "Recht", "Finanzen"
 
+    # Briefpapier vs. Inhaltsvorlage
+    template_type = Column(String(20), default="stationery", server_default="stationery", nullable=False, index=True)
+    is_default = Column(Boolean, default=False, server_default="false", nullable=False)
+    thumbnail_path = Column(String(500), nullable=True)
+
     # Metadaten aus DOCX-Analyse
     has_header = Column(Boolean, default=False)
     has_footer = Column(Boolean, default=False)
