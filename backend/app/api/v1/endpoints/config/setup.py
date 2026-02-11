@@ -514,3 +514,440 @@ async def fix_clause_umlauts(
         "titles_fixed": fixed_titles,
         "tags_fixed": fixed_tags,
     }
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# CLAUSE SEEDING - Professional Kündigung Arbeitnehmer clauses
+# ══════════════════════════════════════════════════════════════════════════════
+
+KUENDIGUNG_CLAUSES = [
+    {
+        "title": "Kündigungserklärung",
+        "content_html": '<p><strong>&sect; 1 K&uuml;ndigungserkl&auml;rung</strong></p><p>Sehr geehrte/r Frau/Herr <strong>[vorname] [nachname]</strong>,</p><p>hiermit k&uuml;ndigen wir das zwischen Ihnen und unserem Unternehmen bestehende Arbeitsverh&auml;ltnis ordentlich und fristgerecht zum n&auml;chstm&ouml;glichen Termin.</p>',
+        "category": "Arbeitsrecht", "tags": ["kündigung", "kündigungserklärung"], "tone": "neutral",
+        "is_mandatory": True, "display_order": 1,
+    },
+    {
+        "title": "Kündigungsfrist und letzter Arbeitstag",
+        "content_html": '<p><strong>&sect; 2 K&uuml;ndigungsfrist und letzter Arbeitstag</strong></p><p>Unter Einhaltung der vertraglichen bzw. gesetzlichen K&uuml;ndigungsfrist gem&auml;&szlig; &sect; 622 BGB endet Ihr Arbeitsverh&auml;ltnis mit Ablauf des in der K&uuml;ndigung genannten Termins. Ihr Arbeitsverh&auml;ltnis besteht seit dem <strong>[eintrittsdatum]</strong>.</p>',
+        "category": "Arbeitsrecht", "tags": ["kündigungsfrist", "letzter arbeitstag"], "tone": "neutral",
+        "is_mandatory": True, "display_order": 2,
+    },
+    {
+        "title": "Freistellung",
+        "content_html": '<p><strong>&sect; 3 Freistellung</strong></p><p>Wir stellen Sie ab sofort unwiderruflich von der Erbringung Ihrer Arbeitsleistung frei. Die Freistellung erfolgt unter Fortzahlung der vereinbarten Verg&uuml;tung und unter Anrechnung etwaiger Resturlaubs- und &Uuml;berstundenanspr&uuml;che.</p>',
+        "category": "Arbeitsrecht", "tags": ["freistellung"], "tone": "neutral",
+        "is_mandatory": False, "display_order": 3,
+        "clause_type": "conditional",
+        "condition": '{"field": "freistellung", "operator": "=", "value": true}',
+    },
+    {
+        "title": "Resturlaub und Überstunden",
+        "content_html": '<p><strong>&sect; 4 Resturlaub und &Uuml;berstunden</strong></p><p>Etwaige Resturlaubsanspr&uuml;che werden Ihnen w&auml;hrend der K&uuml;ndigungsfrist gew&auml;hrt bzw. bei Freistellung auf diese angerechnet. Verbleibende &Uuml;berstunden werden ebenfalls w&auml;hrend der K&uuml;ndigungsfrist abgebaut oder mit der letzten Gehaltsabrechnung verg&uuml;tet.</p>',
+        "category": "Arbeitsrecht", "tags": ["resturlaub", "überstunden"], "tone": "neutral",
+        "is_mandatory": True, "display_order": 4,
+    },
+    {
+        "title": "Arbeitspapiere und Zeugnis",
+        "content_html": '<p><strong>&sect; 5 Arbeitspapiere und Zeugnis</strong></p><p>Sie erhalten sp&auml;testens am letzten Arbeitstag alle Ihnen zustehenden Arbeitspapiere (Lohnsteuerbescheinigung, Sozialversicherungsnachweis, ggf. Arbeitsbescheinigung nach &sect; 312 SGB III). Auf Wunsch stellen wir Ihnen ein qualifiziertes Arbeitszeugnis aus.</p>',
+        "category": "Arbeitsrecht", "tags": ["arbeitspapiere", "zeugnis"], "tone": "neutral",
+        "is_mandatory": True, "display_order": 5,
+    },
+    {
+        "title": "Rückgabe von Firmeneigentum",
+        "content_html": '<p><strong>&sect; 6 R&uuml;ckgabe von Firmeneigentum</strong></p><p>Wir bitten Sie, s&auml;mtliches Firmeneigentum (Schl&uuml;ssel, Zugangsausweise, Laptop, Mobiltelefon, Unterlagen und sonstige Gegenst&auml;nde) sp&auml;testens am letzten Arbeitstag vollst&auml;ndig an uns zur&uuml;ckzugeben.</p>',
+        "category": "Arbeitsrecht", "tags": ["firmeneigentum", "rückgabe"], "tone": "neutral",
+        "is_mandatory": True, "display_order": 6,
+    },
+    {
+        "title": "Hinweis auf Meldepflicht bei der Arbeitsagentur",
+        "content_html": '<p><strong>&sect; 7 Hinweis auf Meldepflicht bei der Arbeitsagentur</strong></p><p>Gem&auml;&szlig; &sect; 38 Abs. 1 SGB III sind Sie verpflichtet, sich unverz&uuml;glich, sp&auml;testens jedoch drei Monate vor Beendigung des Arbeitsverh&auml;ltnisses, pers&ouml;nlich bei der Agentur f&uuml;r Arbeit arbeitsuchend zu melden. Sofern zwischen der Kenntnis des Beendigungszeitpunkts und der Beendigung weniger als drei Monate liegen, hat die Meldung innerhalb von drei Tagen zu erfolgen.</p><p>Bei versp&auml;teter Meldung kann eine Sperrzeit beim Bezug von Arbeitslosengeld eintreten.</p>',
+        "category": "Arbeitsrecht", "tags": ["meldepflicht", "arbeitsagentur", "sgb"], "tone": "neutral",
+        "is_mandatory": True, "display_order": 7,
+        "is_order_locked": True,
+    },
+]
+
+
+@router.post("/seed-kuendigung-clauses")
+async def seed_kuendigung_clauses(
+    current_user: Annotated[User, Depends(deps.get_current_active_admin)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+):
+    """
+    Seed professional Kündigung Arbeitnehmer clauses (admin-only).
+
+    Creates 7 standard German termination letter clauses and links them
+    to the Kündigung Arbeitnehmer document type. Safe to run multiple times.
+    """
+    result = await db.execute(
+        select(DocumentType).where(
+            DocumentType.name.ilike("%kündigung%"),
+            DocumentType.country_code == "DE",
+        )
+    )
+    doc_type = result.scalar_one_or_none()
+
+    if not doc_type:
+        doc_type = DocumentType(
+            name="Kündigung Arbeitnehmer",
+            country_code="DE",
+            category="Beendigung",
+            is_active=True,
+        )
+        db.add(doc_type)
+        await db.flush()
+        logger.info(f"Created DocumentType 'Kündigung Arbeitnehmer' (ID: {doc_type.id})")
+
+    created = 0
+    updated = 0
+    linked = 0
+
+    for clause_data in KUENDIGUNG_CLAUSES:
+        existing = await db.execute(
+            select(Clause).where(
+                Clause.title == clause_data["title"],
+                Clause.country_code == "DE",
+            )
+        )
+        clause = existing.scalar_one_or_none()
+
+        if clause:
+            clause.content_html = clause_data["content_html"]
+            clause.category = clause_data.get("category", "Arbeitsrecht")
+            clause.tags = clause_data.get("tags", [])
+            clause.tone = clause_data.get("tone", "neutral")
+            clause.is_active = True
+            updated += 1
+        else:
+            clause = Clause(
+                title=clause_data["title"],
+                content_html=clause_data["content_html"],
+                country_code="DE",
+                category=clause_data.get("category", "Arbeitsrecht"),
+                is_active=True,
+                tags=clause_data.get("tags", []),
+                tone=clause_data.get("tone", "neutral"),
+                approval_status="active",
+                user_id=None,
+            )
+            db.add(clause)
+            await db.flush()
+            created += 1
+
+        existing_link = await db.execute(
+            select(DocumentTypeClause).where(
+                DocumentTypeClause.document_type_id == doc_type.id,
+                DocumentTypeClause.clause_id == clause.id,
+            )
+        )
+        if not existing_link.scalar_one_or_none():
+            link = DocumentTypeClause(
+                document_type_id=doc_type.id,
+                clause_id=clause.id,
+                display_order=clause_data["display_order"],
+                is_mandatory=clause_data.get("is_mandatory", True),
+                clause_type=clause_data.get("clause_type", "standard"),
+                is_default_selected=True,
+                condition=clause_data.get("condition"),
+                is_order_locked=clause_data.get("is_order_locked", False),
+            )
+            db.add(link)
+            linked += 1
+
+    await db.commit()
+
+    return {
+        "status": "success",
+        "document_type_id": doc_type.id,
+        "clauses_created": created,
+        "clauses_updated": updated,
+        "links_created": linked,
+        "total_clauses": len(KUENDIGUNG_CLAUSES),
+    }
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# CLAUSE SEEDING - Professional Abmahnung clauses
+# ══════════════════════════════════════════════════════════════════════════════
+
+ABMAHNUNG_CLAUSES = [
+    {
+        "title": "Sachverhalt und Pflichtverletzung",
+        "content_html": '<p><strong>&sect; 1 Sachverhalt und Pflichtverletzung</strong></p><p>Sehr geehrte/r Frau/Herr <strong>[vorname] [nachname]</strong>,</p><p>wir m&uuml;ssen Sie hiermit wegen eines Versto&szlig;es gegen Ihre arbeitsvertraglichen Pflichten abmahnen.</p><p>Am <strong>[vorfall_datum]</strong> haben Sie folgende Pflichtverletzung begangen: Sie sind Ihrem Arbeitsplatz unentschuldigt ferngeblieben, ohne Ihren Vorgesetzten rechtzeitig zu informieren oder eine Arbeitsunf&auml;higkeitsbescheinigung vorzulegen.</p>',
+        "category": "Arbeitsrecht", "tags": ["abmahnung", "pflichtverletzung", "sachverhalt"], "tone": "streng",
+        "is_mandatory": True, "display_order": 1,
+    },
+    {
+        "title": "Vertragliche und gesetzliche Grundlage",
+        "content_html": '<p><strong>&sect; 2 Vertragliche und gesetzliche Grundlage</strong></p><p>Gem&auml;&szlig; Ihrem Arbeitsvertrag vom <strong>[eintrittsdatum]</strong> sind Sie als <strong>[position]</strong> verpflichtet, Ihre Arbeitsleistung ordnungsgem&auml;&szlig; zu erbringen und bei Verhinderung den Arbeitgeber unverz&uuml;glich zu benachrichtigen. Dieses Verhalten verst&ouml;&szlig;t gegen Ihre arbeitsvertraglichen Haupt- und Nebenpflichten gem&auml;&szlig; &sect;&sect; 611a, 241 Abs. 2 BGB.</p>',
+        "category": "Arbeitsrecht", "tags": ["vertragsgrundlage", "pflichten"], "tone": "streng",
+        "is_mandatory": True, "display_order": 2,
+    },
+    {
+        "title": "Aufforderung zur Verhaltensänderung",
+        "content_html": '<p><strong>&sect; 3 Aufforderung zur Verhaltens&auml;nderung</strong></p><p>Wir fordern Sie hiermit ausdr&uuml;cklich auf, das beanstandete Verhalten ab sofort zu unterlassen und Ihren arbeitsvertraglichen Pflichten k&uuml;nftig vollumf&auml;nglich nachzukommen. Insbesondere erwarten wir, dass Sie Ihre Arbeitszeiten zuverl&auml;ssig einhalten und im Verhinderungsfall unverz&uuml;glich Ihren Vorgesetzten informieren.</p>',
+        "category": "Arbeitsrecht", "tags": ["verhaltensänderung", "aufforderung"], "tone": "streng",
+        "is_mandatory": True, "display_order": 3,
+    },
+    {
+        "title": "Androhung arbeitsrechtlicher Konsequenzen",
+        "content_html": '<p><strong>&sect; 4 Androhung arbeitsrechtlicher Konsequenzen</strong></p><p>Wir weisen Sie ausdr&uuml;cklich darauf hin, dass wir im Wiederholungsfall oder bei vergleichbaren Verst&ouml;&szlig;en weitere arbeitsrechtliche Ma&szlig;nahmen ergreifen werden, die bis hin zur ordentlichen oder au&szlig;erordentlichen (fristlosen) K&uuml;ndigung des Arbeitsverh&auml;ltnisses reichen k&ouml;nnen.</p>',
+        "category": "Arbeitsrecht", "tags": ["konsequenzen", "androhung", "kündigung"], "tone": "streng",
+        "is_mandatory": True, "display_order": 4,
+    },
+    {
+        "title": "Empfangsbestätigung",
+        "content_html": '<p><strong>&sect; 5 Empfangsbest&auml;tigung</strong></p><p>Bitte best&auml;tigen Sie den Erhalt dieser Abmahnung durch Ihre Unterschrift. Die Unterschrift best&auml;tigt lediglich den Empfang und stellt kein Einverst&auml;ndnis mit dem Inhalt dar.</p><p>Eine Kopie dieser Abmahnung wird zu Ihrer Personalakte genommen.</p>',
+        "category": "Arbeitsrecht", "tags": ["empfangsbestätigung", "personalakte"], "tone": "neutral",
+        "is_mandatory": True, "display_order": 5,
+        "is_order_locked": True,
+    },
+]
+
+
+@router.post("/seed-abmahnung-clauses")
+async def seed_abmahnung_clauses(
+    current_user: Annotated[User, Depends(deps.get_current_active_admin)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+):
+    """
+    Seed professional Abmahnung clauses (admin-only).
+
+    Creates 5 standard German written warning clauses and links them
+    to the Abmahnung document type. Safe to run multiple times.
+    """
+    result = await db.execute(
+        select(DocumentType).where(
+            DocumentType.name.ilike("%abmahnung%"),
+            DocumentType.country_code == "DE",
+        )
+    )
+    doc_type = result.scalar_one_or_none()
+
+    if not doc_type:
+        doc_type = DocumentType(
+            name="Abmahnung",
+            country_code="DE",
+            category="Disziplinar",
+            is_active=True,
+        )
+        db.add(doc_type)
+        await db.flush()
+        logger.info(f"Created DocumentType 'Abmahnung' (ID: {doc_type.id})")
+
+    created = 0
+    updated = 0
+    linked = 0
+
+    for clause_data in ABMAHNUNG_CLAUSES:
+        existing = await db.execute(
+            select(Clause).where(
+                Clause.title == clause_data["title"],
+                Clause.country_code == "DE",
+            )
+        )
+        clause = existing.scalar_one_or_none()
+
+        if clause:
+            clause.content_html = clause_data["content_html"]
+            clause.category = clause_data.get("category", "Arbeitsrecht")
+            clause.tags = clause_data.get("tags", [])
+            clause.tone = clause_data.get("tone", "neutral")
+            clause.is_active = True
+            updated += 1
+        else:
+            clause = Clause(
+                title=clause_data["title"],
+                content_html=clause_data["content_html"],
+                country_code="DE",
+                category=clause_data.get("category", "Arbeitsrecht"),
+                is_active=True,
+                tags=clause_data.get("tags", []),
+                tone=clause_data.get("tone", "neutral"),
+                approval_status="active",
+                user_id=None,
+            )
+            db.add(clause)
+            await db.flush()
+            created += 1
+
+        existing_link = await db.execute(
+            select(DocumentTypeClause).where(
+                DocumentTypeClause.document_type_id == doc_type.id,
+                DocumentTypeClause.clause_id == clause.id,
+            )
+        )
+        if not existing_link.scalar_one_or_none():
+            link = DocumentTypeClause(
+                document_type_id=doc_type.id,
+                clause_id=clause.id,
+                display_order=clause_data["display_order"],
+                is_mandatory=clause_data.get("is_mandatory", True),
+                clause_type=clause_data.get("clause_type", "standard"),
+                is_default_selected=True,
+                condition=clause_data.get("condition"),
+                is_order_locked=clause_data.get("is_order_locked", False),
+            )
+            db.add(link)
+            linked += 1
+
+    await db.commit()
+
+    return {
+        "status": "success",
+        "document_type_id": doc_type.id,
+        "clauses_created": created,
+        "clauses_updated": updated,
+        "links_created": linked,
+        "total_clauses": len(ABMAHNUNG_CLAUSES),
+    }
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# CLAUSE SEEDING - Professional Arbeitszeugnis Qualifiziert clauses
+# ══════════════════════════════════════════════════════════════════════════════
+
+ARBEITSZEUGNIS_CLAUSES = [
+    {
+        "title": "Einleitung und Beschäftigungsdaten",
+        "content_html": '<p><strong>&sect; 1 Einleitung und Besch&auml;ftigungsdaten</strong></p><p>Frau/Herr <strong>[vorname] [nachname]</strong>, geboren am <strong>[geburtsdatum]</strong>, war in unserem Unternehmen vom <strong>[eintrittsdatum]</strong> bis zum <strong>[beschaeftigung_bis]</strong> als <strong>[position]</strong> besch&auml;ftigt.</p>',
+        "category": "Arbeitsrecht", "tags": ["zeugnis", "einleitung", "beschäftigungsdaten"], "tone": "neutral",
+        "is_mandatory": True, "display_order": 1,
+    },
+    {
+        "title": "Tätigkeitsbeschreibung",
+        "content_html": '<p><strong>&sect; 2 T&auml;tigkeitsbeschreibung</strong></p><p>Zu den Aufgaben von Frau/Herrn <strong>[nachname]</strong> geh&ouml;rten insbesondere:</p><ul><li>Eigenverantwortliche Bearbeitung aller Aufgaben im Bereich <strong>[position]</strong></li><li>Planung, Organisation und Durchf&uuml;hrung von Projekten im Zust&auml;ndigkeitsbereich</li><li>Zusammenarbeit mit internen Abteilungen und externen Partnern</li><li>Erstellung von Berichten, Analysen und Pr&auml;sentationen</li></ul>',
+        "category": "Arbeitsrecht", "tags": ["zeugnis", "tätigkeitsbeschreibung"], "tone": "neutral",
+        "is_mandatory": True, "display_order": 2,
+    },
+    {
+        "title": "Leistungsbeurteilung",
+        "content_html": '<p><strong>&sect; 3 Leistungsbeurteilung</strong></p><p>Frau/Herr <strong>[nachname]</strong> verf&uuml;gt &uuml;ber ein fundiertes und umfassendes Fachwissen, das stets auf dem neuesten Stand gehalten wurde. Neue Aufgabenstellungen wurden schnell und sicher erfasst und eigenst&auml;ndig umgesetzt.</p><p>Die Arbeitsergebnisse waren stets von sehr hoher Qualit&auml;t und &uuml;bertrafen regelm&auml;&szlig;ig die Erwartungen. Auch unter schwierigen Bedingungen und bei hohem Arbeitsaufkommen erzielte Frau/Herr [nachname] stets sehr gute Ergebnisse.</p><p>Frau/Herr [nachname] hat die &uuml;bertragenen Aufgaben stets zu unserer vollsten Zufriedenheit erf&uuml;llt.</p>',
+        "category": "Arbeitsrecht", "tags": ["zeugnis", "leistungsbeurteilung"], "tone": "arbeitnehmerfreundlich",
+        "is_mandatory": True, "display_order": 3,
+    },
+    {
+        "title": "Arbeitsweise",
+        "content_html": '<p><strong>&sect; 4 Arbeitsweise</strong></p><p>Frau/Herr <strong>[nachname]</strong> arbeitete stets &auml;u&szlig;erst zuverl&auml;ssig, gewissenhaft und selbstst&auml;ndig. Die Arbeitsweise zeichnete sich durch hohe Sorgfalt, Effizienz und ein ausgepr&auml;gtes Qualit&auml;tsbewusstsein aus. Auch komplexe Aufgaben wurden strukturiert und zielorientiert bearbeitet.</p>',
+        "category": "Arbeitsrecht", "tags": ["zeugnis", "arbeitsweise"], "tone": "arbeitnehmerfreundlich",
+        "is_mandatory": True, "display_order": 4,
+    },
+    {
+        "title": "Verhalten gegenüber Vorgesetzten, Kollegen und Kunden",
+        "content_html": '<p><strong>&sect; 5 Verhalten gegen&uuml;ber Vorgesetzten, Kollegen und Kunden</strong></p><p>Das Verhalten von Frau/Herrn <strong>[nachname]</strong> gegen&uuml;ber Vorgesetzten, Kolleginnen und Kollegen sowie externen Partnern und Kunden war jederzeit vorbildlich. Durch die freundliche, aufgeschlossene und kooperative Art wurde Frau/Herr [nachname] von allen sehr gesch&auml;tzt.</p>',
+        "category": "Arbeitsrecht", "tags": ["zeugnis", "verhalten", "sozialverhalten"], "tone": "arbeitnehmerfreundlich",
+        "is_mandatory": True, "display_order": 5,
+    },
+    {
+        "title": "Schlussformel und Zukunftswünsche",
+        "content_html": '<p><strong>&sect; 6 Schlussformel und Zukunftsw&uuml;nsche</strong></p><p>Frau/Herr <strong>[vorname] [nachname]</strong> verl&auml;sst unser Unternehmen auf eigenen Wunsch. Wir bedauern diese Entscheidung sehr und danken f&uuml;r die stets hervorragende und engagierte Zusammenarbeit.</p><p>F&uuml;r den weiteren beruflichen und pers&ouml;nlichen Lebensweg w&uuml;nschen wir Frau/Herrn [nachname] alles Gute und weiterhin viel Erfolg.</p>',
+        "category": "Arbeitsrecht", "tags": ["zeugnis", "schlussformel", "zukunftswünsche"], "tone": "arbeitnehmerfreundlich",
+        "is_mandatory": True, "display_order": 6,
+    },
+    {
+        "title": "Ausstellungsort und Datum",
+        "content_html": '<p><strong>&sect; 7 Ausstellungsort und Datum</strong></p><p>&nbsp;</p><p>Sulzberg, den ________________</p><p>&nbsp;</p><p>&nbsp;</p><p>____________________________________</p><p>Gesch&auml;ftsf&uuml;hrung</p>',
+        "category": "Arbeitsrecht", "tags": ["zeugnis", "ausstellungsort", "datum"], "tone": "neutral",
+        "is_mandatory": True, "display_order": 7,
+        "is_order_locked": True,
+    },
+]
+
+
+@router.post("/seed-zeugnis-clauses")
+async def seed_zeugnis_clauses(
+    current_user: Annotated[User, Depends(deps.get_current_active_admin)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+):
+    """
+    Seed professional Arbeitszeugnis Qualifiziert clauses (admin-only).
+
+    Creates 7 standard German qualified employment reference clauses and links them
+    to the Arbeitszeugnis Qualifiziert document type. Safe to run multiple times.
+    """
+    result = await db.execute(
+        select(DocumentType).where(
+            DocumentType.name.ilike("%arbeitszeugnis%qualifiziert%"),
+            DocumentType.country_code == "DE",
+        )
+    )
+    doc_type = result.scalar_one_or_none()
+
+    if not doc_type:
+        doc_type = DocumentType(
+            name="Arbeitszeugnis Qualifiziert",
+            country_code="DE",
+            category="Beendigung",
+            is_active=True,
+        )
+        db.add(doc_type)
+        await db.flush()
+        logger.info(f"Created DocumentType 'Arbeitszeugnis Qualifiziert' (ID: {doc_type.id})")
+
+    created = 0
+    updated = 0
+    linked = 0
+
+    for clause_data in ARBEITSZEUGNIS_CLAUSES:
+        existing = await db.execute(
+            select(Clause).where(
+                Clause.title == clause_data["title"],
+                Clause.country_code == "DE",
+            )
+        )
+        clause = existing.scalar_one_or_none()
+
+        if clause:
+            clause.content_html = clause_data["content_html"]
+            clause.category = clause_data.get("category", "Arbeitsrecht")
+            clause.tags = clause_data.get("tags", [])
+            clause.tone = clause_data.get("tone", "neutral")
+            clause.is_active = True
+            updated += 1
+        else:
+            clause = Clause(
+                title=clause_data["title"],
+                content_html=clause_data["content_html"],
+                country_code="DE",
+                category=clause_data.get("category", "Arbeitsrecht"),
+                is_active=True,
+                tags=clause_data.get("tags", []),
+                tone=clause_data.get("tone", "neutral"),
+                approval_status="active",
+                user_id=None,
+            )
+            db.add(clause)
+            await db.flush()
+            created += 1
+
+        existing_link = await db.execute(
+            select(DocumentTypeClause).where(
+                DocumentTypeClause.document_type_id == doc_type.id,
+                DocumentTypeClause.clause_id == clause.id,
+            )
+        )
+        if not existing_link.scalar_one_or_none():
+            link = DocumentTypeClause(
+                document_type_id=doc_type.id,
+                clause_id=clause.id,
+                display_order=clause_data["display_order"],
+                is_mandatory=clause_data.get("is_mandatory", True),
+                clause_type=clause_data.get("clause_type", "standard"),
+                is_default_selected=True,
+                condition=clause_data.get("condition"),
+                is_order_locked=clause_data.get("is_order_locked", False),
+            )
+            db.add(link)
+            linked += 1
+
+    await db.commit()
+
+    return {
+        "status": "success",
+        "document_type_id": doc_type.id,
+        "clauses_created": created,
+        "clauses_updated": updated,
+        "links_created": linked,
+        "total_clauses": len(ARBEITSZEUGNIS_CLAUSES),
+    }

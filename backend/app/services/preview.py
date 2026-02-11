@@ -131,7 +131,14 @@ def render_placeholders(content: str, form_data: dict, country_code: str = "DE")
         "beginn": "eintrittsdatum",
         "startdatum": "eintrittsdatum",
         "vertragsbeginn": "eintrittsdatum",
+        "beschaeftigung_von": "eintrittsdatum",
         "anrede": "_anrede",  # Special: computed field
+    }
+
+    # Date fields that don't contain "datum"/"date" in their name
+    DATE_FIELD_NAMES = {
+        "letzter_arbeitstag", "freistellung_ab", "vorfall_datum",
+        "beschaeftigung_von", "beschaeftigung_bis",
     }
 
     def replace_match(match: re.Match) -> str:
@@ -147,8 +154,9 @@ def render_placeholders(content: str, form_data: dict, country_code: str = "DE")
         if value is None:
             return f"[{placeholder}]"
         
-        # Date fields (check by name or type)
-        if "datum" in placeholder.lower() or "date" in placeholder.lower():
+        # Date fields (check by name pattern or explicit date field set)
+        placeholder_lower = placeholder.lower()
+        if "datum" in placeholder_lower or "date" in placeholder_lower or placeholder_lower in DATE_FIELD_NAMES:
             return format_date_localized(value, country_code)
         
         # Currency fields

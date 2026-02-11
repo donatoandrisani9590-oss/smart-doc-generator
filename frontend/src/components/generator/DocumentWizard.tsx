@@ -122,8 +122,13 @@ const WizardContent = ({ documentTypes }: DocumentWizardProps) => {
                     for (const [key, value] of Object.entries(initialData)) {
                         // Map common AI field names to form field names
                         const mappedKey = mapAIFieldToFormField(key);
+                        // Transform probezeit: number (e.g. 3) → Select string ("3 Monate")
+                        let transformedValue = value;
+                        if (mappedKey === "probezeit" && typeof value === "number") {
+                            transformedValue = value === 0 ? "Keine" : `${value} Monate`;
+                        }
                         if (knownFields.includes(mappedKey)) {
-                            formDataFields[mappedKey] = value;
+                            formDataFields[mappedKey] = transformedValue;
                         } else if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
                             actions.updateDynamicField(mappedKey, value);
                         }
