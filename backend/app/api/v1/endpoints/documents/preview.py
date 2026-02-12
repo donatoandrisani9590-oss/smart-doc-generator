@@ -166,7 +166,8 @@ async def generate_preview(
         clauses=clauses,
         form_data=request.form_data,
         country_code=country_code,
-        custom_clause=request.custom_clause
+        custom_clause=request.custom_clause,
+        document_type_name=doc_type.name,
     )
     
     return html

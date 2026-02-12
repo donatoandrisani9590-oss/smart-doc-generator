@@ -26,10 +26,19 @@ export interface FormData {
     wochenstunden: string;
     probezeit: string;
     urlaubstage: string;
+    entgeltgruppe: string;
+    kuendigungsfrist: string;
+    au_frist: string;
 
     // Zusatzleistungen
     firmenwagen: boolean;
     homeoffice: boolean;
+    jahressonderzahlung: boolean;
+    urlaubsgeld_pro_tag: string;
+    vwl_betrag: string;
+    schichtzuschlaege: boolean;
+    arbeitszeitkonto: boolean;
+    vertragsstrafe: boolean;
 
     // Unterschrift
     signatory_name: string;
@@ -258,8 +267,17 @@ export const initialFormData: FormData = {
     wochenstunden: "40",
     probezeit: "6 Monate",
     urlaubstage: "30",
+    entgeltgruppe: "",
+    kuendigungsfrist: "4 Wochen zum 15./Monatsende",
+    au_frist: "am ersten Kalendertag",
     firmenwagen: false,
     homeoffice: false,
+    jahressonderzahlung: true,
+    urlaubsgeld_pro_tag: "17",
+    vwl_betrag: "26,59",
+    schichtzuschlaege: false,
+    arbeitszeitkonto: false,
+    vertragsstrafe: true,
     signatory_name: "",
 };
 

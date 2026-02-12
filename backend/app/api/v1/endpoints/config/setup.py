@@ -234,113 +234,268 @@ async def migrate_schema(
 # ══════════════════════════════════════════════════════════════════════════════
 
 ARBEITSVERTRAG_CLAUSES = [
+    # ── § 1 Beginn und Dauer ──────────────────────────────────────────────
     {
         "title": "Beginn und Dauer des Arbeitsverhältnisses",
         "content_html": '<p><strong>&sect; 1 Beginn und Dauer des Arbeitsverh&auml;ltnisses</strong></p><p>Das Arbeitsverh&auml;ltnis beginnt am <strong>[eintrittsdatum]</strong> und wird auf unbestimmte Zeit geschlossen.</p>',
         "category": "Arbeitsrecht", "tags": ["beginn", "dauer"], "tone": "neutral",
         "is_mandatory": True, "display_order": 1,
     },
+    # ── § 2 Tarifvertragshinweis (NEU — NachwG § 2 Abs. 1 Nr. 14) ────────
+    {
+        "title": "Hinweis auf Tarifverträge und Betriebsvereinbarungen",
+        "content_html": '<p><strong>&sect; 2 Hinweis auf Tarifvertr&auml;ge und Betriebsvereinbarungen</strong></p>'
+            '<p>Auf das Arbeitsverh&auml;ltnis finden in ihrer jeweils g&uuml;ltigen Fassung Anwendung:</p>'
+            '<ul>'
+            '<li>der Haustarifvertrag zwischen der VF Verpackungen GmbH und der Industriegewerkschaft Bergbau, Chemie, Energie (IG&nbsp;BCE), Landesbezirk Bayern,</li>'
+            '<li>der jeweils g&uuml;ltige Lohn- und Gehaltstarifvertrag,</li>'
+            '<li>die betrieblichen Vereinbarungen in ihrer jeweiligen Fassung.</li>'
+            '</ul>'
+            '<p>Soweit dieser Vertrag keine abweichenden oder erg&auml;nzenden Regelungen enth&auml;lt, gelten die Bestimmungen der vorgenannten Tarifvertr&auml;ge und Betriebsvereinbarungen.</p>',
+        "category": "Arbeitsrecht", "tags": ["tarifvertrag", "igbce", "nachwg", "betriebsvereinbarung"], "tone": "neutral",
+        "is_mandatory": True, "display_order": 2,
+    },
+    # ── § 3 Probezeit (KORRIGIERT — TV Ziff. 63: schriftlich vereinbart) ──
     {
         "title": "Probezeit",
-        "content_html": '<p><strong>&sect; 2 Probezeit</strong></p><p>Die ersten <strong>[probezeit]</strong> des Arbeitsverh&auml;ltnisses gelten als Probezeit. W&auml;hrend der Probezeit kann das Arbeitsverh&auml;ltnis von beiden Seiten mit einer Frist von zwei Wochen gek&uuml;ndigt werden.</p>',
+        "content_html": '<p><strong>&sect; 3 Probezeit</strong></p>'
+            '<p>Die Probezeit wird hiermit schriftlich vereinbart. Die ersten <strong>[probezeit]</strong> des Arbeitsverh&auml;ltnisses gelten als Probezeit (Haustarifvertrag Ziff.&nbsp;63). '
+            'W&auml;hrend der Probezeit kann das Arbeitsverh&auml;ltnis von beiden Seiten mit einer Frist von zwei Wochen gek&uuml;ndigt werden (&sect;&nbsp;622 Abs.&nbsp;3 BGB).</p>',
         "category": "Arbeitsrecht", "tags": ["probezeit"], "tone": "neutral",
-        "is_mandatory": True, "display_order": 2,
+        "is_mandatory": True, "display_order": 3,
         "clause_type": "conditional",
         "condition": '{"field": "probezeit", "operator": "!=", "value": "Keine"}',
     },
+    # ── § 4 Tätigkeit und Aufgabengebiet ──────────────────────────────────
     {
         "title": "Tätigkeit und Aufgabengebiet",
-        "content_html": '<p><strong>&sect; 3 T&auml;tigkeit und Aufgabengebiet</strong></p><p>Der Arbeitnehmer wird als <strong>[position]</strong> eingestellt. Der Arbeitgeber beh&auml;lt sich vor, dem Arbeitnehmer im Rahmen des Direktionsrechts auch andere zumutbare T&auml;tigkeiten zuzuweisen, die seinen Kenntnissen und F&auml;higkeiten entsprechen.</p><p>Der Arbeitnehmer verpflichtet sich, die ihm &uuml;bertragenen Aufgaben gewissenhaft und sorgf&auml;ltig auszuf&uuml;hren und die Interessen des Arbeitgebers zu wahren.</p>',
+        "content_html": '<p><strong>&sect; 4 T&auml;tigkeit und Aufgabengebiet</strong></p>'
+            '<p>Der Arbeitnehmer wird als <strong>[position]</strong> eingestellt.</p>'
+            '<p>Der Arbeitgeber beh&auml;lt sich vor, dem Arbeitnehmer im Rahmen des Direktionsrechts auch andere zumutbare T&auml;tigkeiten zuzuweisen, die seinen Kenntnissen und F&auml;higkeiten entsprechen.</p>'
+            '<p>Der Arbeitnehmer verpflichtet sich, die ihm &uuml;bertragenen Aufgaben gewissenhaft und sorgf&auml;ltig auszuf&uuml;hren und die Interessen des Arbeitgebers zu wahren.</p>',
         "category": "Arbeitsrecht", "tags": ["tätigkeit", "position"], "tone": "neutral",
-        "is_mandatory": True, "display_order": 3,
-    },
-    {
-        "title": "Arbeitsort",
-        "content_html": '<p><strong>&sect; 4 Arbeitsort</strong></p><p>Der Arbeitsort ist der Sitz des Arbeitgebers. Der Arbeitgeber beh&auml;lt sich vor, den Arbeitnehmer auch an anderen Betriebsst&auml;tten oder bei Kunden einzusetzen, soweit dies zumutbar ist.</p>',
-        "category": "Arbeitsrecht", "tags": ["arbeitsort"], "tone": "neutral",
         "is_mandatory": True, "display_order": 4,
     },
+    # ── § 5 Eingruppierung (NEU — TV Ziff. 28, NachwG § 2 Abs. 1 Nr. 7) ─
     {
-        "title": "Arbeitszeit",
-        "content_html": '<p><strong>&sect; 5 Arbeitszeit</strong></p><p>Die regelm&auml;&szlig;ige w&ouml;chentliche Arbeitszeit betr&auml;gt <strong>[wochenstunden]</strong> Stunden, ohne Ber&uuml;cksichtigung der Pausen. Die Verteilung der Arbeitszeit richtet sich nach den betrieblichen Erfordernissen.</p><p>Der Arbeitnehmer erkl&auml;rt sich bereit, im Rahmen der gesetzlichen Bestimmungen &Uuml;berstunden zu leisten, soweit dies betrieblich erforderlich ist.</p>',
-        "category": "Arbeitsrecht", "tags": ["arbeitszeit", "wochenstunden"], "tone": "neutral",
+        "title": "Eingruppierung",
+        "content_html": '<p><strong>&sect; 5 Eingruppierung</strong></p>'
+            '<p>Der Arbeitnehmer wird gem&auml;&szlig; dem Haustarifvertrag (Ziff.&nbsp;28&ndash;29) in die Entgeltgruppe <strong>[entgeltgruppe]</strong> eingereiht. '
+            'Die Einreihung richtet sich nach der Lohn- und Gehaltsgruppeneinteilung des jeweils g&uuml;ltigen Lohn- und Gehaltstarifvertrages.</p>'
+            '<p>Eine &Auml;nderung der Eingruppierung erfolgt nach den tarifvertraglichen Bestimmungen.</p>',
+        "category": "Arbeitsrecht", "tags": ["eingruppierung", "entgeltgruppe", "tarifvertrag"], "tone": "neutral",
         "is_mandatory": True, "display_order": 5,
     },
+    # ── § 6 Arbeitsort ────────────────────────────────────────────────────
     {
-        "title": "Vergütung",
-        "content_html": '<p><strong>&sect; 6 Verg&uuml;tung</strong></p><p>Der Arbeitnehmer erh&auml;lt ein monatliches Bruttogehalt in H&ouml;he von <strong>[bruttogehalt]</strong>. Die Zahlung erfolgt bargeldlos jeweils zum Ende eines Kalendermonats auf ein vom Arbeitnehmer benanntes Konto.</p><p>Mit der vereinbarten Verg&uuml;tung sind etwaige &Uuml;berstunden bis zu einem Umfang von 10 % der vereinbarten w&ouml;chentlichen Arbeitszeit abgegolten.</p>',
-        "category": "Arbeitsrecht", "tags": ["vergütung", "gehalt", "bruttogehalt"], "tone": "neutral",
+        "title": "Arbeitsort",
+        "content_html": '<p><strong>&sect; 6 Arbeitsort</strong></p>'
+            '<p>Der Arbeitsort ist der Sitz des Arbeitgebers. Der Arbeitgeber beh&auml;lt sich vor, den Arbeitnehmer auch an anderen Betriebsst&auml;tten oder bei Kunden einzusetzen, soweit dies zumutbar ist.</p>',
+        "category": "Arbeitsrecht", "tags": ["arbeitsort"], "tone": "neutral",
         "is_mandatory": True, "display_order": 6,
     },
+    # ── § 7 Arbeitszeit ──────────────────────────────────────────────────
     {
-        "title": "Urlaub",
-        "content_html": '<p><strong>&sect; 7 Urlaub</strong></p><p>Der Arbeitnehmer hat Anspruch auf einen j&auml;hrlichen Erholungsurlaub von <strong>[urlaubstage]</strong> Arbeitstagen, bezogen auf eine 5-Tage-Woche. Der Urlaub ist grunds&auml;tzlich im laufenden Kalenderjahr zu nehmen.</p><p>Die zeitliche Festlegung des Urlaubs erfolgt unter Ber&uuml;cksichtigung der betrieblichen Belange und der W&uuml;nsche des Arbeitnehmers.</p>',
-        "category": "Arbeitsrecht", "tags": ["urlaub", "urlaubstage"], "tone": "arbeitnehmerfreundlich",
+        "title": "Arbeitszeit",
+        "content_html": '<p><strong>&sect; 7 Arbeitszeit</strong></p>'
+            '<p>Die regelm&auml;&szlig;ige w&ouml;chentliche Arbeitszeit betr&auml;gt <strong>[wochenstunden]</strong> Stunden ohne Ber&uuml;cksichtigung der Pausen (Haustarifvertrag Ziff.&nbsp;1). '
+            'Die Verteilung der Arbeitszeit richtet sich nach den betrieblichen Erfordernissen.</p>'
+            '<p>Der Arbeitnehmer erkl&auml;rt sich bereit, im Rahmen der gesetzlichen und tarifvertraglichen Bestimmungen Mehrarbeit zu leisten, soweit dies betrieblich erforderlich ist. '
+            'Mehrarbeit ist grunds&auml;tzlich durch Freizeit auszugleichen; hilfsweise erfolgt eine Verg&uuml;tung mit dem tarifvertraglichen Zuschlag (Haustarifvertrag Ziff.&nbsp;15&ndash;17).</p>',
+        "category": "Arbeitsrecht", "tags": ["arbeitszeit", "wochenstunden", "mehrarbeit"], "tone": "neutral",
         "is_mandatory": True, "display_order": 7,
     },
+    # ── § 8 Arbeitszeitkonto (NEU — conditional) ─────────────────────────
     {
-        "title": "Krankheit und Arbeitsverhinderung",
-        "content_html": '<p><strong>&sect; 8 Krankheit und Arbeitsverhinderung</strong></p><p>Im Falle der Arbeitsunf&auml;higkeit durch Krankheit ist der Arbeitnehmer verpflichtet, den Arbeitgeber unverz&uuml;glich zu informieren. Eine &auml;rztliche Arbeitsunf&auml;higkeitsbescheinigung ist sp&auml;testens am dritten Tag der Erkrankung vorzulegen.</p><p>Die Entgeltfortzahlung im Krankheitsfall richtet sich nach den gesetzlichen Bestimmungen.</p>',
-        "category": "Arbeitsrecht", "tags": ["krankheit", "krankmeldung"], "tone": "neutral",
-        "is_mandatory": True, "display_order": 8,
+        "title": "Arbeitszeitkonto",
+        "content_html": '<p><strong>&sect; 8 Arbeitszeitkonto</strong></p>'
+            '<p>F&uuml;r den Arbeitnehmer wird ein Arbeitszeitkonto gef&uuml;hrt. Auf dem Arbeitszeitkonto wird die Differenz zwischen der tats&auml;chlich geleisteten und der regelm&auml;&szlig;igen Arbeitszeit erfasst.</p>'
+            '<p>Plus- und Minusstunden sind innerhalb eines Ausgleichszeitraums von zw&ouml;lf Monaten auszugleichen. '
+            'N&auml;heres regelt die betriebliche Vereinbarung zum Arbeitszeitkonto.</p>',
+        "category": "Arbeitsrecht", "tags": ["arbeitszeitkonto", "arbeitszeit", "gleitzeitkonto"], "tone": "neutral",
+        "is_mandatory": False, "display_order": 8,
+        "clause_type": "conditional",
+        "condition": '{"field": "arbeitszeitkonto", "operator": "=", "value": true}',
     },
+    # ── § 9 Vergütung (KORRIGIERT — ohne Pauschalabgeltung, mit TV-Leistungen) ─
     {
-        "title": "Verschwiegenheitspflicht",
-        "content_html": '<p><strong>&sect; 9 Verschwiegenheitspflicht</strong></p><p>Der Arbeitnehmer verpflichtet sich, &uuml;ber alle Betriebs- und Gesch&auml;ftsgeheimnisse sowie vertrauliche Informationen Stillschweigen zu bewahren. Diese Verschwiegenheitspflicht gilt auch nach Beendigung des Arbeitsverh&auml;ltnisses.</p>',
-        "category": "Arbeitsrecht", "tags": ["verschwiegenheit", "geheimhaltung"], "tone": "streng",
+        "title": "Vergütung",
+        "content_html": '<p><strong>&sect; 9 Verg&uuml;tung</strong></p>'
+            '<p>Der Arbeitnehmer erh&auml;lt ein monatliches Bruttogehalt in H&ouml;he von <strong>[bruttogehalt]</strong> gem&auml;&szlig; der tarifvertraglichen Eingruppierung. '
+            'Die Zahlung erfolgt bargeldlos jeweils zum Ende eines Kalendermonats auf ein vom Arbeitnehmer benanntes Konto.</p>'
+            '<p>Der Arbeitnehmer erh&auml;lt dar&uuml;ber hinaus eine Jahressonderzahlung (13.&nbsp;Monatsgehalt) gem&auml;&szlig; den Bestimmungen des Haustarifvertrages (Ziff.&nbsp;48&ndash;52). '
+            'Die Auszahlung erfolgt mit dem Novembergehalt.</p>'
+            '<p>Der Arbeitnehmer erh&auml;lt ein zus&auml;tzliches Urlaubsgeld in H&ouml;he von <strong>[urlaubsgeld_pro_tag]&nbsp;&euro;</strong> je Urlaubstag (Haustarifvertrag Ziff.&nbsp;53&ndash;54). '
+            'Das Urlaubsgeld wird mit der Gehaltsabrechnung f&uuml;r den Monat Juni ausgezahlt.</p>'
+            '<p>Der Arbeitgeber zahlt verm&ouml;genswirksame Leistungen in H&ouml;he von <strong>[vwl_betrag]&nbsp;&euro;</strong> brutto monatlich (Haustarifvertrag Ziff.&nbsp;55).</p>',
+        "category": "Arbeitsrecht", "tags": ["vergütung", "gehalt", "bruttogehalt", "jahressonderzahlung", "urlaubsgeld", "vwl"], "tone": "neutral",
         "is_mandatory": True, "display_order": 9,
     },
+    # ── § 10 Zuschläge (NEU — conditional, TV Ziff. 20) ──────────────────
     {
-        "title": "Nebentätigkeit",
-        "content_html": '<p><strong>&sect; 10 Nebent&auml;tigkeit</strong></p><p>Jede entgeltliche oder zeitlich umfangreiche Nebent&auml;tigkeit bedarf der vorherigen schriftlichen Zustimmung des Arbeitgebers. Die Zustimmung ist zu erteilen, wenn berechtigte Interessen des Arbeitgebers nicht beeintr&auml;chtigt werden.</p>',
-        "category": "Arbeitsrecht", "tags": ["nebentätigkeit"], "tone": "neutral",
-        "is_mandatory": True, "display_order": 10,
+        "title": "Zuschläge für Mehr-, Nacht-, Sonn- und Feiertagsarbeit",
+        "content_html": '<p><strong>&sect; 10 Zuschl&auml;ge f&uuml;r Mehr-, Nacht-, Sonn- und Feiertagsarbeit</strong></p>'
+            '<p>F&uuml;r besondere Arbeitszeiten erh&auml;lt der Arbeitnehmer folgende Zuschl&auml;ge gem&auml;&szlig; Haustarifvertrag (Ziff.&nbsp;20):</p>'
+            '<ul>'
+            '<li>Mehrarbeit: 25&nbsp;% Zuschlag</li>'
+            '<li>Nachtarbeit (regul&auml;re Nachtschicht): 25&nbsp;% Zuschlag</li>'
+            '<li>Nachtarbeit (Einzel-Nachtarbeit, nicht in Schichtplan): 40&nbsp;% Zuschlag</li>'
+            '<li>Sonntagsarbeit: 50&nbsp;% Zuschlag</li>'
+            '<li>Feiertagsarbeit: 125&nbsp;% Zuschlag</li>'
+            '</ul>'
+            '<p>Die Berechnung der Zuschl&auml;ge richtet sich nach den Bestimmungen des Haustarifvertrages (Ziff.&nbsp;15&ndash;22). '
+            'Mehrarbeit ist vorrangig durch Freizeit auszugleichen.</p>',
+        "category": "Arbeitsrecht", "tags": ["zuschläge", "nachtarbeit", "sonntagsarbeit", "feiertagsarbeit", "mehrarbeit"], "tone": "neutral",
+        "is_mandatory": False, "display_order": 10,
+        "clause_type": "conditional",
+        "condition": '{"field": "schichtzuschlaege", "operator": "=", "value": true}',
     },
+    # ── § 11 Urlaub (ERWEITERT — TV Ziff. 31–44) ────────────────────────
     {
-        "title": "Kündigung",
-        "content_html": '<p><strong>&sect; 11 K&uuml;ndigung</strong></p><p>Nach Ablauf der Probezeit kann das Arbeitsverh&auml;ltnis von beiden Seiten mit einer Frist von vier Wochen zum F&uuml;nfzehnten oder zum Ende eines Kalendermonats gek&uuml;ndigt werden. Es gelten im &Uuml;brigen die gesetzlichen K&uuml;ndigungsfristen gem&auml;&szlig; &sect; 622 BGB.</p><p>Die K&uuml;ndigung bedarf der Schriftform. Das Recht zur fristlosen K&uuml;ndigung aus wichtigem Grund bleibt unber&uuml;hrt.</p>',
-        "category": "Arbeitsrecht", "tags": ["kündigung", "kündigungsfrist"], "tone": "neutral",
+        "title": "Urlaub",
+        "content_html": '<p><strong>&sect; 11 Urlaub</strong></p>'
+            '<p>Der Arbeitnehmer hat Anspruch auf einen j&auml;hrlichen Erholungsurlaub von <strong>[urlaubstage]</strong> Arbeitstagen, bezogen auf eine 5-Tage-Woche (Haustarifvertrag Ziff.&nbsp;31&ndash;34).</p>'
+            '<p>Der volle Urlaubsanspruch entsteht erstmals nach einer Wartezeit von sechs Monaten (Ziff.&nbsp;36). '
+            'Bruchteile von Urlaubstagen, die mindestens einen halben Tag ergeben, werden auf volle Urlaubstage aufgerundet (Ziff.&nbsp;39).</p>'
+            '<p>Der Urlaub ist grunds&auml;tzlich im laufenden Kalenderjahr zu nehmen. '
+            'Eine &Uuml;bertragung auf das n&auml;chste Kalenderjahr ist nur zul&auml;ssig, wenn dringende betriebliche oder in der Person des Arbeitnehmers liegende Gr&uuml;nde dies rechtfertigen. '
+            '&Uuml;bertragener Urlaub ist bis zum 31.&nbsp;M&auml;rz des Folgejahres zu nehmen (Ziff.&nbsp;41).</p>'
+            '<p>Die zeitliche Festlegung des Urlaubs erfolgt unter Ber&uuml;cksichtigung der betrieblichen Belange und der W&uuml;nsche des Arbeitnehmers. Im &Uuml;brigen gelten die tarifvertraglichen Bestimmungen.</p>',
+        "category": "Arbeitsrecht", "tags": ["urlaub", "urlaubstage", "urlaubsanspruch"], "tone": "arbeitnehmerfreundlich",
         "is_mandatory": True, "display_order": 11,
     },
+    # ── § 12 Sonderurlaub (NEU — TV Ziff. 56–58) ────────────────────────
+    {
+        "title": "Sonderurlaub und bezahlte Freistellung",
+        "content_html": '<p><strong>&sect; 12 Sonderurlaub und bezahlte Freistellung</strong></p>'
+            '<p>Der Arbeitnehmer hat gem&auml;&szlig; Haustarifvertrag (Ziff.&nbsp;56&ndash;58) Anspruch auf bezahlte Freistellung von der Arbeit in folgenden F&auml;llen:</p>'
+            '<ul>'
+            '<li>Eigene Eheschlie&szlig;ung: 2 Arbeitstage</li>'
+            '<li>Niederkunft der Ehefrau/Lebenspartnerin: 1 Arbeitstag</li>'
+            '<li>Tod des Ehegatten/Lebenspartners oder eines Kindes: 2 Arbeitstage</li>'
+            '<li>Tod eines Elternteils oder Schwiegerelternteils: 1 Arbeitstag</li>'
+            '<li>Umzug aus betrieblichen Gr&uuml;nden: 1 Arbeitstag</li>'
+            '<li>Schwere Erkrankung eines im Haushalt lebenden Angeh&ouml;rigen: bis zu 1 Arbeitstag</li>'
+            '<li>25-j&auml;hriges Arbeitsjubil&auml;um: 1 Arbeitstag</li>'
+            '</ul>'
+            '<p>Dar&uuml;ber hinaus wird der Arbeitnehmer unter Fortzahlung des Entgelts f&uuml;r die Aus&uuml;bung &ouml;ffentlicher Ehren&auml;mter und zur Wahrnehmung gesetzlich vorgeschriebener Pflichten freigestellt, soweit gesetzlich vorgeschrieben.</p>',
+        "category": "Arbeitsrecht", "tags": ["sonderurlaub", "freistellung", "tarifvertrag"], "tone": "arbeitnehmerfreundlich",
+        "is_mandatory": True, "display_order": 12,
+    },
+    # ── § 13 Krankheit (KORRIGIERT — konfigurierbare AU-Frist) ───────────
+    {
+        "title": "Krankheit und Arbeitsverhinderung",
+        "content_html": '<p><strong>&sect; 13 Krankheit und Arbeitsverhinderung</strong></p>'
+            '<p>Im Falle der Arbeitsunf&auml;higkeit durch Krankheit ist der Arbeitnehmer verpflichtet, den Arbeitgeber unverz&uuml;glich zu informieren. '
+            'Eine &auml;rztliche Arbeitsunf&auml;higkeitsbescheinigung ist sp&auml;testens <strong>[au_frist]</strong> der Erkrankung vorzulegen.</p>'
+            '<p>Die Entgeltfortzahlung im Krankheitsfall richtet sich nach den gesetzlichen Bestimmungen des Entgeltfortzahlungsgesetzes (EFZG).</p>',
+        "category": "Arbeitsrecht", "tags": ["krankheit", "krankmeldung", "arbeitsunfähigkeit"], "tone": "neutral",
+        "is_mandatory": True, "display_order": 13,
+    },
+    # ── § 14 Verschwiegenheitspflicht ─────────────────────────────────────
+    {
+        "title": "Verschwiegenheitspflicht",
+        "content_html": '<p><strong>&sect; 14 Verschwiegenheitspflicht</strong></p>'
+            '<p>Der Arbeitnehmer verpflichtet sich, &uuml;ber alle Betriebs- und Gesch&auml;ftsgeheimnisse sowie vertrauliche Informationen Stillschweigen zu bewahren. '
+            'Diese Verschwiegenheitspflicht gilt auch nach Beendigung des Arbeitsverh&auml;ltnisses.</p>',
+        "category": "Arbeitsrecht", "tags": ["verschwiegenheit", "geheimhaltung"], "tone": "streng",
+        "is_mandatory": True, "display_order": 14,
+    },
+    # ── § 15 Nebentätigkeit ───────────────────────────────────────────────
+    {
+        "title": "Nebentätigkeit",
+        "content_html": '<p><strong>&sect; 15 Nebent&auml;tigkeit</strong></p>'
+            '<p>Jede entgeltliche oder zeitlich umfangreiche Nebent&auml;tigkeit bedarf der vorherigen schriftlichen Zustimmung des Arbeitgebers. '
+            'Die Zustimmung ist zu erteilen, wenn berechtigte Interessen des Arbeitgebers nicht beeintr&auml;chtigt werden.</p>',
+        "category": "Arbeitsrecht", "tags": ["nebentätigkeit"], "tone": "neutral",
+        "is_mandatory": True, "display_order": 15,
+    },
+    # ── § 16 Kündigung (KORRIGIERT — konfigurierbare Frist + TV-Verweis) ─
+    {
+        "title": "Kündigung",
+        "content_html": '<p><strong>&sect; 16 K&uuml;ndigung</strong></p>'
+            '<p>Nach Ablauf der Probezeit kann das Arbeitsverh&auml;ltnis von beiden Seiten mit einer Frist von <strong>[kuendigungsfrist]</strong> gek&uuml;ndigt werden. '
+            'Es gelten im &Uuml;brigen die gesetzlichen K&uuml;ndigungsfristen gem&auml;&szlig; &sect;&nbsp;622 BGB sowie die tarifvertraglichen Regelungen (Haustarifvertrag Ziff.&nbsp;65&ndash;70).</p>'
+            '<p>Die K&uuml;ndigung bedarf der Schriftform. Das Recht zur fristlosen K&uuml;ndigung aus wichtigem Grund (&sect;&nbsp;626 BGB) bleibt unber&uuml;hrt.</p>',
+        "category": "Arbeitsrecht", "tags": ["kündigung", "kündigungsfrist"], "tone": "neutral",
+        "is_mandatory": True, "display_order": 16,
+    },
+    # ── § 17 Firmenwagen (conditional) ────────────────────────────────────
     {
         "title": "Firmenwagen",
-        "content_html": '<p><strong>&sect; 12 Firmenwagen</strong></p><p>Dem Arbeitnehmer wird ein Firmenfahrzeug zur Verf&uuml;gung gestellt, das auch zur privaten Nutzung verwendet werden darf. Die private Nutzung wird gem&auml;&szlig; der 1-%-Regelung als geldwerter Vorteil versteuert.</p><p>Bei Beendigung des Arbeitsverh&auml;ltnisses ist das Fahrzeug unverz&uuml;glich zur&uuml;ckzugeben.</p>',
+        "content_html": '<p><strong>&sect; 17 Firmenwagen</strong></p>'
+            '<p>Dem Arbeitnehmer wird ein Firmenfahrzeug zur Verf&uuml;gung gestellt, das auch zur privaten Nutzung verwendet werden darf. '
+            'Die private Nutzung wird gem&auml;&szlig; der 1-%-Regelung als geldwerter Vorteil versteuert.</p>'
+            '<p>Bei Beendigung des Arbeitsverh&auml;ltnisses ist das Fahrzeug unverz&uuml;glich zur&uuml;ckzugeben.</p>',
         "category": "Zusatzleistungen", "tags": ["firmenwagen", "benefit"], "tone": "arbeitnehmerfreundlich",
-        "is_mandatory": False, "display_order": 12,
+        "is_mandatory": False, "display_order": 17,
         "clause_type": "conditional",
         "condition": '{"field": "firmenwagen", "operator": "=", "value": true}',
     },
+    # ── § 18 Home Office (conditional) ────────────────────────────────────
     {
         "title": "Home Office",
-        "content_html": '<p><strong>&sect; 13 Mobiles Arbeiten (Home Office)</strong></p><p>Der Arbeitnehmer hat die M&ouml;glichkeit, nach Abstimmung mit dem Vorgesetzten teilweise im Home Office zu arbeiten. Der Arbeitgeber stellt die daf&uuml;r erforderliche technische Ausstattung zur Verf&uuml;gung.</p><p>Der Arbeitnehmer verpflichtet sich, auch bei mobiler Arbeit die datenschutzrechtlichen Bestimmungen einzuhalten.</p>',
+        "content_html": '<p><strong>&sect; 18 Mobiles Arbeiten (Home Office)</strong></p>'
+            '<p>Der Arbeitnehmer hat die M&ouml;glichkeit, nach Abstimmung mit dem Vorgesetzten teilweise im Home Office zu arbeiten. '
+            'Der Arbeitgeber stellt die daf&uuml;r erforderliche technische Ausstattung zur Verf&uuml;gung.</p>'
+            '<p>Der Arbeitnehmer verpflichtet sich, auch bei mobiler Arbeit die datenschutzrechtlichen Bestimmungen einzuhalten.</p>',
         "category": "Zusatzleistungen", "tags": ["homeoffice", "remote", "benefit"], "tone": "arbeitnehmerfreundlich",
-        "is_mandatory": False, "display_order": 13,
+        "is_mandatory": False, "display_order": 18,
         "clause_type": "conditional",
         "condition": '{"field": "homeoffice", "operator": "=", "value": true}',
     },
+    # ── § 19 Datenschutz ─────────────────────────────────────────────────
     {
         "title": "Datenschutz",
-        "content_html": '<p><strong>&sect; 14 Datenschutz</strong></p><p>Der Arbeitnehmer verpflichtet sich, die geltenden Datenschutzbestimmungen (DSGVO, BDSG) einzuhalten und personenbezogene Daten nur im Rahmen der dienstlichen Erfordernis zu verarbeiten.</p>',
+        "content_html": '<p><strong>&sect; 19 Datenschutz</strong></p>'
+            '<p>Der Arbeitnehmer verpflichtet sich, die geltenden Datenschutzbestimmungen (DSGVO, BDSG) einzuhalten und personenbezogene Daten nur im Rahmen der dienstlichen Erfordernis zu verarbeiten.</p>',
         "category": "Arbeitsrecht", "tags": ["datenschutz", "dsgvo"], "tone": "neutral",
-        "is_mandatory": True, "display_order": 14,
+        "is_mandatory": True, "display_order": 19,
     },
+    # ── § 20 Arbeitsergebnisse und Erfindungen (NEU — ArbNErfG) ──────────
+    {
+        "title": "Arbeitsergebnisse und Erfindungen",
+        "content_html": '<p><strong>&sect; 20 Arbeitsergebnisse und Erfindungen</strong></p>'
+            '<p>Alle Arbeitsergebnisse, die der Arbeitnehmer im Rahmen seiner T&auml;tigkeit f&uuml;r den Arbeitgeber erstellt, geh&ouml;ren dem Arbeitgeber. '
+            'Dies umfasst insbesondere Berichte, Konzepte, Software, technische Zeichnungen und sonstige Unterlagen.</p>'
+            '<p>F&uuml;r Erfindungen und technische Verbesserungsvorschl&auml;ge gelten die Bestimmungen des Gesetzes &uuml;ber Arbeitnehmererfindungen (ArbNErfG). '
+            'Der Arbeitnehmer ist verpflichtet, Diensterfindungen dem Arbeitgeber unverz&uuml;glich schriftlich zu melden.</p>',
+        "category": "Arbeitsrecht", "tags": ["arbeitsergebnisse", "erfindungen", "urheberrecht", "arbnerfg"], "tone": "neutral",
+        "is_mandatory": True, "display_order": 20,
+    },
+    # ── § 21 Vertragsstrafe (KORRIGIERT — jetzt conditional) ─────────────
     {
         "title": "Vertragsstrafe",
-        "content_html": '<p><strong>&sect; 15 Vertragsstrafe</strong></p><p>Tritt der Arbeitnehmer das Arbeitsverh&auml;ltnis nicht an oder l&ouml;st er es vertragswidrig, so hat er eine Vertragsstrafe in H&ouml;he eines Bruttomonatsgehalts zu zahlen.</p>',
+        "content_html": '<p><strong>&sect; 21 Vertragsstrafe</strong></p>'
+            '<p>Tritt der Arbeitnehmer das Arbeitsverh&auml;ltnis nicht an oder l&ouml;st er es vertragswidrig, so hat er eine Vertragsstrafe in H&ouml;he eines Bruttomonatsgehalts zu zahlen.</p>',
         "category": "Arbeitsrecht", "tags": ["vertragsstrafe"], "tone": "streng",
-        "is_mandatory": True, "display_order": 15,
+        "is_mandatory": False, "display_order": 21,
+        "clause_type": "conditional",
+        "condition": '{"field": "vertragsstrafe", "operator": "=", "value": true}',
     },
+    # ── § 22 Ausschlussfristen (KORRIGIERT — differenziert nach TV) ──────
     {
         "title": "Ausschlussfristen",
-        "content_html": '<p><strong>&sect; 16 Ausschlussfristen</strong></p><p>Alle beiderseitigen Anspr&uuml;che aus dem Arbeitsverh&auml;ltnis verfallen, wenn sie nicht innerhalb von drei Monaten nach F&auml;lligkeit schriftlich geltend gemacht werden. Diese Ausschlussfrist gilt nicht f&uuml;r Anspr&uuml;che aus vors&auml;tzlicher Vertragsverletzung und f&uuml;r den gesetzlichen Mindestlohn.</p>',
-        "category": "Arbeitsrecht", "tags": ["ausschlussfrist", "verfall"], "tone": "neutral",
-        "is_mandatory": True, "display_order": 16,
+        "content_html": '<p><strong>&sect; 22 Ausschlussfristen</strong></p>'
+            '<p>F&uuml;r die Geltendmachung von Anspr&uuml;chen aus dem Arbeitsverh&auml;ltnis gelten die tarifvertraglichen Ausschlussfristen (Haustarifvertrag Ziff.&nbsp;71&ndash;75):</p>'
+            '<ul>'
+            '<li>Anspr&uuml;che auf Zuschl&auml;ge f&uuml;r Mehr-, Nacht-, Sonn- und Feiertagsarbeit verfallen, wenn sie nicht innerhalb von <strong>einem Monat</strong> nach F&auml;lligkeit schriftlich geltend gemacht werden (Ziff.&nbsp;71).</li>'
+            '<li>Alle &uuml;brigen beiderseitigen Anspr&uuml;che aus dem Arbeitsverh&auml;ltnis verfallen, wenn sie nicht innerhalb von <strong>drei Monaten</strong> nach F&auml;lligkeit schriftlich geltend gemacht werden (Ziff.&nbsp;72).</li>'
+            '<li>Im Falle der Beendigung des Arbeitsverh&auml;ltnisses sind Anspr&uuml;che innerhalb von <strong>einem Monat</strong> nach Beendigung geltend zu machen (Ziff.&nbsp;73).</li>'
+            '</ul>'
+            '<p>Diese Ausschlussfristen gelten nicht f&uuml;r Anspr&uuml;che aus vors&auml;tzlicher Vertragsverletzung, f&uuml;r den gesetzlichen Mindestlohn sowie f&uuml;r Anspr&uuml;che, die kraft Gesetzes unabdingbar sind.</p>',
+        "category": "Arbeitsrecht", "tags": ["ausschlussfrist", "verfall", "tarifvertrag"], "tone": "neutral",
+        "is_mandatory": True, "display_order": 22,
     },
+    # ── § 23 Schlussbestimmungen (immer letzter §) ───────────────────────
     {
         "title": "Schlussbestimmungen",
-        "content_html": '<p><strong>&sect; 17 Schlussbestimmungen</strong></p><p>&Auml;nderungen und Erg&auml;nzungen dieses Vertrages bed&uuml;rfen der Schriftform. M&uuml;ndliche Nebenabreden bestehen nicht.</p><p>Sollte eine Bestimmung dieses Vertrages unwirksam sein oder werden, so wird die Wirksamkeit der &uuml;brigen Bestimmungen dadurch nicht ber&uuml;hrt.</p><p>Es gilt das Recht der Bundesrepublik Deutschland.</p>',
+        "content_html": '<p><strong>&sect; 23 Schlussbestimmungen</strong></p>'
+            '<p>&Auml;nderungen und Erg&auml;nzungen dieses Vertrages bed&uuml;rfen der Schriftform. M&uuml;ndliche Nebenabreden bestehen nicht.</p>'
+            '<p>Sollte eine Bestimmung dieses Vertrages unwirksam sein oder werden, so wird die Wirksamkeit der &uuml;brigen Bestimmungen dadurch nicht ber&uuml;hrt.</p>'
+            '<p>Es gilt das Recht der Bundesrepublik Deutschland.</p>',
         "category": "Arbeitsrecht", "tags": ["schlussbestimmungen", "salvatorisch"], "tone": "neutral",
-        "is_mandatory": True, "display_order": 17,
+        "is_mandatory": True, "display_order": 23,
         "is_order_locked": True,
     },
 ]
@@ -354,9 +509,10 @@ async def seed_arbeitsvertrag_clauses(
     """
     Seed professional Arbeitsvertrag clauses (admin-only).
 
-    Creates 17 standard German employment contract clauses and links them
-    to the Arbeitsvertrag document type. Safe to run multiple times -
-    updates existing clauses and skips existing links.
+    Creates 23 IGBCE-compliant German employment contract clauses and links them
+    to the Arbeitsvertrag document type. Includes NachwG-Pflichtangaben,
+    Haustarifvertrag-Regelungen (Zuschläge, Sonderurlaub, VWL etc.).
+    Safe to run multiple times - updates existing clauses and skips existing links.
     """
     # 1. Find or create "Arbeitsvertrag" document type
     result = await db.execute(

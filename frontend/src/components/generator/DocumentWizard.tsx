@@ -116,6 +116,9 @@ const WizardContent = ({ documentTypes }: DocumentWizardProps) => {
                         "vorname", "nachname", "strasse", "plz", "ort", "geburtsdatum",
                         "position", "gehalt", "eintrittsdatum", "wochenstunden", "probezeit",
                         "urlaubstage", "firmenwagen", "homeoffice", "signatory_name",
+                        "entgeltgruppe", "kuendigungsfrist", "au_frist",
+                        "jahressonderzahlung", "urlaubsgeld_pro_tag", "vwl_betrag",
+                        "schichtzuschlaege", "arbeitszeitkonto", "vertragsstrafe",
                     ];
 
                     const formDataFields: Record<string, unknown> = {};

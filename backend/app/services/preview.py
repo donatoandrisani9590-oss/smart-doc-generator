@@ -133,6 +133,16 @@ def render_placeholders(content: str, form_data: dict, country_code: str = "DE")
         "vertragsbeginn": "eintrittsdatum",
         "beschaeftigung_von": "eintrittsdatum",
         "anrede": "_anrede",  # Special: computed field
+        # IGBCE Haustarifvertrag Felder
+        "entgeltgruppe": "entgeltgruppe",
+        "lohngruppe": "entgeltgruppe",
+        "gehaltsgruppe": "entgeltgruppe",
+        "kuendigungsfrist": "kuendigungsfrist",
+        "au_frist": "au_frist",
+        "urlaubsgeld_pro_tag": "urlaubsgeld_pro_tag",
+        "urlaubsgeld": "urlaubsgeld_pro_tag",
+        "vwl_betrag": "vwl_betrag",
+        "vwl": "vwl_betrag",
     }
 
     # Date fields that don't contain "datum"/"date" in their name
@@ -160,9 +170,11 @@ def render_placeholders(content: str, form_data: dict, country_code: str = "DE")
             return format_date_localized(value, country_code)
         
         # Currency fields
-        if "gehalt" in placeholder.lower() or "betrag" in placeholder.lower():
+        if any(kw in placeholder_lower for kw in ("gehalt", "betrag", "urlaubsgeld", "vwl")):
             try:
-                return format_currency_localized(float(value), country_code)
+                # Handle German decimal format (e.g., "26,59" → 26.59)
+                val_str = str(value).replace(",", ".")
+                return format_currency_localized(float(val_str), country_code)
             except (ValueError, TypeError):
                 return str(value)
         
@@ -386,7 +398,8 @@ def assemble_html_preview(
     clauses: list[dict],
     form_data: dict,
     country_code: str = "DE",
-    custom_clause: Optional[dict] = None
+    custom_clause: Optional[dict] = None,
+    document_type_name: Optional[str] = None,
 ) -> str:
     """
     Assemble full HTML preview document.
@@ -469,6 +482,14 @@ def assemble_html_preview(
         ("Geschäftsführer" if country_code == "DE" else "Amministratore")
     )
 
+    # Determine document title from type name or fallback
+    if document_type_name:
+        doc_title = document_type_name
+    elif country_code == "IT":
+        doc_title = "CONTRATTO DI LAVORO"
+    else:
+        doc_title = "Arbeitsvertrag"
+
     # Render full document with DIN 5008 settings
     template = Template(PREVIEW_TEMPLATE)
     html = template.render(
@@ -482,6 +503,7 @@ def assemble_html_preview(
         font_family=design_settings.get("font_family", "Arial"),
         content=content_html,
         country_code=country_code,
+        document_title=doc_title,
         # Employee data for contract parties section
         anrede=anrede,
         employee_name=employee_name,
@@ -514,7 +536,7 @@ PREVIEW_TEMPLATE = """
 
 <!-- Document Title -->
 <div class="document-title">
-    {% if country_code == 'IT' %}CONTRATTO DI LAVORO{% else %}Arbeitsvertrag{% endif %}
+    {{ document_title }}
 </div>
 
 <!-- Contract Parties -->

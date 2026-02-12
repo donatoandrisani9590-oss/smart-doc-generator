@@ -59,6 +59,25 @@ const FIELD_LABELS = {
         probezeit_none: "Keine",
         probezeit_3: "3 Monate",
         probezeit_6: "6 Monate",
+        entgeltgruppe: "Entgeltgruppe",
+        entgeltgruppe_placeholder: "z.B. P7, K5",
+        kuendigungsfrist: "Kündigungsfrist",
+        kuendigungsfrist_placeholder: "Frist wählen",
+        kuendigungsfrist_4w: "4 Wochen zum 15./Monatsende",
+        kuendigungsfrist_3m: "3 Monate zum Monatsende",
+        kuendigungsfrist_622: "Gesetzlich nach § 622 BGB",
+        au_frist: "AU-Bescheinigung ab",
+        au_frist_placeholder: "Frist wählen",
+        au_frist_1: "am ersten Kalendertag",
+        au_frist_3: "am dritten Kalendertag",
+        jahressonderzahlung: "Jahressonderzahlung (13. Gehalt)",
+        urlaubsgeld_pro_tag: "Urlaubsgeld (€/Tag)",
+        urlaubsgeld_placeholder: "€ pro Urlaubstag",
+        vwl_betrag: "VWL (€/Monat)",
+        vwl_placeholder: "€ monatlich brutto",
+        schichtzuschlaege: "Zuschläge (Nacht/Sonn-/Feiertag)",
+        arbeitszeitkonto: "Arbeitszeitkonto",
+        vertragsstrafe: "Vertragsstrafe",
         firmenwagen: "Firmenwagen",
         homeoffice: "Home Office",
         signatory_name: "Name (Arbeitgeber)",
@@ -91,6 +110,25 @@ const FIELD_LABELS = {
         probezeit_none: "Nessuno",
         probezeit_3: "3 mesi",
         probezeit_6: "6 mesi",
+        entgeltgruppe: "Gruppo Retributivo",
+        entgeltgruppe_placeholder: "es. P7, K5",
+        kuendigungsfrist: "Preavviso",
+        kuendigungsfrist_placeholder: "Seleziona periodo",
+        kuendigungsfrist_4w: "4 settimane al 15/fine mese",
+        kuendigungsfrist_3m: "3 mesi a fine mese",
+        kuendigungsfrist_622: "Legale secondo § 622 BGB",
+        au_frist: "Certificato medico da",
+        au_frist_placeholder: "Seleziona termine",
+        au_frist_1: "dal primo giorno",
+        au_frist_3: "dal terzo giorno",
+        jahressonderzahlung: "Tredicesima mensilità",
+        urlaubsgeld_pro_tag: "Indennità ferie (€/giorno)",
+        urlaubsgeld_placeholder: "€ per giorno di ferie",
+        vwl_betrag: "VWL (€/mese)",
+        vwl_placeholder: "€ mensile lordo",
+        schichtzuschlaege: "Maggiorazioni (notte/festivi)",
+        arbeitszeitkonto: "Conto ore",
+        vertragsstrafe: "Penale contrattuale",
         firmenwagen: "Auto Aziendale",
         homeoffice: "Lavoro da Remoto",
         signatory_name: "Nome (Datore di Lavoro)",
@@ -318,6 +356,50 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
                         </SelectContent>
                     </Select>
                 </div>
+
+                <div className="space-y-1">
+                    <Label htmlFor="entgeltgruppe" className="text-xs">{labels.entgeltgruppe}</Label>
+                    <Input
+                        id="entgeltgruppe"
+                        value={formData.entgeltgruppe}
+                        onChange={(e) => actions.updateFormField("entgeltgruppe", e.target.value)}
+                        placeholder={labels.entgeltgruppe_placeholder}
+                        className="h-8 text-sm"
+                    />
+                </div>
+
+                <div className="space-y-1">
+                    <Label htmlFor="kuendigungsfrist" className="text-xs">{labels.kuendigungsfrist}</Label>
+                    <Select
+                        value={formData.kuendigungsfrist}
+                        onValueChange={(v) => actions.updateFormField("kuendigungsfrist", v)}
+                    >
+                        <SelectTrigger className="h-8 text-sm">
+                            <SelectValue placeholder={labels.kuendigungsfrist_placeholder} />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="4 Wochen zum 15./Monatsende">{labels.kuendigungsfrist_4w}</SelectItem>
+                            <SelectItem value="3 Monate zum Monatsende">{labels.kuendigungsfrist_3m}</SelectItem>
+                            <SelectItem value="Gesetzlich nach § 622 BGB">{labels.kuendigungsfrist_622}</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+
+                <div className="space-y-1">
+                    <Label htmlFor="au_frist" className="text-xs">{labels.au_frist}</Label>
+                    <Select
+                        value={formData.au_frist}
+                        onValueChange={(v) => actions.updateFormField("au_frist", v)}
+                    >
+                        <SelectTrigger className="h-8 text-sm">
+                            <SelectValue placeholder={labels.au_frist_placeholder} />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="am ersten Kalendertag">{labels.au_frist_1}</SelectItem>
+                            <SelectItem value="am dritten Kalendertag">{labels.au_frist_3}</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
             </div>
 
             {/* Zusatzleistungen */}
@@ -327,6 +409,79 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
                 </h4>
 
                 <div className="space-y-2">
+                    <div className="flex items-center space-x-2">
+                        <Checkbox
+                            id="jahressonderzahlung"
+                            checked={formData.jahressonderzahlung}
+                            onCheckedChange={(checked) =>
+                                actions.updateFormField("jahressonderzahlung", checked === true)
+                            }
+                        />
+                        <Label htmlFor="jahressonderzahlung" className="text-sm cursor-pointer">
+                            {labels.jahressonderzahlung}
+                        </Label>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                        <div className="space-y-1">
+                            <Label htmlFor="urlaubsgeld_pro_tag" className="text-xs">{labels.urlaubsgeld_pro_tag}</Label>
+                            <Input
+                                id="urlaubsgeld_pro_tag"
+                                type="number"
+                                value={formData.urlaubsgeld_pro_tag}
+                                onChange={(e) => actions.updateFormField("urlaubsgeld_pro_tag", e.target.value)}
+                                placeholder={labels.urlaubsgeld_placeholder}
+                                className="h-8 text-sm"
+                            />
+                        </div>
+                        <div className="space-y-1">
+                            <Label htmlFor="vwl_betrag" className="text-xs">{labels.vwl_betrag}</Label>
+                            <Input
+                                id="vwl_betrag"
+                                value={formData.vwl_betrag}
+                                onChange={(e) => actions.updateFormField("vwl_betrag", e.target.value)}
+                                placeholder={labels.vwl_placeholder}
+                                className="h-8 text-sm"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                        <Checkbox
+                            id="schichtzuschlaege"
+                            checked={formData.schichtzuschlaege}
+                            onCheckedChange={(checked) =>
+                                actions.updateFormField("schichtzuschlaege", checked === true)
+                            }
+                        />
+                        <Label htmlFor="schichtzuschlaege" className="text-sm cursor-pointer">
+                            {labels.schichtzuschlaege}
+                        </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                        <Checkbox
+                            id="arbeitszeitkonto"
+                            checked={formData.arbeitszeitkonto}
+                            onCheckedChange={(checked) =>
+                                actions.updateFormField("arbeitszeitkonto", checked === true)
+                            }
+                        />
+                        <Label htmlFor="arbeitszeitkonto" className="text-sm cursor-pointer">
+                            {labels.arbeitszeitkonto}
+                        </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                        <Checkbox
+                            id="vertragsstrafe"
+                            checked={formData.vertragsstrafe}
+                            onCheckedChange={(checked) =>
+                                actions.updateFormField("vertragsstrafe", checked === true)
+                            }
+                        />
+                        <Label htmlFor="vertragsstrafe" className="text-sm cursor-pointer">
+                            {labels.vertragsstrafe}
+                        </Label>
+                    </div>
                     <div className="flex items-center space-x-2">
                         <Checkbox
                             id="firmenwagen"
