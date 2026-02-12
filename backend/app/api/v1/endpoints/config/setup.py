@@ -247,7 +247,7 @@ ARBEITSVERTRAG_CLAUSES = [
         "content_html": '<p><strong>&sect; 2 Hinweis auf Tarifvertr&auml;ge und Betriebsvereinbarungen</strong></p>'
             '<p>Auf das Arbeitsverh&auml;ltnis finden in ihrer jeweils g&uuml;ltigen Fassung Anwendung:</p>'
             '<ul>'
-            '<li>der Haustarifvertrag zwischen der VF Verpackungen GmbH und der Industriegewerkschaft Bergbau, Chemie, Energie (IG&nbsp;BCE), Landesbezirk Bayern,</li>'
+            '<li>der Haustarifvertrag zwischen der [firmenname] und der Industriegewerkschaft Bergbau, Chemie, Energie (IG&nbsp;BCE), Landesbezirk Bayern,</li>'
             '<li>der jeweils g&uuml;ltige Lohn- und Gehaltstarifvertrag,</li>'
             '<li>die betrieblichen Vereinbarungen in ihrer jeweiligen Fassung.</li>'
             '</ul>'
