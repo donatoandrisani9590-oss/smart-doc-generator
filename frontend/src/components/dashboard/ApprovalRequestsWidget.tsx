@@ -16,7 +16,6 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   CheckSquare,
-  Check,
   ChevronRight,
   FileText,
   AlertCircle,
@@ -206,40 +205,9 @@ export function ApprovalRequestsWidget({
     );
   }
 
-  // No pending approvals
+  // Hide widget entirely when no pending approvals
   if (total === 0) {
-    return (
-      <Card className={className}>
-        <CardHeader className="pb-3">
-          <div className="flex items-center gap-2">
-            <CheckSquare className="w-4 h-4 text-muted-foreground" />
-            <CardTitle className="text-base">Genehmigungen</CardTitle>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger>
-                  <Badge variant="secondary" className="text-xs gap-1">
-                    <Info className="w-3 h-3" />
-                    Optional
-                  </Badge>
-                </TooltipTrigger>
-                <TooltipContent>
-                  Dieser Workflow ist freiwillig und nicht verpflichtend
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-6">
-            <Check className="w-10 h-10 mx-auto text-green-500 mb-2" />
-            <p className="font-medium text-green-600">Keine offenen Anfragen</p>
-            <p className="text-sm text-muted-foreground">
-              Alle Genehmigungen wurden bearbeitet
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-    );
+    return null;
   }
 
   const visibleItems = approvals.slice(0, limit);

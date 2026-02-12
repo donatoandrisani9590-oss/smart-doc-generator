@@ -18,7 +18,6 @@ import {
   Calendar,
   ChevronRight,
   User,
-  Check,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -184,6 +183,11 @@ export function DeadlinesWidget({
   const hasDeadlines = summary && summary.upcoming_deadlines.length > 0;
   const visibleDeadlines = summary?.upcoming_deadlines.slice(0, limit) || [];
 
+  // Hide widget entirely when there are no deadlines
+  if (!hasDeadlines) {
+    return null;
+  }
+
   return (
     <Card className={className}>
       <CardHeader className="pb-3">
@@ -192,17 +196,15 @@ export function DeadlinesWidget({
             <Clock className="w-4 h-4 text-muted-foreground" />
             Anstehende Fristen
           </CardTitle>
-          {hasDeadlines && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="gap-1 text-xs"
-              onClick={() => navigate("/deadlines")}
-            >
-              Alle anzeigen
-              <ChevronRight className="w-4 h-4" />
-            </Button>
-          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-1 text-xs"
+            onClick={() => navigate("/deadlines")}
+          >
+            Alle anzeigen
+            <ChevronRight className="w-4 h-4" />
+          </Button>
         </div>
       </CardHeader>
 
@@ -248,15 +250,7 @@ export function DeadlinesWidget({
         )}
 
         {/* Deadline List */}
-        {!hasDeadlines ? (
-          <div className="text-center py-6">
-            <Check className="w-10 h-10 mx-auto text-green-500 mb-2" />
-            <p className="font-medium text-green-600">Keine offenen Fristen</p>
-            <p className="text-sm text-muted-foreground">
-              Alle Fristen sind abgearbeitet
-            </p>
-          </div>
-        ) : (
+        {(
           <div className="space-y-2">
             {visibleDeadlines.map((deadline) => {
               const style = URGENCY_STYLES[deadline.urgency];
