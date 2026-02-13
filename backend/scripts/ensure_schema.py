@@ -68,6 +68,8 @@ REQUIRED_COLUMNS = [
     # From: 003_add_block_comments_and_document_approvals.py
     ("comments", "block_id", "VARCHAR(255)", None),
     ("comments", "selection_range", "TEXT", None),
+    # From: Split-Screen Document Detail with HTML preview
+    ("generated_documents", "content_html", "TEXT", None),
 ]
 
 # Tables that need to be created if they don't exist
