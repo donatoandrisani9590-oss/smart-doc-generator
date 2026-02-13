@@ -59,7 +59,7 @@ async def login_access_token(
     - Generic error messages to prevent user enumeration
     - Failed attempt counter per user
     """
-    stmt = select(User).where(User.email == form_data.username)
+    stmt = select(User).where(User.email == form_data.username.lower())
     result = await db.execute(stmt)
     user = result.scalar_one_or_none()
 
