@@ -64,7 +64,7 @@ export function highlightVariables(
     /\{\{\s*(\w+)\s*\}\}/g,
     (match, fieldName) => {
       const label = fieldLabels[fieldName] || fieldName;
-      return `<mark class="variable-highlight variable-missing" data-field="${fieldName}" title="Noch nicht ausgefuellt: ${label}">${match}</mark>`;
+      return `<mark class="variable-highlight variable-missing" data-field="${fieldName}" title="Noch nicht ausgefüllt: ${label}">${match}</mark>`;
     }
   );
 
