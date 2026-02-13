@@ -286,26 +286,29 @@ export const RepositoryPage = () => {
                 </Link>
             </div>
 
-            {/* Status Filter Cards - EPL Style */}
-            <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+            {/* Status Filter - Segmented Control */}
+            <div className="flex items-center gap-1 p-1 bg-warm-50 dark:bg-warm-800/30 rounded-lg w-fit">
                 {[
-                    { key: "all" as const, label: "Gesamt", count: (stats?.total_documents ?? 0) + (drafts?.length ?? 0), icon: FileText, color: "text-primary" },
-                    { key: "draft" as const, label: "Entwürfe", count: drafts?.length ?? 0, icon: Edit3, color: "text-amber-500" },
-                    { key: "completed" as const, label: "Fertig", count: stats?.total_documents ?? 0, icon: FileCheck, color: "text-green-500" },
-                    { key: "corrections" as const, label: "Mit Korrekturen", count: stats?.documents_with_corrections ?? 0, icon: AlertTriangle, color: "text-orange-500" },
+                    { key: "all" as const, label: "Alle", count: (stats?.total_documents ?? 0) + (drafts?.length ?? 0) },
+                    { key: "draft" as const, label: "Entwürfe", count: drafts?.length ?? 0 },
+                    { key: "completed" as const, label: "Fertig", count: stats?.total_documents ?? 0 },
+                    { key: "corrections" as const, label: "Korrekturen", count: stats?.documents_with_corrections ?? 0 },
                 ].map(card => (
                     <button
                         key={card.key}
                         onClick={() => setActiveFilter(card.key)}
-                        className={`status-card text-left ${activeFilter === card.key ? 'active' : ''}`}
+                        className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
+                            activeFilter === card.key
+                                ? 'bg-white dark:bg-warm-700 text-primary shadow-sm ring-1 ring-black/5 dark:ring-white/10'
+                                : 'text-muted-foreground hover:text-foreground'
+                        }`}
                     >
-                        <div className="flex items-center gap-3">
-                            <card.icon className={`w-5 h-5 ${card.color}`} />
-                            <div>
-                                <p className="text-2xl font-bold text-foreground">{card.count}</p>
-                                <p className="text-xs text-muted-foreground">{card.label}</p>
-                            </div>
-                        </div>
+                        {card.label}
+                        <span className={`ml-1.5 text-xs ${
+                            activeFilter === card.key ? 'text-primary/70' : 'text-muted-foreground/60'
+                        }`}>
+                            {card.count}
+                        </span>
                     </button>
                 ))}
             </div>
@@ -464,11 +467,11 @@ export const RepositoryPage = () => {
                         </button>
                     )}
                 </div>
-                <div className="p-2">
+                <div>
                     {isLoading ? (
-                        <div className="space-y-3">
+                        <div className="p-2 space-y-3">
                             {[1, 2, 3, 4, 5].map((i) => (
-                                <Skeleton key={i} className="h-20 w-full" />
+                                <Skeleton key={i} className="h-16 w-full" />
                             ))}
                         </div>
                     ) : filteredItems.length === 0 ? (
@@ -501,14 +504,11 @@ export const RepositoryPage = () => {
                         </div>
                     ) : (
                         /* Unified View: Entwürfe + Dokumente */
-                        <div className="space-y-2">
+                        <div className="divide-y divide-warm-100 dark:divide-warm-700">
                             {filteredItems.map((item) => (
                                 <div
                                     key={`${item.type}-${item.id}`}
-                                    className={`flex items-center gap-4 p-4 rounded-lg border transition-all cursor-pointer group ${item.type === "draft"
-                                            ? "border-amber-200 dark:border-amber-800 bg-amber-50/30 dark:bg-amber-950/20 hover:bg-amber-50 dark:hover:bg-amber-950/30 hover:border-amber-300 dark:hover:border-amber-700"
-                                            : "hover:bg-warm-50 hover:border-primary/30"
-                                        }`}
+                                    className="flex items-center gap-4 px-4 py-3.5 transition-colors cursor-pointer group hover:bg-warm-50 dark:hover:bg-warm-800/40"
                                     onClick={() =>
                                         item.type === "draft"
                                             ? navigate(`/generate?draft=${item.id}`)
@@ -587,7 +587,7 @@ export const RepositoryPage = () => {
                                     </div>
 
                                     {/* Actions */}
-                                    <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
                                         {item.type === "draft" ? (
                                             <Button
                                                 size="sm"

@@ -47,6 +47,9 @@ export const Layout = () => {
     const [showTour, setShowTour] = useState(false);
     const { resolvedTheme } = useTheme();
 
+    // Collapse sidebar on settings/admin pages to avoid double-nav
+    const isSidebarCollapsed = location.pathname.startsWith('/settings') || location.pathname.startsWith('/admin');
+
     // Announce page changes for screen readers
     useEffect(() => {
         setPageAnnouncement(`Seite: ${pageTitle}`);
@@ -86,9 +89,9 @@ export const Layout = () => {
             {/* Live region for page announcements */}
             <LiveRegion message={pageAnnouncement} priority="polite" />
 
-            {/* Desktop Sidebar - Fixed width */}
-            <div className="hidden lg:block shrink-0 z-20">
-                <Sidebar />
+            {/* Desktop Sidebar - Collapses to icon rail on settings pages */}
+            <div className="hidden lg:block shrink-0 z-20 transition-all duration-200">
+                <Sidebar collapsed={isSidebarCollapsed} />
             </div>
 
             {/* Mobile Sidebar Overlay */}

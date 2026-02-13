@@ -32,6 +32,8 @@ import { useAuth } from "@/contexts/AuthContext";
 interface UserDropdownProps {
     /** Zusätzliche CSS-Klassen */
     className?: string;
+    /** Collapsed mode - show only avatar */
+    collapsed?: boolean;
 }
 
 const sidebarTransition = {
@@ -75,7 +77,7 @@ const getDisplayName = (email: string): string => {
         .join(" ");
 };
 
-export const UserDropdown = ({ className }: UserDropdownProps) => {
+export const UserDropdown = ({ className, collapsed = false }: UserDropdownProps) => {
     const navigate = useNavigate();
     const { user, logout } = useAuth();
     const [open, setOpen] = React.useState(false);
@@ -116,39 +118,48 @@ export const UserDropdown = ({ className }: UserDropdownProps) => {
             <DropdownMenuTrigger asChild>
                 <motion.button
                     className={cn(
-                        "w-full flex items-center gap-3 p-2 rounded-lg cursor-pointer",
+                        "w-full flex items-center rounded-lg cursor-pointer",
                         "hover:bg-primary/5 transition-colors",
                         "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+                        collapsed ? "justify-center p-1" : "gap-3 p-2",
                         className
                     )}
                     whileHover={{ backgroundColor: "hsl(var(--primary) / 0.05)" }}
                     whileTap={{ scale: 0.98 }}
                     transition={sidebarTransition}
                     aria-label="Benutzermenü öffnen"
+                    title={collapsed ? displayUser.name : undefined}
                 >
                     {/* Avatar */}
-                    <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-semibold text-sm shrink-0">
+                    <div className={cn(
+                        "rounded-full bg-primary flex items-center justify-center text-primary-foreground font-semibold shrink-0",
+                        collapsed ? "w-8 h-8 text-xs" : "w-9 h-9 text-sm"
+                    )}>
                         {displayUser.initials}
                     </div>
 
-                    {/* User Info */}
-                    <div className="flex-1 text-left min-w-0">
-                        <p className="text-sm font-medium text-foreground truncate">
-                            {displayUser.name}
-                        </p>
-                        <p className="text-xs text-muted-foreground truncate">
-                            {roleLabels[displayUser.role] || displayUser.role}
-                        </p>
-                    </div>
+                    {/* User Info - hidden when collapsed */}
+                    {!collapsed && (
+                        <div className="flex-1 text-left min-w-0">
+                            <p className="text-sm font-medium text-foreground truncate">
+                                {displayUser.name}
+                            </p>
+                            <p className="text-xs text-muted-foreground truncate">
+                                {roleLabels[displayUser.role] || displayUser.role}
+                            </p>
+                        </div>
+                    )}
 
-                    {/* Chevron */}
-                    <ChevronUp
-                        className={cn(
-                            "w-4 h-4 text-muted-foreground transition-transform",
-                            open && "rotate-180"
-                        )}
-                        aria-hidden="true"
-                    />
+                    {/* Chevron - hidden when collapsed */}
+                    {!collapsed && (
+                        <ChevronUp
+                            className={cn(
+                                "w-4 h-4 text-muted-foreground transition-transform",
+                                open && "rotate-180"
+                            )}
+                            aria-hidden="true"
+                        />
+                    )}
                 </motion.button>
             </DropdownMenuTrigger>
 

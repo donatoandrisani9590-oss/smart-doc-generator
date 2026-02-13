@@ -1,7 +1,7 @@
 /**
- * OnboardingBanner - Geführter Setup-Flow für neue Benutzer
+ * OnboardingBanner - Kompakte Setup-Leiste
  *
- * Zeigt einen Stepper-Banner an, wenn die Ersteinrichtung unvollständig ist:
+ * Zeigt eine einzeilige Stepper-Bar an, wenn die Ersteinrichtung unvollständig ist:
  * 1. Firmendaten pflegen
  * 2. Branding/Logo setzen
  * 3. Textbausteine anlegen
@@ -13,13 +13,12 @@
 
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import {
     Building2,
     Palette,
     FileText,
     LayoutTemplate,
-    CheckCircle2,
+    Check,
     ChevronRight,
     X,
     Rocket,
@@ -29,7 +28,6 @@ import { cn } from "@/lib/utils";
 interface OnboardingStep {
     id: string;
     label: string;
-    description: string;
     icon: React.ElementType;
     href: string;
     isComplete: boolean;
@@ -60,7 +58,6 @@ export function OnboardingBanner({
             {
                 id: "company",
                 label: "Firmendaten",
-                description: "Name, Adresse, Handelsregister",
                 icon: Building2,
                 href: "/settings?tab=general",
                 isComplete: hasCompanyData,
@@ -68,7 +65,6 @@ export function OnboardingBanner({
             {
                 id: "branding",
                 label: "Branding",
-                description: "Logo und Design einrichten",
                 icon: Palette,
                 href: "/settings?tab=design",
                 isComplete: hasLogo,
@@ -76,7 +72,6 @@ export function OnboardingBanner({
             {
                 id: "clauses",
                 label: "Textbausteine",
-                description: "Textbausteine und Paragraphen anlegen",
                 icon: FileText,
                 href: "/settings?tab=clauses",
                 isComplete: clauseCount > 0,
@@ -84,7 +79,6 @@ export function OnboardingBanner({
             {
                 id: "templates",
                 label: "Vorlage erstellen",
-                description: "Ersten Dokumenttyp konfigurieren",
                 icon: LayoutTemplate,
                 href: "/settings?tab=templates",
                 isComplete: documentTypeCount > 0,
@@ -101,92 +95,73 @@ export function OnboardingBanner({
     if (allComplete) return null;
 
     return (
-        <div className="bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5 rounded-xl border border-primary/10 p-5 relative">
-            {onDismiss && (
-                <button
-                    onClick={onDismiss}
-                    className="absolute top-3 right-3 text-muted-foreground hover:text-foreground transition-colors"
-                >
-                    <X className="w-4 h-4" />
-                </button>
-            )}
+        <div className="bg-warm-50/70 dark:bg-warm-800/20 rounded-lg border border-warm-200 dark:border-warm-700 px-4 py-3 relative">
+            <div className="flex items-center gap-4">
+                {/* Label */}
+                <div className="flex items-center gap-2 shrink-0">
+                    <Rocket className="w-4 h-4 text-primary" />
+                    <span className="text-sm font-medium text-foreground">
+                        Einrichtung
+                    </span>
+                    <span className="text-xs text-muted-foreground bg-warm-100 dark:bg-warm-700 px-1.5 py-0.5 rounded">
+                        {completedCount}/{steps.length}
+                    </span>
+                </div>
 
-            <div className="flex items-center gap-2 mb-4">
-                <Rocket className="w-5 h-5 text-primary" />
-                <h3 className="font-semibold text-sm">
-                    Ersteinrichtung ({completedCount}/{steps.length})
-                </h3>
-                <span className="text-xs text-muted-foreground">
-                    Richten Sie Ihr System in wenigen Schritten ein
-                </span>
-            </div>
+                {/* Separator */}
+                <div className="w-px h-5 bg-warm-200 dark:bg-warm-600 shrink-0" />
 
-            {/* Stepper */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {steps.map((step, index) => {
-                    const Icon = step.icon;
-                    const isNext = step === nextStep;
+                {/* Steps inline */}
+                <div className="flex items-center gap-1 flex-1 min-w-0 overflow-x-auto scrollbar-hide">
+                    {steps.map((step, index) => {
+                        const Icon = step.icon;
+                        const isNext = step === nextStep;
 
-                    return (
-                        <Link
-                            key={step.id}
-                            to={step.href}
-                            className={cn(
-                                "flex flex-col items-center gap-2 p-3 rounded-lg transition-all text-center group",
-                                step.isComplete
-                                    ? "bg-secondary/10 border border-secondary/20"
-                                    : isNext
-                                      ? "bg-white border-2 border-primary/30 shadow-sm"
-                                      : "bg-warm-50 border border-transparent hover:border-warm-200"
-                            )}
-                        >
-                            <div className="relative">
-                                {step.isComplete ? (
-                                    <CheckCircle2 className="w-6 h-6 text-secondary" />
-                                ) : (
-                                    <Icon
-                                        className={cn(
-                                            "w-6 h-6",
-                                            isNext
-                                                ? "text-primary"
-                                                : "text-muted-foreground"
-                                        )}
-                                    />
+                        return (
+                            <div key={step.id} className="flex items-center shrink-0">
+                                {index > 0 && (
+                                    <div className={cn(
+                                        "w-4 h-px mx-1",
+                                        step.isComplete || steps[index - 1]?.isComplete
+                                            ? "bg-secondary/40"
+                                            : "bg-warm-200 dark:bg-warm-600"
+                                    )} />
                                 )}
-                                <span className="absolute -top-1 -left-1 w-4 h-4 rounded-full bg-warm-100 text-[10px] font-bold flex items-center justify-center text-muted-foreground">
-                                    {index + 1}
-                                </span>
-                            </div>
-                            <div>
-                                <p
+                                <Link
+                                    to={step.href}
                                     className={cn(
-                                        "text-xs font-medium",
+                                        "flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-all whitespace-nowrap",
                                         step.isComplete
-                                            ? "text-secondary"
+                                            ? "text-secondary bg-secondary/10"
                                             : isNext
-                                              ? "text-primary"
-                                              : "text-muted-foreground"
+                                              ? "text-primary bg-primary/10 ring-1 ring-primary/20"
+                                              : "text-muted-foreground hover:text-foreground hover:bg-warm-100 dark:hover:bg-warm-700"
                                     )}
                                 >
-                                    {step.label}
-                                </p>
-                                <p className="text-[10px] text-muted-foreground mt-0.5 hidden sm:block">
-                                    {step.description}
-                                </p>
+                                    {step.isComplete ? (
+                                        <Check className="w-3.5 h-3.5" />
+                                    ) : (
+                                        <Icon className="w-3.5 h-3.5" />
+                                    )}
+                                    <span className="hidden sm:inline">{step.label}</span>
+                                    {isNext && (
+                                        <ChevronRight className="w-3 h-3 hidden sm:block" />
+                                    )}
+                                </Link>
                             </div>
-                            {isNext && (
-                                <Button
-                                    size="sm"
-                                    variant="default"
-                                    className="h-6 text-xs px-2 gap-1"
-                                >
-                                    Starten
-                                    <ChevronRight className="w-3 h-3" />
-                                </Button>
-                            )}
-                        </Link>
-                    );
-                })}
+                        );
+                    })}
+                </div>
+
+                {/* Dismiss */}
+                {onDismiss && (
+                    <button
+                        onClick={onDismiss}
+                        className="shrink-0 text-muted-foreground hover:text-foreground transition-colors p-1 rounded-md hover:bg-warm-100 dark:hover:bg-warm-700"
+                    >
+                        <X className="w-3.5 h-3.5" />
+                    </button>
+                )}
             </div>
         </div>
     );
