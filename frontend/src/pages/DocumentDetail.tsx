@@ -26,6 +26,8 @@ import { VersionHistoryPanel } from "@/components/documents/VersionHistoryPanel"
 import { ShareWithTeamDialog } from "@/components/documents/ShareWithTeamDialog";
 import { DocumentLockBanner } from "@/components/documents/DocumentLockBanner";
 import { useDocumentLockStatus } from "@/hooks/api/useDocumentQueries";
+import { CommentThread } from "@/components/collaboration/CommentThread";
+import { useCommentCount } from "@/hooks/useComments";
 import {
     ArrowLeft,
     Download,
@@ -42,6 +44,7 @@ import {
     PanelRightOpen,
     Clock,
     Info,
+    MessageSquare,
 } from "lucide-react";
 
 // Deutsche Labels für Formulardaten-Anzeige
@@ -99,7 +102,7 @@ function formatFieldValue(key: string, value: unknown): string {
     return strValue;
 }
 
-type SidebarTab = "details" | "verlauf";
+type SidebarTab = "details" | "verlauf" | "kommentare";
 
 export const DocumentDetailPage = () => {
     const { documentId } = useParams<{ documentId: string }>();
@@ -113,6 +116,7 @@ export const DocumentDetailPage = () => {
     const docIdNum = documentId ? parseInt(documentId, 10) : 0;
     const { data: document, isLoading, error, refetch } = useRepositoryDocument(docIdNum);
     const { data: lockStatus } = useDocumentLockStatus(docIdNum);
+    const { unresolved: commentUnresolved } = useCommentCount("document", docIdNum);
 
     const isLockedByOther = lockStatus?.is_locked && !lockStatus?.is_own_lock;
 
@@ -309,6 +313,22 @@ export const DocumentDetailPage = () => {
                                 <Clock className="w-3.5 h-3.5" />
                                 Verlauf
                             </button>
+                            <button
+                                className={`flex-1 px-4 py-2.5 text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
+                                    activeTab === "kommentare"
+                                        ? "text-primary border-b-2 border-primary"
+                                        : "text-muted-foreground hover:text-foreground"
+                                }`}
+                                onClick={() => setActiveTab("kommentare")}
+                            >
+                                <MessageSquare className="w-3.5 h-3.5" />
+                                Kommentare
+                                {commentUnresolved > 0 && (
+                                    <span className="px-1.5 py-0.5 text-[10px] font-semibold rounded-full bg-primary text-white">
+                                        {commentUnresolved > 9 ? "9+" : commentUnresolved}
+                                    </span>
+                                )}
+                            </button>
                         </div>
 
                         {/* Tab Content */}
@@ -439,6 +459,14 @@ export const DocumentDetailPage = () => {
                                         </div>
                                     )}
                                 </>
+                            )}
+
+                            {activeTab === "kommentare" && (
+                                <CommentThread
+                                    anchorType="document"
+                                    anchorId={document.id}
+                                    compact
+                                />
                             )}
                         </div>
                     </div>
