@@ -110,7 +110,7 @@ export function StationeryCard({ template, onSetDefault, onDelete, onDownload }:
                                 variant="secondary"
                                 className="text-destructive hover:text-destructive"
                                 onClick={() => onDelete(template)}
-                                title="Loeschen"
+                                title="Löschen"
                             >
                                 <Trash2 className="w-3.5 h-3.5" />
                             </Button>

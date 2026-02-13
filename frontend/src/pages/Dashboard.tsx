@@ -9,6 +9,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
     PlusCircle,
     FileCheck,
@@ -106,26 +107,38 @@ export const Dashboard = () => {
                             {/* Quick inline stats */}
                             <div className="flex gap-8 mt-5">
                                 <div>
-                                    <p className="text-2xl font-bold">
-                                        {isLoading ? "-" : stats?.documents_this_month ?? 0}
-                                    </p>
-                                    <p className="text-[11px] text-white/60 uppercase tracking-wider">
+                                    {isLoading ? (
+                                        <Skeleton className="h-8 w-10 bg-white/20 rounded" />
+                                    ) : (
+                                        <p className="text-2xl font-bold">
+                                            {stats?.documents_this_month ?? 0}
+                                        </p>
+                                    )}
+                                    <p className="text-[11px] text-white/60 uppercase tracking-wider mt-1">
                                         Diesen Monat
                                     </p>
                                 </div>
                                 <div>
-                                    <p className="text-2xl font-bold">
-                                        {isLoading ? "-" : stats?.open_drafts ?? 0}
-                                    </p>
-                                    <p className="text-[11px] text-white/60 uppercase tracking-wider">
+                                    {isLoading ? (
+                                        <Skeleton className="h-8 w-10 bg-white/20 rounded" />
+                                    ) : (
+                                        <p className="text-2xl font-bold">
+                                            {stats?.open_drafts ?? 0}
+                                        </p>
+                                    )}
+                                    <p className="text-[11px] text-white/60 uppercase tracking-wider mt-1">
                                         Offen
                                     </p>
                                 </div>
                                 <div>
-                                    <p className="text-2xl font-bold">
-                                        {isLoading ? "-" : stats?.documents_total ?? 0}
-                                    </p>
-                                    <p className="text-[11px] text-white/60 uppercase tracking-wider">
+                                    {isLoading ? (
+                                        <Skeleton className="h-8 w-10 bg-white/20 rounded" />
+                                    ) : (
+                                        <p className="text-2xl font-bold">
+                                            {stats?.documents_total ?? 0}
+                                        </p>
+                                    )}
+                                    <p className="text-[11px] text-white/60 uppercase tracking-wider mt-1">
                                         Gesamt
                                     </p>
                                 </div>

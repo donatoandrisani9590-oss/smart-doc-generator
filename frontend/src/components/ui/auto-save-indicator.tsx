@@ -1,13 +1,13 @@
 /**
- * AutoSaveIndicator - Visual feedback fuer Auto-Save Status
+ * AutoSaveIndicator - Visual feedback für Auto-Save Status
  *
  * Zeigt den aktuellen Speicherstatus an:
- * - Idle: Keine Aenderungen
- * - Pending: Aenderungen erkannt, warte auf Speicherung
- * - Saving: Speichervorgang laeuft
+ * - Idle: Keine Änderungen
+ * - Pending: Änderungen erkannt, warte auf Speicherung
+ * - Saving: Speichervorgang läuft
  * - Saved: Erfolgreich gespeichert
  * - Error: Speicherfehler aufgetreten
- * - Offline: Lokal gespeichert (Netzwerk nicht verfuegbar)
+ * - Offline: Lokal gespeichert (Netzwerk nicht verfügbar)
  */
 
 import { useEffect, useState } from "react";

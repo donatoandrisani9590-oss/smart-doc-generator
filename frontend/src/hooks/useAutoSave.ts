@@ -2,7 +2,7 @@
  * useAutoSave - Auto-Save Hook mit Debounce, LocalStorage Fallback und Visual Indicators
  *
  * Features:
- * - Auto-Save alle 30 Sekunden wenn Aenderungen vorliegen
+ * - Auto-Save alle 30 Sekunden wenn Änderungen vorliegen
  * - LocalStorage Fallback bei Netzwerk-Fehler
  * - "Entwurf wiederherstellen?" Dialog beim Laden
  * - Optimistic UI mit Rollback bei Fehler

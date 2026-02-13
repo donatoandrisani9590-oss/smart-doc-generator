@@ -176,7 +176,7 @@ export const useClauseOperations = ({
             markAsUnsaved();
         } catch (error) {
             logError("Failed to update clause", { error });
-            toast.error("Fehler", "Anderungen konnten nicht gespeichert werden");
+            toast.error("Fehler", "Änderungen konnten nicht gespeichert werden");
         } finally {
             setIsSaving(false);
         }
@@ -206,7 +206,7 @@ export const useClauseOperations = ({
             );
             setClauses(clausesResponse.data.clauses);
 
-            // Dialog schliessen und auswaehlen
+            // Dialog schliessen und auswählen
             setDeviationDialogOpen(false);
             setSelectedClauseId(pendingDeviationClauseId);
             setPendingDeviationClauseId(null);
@@ -251,7 +251,7 @@ export const useClauseOperations = ({
             setPendingPromotionClauseId(null);
 
             toast.success(
-                "Zur Prufung eingereicht",
+                "Zur Prüfung eingereicht",
                 "Der Textbaustein wird nach Freigabe in der Bibliothek verfügbar sein"
             );
         } catch (error) {

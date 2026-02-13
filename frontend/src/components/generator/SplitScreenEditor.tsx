@@ -30,25 +30,23 @@ export const SplitScreenEditor = ({ documentTypes }: SplitScreenEditorProps) => 
     const { showCommentSidebar } = state;
 
     return (
-        <div className="h-[calc(100vh-64px)] w-full overflow-hidden flex">
-            {/* Linke Seite: Steuerung - kompakter (30% statt 40%) */}
+        <div className="h-[calc(100vh-64px)] w-full overflow-hidden flex flex-col lg:flex-row">
+            {/* Linke Seite: Steuerung - full-width auf mobil, fixed-width auf Desktop */}
             <div
-                className="bg-background border-r overflow-hidden flex-shrink-0"
-                style={{ width: "320px", minWidth: "280px", maxWidth: "360px" }}
+                className="w-full lg:w-[320px] lg:min-w-[280px] lg:max-w-[360px] bg-background border-b lg:border-b-0 lg:border-r overflow-hidden flex-shrink-0 max-h-[50vh] lg:max-h-none"
             >
                 <LeftControlPanel documentTypes={documentTypes} />
             </div>
 
             {/* Rechte Seite: Editor - nimmt restlichen Platz */}
-            <div className="flex-1 bg-muted/20 overflow-hidden min-w-0">
+            <div className="flex-1 bg-muted/20 overflow-hidden min-w-0 min-h-0">
                 <RightEditorPanel />
             </div>
 
             {/* Kommentar-Seitenleiste (Apple Pages Style) */}
             {showCommentSidebar && (
                 <div
-                    className="bg-background border-l overflow-hidden flex-shrink-0"
-                    style={{ width: "280px" }}
+                    className="w-full lg:w-[280px] bg-background border-t lg:border-t-0 lg:border-l overflow-hidden flex-shrink-0 max-h-[40vh] lg:max-h-none"
                 >
                     <CommentSidebar />
                 </div>

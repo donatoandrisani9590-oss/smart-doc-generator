@@ -1,9 +1,9 @@
 /**
- * StationeryCanvas - Wrapper fuer den TinyMCE Editor mit Briefpapier-Zonen
+ * StationeryCanvas - Wrapper für den TinyMCE Editor mit Briefpapier-Zonen
  *
- * Rendert Header/Footer-Zonen aus dem ausgewaehlten Blanko-Template
+ * Rendert Header/Footer-Zonen aus dem ausgewählten Blanko-Template
  * um den editierbaren Dokumentinhalt herum. Die Zonen sind gesperrt
- * und nur in den Einstellungen aenderbar.
+ * und nur in den Einstellungen änderbar.
  */
 
 import { DocumentEditor } from "@/components/editor/DocumentEditor";

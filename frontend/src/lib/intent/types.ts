@@ -1,7 +1,7 @@
 /**
  * Intent Parser - Type Definitions
  *
- * Alle TypeScript Interfaces und Types fuer den Intent Parser.
+ * Alle TypeScript Interfaces und Types für den Intent Parser.
  */
 
 export interface ParsedIntent {
@@ -15,11 +15,11 @@ export interface ParsedIntent {
   confidence: number;
   /** Wurde lokal verarbeitet? */
   processedLocally: boolean;
-  /** Urspruengliche Nachricht */
+  /** Ursprüngliche Nachricht */
   originalMessage: string;
   /** Fehlende empfohlene Felder */
   missingFields?: string[];
-  /** Intelligente Vorschlaege fuer naechste Eingabe */
+  /** Intelligente Vorschläge für nächste Eingabe */
   suggestions?: string[];
   /** Arbeitszeit-Typ */
   workType?: 'vollzeit' | 'teilzeit';

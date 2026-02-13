@@ -144,11 +144,11 @@ export interface DocumentClause {
     id: number;
     uniqueId: string;
     title: string;
-    content?: string; // Textbaustein-Inhalt fuer Tooltip-Vorschau
+    content?: string; // Textbaustein-Inhalt für Tooltip-Vorschau
     is_mandatory: boolean;
     is_enabled: boolean;
     is_order_locked: boolean;
-    is_recommended?: boolean; // Empfohlener Textbaustein (faellt zurueck auf is_mandatory wenn nicht gesetzt)
+    is_recommended?: boolean; // Empfohlener Textbaustein (fällt zurück auf is_mandatory wenn nicht gesetzt)
     order: number;
     clause_type: "standard" | "optional" | "conditional" | "variant";
     // Variant support
@@ -292,7 +292,7 @@ const SortableClauseItem = ({
 
             {/* Badges */}
             <div className="flex items-center gap-2 shrink-0">
-                {/* Empfohlen Badge - zeigt an wenn is_recommended true ist, oder faellt auf is_mandatory zurueck */}
+                {/* Empfohlen Badge - zeigt an wenn is_recommended true ist, oder fällt auf is_mandatory zurück */}
                 {(clause.is_recommended ?? clause.is_mandatory) && (
                     <TooltipProvider>
                         <Tooltip>

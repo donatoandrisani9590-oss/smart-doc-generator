@@ -163,7 +163,7 @@ function SignersStep({ signers, onSignersChange, errors }: SignersStepProps) {
   return (
     <WizardStepContent
       title="Wer soll unterschreiben?"
-      description="Fuegen Sie alle Personen hinzu, die dieses Dokument unterschreiben sollen."
+      description="Fügen Sie alle Personen hinzu, die dieses Dokument unterschreiben sollen."
     >
       <div className="space-y-4">
         {signers.map((signer, index) => (
@@ -271,13 +271,13 @@ function SignersStep({ signers, onSignersChange, errors }: SignersStepProps) {
           onClick={addSigner}
         >
           <Plus className="mr-2 h-4 w-4" />
-          Weiteren Unterzeichner hinzufuegen
+          Weiteren Unterzeichner hinzufügen
         </Button>
 
         <Alert>
           <Lightbulb className="h-4 w-4" />
           <AlertDescription>
-            Die Reihenfolge bestimmt, wer zuerst signiert. Der naechste Unterzeichner
+            Die Reihenfolge bestimmt, wer zuerst signiert. Der nächste Unterzeichner
             wird erst benachrichtigt, wenn der vorherige unterschrieben hat.
           </AlertDescription>
         </Alert>
@@ -486,7 +486,7 @@ function ReviewStep({
   return (
     <WizardStepContent
       title="Zusammenfassung"
-      description="Ueberpruefen Sie die Details bevor Sie das Dokument zur Unterschrift senden."
+      description="Überprüfen Sie die Details bevor Sie das Dokument zur Unterschrift senden."
     >
       <div className="space-y-6">
         {/* Document Info */}
@@ -543,7 +543,7 @@ function ReviewStep({
           <div className="space-y-2">
             <Label htmlFor="expires-at" className="flex items-center gap-1">
               <Calendar className="h-4 w-4" />
-              Gueltig bis
+              Gültig bis
             </Label>
             <Input
               id="expires-at"
@@ -677,7 +677,7 @@ export function SignatureWizard({
       id: 'review',
       label: 'Senden',
       icon: Send,
-      description: 'Ueberpruefen und absenden',
+      description: 'Überprüfen und absenden',
     },
   ];
 
@@ -696,7 +696,7 @@ export function SignatureWizard({
       if (!signer.email.trim()) {
         newErrors[`${signer.id}-email`] = 'E-Mail ist erforderlich';
       } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(signer.email)) {
-        newErrors[`${signer.id}-email`] = 'Ungueltige E-Mail-Adresse';
+        newErrors[`${signer.id}-email`] = 'Ungültige E-Mail-Adresse';
       }
     });
 
@@ -723,7 +723,7 @@ export function SignatureWizard({
 
     if (missingSignatures.length > 0) {
       setErrors({
-        fields: 'Jeder Unterzeichner benoetigt mindestens ein Signatur- oder Initialen-Feld',
+        fields: 'Jeder Unterzeichner benötigt mindestens ein Signatur- oder Initialen-Feld',
       });
       return false;
     }
@@ -841,7 +841,7 @@ export function SignatureWizard({
         allowStepClick
         completeLabel="Zur Unterschrift senden"
         nextLabel="Weiter"
-        backLabel="Zurueck"
+        backLabel="Zurück"
         cancelLabel="Abbrechen"
       >
         {/* Step 1: Signers */}

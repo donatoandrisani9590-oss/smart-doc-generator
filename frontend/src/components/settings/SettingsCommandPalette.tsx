@@ -257,7 +257,7 @@ const SETTINGS_GROUPS: SettingsGroup[] = [
       {
         id: "users",
         label: "Benutzerverwaltung",
-        description: "Benutzer hinzufuegen, bearbeiten, loeschen",
+        description: "Benutzer hinzufügen, bearbeiten, löschen",
         keywords: ["benutzer", "user", "mitarbeiter", "team", "rolle", "rechte"],
         icon: Users,
         tab: "users",

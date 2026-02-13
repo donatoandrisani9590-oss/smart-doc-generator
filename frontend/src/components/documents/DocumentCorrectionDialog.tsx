@@ -28,6 +28,34 @@ import {
 } from "@/hooks/useApi";
 import { Loader2, AlertCircle, CheckCircle, Edit3, History, FileText } from "lucide-react";
 
+// Deutsche Labels für Formulardaten-Anzeige
+const FORM_FIELD_LABELS: Record<string, string> = {
+    signatory_name: "Unterzeichner",
+    vorname: "Vorname",
+    nachname: "Nachname",
+    eintrittsdatum: "Eintrittsdatum",
+    geburtsdatum: "Geburtsdatum",
+    position: "Position",
+    gehalt: "Gehalt",
+    wochenstunden: "Wochenstunden",
+    urlaubstage: "Urlaubstage",
+    probezeit: "Probezeit",
+    strasse: "Straße",
+    plz: "PLZ",
+    ort: "Ort",
+    firmenwagen: "Firmenwagen",
+    homeoffice: "Home Office",
+    adresse: "Adresse",
+    arbeitgeber: "Arbeitgeber",
+};
+
+function formatFieldLabel(key: string): string {
+    if (FORM_FIELD_LABELS[key]) return FORM_FIELD_LABELS[key];
+    // Fallback: Underscores ersetzen + erster Buchstabe groß
+    const label = key.replace(/_/g, " ");
+    return label.charAt(0).toUpperCase() + label.slice(1);
+}
+
 interface DocumentCorrectionDialogProps {
     documentId: number;
     open: boolean;
@@ -252,8 +280,8 @@ export const DocumentCorrectionDialog = ({
                                 <div className="grid grid-cols-2 gap-2 text-sm">
                                     {Object.entries(document.form_data || {}).slice(0, 6).map(([key, value]) => (
                                         <div key={key} className="flex justify-between">
-                                            <span className="text-muted-foreground">{key}:</span>
-                                            <span className="font-medium truncate max-w-[150px]">
+                                            <span className="text-muted-foreground">{formatFieldLabel(key)}:</span>
+                                            <span className="font-medium truncate max-w-[150px]" title={String(value)}>
                                                 {String(value)}
                                             </span>
                                         </div>
@@ -288,7 +316,7 @@ export const DocumentCorrectionDialog = ({
                                             }`}
                                         >
                                             <Label className="flex items-center gap-2">
-                                                {key}
+                                                {formatFieldLabel(key)}
                                                 {isChanged && (
                                                     <span className="text-xs text-yellow-600 font-normal">
                                                         (geändert)
@@ -345,7 +373,7 @@ export const DocumentCorrectionDialog = ({
                                 <h4 className="font-medium">Geänderte Felder:</h4>
                                 {changedFields.map((field) => (
                                     <div key={field} className="p-2 bg-muted/30 rounded text-sm">
-                                        <span className="font-medium">{field}:</span>
+                                        <span className="font-medium">{formatFieldLabel(field)}:</span>
                                         <span className="text-muted-foreground ml-2">
                                             {String(originalData[field])}
                                         </span>

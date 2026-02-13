@@ -12,7 +12,7 @@
  * v5.1: Draft-Speichern ohne vollständige Validierung, Auto-Save Status
  */
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Save, FileText, FileType2, Loader2, AlertCircle, CheckCircle2, Cloud, CloudOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -40,6 +40,9 @@ export const ActionBar = () => {
     const [isSavingDraft, setIsSavingDraft] = useState(false);
     const [isExportingPdf, setIsExportingPdf] = useState(false);
     const [isExportingDocx, setIsExportingDocx] = useState(false);
+
+    // Guard against double-click race condition (setState is async)
+    const exportInProgressRef = useRef(false);
 
     // Export Success Modal state
     const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -141,9 +144,10 @@ export const ActionBar = () => {
         }
     };
 
-    // PDF Export
+    // PDF Export (with double-click guard)
     const handleExportPdf = async () => {
-        if (!canExport) return;
+        if (!canExport || exportInProgressRef.current) return;
+        exportInProgressRef.current = true;
         setIsExportingPdf(true);
         try {
             await actions.exportDocument("pdf");
@@ -151,12 +155,14 @@ export const ActionBar = () => {
             setShowSuccessModal(true);
         } finally {
             setIsExportingPdf(false);
+            exportInProgressRef.current = false;
         }
     };
 
-    // DOCX Export
+    // DOCX Export (with double-click guard)
     const handleExportDocx = async () => {
-        if (!canExport) return;
+        if (!canExport || exportInProgressRef.current) return;
+        exportInProgressRef.current = true;
         setIsExportingDocx(true);
         try {
             await actions.exportDocument("docx");
@@ -164,6 +170,7 @@ export const ActionBar = () => {
             setShowSuccessModal(true);
         } finally {
             setIsExportingDocx(false);
+            exportInProgressRef.current = false;
         }
     };
 

@@ -2,10 +2,10 @@
  * DynamicFormFields - Dynamische Formularfelder basierend auf Textbausteine/Varianten
  *
  * v4.2 Feature:
- * - Laedt FormFields dynamisch vom Backend
+ * - Lädt FormFields dynamisch vom Backend
  * - Zeigt Felder basierend auf aktivierten Textbausteine
- * - Unterstuetzt bedingte Sichtbarkeit (show_condition)
- * - Kaskadierender Flow: Klausel aktiviert -> Variante waehlen -> Felder anzeigen
+ * - Unterstützt bedingte Sichtbarkeit (show_condition)
+ * - Kaskadierender Flow: Klausel aktiviert -> Variante wählen -> Felder anzeigen
  *
  * v4.2.1: Inline-Validierung mit onBlur und Fehlermeldungen
  * v4.3: Erweitertes Condition Schema mit AND/OR-Logik
@@ -67,7 +67,7 @@ export interface FormFieldDefinition {
     pattern?: string;
     pattern_error_message?: string;
 
-    // Conditional visibility - unterstuetzt neues UND altes Format
+    // Conditional visibility - unterstützt neues UND altes Format
     // Neues Format: { type: 'AND'|'OR', conditions: [...] } oder { type: 'field'|'clause_enabled'|'variant_selected', ... }
     // Legacy-Format: { clause_id?: number, variant_id?: number, field_conditions?: [...] }
     show_condition?: string;
@@ -169,7 +169,7 @@ export const DynamicFormFields = ({
     const isFieldVisible = useCallback(
         (field: FormFieldDefinition): boolean => {
             // Nutze den neuen condition-evaluator
-            // Unterstuetzt sowohl das alte als auch das neue Format
+            // Unterstützt sowohl das alte als auch das neue Format
             return evaluateShowCondition(field.show_condition, conditionContext);
         },
         [conditionContext]

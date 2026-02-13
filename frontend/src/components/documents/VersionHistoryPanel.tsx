@@ -12,6 +12,33 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useDocumentVersions, type DocumentVersion } from "@/hooks/useApi";
 import { Loader2, History, Download, CheckCircle, Clock, FileText, User } from "lucide-react";
 
+// Deutsche Labels für Feldnamen
+const FORM_FIELD_LABELS: Record<string, string> = {
+    signatory_name: "Unterzeichner",
+    vorname: "Vorname",
+    nachname: "Nachname",
+    eintrittsdatum: "Eintrittsdatum",
+    geburtsdatum: "Geburtsdatum",
+    position: "Position",
+    gehalt: "Gehalt",
+    wochenstunden: "Wochenstunden",
+    urlaubstage: "Urlaubstage",
+    probezeit: "Probezeit",
+    strasse: "Straße",
+    plz: "PLZ",
+    ort: "Ort",
+    firmenwagen: "Firmenwagen",
+    homeoffice: "Home Office",
+    adresse: "Adresse",
+    arbeitgeber: "Arbeitgeber",
+};
+
+function formatFieldLabel(key: string): string {
+    if (FORM_FIELD_LABELS[key]) return FORM_FIELD_LABELS[key];
+    const label = key.replace(/_/g, " ");
+    return label.charAt(0).toUpperCase() + label.slice(1);
+}
+
 interface VersionHistoryPanelProps {
     documentId: number;
     onDownloadVersion?: (version: DocumentVersion) => void;
@@ -143,9 +170,9 @@ export const VersionHistoryPanel = ({
                                                 {version.changed_fields.map((field) => (
                                                     <span
                                                         key={field}
-                                                        className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded"
+                                                        className="text-xs bg-warm-100 text-warm-600 px-2 py-0.5 rounded"
                                                     >
-                                                        {field}
+                                                        {formatFieldLabel(field)}
                                                     </span>
                                                 ))}
                                             </div>

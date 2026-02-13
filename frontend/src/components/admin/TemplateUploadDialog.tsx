@@ -318,7 +318,7 @@ export function TemplateUploadDialog({
                             {teams.length > 0 ? (
                                 <Select value={teamId} onValueChange={setTeamId}>
                                     <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="Team waehlen..." />
+                                        <SelectValue placeholder="Team wählen..." />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {teams.map((t) => (

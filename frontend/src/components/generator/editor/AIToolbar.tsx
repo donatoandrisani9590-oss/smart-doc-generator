@@ -1,12 +1,12 @@
 /**
- * AIToolbar - KI-Nachbesserungs-Toolbar fuer den Dokumenten-Editor
+ * AIToolbar - KI-Nachbesserungs-Toolbar für den Dokumenten-Editor
  *
  * Floating Toolbar mit KI-Optionen:
- * - Foermlicher formulieren
- * - Kuerzer fassen
- * - Rechtskonform pruefen
+ * - Förmlicher formulieren
+ * - Kürzer fassen
+ * - Rechtskonform prüfen
  * - Freundlicher formulieren
- * - Verstaendlicher formulieren
+ * - Verständlicher formulieren
  * - Freie Anweisung...
  */
 

@@ -201,7 +201,7 @@ export const ShareWithTeamDialog = ({
                         {teams.length === 0 ? (
                             <div className="text-center py-6 text-muted-foreground">
                                 <Users className="w-10 h-10 mx-auto mb-3 opacity-50" />
-                                <p className="font-medium">Keine Teams verfuegbar</p>
+                                <p className="font-medium">Keine Teams verfügbar</p>
                                 <p className="text-sm mt-1">
                                     Sie sind noch keinem Team beigetreten.
                                 </p>

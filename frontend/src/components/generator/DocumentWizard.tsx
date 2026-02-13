@@ -70,6 +70,17 @@ const WizardContent = ({ documentTypes }: DocumentWizardProps) => {
     const { state, actions } = wizardContext;
     const dataAppliedRef = useRef(false);
 
+    // Warn user before leaving with unsaved changes
+    useEffect(() => {
+        const handler = (e: BeforeUnloadEvent) => {
+            if (state.hasUnsavedChanges) {
+                e.preventDefault();
+            }
+        };
+        window.addEventListener("beforeunload", handler);
+        return () => window.removeEventListener("beforeunload", handler);
+    }, [state.hasUnsavedChanges]);
+
     // Auto-select document type from ?type=X query parameter
     // Supports both numeric IDs and document type names (from SmartChatInput)
     useEffect(() => {

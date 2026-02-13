@@ -1,7 +1,7 @@
 /**
  * Intent Parser - Document Type Mappings
  *
- * Keyword-Mappings fuer Dokumenttyp-Erkennung,
+ * Keyword-Mappings für Dokumenttyp-Erkennung,
  * erforderliche Felder pro Dokumenttyp und Feld-Labels.
  */
 
@@ -14,7 +14,7 @@ import type { DocumentTypeMapping } from './types';
 export const DOCUMENT_TYPE_MAPPINGS: DocumentTypeMapping[] = [
   // ==========================================================================
   // PHASE 1: EINSTELLUNG & ONBOARDING
-  // WICHTIG: Spezifischere Keywords ZUERST, da wir beim ersten Match aufhoeren!
+  // WICHTIG: Spezifischere Keywords ZUERST, da wir beim ersten Match aufhören!
   // ==========================================================================
 
   // Spezifische Dokumente zuerst
@@ -54,14 +54,14 @@ export const DOCUMENT_TYPE_MAPPINGS: DocumentTypeMapping[] = [
     documentType: 'Arbeitsvertrag Befristet',
     category: 'Einstellung',
   },
-  // WICHTIG: Nachtrag MUSS vor generischem Arbeitsvertrag kommen, da "Nachtrag zum Arbeitsvertrag" auch "Arbeitsvertrag" enthaelt!
+  // WICHTIG: Nachtrag MUSS vor generischem Arbeitsvertrag kommen, da "Nachtrag zum Arbeitsvertrag" auch "Arbeitsvertrag" enthält!
   {
     keywords: ['nachtrag', 'änderungsvereinbarung', 'vertragsänderung', 'änderung zum vertrag', 'ergänzung', 'zusatzvereinbarung', 'nachtrag zum arbeitsvertrag'],
     documentType: 'Nachtrag zum Arbeitsvertrag',
     category: 'Vertragsänderung',
   },
   // Generischer Arbeitsvertrag zuletzt
-  // WICHTIG: "einstellung" hier als Synonym fuer Arbeitsvertrag
+  // WICHTIG: "einstellung" hier als Synonym für Arbeitsvertrag
   {
     keywords: ['arbeitsvertrag', 'anstellungsvertrag', 'employment contract', 'vollzeit', 'vertrag mit gehalt', 'anstellung', 'neueinstellung', 'einstellung'],
     documentType: 'Arbeitsvertrag Vollzeit',
@@ -125,7 +125,7 @@ export const DOCUMENT_TYPE_MAPPINGS: DocumentTypeMapping[] = [
   // ==========================================================================
   // PHASE 3: BEENDIGUNG / OFFBOARDING
   // ==========================================================================
-  // WICHTIG: Spezifischere Kuendigungstypen ZUERST
+  // WICHTIG: Spezifischere Kündigungstypen ZUERST
   {
     keywords: ['fristlose kündigung', 'außerordentliche kündigung', 'fristlos kündigen', 'fristlos', 'sofortige kündigung'],
     documentType: 'Fristlose Kündigung',
@@ -136,7 +136,7 @@ export const DOCUMENT_TYPE_MAPPINGS: DocumentTypeMapping[] = [
     documentType: 'Kündigungsbestätigung',
     category: 'Beendigung',
   },
-  // Generische Kuendigung zuletzt
+  // Generische Kündigung zuletzt
   {
     keywords: ['kündigung', 'kuendigung', 'termination', 'entlassung', 'ordentliche kündigung', 'fristgerecht'],
     documentType: 'Kündigung',
@@ -244,7 +244,7 @@ export const REQUIRED_FIELDS: Record<string, string[]> = {
   'Dienstanweisung': [],
 };
 
-// Feld-Labels fuer Vorschlaege
+// Feld-Labels für Vorschläge
 export const FIELD_LABELS: Record<string, string> = {
   first_name: 'Vorname',
   last_name: 'Nachname',

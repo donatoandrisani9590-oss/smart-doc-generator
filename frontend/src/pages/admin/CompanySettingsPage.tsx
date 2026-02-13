@@ -174,11 +174,12 @@ export default function CompanySettingsPage() {
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div className="space-y-2">
-                            <label className="text-sm font-medium flex items-center gap-2">
+                            <label htmlFor="company-name" className="text-sm font-medium flex items-center gap-2">
                                 <Building2 className="w-4 h-4 text-muted-foreground" />
                                 Firmenname
                             </label>
                             <Input
+                                id="company-name"
                                 value={formData.company_name}
                                 onChange={(e) => updateField("company_name", e.target.value)}
                                 placeholder="Niederwieser GmbH"
@@ -186,11 +187,12 @@ export default function CompanySettingsPage() {
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-sm font-medium flex items-center gap-2">
+                            <label htmlFor="company-street" className="text-sm font-medium flex items-center gap-2">
                                 <MapPin className="w-4 h-4 text-muted-foreground" />
                                 Straße
                             </label>
                             <Input
+                                id="company-street"
                                 value={formData.street}
                                 onChange={(e) => updateField("street", e.target.value)}
                                 placeholder="Musterstraße 123"
@@ -199,16 +201,18 @@ export default function CompanySettingsPage() {
 
                         <div className="grid grid-cols-3 gap-4">
                             <div className="space-y-2">
-                                <label className="text-sm font-medium">PLZ</label>
+                                <label htmlFor="company-postal-code" className="text-sm font-medium">PLZ</label>
                                 <Input
+                                    id="company-postal-code"
                                     value={formData.postal_code}
                                     onChange={(e) => updateField("postal_code", e.target.value)}
                                     placeholder="80333"
                                 />
                             </div>
                             <div className="col-span-2 space-y-2">
-                                <label className="text-sm font-medium">Ort</label>
+                                <label htmlFor="company-city" className="text-sm font-medium">Ort</label>
                                 <Input
+                                    id="company-city"
                                     value={formData.city}
                                     onChange={(e) => updateField("city", e.target.value)}
                                     placeholder="München"
@@ -217,11 +221,12 @@ export default function CompanySettingsPage() {
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-sm font-medium flex items-center gap-2">
+                            <label htmlFor="company-director" className="text-sm font-medium flex items-center gap-2">
                                 <User className="w-4 h-4 text-muted-foreground" />
                                 Geschäftsführer
                             </label>
                             <Input
+                                id="company-director"
                                 value={formData.managing_director}
                                 onChange={(e) => updateField("managing_director", e.target.value)}
                                 placeholder="Hans Niederwieser"
@@ -229,11 +234,12 @@ export default function CompanySettingsPage() {
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-sm font-medium flex items-center gap-2">
+                            <label htmlFor="company-register" className="text-sm font-medium flex items-center gap-2">
                                 <FileText className="w-4 h-4 text-muted-foreground" />
                                 Handelsregister
                             </label>
                             <Input
+                                id="company-register"
                                 value={formData.commercial_register}
                                 onChange={(e) => updateField("commercial_register", e.target.value)}
                                 placeholder="HRB 12345, Amtsgericht München"
@@ -241,8 +247,9 @@ export default function CompanySettingsPage() {
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-sm font-medium">USt-IdNr.</label>
+                            <label htmlFor="company-tax-id" className="text-sm font-medium">USt-IdNr.</label>
                             <Input
+                                id="company-tax-id"
                                 value={formData.tax_id}
                                 onChange={(e) => updateField("tax_id", e.target.value)}
                                 placeholder="DE123456789"
@@ -264,11 +271,12 @@ export default function CompanySettingsPage() {
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div className="space-y-2">
-                            <label className="text-sm font-medium flex items-center gap-2">
+                            <label htmlFor="company-ai-instructions" className="text-sm font-medium flex items-center gap-2">
                                 <Bot className="w-4 h-4 text-muted-foreground" />
                                 Anweisungen für die KI
                             </label>
                             <Textarea
+                                id="company-ai-instructions"
                                 value={formData.ai_instructions}
                                 onChange={(e) => updateField("ai_instructions", e.target.value)}
                                 placeholder={"z.B. Verwende österreichisches Arbeitsrecht.\nAlle Dokumente per 'Sie'.\nFirmensitz Wien."}

@@ -10,6 +10,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { apiFetch } from "@/lib/api-client";
+import { useToast } from "@/components/ui/toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -58,6 +59,7 @@ interface DesignSettings {
 }
 
 export const DesignManager = () => {
+    const toast = useToast();
     const [countryCode, setCountryCode] = useState("DE");
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -114,9 +116,12 @@ export const DesignManager = () => {
             setError(null);
             // Design settings speichern wenn Backend-Endpunkt existiert
             setSuccess("Einstellungen gespeichert");
+            toast.success("Gespeichert", "Design-Einstellungen wurden gespeichert");
             setTimeout(() => setSuccess(null), 3000);
         } catch (err) {
-            setError(err instanceof Error ? err.message : "Fehler beim Speichern");
+            const msg = err instanceof Error ? err.message : "Fehler beim Speichern";
+            setError(msg);
+            toast.error("Fehler", msg);
         } finally {
             setSaving(false);
         }
@@ -162,9 +167,12 @@ export const DesignManager = () => {
                 logo_path: result.logo_path,
             }));
             setSuccess("Logo hochgeladen");
+            toast.success("Logo hochgeladen", "Das Firmenlogo wurde aktualisiert");
             setTimeout(() => setSuccess(null), 3000);
         } catch (err) {
-            setError(err instanceof Error ? err.message : "Upload fehlgeschlagen");
+            const msg = err instanceof Error ? err.message : "Upload fehlgeschlagen";
+            setError(msg);
+            toast.error("Upload fehlgeschlagen", msg);
         } finally {
             setLogoUploading(false);
             if (fileInputRef.current) {
@@ -186,11 +194,15 @@ export const DesignManager = () => {
                     ...prev,
                     logo_path: null,
                 }));
-                setSuccess("Logo geloescht");
+                setSuccess("Logo gelöscht");
+                toast.success("Logo gelöscht", "Das Firmenlogo wurde entfernt");
                 setTimeout(() => setSuccess(null), 3000);
+            } else {
+                toast.error("Fehler", "Logo konnte nicht gelöscht werden");
             }
         } catch (err) {
-            setError("Fehler beim Loeschen");
+            setError("Fehler beim Löschen");
+            toast.error("Fehler", "Logo konnte nicht gelöscht werden");
         } finally {
             setLogoUploading(false);
         }

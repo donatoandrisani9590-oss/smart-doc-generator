@@ -1,11 +1,11 @@
 /**
  * Intent Parser - Validation
  *
- * Validiert extrahierte Daten und gibt Warnungen zurueck.
+ * Validiert extrahierte Daten und gibt Warnungen zurück.
  */
 
 /**
- * Validiert extrahierte Daten und gibt Warnungen zurueck
+ * Validiert extrahierte Daten und gibt Warnungen zurück
  */
 export function validateExtractedData(
   data: Record<string, string | number>,
@@ -13,13 +13,13 @@ export function validateExtractedData(
 ): { valid: boolean; warnings: string[] } {
   const warnings: string[] = [];
 
-  // Minijob-Erkennung fuer spezielle Validierungsregeln
+  // Minijob-Erkennung für spezielle Validierungsregeln
   const isMinijob = documentType?.toLowerCase().includes('minijob') ||
     documentType?.toLowerCase().includes('geringfügig');
 
   // Gehalt-Validierung (mit Minijob-Ausnahme)
   if (typeof data.salary === 'number') {
-    // Minijobs haben niedrigere Gehaelter - das ist normal
+    // Minijobs haben niedrigere Gehälter - das ist normal
     if (data.salary < 500 && !isMinijob) {
       warnings.push('Gehalt erscheint sehr niedrig. Meinten Sie ein Jahresgehalt?');
     }

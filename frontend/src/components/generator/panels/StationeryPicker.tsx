@@ -1,9 +1,9 @@
 /**
  * StationeryPicker - Briefpapier-Auswahl Dropdown
  *
- * Ermoeglicht die Auswahl eines Blanko-Briefpapier-Templates
- * im LeftControlPanel. Unterstuetzt Auto-Suggest basierend auf
- * dem Laendercode des Dokumenttyps.
+ * Ermöglicht die Auswahl eines Blanko-Briefpapier-Templates
+ * im LeftControlPanel. Unterstützt Auto-Suggest basierend auf
+ * dem Ländercode des Dokumenttyps.
  */
 
 import { useState, useEffect, useCallback } from "react";
@@ -63,7 +63,7 @@ export const StationeryPicker = ({
         fetchOptions();
     }, [fetchOptions]);
 
-    // Auto-Suggest basierend auf Laendercode
+    // Auto-Suggest basierend auf Ländercode
     useEffect(() => {
         if (value === null && countryCode && options.length > 0) {
             const autoSuggest = async () => {
@@ -198,7 +198,7 @@ export const StationeryPicker = ({
                 </PopoverContent>
             </Popover>
 
-            {/* Entfernen-Link wenn ausgewaehlt */}
+            {/* Entfernen-Link wenn ausgewählt */}
             {value && (
                 <button
                     className="text-[10px] text-muted-foreground hover:text-foreground transition-colors"

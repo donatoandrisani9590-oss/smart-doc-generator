@@ -1,5 +1,5 @@
 """
-Thumbnail-Generierung fuer Briefpapier-Vorlagen (Stationery Templates).
+Thumbnail-Generierung für Briefpapier-Vorlagen (Stationery Templates).
 
 Konvertiert DOCX -> PDF via LibreOffice headless, rendert dann
 die erste Seite als PNG via PyMuPDF (fitz).
@@ -30,8 +30,8 @@ def generate_thumbnail(
 
     Args:
         docx_path: Pfad zur Quell-DOCX-Datei
-        output_path: Zielpfad fuer das PNG. Falls None, wird automatisch generiert.
-        width: Zielbreite in Pixel (Hoehe wird proportional berechnet)
+        output_path: Zielpfad für das PNG. Falls None, wird automatisch generiert.
+        width: Zielbreite in Pixel (Höhe wird proportional berechnet)
 
     Returns:
         Pfad zum generierten PNG, oder None bei Fehler
@@ -79,7 +79,7 @@ def generate_thumbnail(
 
             page = doc[0]
 
-            # Zoom fuer Zielbreite berechnen
+            # Zoom für Zielbreite berechnen
             zoom = width / page.rect.width
             mat = fitz.Matrix(zoom, zoom)
             pix = page.get_pixmap(matrix=mat, alpha=False)
@@ -96,13 +96,13 @@ def generate_thumbnail(
             return output_path
 
     except FileNotFoundError:
-        logger.warning("LibreOffice (soffice) nicht gefunden. Thumbnail-Generierung uebersprungen.")
+        logger.warning("LibreOffice (soffice) nicht gefunden. Thumbnail-Generierung übersprungen.")
         return None
     except subprocess.TimeoutExpired:
         logger.warning("LibreOffice-Konvertierung Timeout")
         return None
     except ImportError:
-        logger.warning("PyMuPDF (fitz) nicht installiert. Thumbnail-Generierung uebersprungen.")
+        logger.warning("PyMuPDF (fitz) nicht installiert. Thumbnail-Generierung übersprungen.")
         return None
     except Exception as e:
         logger.error(f"Thumbnail-Generierung fehlgeschlagen: {e}")

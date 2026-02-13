@@ -128,7 +128,7 @@ export function ClauseSwapButton({
             </div>
           ) : alternatives.length === 0 ? (
             <div className="py-6 text-center text-sm text-muted-foreground">
-              Keine Alternativen in dieser Kategorie verfuegbar.
+              Keine Alternativen in dieser Kategorie verfügbar.
             </div>
           ) : (
             <div className="p-1">

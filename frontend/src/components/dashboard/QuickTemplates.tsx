@@ -86,11 +86,11 @@ const getIconForType = (name: string) => {
     return FileText;
 };
 
-// SimpleDocs-Style: Soft Cards mit farbigen Icons
+// SimpleDocs-Style: Soft Cards mit Design-System-Farben
 const TILE_COLORS = [
-    { bg: "hover:bg-blue-50/50", icon: "text-blue-600" },
-    { bg: "hover:bg-purple-50/50", icon: "text-purple-600" },
-    { bg: "hover:bg-emerald-50/50", icon: "text-emerald-600" },
+    { bg: "hover:bg-primary/5", icon: "text-primary" },
+    { bg: "hover:bg-[#6EBD84]/10", icon: "text-[#6EBD84]" },
+    { bg: "hover:bg-warm-100", icon: "text-warm-600" },
 ];
 
 interface QuickTemplatesProps {

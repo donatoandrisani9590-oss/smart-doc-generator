@@ -1,13 +1,13 @@
 /**
  * Intent Parser - Suggestions & Missing Fields
  *
- * Generiert intelligente Vorschlaege und ermittelt fehlende Felder.
+ * Generiert intelligente Vorschläge und ermittelt fehlende Felder.
  */
 
 import { REQUIRED_FIELDS, FIELD_LABELS } from './document-type-mappings';
 
 /**
- * Ermittelt fehlende Felder fuer einen Dokumenttyp
+ * Ermittelt fehlende Felder für einen Dokumenttyp
  */
 export function getMissingFields(
   documentType: string | null,
@@ -17,7 +17,7 @@ export function getMissingFields(
 
   const requiredFields = REQUIRED_FIELDS[documentType] || [];
   return requiredFields.filter(field => {
-    // Pruefe ob das Feld fehlt (beachte full_name -> first_name + last_name)
+    // Prüfe ob das Feld fehlt (beachte full_name -> first_name + last_name)
     if (field === 'first_name' || field === 'last_name') {
       return !extractedData.full_name && !extractedData[field];
     }
@@ -26,7 +26,7 @@ export function getMissingFields(
 }
 
 /**
- * Generiert intelligente Vorschlaege basierend auf fehlenden Feldern
+ * Generiert intelligente Vorschläge basierend auf fehlenden Feldern
  */
 export function generateSuggestions(
   documentType: string | null,
@@ -47,7 +47,7 @@ export function generateSuggestions(
 
   const suggestions: string[] = [];
 
-  // Generiere kontextbasierte Vorschlaege
+  // Generiere kontextbasierte Vorschläge
   if (missingFields.includes('first_name') || missingFields.includes('last_name')) {
     if (extractedData.position) {
       suggestions.push(`Für wen ist die ${extractedData.position}-Stelle?`);

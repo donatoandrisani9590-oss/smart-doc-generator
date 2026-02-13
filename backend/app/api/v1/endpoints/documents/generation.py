@@ -295,7 +295,7 @@ class GenerateDocumentRequest(BaseModel):
     # User template (optional: use a user-uploaded DOCX template as layout basis)
     user_template_id: Optional[int] = Field(
         default=None,
-        description="Optional: ID eines eigenen Templates fuer Branding/Layout"
+        description="Optional: ID eines eigenen Templates für Branding/Layout"
     )
 
     # Freetext editor content (optional: manually edited HTML from TinyMCE editor)
@@ -970,7 +970,7 @@ async def download_pdf_by_job_id(
     if not output_path or not Path(output_path).exists():
         raise HTTPException(
             status_code=404,
-            detail="PDF-Datei nicht gefunden. Sie wurde moeglicherweise bereinigt."
+            detail="PDF-Datei nicht gefunden. Sie wurde möglicherweise bereinigt."
         )
 
     return FileResponse(

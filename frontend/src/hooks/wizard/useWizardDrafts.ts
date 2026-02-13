@@ -247,7 +247,7 @@ export function useWizardDrafts(params: UseWizardDraftsParams): UseWizardDraftsR
 
     const discardDraft = useCallback(() => {
         discardDraftFromStorage();
-        toast.info("Entwurf verworfen", "Der gespeicherte Entwurf wurde geloescht");
+        toast.info("Entwurf verworfen", "Der gespeicherte Entwurf wurde gelöscht");
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [discardDraftFromStorage]);
 
@@ -358,7 +358,7 @@ export function useWizardDrafts(params: UseWizardDraftsParams): UseWizardDraftsR
             if (apiError.status === 409) {
                 toast.error(
                     "Konflikt",
-                    "Der Entwurf wurde zwischenzeitlich geaendert. Seite wird neu geladen...",
+                    "Der Entwurf wurde zwischenzeitlich geändert. Seite wird neu geladen...",
                 );
                 // Reload draft to get latest version
                 if (loadedDraftId) {

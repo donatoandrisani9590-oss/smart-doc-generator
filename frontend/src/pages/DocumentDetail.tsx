@@ -165,7 +165,7 @@ export const DocumentDetailPage = () => {
     if (error || !document) {
         return (
             <div className="space-y-6">
-                <Button variant="ghost" onClick={() => navigate(-1)}>
+                <Button variant="ghost" onClick={() => navigate("/documents")}>
                     <ArrowLeft className="w-4 h-4 mr-2" />
                     Zurück
                 </Button>
@@ -236,7 +236,7 @@ export const DocumentDetailPage = () => {
 
             {/* Header - Simplified */}
             <div className="flex items-center gap-4">
-                <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+                <Button variant="ghost" size="icon" onClick={() => navigate("/documents")}>
                     <ArrowLeft className="w-5 h-5" />
                 </Button>
                 <div>
@@ -392,7 +392,7 @@ export const DocumentDetailPage = () => {
                                         to={`/documents/${related.id}`}
                                         className="block p-3 rounded-lg hover:bg-warm-50 transition-colors"
                                     >
-                                        <p className="text-sm font-medium truncate">
+                                        <p className="text-sm font-medium truncate" title={related.title || related.employee_name || undefined}>
                                             {related.title || related.employee_name}
                                         </p>
                                         <p className="text-xs text-muted-foreground">

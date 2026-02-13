@@ -30,7 +30,7 @@ class ErrorMessages:
 
     # ── Documents ─────────────────────────────────────────────────────────
     DOCUMENT_NOT_FOUND = "Dokument nicht gefunden"
-    PDF_NOT_FOUND = "PDF-Datei nicht gefunden. Sie wurde moeglicherweise bereinigt."
+    PDF_NOT_FOUND = "PDF-Datei nicht gefunden. Sie wurde möglicherweise bereinigt."
 
     # ── Attachments ───────────────────────────────────────────────────────
     ATTACHMENT_NOT_FOUND = "Anlage nicht gefunden"
@@ -44,7 +44,7 @@ class ErrorMessages:
     RESULT_FILE_NOT_FOUND = "Ergebnis-Datei nicht gefunden"
 
     # ── Guest Links ───────────────────────────────────────────────────────
-    LINK_INVALID = "Link ungueltig oder abgelaufen"
+    LINK_INVALID = "Link ungültig oder abgelaufen"
     LINK_EXPIRED = "Link abgelaufen"
 
     # ── Setup ─────────────────────────────────────────────────────────────

@@ -1,10 +1,10 @@
 /**
- * Condition Types - Erweiterte bedingte Logik fuer Textbausteine und Formularfelder
+ * Condition Types - Erweiterte bedingte Logik für Textbausteine und Formularfelder
  *
- * Unterstuetzt:
+ * Unterstützt:
  * - Einfache Bedingungen (Feld, Klausel, Variante)
  * - Zusammengesetzte Bedingungen (AND, OR) mit beliebiger Verschachtelung
- * - Abwaertskompatibilitaet mit dem alten ShowCondition-Format
+ * - Abwärtskompatibilität mit dem alten ShowCondition-Format
  */
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -12,16 +12,16 @@
 // ══════════════════════════════════════════════════════════════════════════════
 
 /**
- * Verfuegbare Vergleichsoperatoren
+ * Verfügbare Vergleichsoperatoren
  */
 export type ConditionOperator =
   | "=" // Gleichheit
   | "!=" // Ungleichheit
-  | ">" // Groesser als
+  | ">" // Größer als
   | "<" // Kleiner als
-  | ">=" // Groesser oder gleich
+  | ">=" // Größer oder gleich
   | "<=" // Kleiner oder gleich
-  | "contains" // String enthaelt Wert
+  | "contains" // String enthält Wert
   | "startsWith" // String beginnt mit Wert
   | "endsWith" // String endet mit Wert
   | "isEmpty" // Wert ist leer/null/undefined
@@ -32,25 +32,25 @@ export type ConditionOperator =
 // ══════════════════════════════════════════════════════════════════════════════
 
 /**
- * Einfache Bedingung - prueft einen einzelnen Wert
+ * Einfache Bedingung - prüft einen einzelnen Wert
  */
 export interface SimpleCondition {
   /** Art der Bedingung */
   type: "field" | "clause_enabled" | "variant_selected";
 
-  /** Feldname fuer type: 'field' */
+  /** Feldname für type: 'field' */
   field?: string;
 
-  /** Textbaustein-ID fuer type: 'clause_enabled' */
+  /** Textbaustein-ID für type: 'clause_enabled' */
   clause_id?: number;
 
-  /** Varianten-ID fuer type: 'variant_selected' */
+  /** Varianten-ID für type: 'variant_selected' */
   variant_id?: number;
 
   /** Vergleichsoperator */
   operator: ConditionOperator;
 
-  /** Vergleichswert (nicht noetig fuer isEmpty/isNotEmpty) */
+  /** Vergleichswert (nicht nötig für isEmpty/isNotEmpty) */
   value?: string | number | boolean;
 }
 
@@ -66,7 +66,7 @@ export interface CompoundCondition {
 }
 
 /**
- * Union Type fuer alle Bedingungsarten
+ * Union Type für alle Bedingungsarten
  */
 export type Condition = SimpleCondition | CompoundCondition;
 
@@ -75,7 +75,7 @@ export type Condition = SimpleCondition | CompoundCondition;
 // ══════════════════════════════════════════════════════════════════════════════
 
 /**
- * Kontext fuer die Auswertung von Bedingungen
+ * Kontext für die Auswertung von Bedingungen
  */
 export interface ConditionContext {
   /** Aktuelle Formularwerte */
@@ -84,12 +84,12 @@ export interface ConditionContext {
   /** IDs der aktivierten Textbausteine */
   enabledClauseIds: number[];
 
-  /** IDs der ausgewaehlten Varianten */
+  /** IDs der ausgewählten Varianten */
   selectedVariantIds: number[];
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// LEGACY FORMAT (Abwaertskompatibilitaet)
+// LEGACY FORMAT (Abwärtskompatibilität)
 // ══════════════════════════════════════════════════════════════════════════════
 
 /**
@@ -100,16 +100,16 @@ export interface LegacyShowCondition {
   /** Einzelne Textbaustein-ID */
   clause_id?: number;
 
-  /** Mehrere Textbaustein-IDs (OR-verknuepft) */
+  /** Mehrere Textbaustein-IDs (OR-verknüpft) */
   clause_ids?: number[];
 
   /** Einzelne Varianten-ID */
   variant_id?: number;
 
-  /** Mehrere Varianten-IDs (OR-verknuepft) */
+  /** Mehrere Varianten-IDs (OR-verknüpft) */
   variant_ids?: number[];
 
-  /** Feld-Bedingungen (AND-verknuepft) */
+  /** Feld-Bedingungen (AND-verknüpft) */
   field_conditions?: Array<{
     field: string;
     operator: "=" | "!=" | ">" | "<" | ">=" | "<=";
@@ -122,7 +122,7 @@ export interface LegacyShowCondition {
 // ══════════════════════════════════════════════════════════════════════════════
 
 /**
- * Prueft ob es sich um eine zusammengesetzte Bedingung handelt
+ * Prüft ob es sich um eine zusammengesetzte Bedingung handelt
  */
 export function isCompoundCondition(
   condition: Condition
@@ -131,7 +131,7 @@ export function isCompoundCondition(
 }
 
 /**
- * Prueft ob es sich um eine einfache Bedingung handelt
+ * Prüft ob es sich um eine einfache Bedingung handelt
  */
 export function isSimpleCondition(
   condition: Condition
@@ -144,7 +144,7 @@ export function isSimpleCondition(
 }
 
 /**
- * Prueft ob es sich um das alte ShowCondition-Format handelt
+ * Prüft ob es sich um das alte ShowCondition-Format handelt
  */
 export function isLegacyCondition(obj: unknown): obj is LegacyShowCondition {
   if (typeof obj !== "object" || obj === null) {

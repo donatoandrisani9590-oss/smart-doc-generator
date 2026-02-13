@@ -55,6 +55,7 @@ import {
 } from "lucide-react";
 import { useDropzone } from "react-dropzone";
 import { apiFetch } from "@/lib/api-client";
+import { useToast } from "@/components/ui/toast";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // TYPES
@@ -112,6 +113,7 @@ interface UploadDialogProps {
 }
 
 function UploadDialog({ open, onOpenChange, onSuccess }: UploadDialogProps) {
+    const toast = useToast();
     const [file, setFile] = useState<File | null>(null);
     const [name, setName] = useState("");
     const [description, setDescription] = useState("");
@@ -192,6 +194,7 @@ function UploadDialog({ open, onOpenChange, onSuccess }: UploadDialogProps) {
             }
 
             setUploadState("success");
+            toast.success("Vorlage hochgeladen", `"${name.trim()}" wurde erfolgreich hochgeladen`);
             setTimeout(() => {
                 onSuccess();
                 resetForm();
@@ -199,7 +202,9 @@ function UploadDialog({ open, onOpenChange, onSuccess }: UploadDialogProps) {
             }, 1000);
         } catch (err) {
             setUploadState("error");
-            setErrorMsg(err instanceof Error ? err.message : "Upload fehlgeschlagen");
+            const msg = err instanceof Error ? err.message : "Upload fehlgeschlagen";
+            setErrorMsg(msg);
+            toast.error("Upload fehlgeschlagen", msg);
         } finally {
             setUploading(false);
         }
@@ -336,7 +341,7 @@ function UploadDialog({ open, onOpenChange, onSuccess }: UploadDialogProps) {
                             {teams.length > 0 ? (
                                 <Select value={teamId} onValueChange={setTeamId}>
                                     <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="Team waehlen..." />
+                                        <SelectValue placeholder="Team wählen..." />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {teams.map((t) => (
@@ -428,10 +433,10 @@ function DeleteDialog({ template, open, onOpenChange, onConfirm, isDeleting }: D
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[400px]">
                 <DialogHeader>
-                    <DialogTitle>Vorlage loeschen</DialogTitle>
+                    <DialogTitle>Vorlage löschen</DialogTitle>
                     <DialogDescription>
-                        Sind Sie sicher, dass Sie die Vorlage &ldquo;{template?.name}&rdquo; loeschen moechten?
-                        Diese Aktion kann nicht rueckgaengig gemacht werden.
+                        Sind Sie sicher, dass Sie die Vorlage &ldquo;{template?.name}&rdquo; löschen möchten?
+                        Diese Aktion kann nicht rückgängig gemacht werden.
                     </DialogDescription>
                 </DialogHeader>
                 <DialogFooter>
@@ -442,12 +447,12 @@ function DeleteDialog({ template, open, onOpenChange, onConfirm, isDeleting }: D
                         {isDeleting ? (
                             <>
                                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                Wird geloescht...
+                                Wird gelöscht...
                             </>
                         ) : (
                             <>
                                 <Trash2 className="w-4 h-4 mr-2" />
-                                Loeschen
+                                Löschen
                             </>
                         )}
                     </Button>
@@ -478,6 +483,7 @@ function ScopeBadge({ scope }: { scope: string }) {
 // ═══════════════════════════════════════════════════════════════════════════
 
 export function UserTemplatesPage() {
+    const toast = useToast();
     const [templates, setTemplates] = useState<UserTemplate[]>([]);
     const [loading, setLoading] = useState(true);
     const [uploadOpen, setUploadOpen] = useState(false);
@@ -512,10 +518,14 @@ export function UserTemplatesPage() {
             });
             if (response.ok) {
                 setTemplates((prev) => prev.filter((t) => t.id !== deleteTemplate.id));
+                toast.success("Vorlage gelöscht", `"${deleteTemplate.name}" wurde entfernt`);
                 setDeleteTemplate(null);
+            } else {
+                toast.error("Fehler", "Vorlage konnte nicht gelöscht werden");
             }
         } catch (err) {
             console.error("Failed to delete template:", err);
+            toast.error("Fehler", "Vorlage konnte nicht gelöscht werden");
         } finally {
             setIsDeleting(false);
         }
@@ -532,9 +542,12 @@ export function UserTemplatesPage() {
                 a.download = template.original_filename;
                 a.click();
                 URL.revokeObjectURL(url);
+            } else {
+                toast.error("Fehler", "Download fehlgeschlagen");
             }
         } catch (err) {
             console.error("Failed to download template:", err);
+            toast.error("Fehler", "Download fehlgeschlagen");
         }
     };
 
@@ -626,7 +639,7 @@ export function UserTemplatesPage() {
                             size="icon"
                             className="h-8 w-8 text-destructive hover:text-destructive"
                             onClick={() => setDeleteTemplate(template)}
-                            title="Loeschen"
+                            title="Löschen"
                         >
                             <Trash2 className="w-4 h-4" />
                         </Button>

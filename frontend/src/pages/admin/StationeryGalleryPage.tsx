@@ -28,6 +28,7 @@ import {
     Stamp,
 } from "lucide-react";
 import { apiFetch } from "@/lib/api-client";
+import { useToast } from "@/components/ui/toast";
 import { StationeryCard } from "@/components/admin/StationeryCard";
 import { TemplateUploadDialog } from "@/components/admin/TemplateUploadDialog";
 import type { StationeryTemplate } from "@/components/admin/StationeryCard";
@@ -67,10 +68,10 @@ function DeleteDialog({ template, open, onOpenChange, onConfirm, isDeleting }: D
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[400px]">
                 <DialogHeader>
-                    <DialogTitle>Briefpapier loeschen</DialogTitle>
+                    <DialogTitle>Briefpapier löschen</DialogTitle>
                     <DialogDescription>
-                        Sind Sie sicher, dass Sie das Briefpapier &ldquo;{template?.name}&rdquo; loeschen moechten?
-                        Diese Aktion kann nicht rueckgaengig gemacht werden.
+                        Sind Sie sicher, dass Sie das Briefpapier &ldquo;{template?.name}&rdquo; löschen möchten?
+                        Diese Aktion kann nicht rückgängig gemacht werden.
                     </DialogDescription>
                 </DialogHeader>
                 <DialogFooter>
@@ -81,12 +82,12 @@ function DeleteDialog({ template, open, onOpenChange, onConfirm, isDeleting }: D
                         {isDeleting ? (
                             <>
                                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                Wird geloescht...
+                                Wird gelöscht...
                             </>
                         ) : (
                             <>
                                 <Trash2 className="w-4 h-4 mr-2" />
-                                Loeschen
+                                Löschen
                             </>
                         )}
                     </Button>
@@ -101,6 +102,7 @@ function DeleteDialog({ template, open, onOpenChange, onConfirm, isDeleting }: D
 // ═══════════════════════════════════════════════════════════════════════════
 
 export function StationeryGalleryPage() {
+    const toast = useToast();
     const [templates, setTemplates] = useState<StationeryTemplate[]>([]);
     const [loading, setLoading] = useState(true);
     const [uploadOpen, setUploadOpen] = useState(false);
@@ -171,10 +173,14 @@ export function StationeryGalleryPage() {
             });
             if (response.ok) {
                 setTemplates((prev) => prev.filter((t) => t.id !== deleteTemplate.id));
+                toast.success("Briefpapier gelöscht", `"${deleteTemplate.name}" wurde entfernt`);
                 setDeleteTemplate(null);
+            } else {
+                toast.error("Fehler", "Briefpapier konnte nicht gelöscht werden");
             }
         } catch (err) {
             console.error("Failed to delete stationery template:", err);
+            toast.error("Fehler", "Briefpapier konnte nicht gelöscht werden");
         } finally {
             setIsDeleting(false);
         }
@@ -193,9 +199,13 @@ export function StationeryGalleryPage() {
                         is_default: t.id === id,
                     }))
                 );
+                toast.success("Standard gesetzt", "Briefpapier als Standard festgelegt");
+            } else {
+                toast.error("Fehler", "Standard konnte nicht gesetzt werden");
             }
         } catch (err) {
             console.error("Failed to set default stationery:", err);
+            toast.error("Fehler", "Standard konnte nicht gesetzt werden");
         }
     };
 
@@ -210,9 +220,12 @@ export function StationeryGalleryPage() {
                 a.download = template.original_filename;
                 a.click();
                 URL.revokeObjectURL(url);
+            } else {
+                toast.error("Fehler", "Download fehlgeschlagen");
             }
         } catch (err) {
             console.error("Failed to download stationery template:", err);
+            toast.error("Fehler", "Download fehlgeschlagen");
         }
     };
 
@@ -227,7 +240,7 @@ export function StationeryGalleryPage() {
                 <div>
                     <h2 className="text-xl font-semibold text-foreground">Briefpapier</h2>
                     <p className="text-sm text-muted-foreground mt-1">
-                        Blanko-Briefpapiere mit Firmen-Branding als Basis fuer Dokumente.
+                        Blanko-Briefpapiere mit Firmen-Branding als Basis für Dokumente.
                     </p>
                 </div>
                 <Button onClick={() => setUploadOpen(true)} className="gap-2">
@@ -281,7 +294,7 @@ export function StationeryGalleryPage() {
                         <Stamp className="w-12 h-12 text-muted-foreground/50 mb-4" />
                         <h3 className="text-lg font-medium text-foreground mb-1">
                             {activeCountryFilter !== "all"
-                                ? `Kein Briefpapier fuer ${countryFlag(activeCountryFilter)} ${activeCountryFilter}`
+                                ? `Kein Briefpapier für ${countryFlag(activeCountryFilter)} ${activeCountryFilter}`
                                 : "Noch kein Briefpapier"}
                         </h3>
                         <p className="text-sm text-muted-foreground max-w-md mb-4">

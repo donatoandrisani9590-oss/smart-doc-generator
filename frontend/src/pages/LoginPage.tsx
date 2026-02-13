@@ -85,7 +85,7 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-950 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-warm-50 to-warm-100 dark:from-warm-600 dark:to-warm-600 p-4">
       <div className="w-full max-w-md animate-in fade-in slide-in-from-bottom-4 duration-400">
         <Card className="shadow-xl border-0">
           <CardHeader className="space-y-1 pb-6">
@@ -130,6 +130,7 @@ export const LoginPage: React.FC = () => {
                   disabled={isLoading}
                   autoComplete="email"
                   autoFocus
+                  required
                 />
               </div>
 
@@ -146,12 +147,13 @@ export const LoginPage: React.FC = () => {
                     disabled={isLoading}
                     autoComplete="current-password"
                     className="pr-10"
+                    required
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                    tabIndex={-1}
+                    aria-label={showPassword ? "Passwort verbergen" : "Passwort anzeigen"}
                   >
                     {showPassword ? (
                       <EyeOff className="h-4 w-4" />

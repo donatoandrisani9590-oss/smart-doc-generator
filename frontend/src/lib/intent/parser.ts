@@ -1,7 +1,7 @@
 /**
  * Intent Parser - Core Parser
  *
- * Hauptlogik fuer die Verarbeitung natuerlicher Sprache.
+ * Hauptlogik für die Verarbeitung natürlicher Sprache.
  * Erkennt Intents, Dokumenttypen und extrahiert Daten.
  *
  * Datenschutz: Daten verlassen nie den Browser!
@@ -18,8 +18,8 @@ import { generateSuggestions } from './suggestions';
 
 /**
  * Sanitiert einen String gegen XSS-Angriffe
- * Entfernt HTML-Tags und gefaehrliche Zeichen
- * @public - Exportiert fuer Nutzung in anderen Modulen
+ * Entfernt HTML-Tags und gefährliche Zeichen
+ * @public - Exportiert für Nutzung in anderen Modulen
  */
 export function sanitizeInput(text: string): string {
   if (!text) return '';
@@ -29,7 +29,7 @@ export function sanitizeInput(text: string): string {
     // Script-Injections verhindern
     .replace(/javascript:/gi, '')
     .replace(/on\w+=/gi, '')
-    // Gefaehrliche Zeichen escapen
+    // Gefährliche Zeichen escapen
     .replace(/[<>"'`]/g, (char) => {
       const escapeMap: Record<string, string> = {
         '<': '&lt;',
@@ -44,7 +44,7 @@ export function sanitizeInput(text: string): string {
 }
 
 /**
- * Normalisiert einen String fuer besseres Matching
+ * Normalisiert einen String für besseres Matching
  */
 function normalize(text: string): string {
   return text
@@ -70,13 +70,13 @@ function extractWithPattern(text: string, pattern: RegExp): string | null {
 function parseSalary(salaryStr: string, isKNotation: boolean = false, isYearly: boolean = false): number | null {
   if (!salaryStr) return null;
 
-  // Entferne Waehrungssymbole und Whitespace
+  // Entferne Währungssymbole und Whitespace
   let cleaned = salaryStr.trim().replace(/[€\s]/gi, '');
 
   // k-Notation: "3,5k" oder "3.5k" -> 3500
   if (isKNotation || /k$/i.test(cleaned)) {
     cleaned = cleaned.replace(/k$/i, '');
-    // Ersetze Komma durch Punkt fuer Dezimalzahlen
+    // Ersetze Komma durch Punkt für Dezimalzahlen
     cleaned = cleaned.replace(',', '.');
     const num = parseFloat(cleaned);
     const value = num ? num * 1000 : null;
@@ -125,12 +125,12 @@ function detectWorkType(text: string): 'vollzeit' | 'teilzeit' | undefined {
 
 /**
  * Erkennt Befristungstyp
- * WICHTIG: "unbefristet" muss VOR "befristet" geprueft werden!
+ * WICHTIG: "unbefristet" muss VOR "befristet" geprüft werden!
  */
 function detectContractType(text: string): 'befristet' | 'unbefristet' | undefined {
   const normalizedText = normalize(text);
 
-  // WICHTIG: Unbefristet zuerst pruefen, da "befristet" in "unbefristet" enthalten ist!
+  // WICHTIG: Unbefristet zuerst prüfen, da "befristet" in "unbefristet" enthalten ist!
   if (/unbefristet|permanent|dauerhaft|fest\s*anstellung/i.test(normalizedText)) {
     return 'unbefristet';
   }
@@ -153,7 +153,7 @@ function parseRelativeDate(text: string): string | null {
     return formatDate(today);
   }
 
-  // "naechsten Montag" etc.
+  // "nächsten Montag" etc.
   const dayMatch = normalizedText.match(/nächste[rn]?\s+(montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonntag)/i);
   if (dayMatch) {
     const days: Record<string, number> = {
@@ -187,7 +187,7 @@ function parseRelativeDate(text: string): string | null {
     return formatDate(futureDate);
   }
 
-  // "naechsten Monat"
+  // "nächsten Monat"
   if (/nächste[rn]?\s+monat/i.test(normalizedText)) {
     const nextMonth = new Date(today);
     nextMonth.setMonth(today.getMonth() + 1);
@@ -217,7 +217,7 @@ function detectDocumentType(text: string): { type: string; category: string; con
   for (const mapping of DOCUMENT_TYPE_MAPPINGS) {
     for (const keyword of mapping.keywords) {
       if (normalizedText.includes(normalize(keyword))) {
-        // Hoehere Konfidenz wenn mehrere Keywords matchen
+        // Höhere Konfidenz wenn mehrere Keywords matchen
         const matchCount = mapping.keywords.filter(kw =>
           normalizedText.includes(normalize(kw))
         ).length;
@@ -263,7 +263,7 @@ function detectIntentType(text: string): 'create_document' | 'fill_field' | 'sea
     return 'create_document';
   }
 
-  // Pruefe ob ein Dokumenttyp erkannt wird UND ein Name vorhanden ist -> wahrscheinlich Erstellung
+  // Prüfe ob ein Dokumenttyp erkannt wird UND ein Name vorhanden ist -> wahrscheinlich Erstellung
   const hasDocType = DOCUMENT_TYPE_MAPPINGS.some(mapping =>
     mapping.keywords.some(kw => normalizedText.includes(normalize(kw)))
   );
@@ -272,7 +272,7 @@ function detectIntentType(text: string): 'create_document' | 'fill_field' | 'sea
     return 'create_document';
   }
 
-  // Feld ausfuellen
+  // Feld ausfüllen
   const fillPatterns = [
     /(?:name|gehalt|position|adresse)\s*(?:ist|:)/i,
     /^[A-Z][a-zäöüß]+\s+[A-Z][a-zäöüß]+$/,  // Nur ein Name
@@ -306,10 +306,10 @@ function detectIntentType(text: string): 'create_document' | 'fill_field' | 'sea
 // =============================================================================
 
 /**
- * Parst eine natuerliche Spracheingabe und extrahiert Intent + Daten
+ * Parst eine natürliche Spracheingabe und extrahiert Intent + Daten
  *
  * @example
- * parseIntent("Erstelle einen Arbeitsvertrag fuer Max Mueller, 5000EUR")
+ * parseIntent("Erstelle einen Arbeitsvertrag für Max Mueller, 5000EUR")
  * // Returns:
  * // {
  * //   intentType: 'create_document',
@@ -355,9 +355,9 @@ export function parseIntent(message: string): ParsedIntent {
   }
 
   if (fullName) {
-    // Entferne "Herr/Frau/Mitarbeiter" Praefix falls vorhanden
+    // Entferne "Herr/Frau/Mitarbeiter" Präfix falls vorhanden
     fullName = fullName.replace(/^(?:herr|frau|herrn|mitarbeiter)\s+/i, '').trim();
-    // XSS-Sanitization fuer alle extrahierten Namen
+    // XSS-Sanitization für alle extrahierten Namen
     extractedData.full_name = sanitizeInput(fullName);
 
     // Versuche zu splitten (beachte "von", "van" etc.)
@@ -379,7 +379,7 @@ export function parseIntent(message: string): ParsedIntent {
     if (lastName) extractedData.last_name = sanitizeInput(lastName);
   }
 
-  // Gehalt - pruefe zuerst Jahresgehalt, dann k-Notation, dann normal (mit/ohne Leerzeichen)
+  // Gehalt - prüfe zuerst Jahresgehalt, dann k-Notation, dann normal (mit/ohne Leerzeichen)
   const yearlySalaryStr = extractWithPattern(message, PATTERNS.yearlySalary);
   if (yearlySalaryStr) {
     const isK = /k/i.test(yearlySalaryStr);
@@ -404,7 +404,7 @@ export function parseIntent(message: string): ParsedIntent {
     }
   }
 
-  // Position - pruefe "als X" Pattern zuerst (haeufiger) - mit XSS-Sanitization
+  // Position - prüfe "als X" Pattern zuerst (häufiger) - mit XSS-Sanitization
   const positionAls = extractWithPattern(message, PATTERNS.positionAls);
   if (positionAls) {
     extractedData.position = sanitizeInput(positionAls.trim());
@@ -422,7 +422,7 @@ export function parseIntent(message: string): ParsedIntent {
   if (startDate) {
     extractedData.start_date = startDate;
   } else {
-    // Relatives Datum pruefen
+    // Relatives Datum prüfen
     const relativeMatch = message.match(PATTERNS.relativeDateKeywords);
     if (relativeMatch) {
       const parsedDate = parseRelativeDate(relativeMatch[0]);
@@ -458,20 +458,20 @@ export function parseIntent(message: string): ParsedIntent {
   if (street) extractedData.street = sanitizeInput(street);
 
   const postalCode = extractWithPattern(message, PATTERNS.postalCode);
-  if (postalCode) extractedData.postal_code = postalCode; // Nur Zahlen, kein Sanitizing noetig
+  if (postalCode) extractedData.postal_code = postalCode; // Nur Zahlen, kein Sanitizing nötig
 
   const city = extractWithPattern(message, PATTERNS.city);
   if (city) extractedData.city = sanitizeInput(city);
 
   // ==========================================================================
-  // ERWEITERTE FELDER FUER HR-DOKUMENTE
+  // ERWEITERTE FELDER FÜR HR-DOKUMENTE
   // ==========================================================================
 
-  // Enddatum (fuer befristete Vertraege, Elternzeit, Aufhebung)
+  // Enddatum (für befristete Verträge, Elternzeit, Aufhebung)
   const endDate = extractWithPattern(message, PATTERNS.endDate);
   if (endDate) extractedData.end_date = endDate;
 
-  // Beschaeftigungszeitraum (fuer Zeugnisse)
+  // Beschäftigungszeitraum (für Zeugnisse)
   const periodMatch = message.match(PATTERNS.employmentPeriod);
   if (periodMatch) {
     extractedData.employment_start = periodMatch[1];
@@ -482,7 +482,7 @@ export function parseIntent(message: string): ParsedIntent {
   const workLocation = extractWithPattern(message, PATTERNS.workLocation);
   if (workLocation) extractedData.work_location = sanitizeInput(workLocation);
 
-  // Kuendigungsfrist
+  // Kündigungsfrist
   const noticePeriodMatch = message.match(PATTERNS.noticePeriod);
   if (noticePeriodMatch) {
     extractedData.notice_period_value = parseInt(noticePeriodMatch[1]);
@@ -515,7 +515,7 @@ export function parseIntent(message: string): ParsedIntent {
   const incidentReason = extractWithPattern(message, PATTERNS.incidentReason);
   if (incidentReason) extractedData.incident_description = sanitizeInput(incidentReason.trim());
 
-  // Original-Vertragsdatum (Nachtraege)
+  // Original-Vertragsdatum (Nachträge)
   const originalContractDate = extractWithPattern(message, PATTERNS.originalContractDate);
   if (originalContractDate) extractedData.original_contract_date = originalContractDate;
 
@@ -523,14 +523,14 @@ export function parseIntent(message: string): ParsedIntent {
   const remainingVacation = extractWithPattern(message, PATTERNS.remainingVacation);
   if (remainingVacation) extractedData.remaining_vacation = parseInt(remainingVacation);
 
-  // Ueberstunden (Pattern hat 2 Gruppen, pruefe beide)
+  // Überstunden (Pattern hat 2 Gruppen, prüfe beide)
   const overtimeMatch = message.match(PATTERNS.overtimeHours);
   if (overtimeMatch) {
     const hours = overtimeMatch[1] || overtimeMatch[2];
     if (hours) extractedData.overtime_hours = parseInt(hours);
   }
 
-  // Fortbildung (Pattern hat 2 Gruppen, pruefe beide) - mit XSS-Sanitization
+  // Fortbildung (Pattern hat 2 Gruppen, prüfe beide) - mit XSS-Sanitization
   const trainingMatch = message.match(PATTERNS.trainingDescription);
   if (trainingMatch) {
     const trainingDesc = trainingMatch[1] || trainingMatch[2];
@@ -566,7 +566,7 @@ export function parseIntent(message: string): ParsedIntent {
     result.confidence = 0.3 + (dataPoints * 0.1);
   }
 
-  // 6. Intelligente Vorschlaege generieren
+  // 6. Intelligente Vorschläge generieren
   const { missingFields, suggestions } = generateSuggestions(result.documentType, extractedData);
   result.missingFields = missingFields;
   result.suggestions = suggestions;
@@ -575,12 +575,12 @@ export function parseIntent(message: string): ParsedIntent {
 }
 
 /**
- * Prueft ob die lokale Verarbeitung ausreicht oder Mistral benoetigt wird
+ * Prüft ob die lokale Verarbeitung ausreicht oder Mistral benötigt wird
  */
 export function needsMistralFallback(parsed: ParsedIntent): boolean {
   // Nutze Mistral wenn:
   // 1. Intent unklar (confidence < 0.5)
-  // 2. Kein Dokumenttyp erkannt aber Erstellung gewuenscht
+  // 2. Kein Dokumenttyp erkannt aber Erstellung gewünscht
   // 3. Komplexe Anfrage (sehr langer Text ohne klare Struktur)
 
   if (parsed.confidence < 0.5) return true;
@@ -591,7 +591,7 @@ export function needsMistralFallback(parsed: ParsedIntent): boolean {
 }
 
 /**
- * Formatiert extrahierte Daten fuer die Anzeige
+ * Formatiert extrahierte Daten für die Anzeige
  */
 export function formatExtractedData(data: Record<string, string | number>): string {
   const labels: Record<string, string> = {
@@ -630,7 +630,7 @@ export function formatExtractedData(data: Record<string, string | number>): stri
 }
 
 /**
- * Generiert Autocomplete-Vorschlaege basierend auf teilweiser Eingabe
+ * Generiert Autocomplete-Vorschläge basierend auf teilweiser Eingabe
  */
 export function getAutocompleteSuggestions(partialInput: string): string[] {
   const input = partialInput.toLowerCase().trim();
@@ -639,7 +639,7 @@ export function getAutocompleteSuggestions(partialInput: string): string[] {
 
   const suggestions: string[] = [];
 
-  // Dokumenttyp-Vorschlaege
+  // Dokumenttyp-Vorschläge
   if ('erstelle'.startsWith(input) || input.startsWith('erst')) {
     suggestions.push(
       'Erstelle einen Arbeitsvertrag für ',
@@ -648,7 +648,7 @@ export function getAutocompleteSuggestions(partialInput: string): string[] {
     );
   }
 
-  // Nach "fuer" -> Namenvorschlaege
+  // Nach "für" -> Namenvorschläge
   if (input.endsWith('für ') || input.endsWith('fuer ')) {
     suggestions.push(
       `${partialInput}[Name des Mitarbeiters]`,
@@ -664,7 +664,7 @@ export function getAutocompleteSuggestions(partialInput: string): string[] {
     );
   }
 
-  // Gehalt-Vorschlaege
+  // Gehalt-Vorschläge
   if (input.includes('gehalt') && !input.match(/\d/)) {
     suggestions.push(
       `${partialInput} 4500€`,
@@ -673,7 +673,7 @@ export function getAutocompleteSuggestions(partialInput: string): string[] {
     );
   }
 
-  // Datum-Vorschlaege
+  // Datum-Vorschläge
   if (input.endsWith('ab ')) {
     const today = new Date();
     const nextMonth = new Date(today);
@@ -691,7 +691,7 @@ export function getAutocompleteSuggestions(partialInput: string): string[] {
 }
 
 /**
- * Exportiert verfuegbare Dokumenttypen fuer UI
+ * Exportiert verfügbare Dokumenttypen für UI
  */
 export function getAvailableDocumentTypes(): Array<{ type: string; category: string; keywords: string[] }> {
   return DOCUMENT_TYPE_MAPPINGS.map(m => ({

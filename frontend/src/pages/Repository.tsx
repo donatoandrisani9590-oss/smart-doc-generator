@@ -549,7 +549,7 @@ export const RepositoryPage = () => {
                                                 }`}>
                                                 {item.type === "draft" ? "Entwurf" : "Fertig"}
                                             </span>
-                                            <p className="font-medium truncate">{item.name}</p>
+                                            <p className="font-medium truncate" title={item.name}>{item.name}</p>
                                             {item.version_count && item.version_count > 1 && (
                                                 <span className="text-xs bg-warm-100 text-warm-600 px-2 py-0.5 rounded-full">
                                                     v{item.current_version}

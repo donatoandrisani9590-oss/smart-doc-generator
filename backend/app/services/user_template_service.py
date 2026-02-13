@@ -168,8 +168,8 @@ def extract_template_zones(template_path: Path) -> dict:
     """
     Extrahiert Header-/Footer-Bilder und Text aus einer DOCX-Vorlage.
 
-    Gibt base64-kodierte Bilder und Textinhalte zurueck, die fuer
-    die Canvas-Vorschau im Frontend verwendet werden koennen.
+    Gibt base64-kodierte Bilder und Textinhalte zurück, die für
+    die Canvas-Vorschau im Frontend verwendet werden können.
 
     Args:
         template_path: Pfad zur DOCX-Vorlage
@@ -234,7 +234,7 @@ def extract_template_zones(template_path: Path) -> dict:
                 mime = f"image/{ext}" if ext != 'jpg' else "image/jpeg"
                 b64 = base64.b64encode(img_data).decode('utf-8')
 
-                # Alle Bilder werden zunaechst als Header-Bilder behandelt.
+                # Alle Bilder werden zunächst als Header-Bilder behandelt.
                 # Das erste Bild ist in der Regel das Firmenlogo.
                 result["header_images"].append({
                     "data": f"data:{mime};base64,{b64}",
