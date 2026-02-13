@@ -11,7 +11,10 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useRepositoryDocument } from "@/hooks/useApi";
+import { apiFetch } from "@/lib/api-client";
 import { DocumentPreviewPanel } from "@/components/documents/DocumentPreviewPanel";
+import { DocumentApprovalPanel } from "@/components/documents/DocumentApprovalPanel";
+import { useFeatureEnabled } from "@/hooks/useFeatureSettings";
 
 interface RelatedDocument {
     id: number;
@@ -27,7 +30,8 @@ import { ShareWithTeamDialog } from "@/components/documents/ShareWithTeamDialog"
 import { DocumentLockBanner } from "@/components/documents/DocumentLockBanner";
 import { useDocumentLockStatus } from "@/hooks/api/useDocumentQueries";
 import { CommentThread } from "@/components/collaboration/CommentThread";
-import { useCommentCount } from "@/hooks/useComments";
+import { useCommentCount, useComments } from "@/hooks/useComments";
+import type { SelectionRange } from "@/hooks/useComments";
 import {
     ArrowLeft,
     Download,
@@ -45,6 +49,7 @@ import {
     Clock,
     Info,
     MessageSquare,
+    Shield,
 } from "lucide-react";
 
 // Deutsche Labels für Formulardaten-Anzeige
@@ -102,7 +107,7 @@ function formatFieldValue(key: string, value: unknown): string {
     return strValue;
 }
 
-type SidebarTab = "details" | "verlauf" | "kommentare";
+type SidebarTab = "details" | "verlauf" | "kommentare" | "freigabe";
 
 export const DocumentDetailPage = () => {
     const { documentId } = useParams<{ documentId: string }>();
@@ -112,11 +117,19 @@ export const DocumentDetailPage = () => {
     const [copied, setCopied] = useState(false);
     const [sidebarOpen, setSidebarOpen] = useState(true);
     const [activeTab, setActiveTab] = useState<SidebarTab>("details");
+    const [activeCommentId, setActiveCommentId] = useState<number | null>(null);
+    const [pendingInlineSelection, setPendingInlineSelection] = useState<SelectionRange | null>(null);
 
     const docIdNum = documentId ? parseInt(documentId, 10) : 0;
     const { data: document, isLoading, error, refetch } = useRepositoryDocument(docIdNum);
     const { data: lockStatus } = useDocumentLockStatus(docIdNum);
     const { unresolved: commentUnresolved } = useCommentCount("document", docIdNum);
+    const { data: commentsData } = useComments("document", docIdNum);
+    const approvalEnabled = useFeatureEnabled("enable_approval_workflow");
+
+    const inlineComments = commentsData?.comments?.filter(
+        (t) => t.root.selection_range != null
+    ) ?? [];
 
     const isLockedByOther = lockStatus?.is_locked && !lockStatus?.is_own_lock;
 
@@ -127,7 +140,7 @@ export const DocumentDetailPage = () => {
 
         const abortController = new AbortController();
 
-        fetch(`/api/v1/repository/${documentId}/related?limit=5`, {
+        apiFetch(`/api/v1/repository/${documentId}/related?limit=5`, {
             signal: abortController.signal,
         })
             .then((res) => {
@@ -277,6 +290,18 @@ export const DocumentDetailPage = () => {
                         contentHtml={document.content_html ?? null}
                         documentTitle={document.title || document.document_type_name || "Dokument"}
                         filePath={document.file_path}
+                        comments={inlineComments}
+                        onCreateInlineComment={(range) => {
+                            setPendingInlineSelection(range);
+                            setActiveTab("kommentare");
+                            setSidebarOpen(true);
+                        }}
+                        onHighlightClick={(commentId) => {
+                            setActiveCommentId(commentId);
+                            setActiveTab("kommentare");
+                            setSidebarOpen(true);
+                        }}
+                        activeCommentId={activeCommentId}
                     />
                 </div>
 
@@ -329,6 +354,19 @@ export const DocumentDetailPage = () => {
                                     </span>
                                 )}
                             </button>
+                            {approvalEnabled && (
+                                <button
+                                    className={`flex-1 px-4 py-2.5 text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
+                                        activeTab === "freigabe"
+                                            ? "text-primary border-b-2 border-primary"
+                                            : "text-muted-foreground hover:text-foreground"
+                                    }`}
+                                    onClick={() => setActiveTab("freigabe")}
+                                >
+                                    <Shield className="w-3.5 h-3.5" />
+                                    Freigabe
+                                </button>
+                            )}
                         </div>
 
                         {/* Tab Content */}
@@ -466,7 +504,15 @@ export const DocumentDetailPage = () => {
                                     anchorType="document"
                                     anchorId={document.id}
                                     compact
+                                    pendingSelection={pendingInlineSelection}
+                                    onPendingSelectionClear={() => setPendingInlineSelection(null)}
+                                    onNavigateToHighlight={(commentId) => setActiveCommentId(commentId)}
+                                    activeCommentId={activeCommentId}
                                 />
+                            )}
+
+                            {activeTab === "freigabe" && approvalEnabled && (
+                                <DocumentApprovalPanel documentId={document.id} />
                             )}
                         </div>
                     </div>

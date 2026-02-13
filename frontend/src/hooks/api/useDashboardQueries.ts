@@ -563,7 +563,7 @@ export const useNotifications = (page: number = 1, unreadOnly: boolean = false) 
             return res.json() as Promise<NotificationListResponse>;
         },
         staleTime: 1000 * 30, // 30 seconds
-        refetchInterval: 1000 * 60, // Refetch every minute
+        refetchInterval: 5 * 60 * 1000, // 5 min fallback (SSE handles real-time)
     });
 };
 
@@ -576,7 +576,7 @@ export const useUnreadCount = () => {
             return res.json() as Promise<{ unread_count: number }>;
         },
         staleTime: 1000 * 30, // 30 seconds
-        refetchInterval: 1000 * 60, // Refetch every minute
+        refetchInterval: 5 * 60 * 1000, // 5 min fallback (SSE handles real-time)
     });
 };
 

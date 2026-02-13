@@ -120,7 +120,7 @@ async def export_as_zip(
     if len(request.document_ids) > 100:
         raise HTTPException(status_code=400, detail="Maximal 100 Dokumente pro Export")
 
-    user_id = current_user.get("sub", "unknown")
+    user_id = str(current_user.id)
 
     # Create temporary directory
     temp_dir = tempfile.mkdtemp()
@@ -203,7 +203,7 @@ async def merge_pdfs(
             detail="PDF-Merge nicht verfügbar. Bitte Abhängigkeiten installieren."
         )
 
-    user_id = current_user.get("sub", "unknown")
+    user_id = str(current_user.id)
 
     # Create temporary directory
     temp_dir = tempfile.mkdtemp()
@@ -279,7 +279,7 @@ async def download_single_document(
     """
     Download a single document with proper filename.
     """
-    user_id = current_user.get("sub", "unknown")
+    user_id = str(current_user.id)
     file_path, display_name, ext = await get_document_file_info(db, document_id, user_id)
 
     if not file_path:
@@ -334,7 +334,7 @@ async def preview_export(
 
     Returns information about what would be included in the export.
     """
-    user_id = current_user.get("sub", "unknown")
+    user_id = str(current_user.id)
     files = []
     total_size = 0
     pdf_count = 0

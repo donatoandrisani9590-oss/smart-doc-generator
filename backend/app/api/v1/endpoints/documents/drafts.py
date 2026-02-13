@@ -139,6 +139,63 @@ async def create_draft(
     return {"id": new_draft.id, "version": new_draft.version or 1, "status": "created"}
 
 
+@router.get("/stats")
+async def get_draft_stats(
+    db: AsyncSession = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
+    """
+    Get statistics about drafts for the current user.
+
+    Includes:
+    - Total drafts count
+    - Drafts expiring soon (within 7 days)
+    - Oldest draft age
+    """
+    from datetime import timedelta as td
+
+    result = await db.execute(
+        select(DocumentDraft)
+        .where(DocumentDraft.user_id == str(current_user.id))
+    )
+    drafts = result.scalars().all()
+
+    if not drafts:
+        return {
+            "total_drafts": 0,
+            "expiring_soon": 0,
+            "oldest_draft_days": 0,
+            "ttl_days": 30
+        }
+
+    now = datetime.utcnow()
+    ttl_days = 30  # Standard-TTL
+    warning_threshold = td(days=7)
+    expiry_threshold = td(days=ttl_days) - warning_threshold
+
+    expiring_soon = 0
+    oldest_age_days = 0
+
+    for draft in drafts:
+        if draft.updated_at:
+            age = now - draft.updated_at
+            age_days = age.days
+
+            if age_days > oldest_age_days:
+                oldest_age_days = age_days
+
+            # Draft läuft bald ab (innerhalb von 7 Tagen vor TTL)
+            if age > expiry_threshold:
+                expiring_soon += 1
+
+    return {
+        "total_drafts": len(drafts),
+        "expiring_soon": expiring_soon,
+        "oldest_draft_days": oldest_age_days,
+        "ttl_days": ttl_days
+    }
+
+
 @router.get("/{draft_id}")
 async def get_draft(
     draft_id: int,
@@ -394,13 +451,11 @@ async def finalize_draft(
         # Dokument in Historie speichern
         generated_doc = GeneratedDocument(
             document_type_id=draft.document_type_id,
-            user_id=str(current_user.id),
+            created_by_id=current_user.id,
             country_code=country_code,
-            form_data=draft.form_data,
-            custom_clauses=draft.custom_clauses,
+            form_data=json.dumps(draft.form_data) if isinstance(draft.form_data, dict) else draft.form_data,
             file_path=str(final_path),
             file_format=request.output_format,
-            selected_attachments=json.dumps(request.selected_attachments) if request.selected_attachments else None,
         )
         db.add(generated_doc)
 
@@ -427,67 +482,6 @@ async def finalize_draft(
             status_code=500,
             detail=f"Fehler bei der Dokumentgenerierung: {str(e)}"
         )
-
-
-# ============================================================================
-# DRAFT TTL MANAGEMENT (v4.2 Kapitel 13.9)
-# ============================================================================
-
-@router.get("/stats")
-async def get_draft_stats(
-    db: AsyncSession = Depends(get_db),
-    current_user = Depends(get_current_user)
-):
-    """
-    Get statistics about drafts for the current user.
-
-    Includes:
-    - Total drafts count
-    - Drafts expiring soon (within 7 days)
-    - Oldest draft age
-    """
-    from datetime import timedelta
-
-    result = await db.execute(
-        select(DocumentDraft)
-        .where(DocumentDraft.user_id == str(current_user.id))
-    )
-    drafts = result.scalars().all()
-
-    if not drafts:
-        return {
-            "total_drafts": 0,
-            "expiring_soon": 0,
-            "oldest_draft_days": 0,
-            "ttl_days": 30
-        }
-
-    now = datetime.utcnow()
-    ttl_days = 30  # Standard-TTL
-    warning_threshold = timedelta(days=7)
-    expiry_threshold = timedelta(days=ttl_days) - warning_threshold
-
-    expiring_soon = 0
-    oldest_age_days = 0
-
-    for draft in drafts:
-        if draft.updated_at:
-            age = now - draft.updated_at
-            age_days = age.days
-
-            if age_days > oldest_age_days:
-                oldest_age_days = age_days
-
-            # Draft läuft bald ab (innerhalb von 7 Tagen vor TTL)
-            if age > expiry_threshold:
-                expiring_soon += 1
-
-    return {
-        "total_drafts": len(drafts),
-        "expiring_soon": expiring_soon,
-        "oldest_draft_days": oldest_age_days,
-        "ttl_days": ttl_days
-    }
 
 
 @router.post("/{draft_id}/refresh")

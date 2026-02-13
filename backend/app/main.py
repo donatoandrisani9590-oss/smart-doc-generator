@@ -63,6 +63,9 @@ from app.api.v1.endpoints.smart import composer, smart_mode, compliance, clause_
 # Integration (Copilot Studio, Power Platform)
 from app.api.v1.endpoints.integration import actions, webhooks, copilot_studio
 
+# Events (SSE Real-time Updates)
+from app.api.v1.endpoints.events import stream as event_stream
+
 # Configuration
 from app.api.v1.endpoints.config import setup, countries, locations
 
@@ -552,6 +555,9 @@ app.include_router(webhooks.router, prefix=f"{settings.API_V1_STR}/webhooks", ta
 
 # Copilot Studio Konfiguration
 app.include_router(copilot_studio.router, prefix=f"{settings.API_V1_STR}/copilot-studio", tags=["copilot-studio"])
+
+# Events (SSE Real-time Updates)
+app.include_router(event_stream.router, prefix=f"{settings.API_V1_STR}/events", tags=["events"])
 
 # Public/Guest Access
 app.include_router(guest.router, tags=["guest"])

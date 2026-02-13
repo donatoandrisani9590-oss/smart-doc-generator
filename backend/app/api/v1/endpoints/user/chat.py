@@ -13,6 +13,7 @@ import re
 
 from app.db import get_db
 from app.api.deps import get_current_user
+from app.models.core import User
 from app.services.llm_service import (
     LLMService, LLMMessage, LLMConfig, get_llm_service
 )
@@ -200,7 +201,8 @@ def parse_document_intent(llm_response: str) -> Optional[DocumentIntent]:
 @router.post("", response_model=ChatResponse)
 async def chat(
     request: ChatRequest,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """
     Send a message to the Brief-Assistent.
@@ -497,7 +499,8 @@ Der Textbaustein sollte:
 async def improve_text(
     text: str,
     style: str = "formal",  # "formal", "simplified", "legal"
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """
     Improve or rewrite text in a specific style.
@@ -553,7 +556,9 @@ async def improve_text(
 
 
 @router.get("/provider")
-async def get_chat_provider():
+async def get_chat_provider(
+    current_user: User = Depends(get_current_user),
+):
     """
     Get information about the active LLM provider for chat.
 

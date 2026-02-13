@@ -10,6 +10,8 @@ from datetime import datetime
 
 from app.db import get_db
 from app.models.documents import Clause, ClauseVersion
+from app.api.deps import get_current_user
+from app.models.core import User
 
 router = APIRouter()
 
@@ -29,7 +31,8 @@ class ClauseVersionResponse(BaseModel):
 @router.get("/{clause_id}/versions")
 async def get_clause_versions(
     clause_id: int,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """
     Get version history for a clause.
@@ -73,7 +76,8 @@ async def get_clause_versions(
 async def create_version_snapshot(
     clause_id: int,
     created_by: Optional[str] = None,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """
     Create a manual version snapshot of the current clause content.
@@ -108,7 +112,8 @@ async def restore_version(
     clause_id: int,
     version_id: int,
     created_by: Optional[str] = None,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """
     Restore a clause to a previous version.
@@ -166,7 +171,8 @@ async def restore_version(
 async def get_version_detail(
     clause_id: int,
     version_id: int,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """Get details of a specific version."""
     version_result = await db.execute(
@@ -192,7 +198,8 @@ async def get_version_detail(
 async def get_version_diff(
     clause_id: int,
     version_id: int,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """
     Compare a version with the current clause content.

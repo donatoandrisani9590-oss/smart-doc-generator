@@ -4,9 +4,10 @@
  * Rendert das gespeicherte content_html in einem DIN A4 "Floating Paper" Container.
  * Nutzt die bestehenden preview.css Styles (.preview-container, .document-preview).
  * Bietet Zoom-Controls und einen Fallback für ältere Dokumente ohne HTML.
+ * Unterstützt Inline-Kommentare: Text-Highlights und schwebender Kommentieren-Button.
  */
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
     ZoomIn,
@@ -16,11 +17,17 @@ import {
     Maximize2,
     Minimize2,
 } from "lucide-react";
+import { InlineCommentHighlighter } from "./InlineCommentHighlighter";
+import type { CommentThread, SelectionRange } from "@/hooks/useComments";
 
 interface DocumentPreviewPanelProps {
     contentHtml: string | null;
     documentTitle: string;
     filePath: string;
+    comments?: CommentThread[];
+    onCreateInlineComment?: (range: SelectionRange) => void;
+    onHighlightClick?: (commentId: number) => void;
+    activeCommentId?: number | null;
 }
 
 const ZOOM_STEPS = [0.5, 0.6, 0.75, 0.85, 1.0, 1.15, 1.3, 1.5];
@@ -30,10 +37,16 @@ export const DocumentPreviewPanel = ({
     contentHtml,
     documentTitle,
     filePath,
+    comments = [],
+    onCreateInlineComment,
+    onHighlightClick,
+    activeCommentId = null,
 }: DocumentPreviewPanelProps) => {
     const [zoomIndex, setZoomIndex] = useState(DEFAULT_ZOOM_INDEX);
     const [isFullscreen, setIsFullscreen] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
+    const previewRef = useRef<HTMLDivElement>(null);
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
 
     const zoom = ZOOM_STEPS[zoomIndex];
 
@@ -59,6 +72,12 @@ export const DocumentPreviewPanel = ({
             setIsFullscreen(false);
         }
     };
+
+    useEffect(() => {
+        const handler = () => setIsFullscreen(!!document.fullscreenElement);
+        document.addEventListener("fullscreenchange", handler);
+        return () => document.removeEventListener("fullscreenchange", handler);
+    }, []);
 
     // Fallback: Kein HTML verfügbar (ältere Dokumente)
     if (!contentHtml) {
@@ -95,9 +114,10 @@ export const DocumentPreviewPanel = ({
             className="relative flex flex-col h-full rounded-xl border border-warm-200/50 overflow-hidden bg-warm-50/30"
         >
             {/* Preview Area */}
-            <div className="flex-1 overflow-auto">
-                <div className="preview-container" style={{ minHeight: "100%" }}>
+            <div ref={scrollContainerRef} className="relative flex-1 overflow-auto">
+                <div className="preview-container" style={{ minHeight: "100%", position: "relative" }}>
                     <div
+                        ref={previewRef}
                         className="document-preview"
                         style={{
                             transform: `scale(${zoom})`,
@@ -107,6 +127,18 @@ export const DocumentPreviewPanel = ({
                         dangerouslySetInnerHTML={{ __html: contentHtml }}
                     />
                 </div>
+
+                {/* Inline Comment Highlighter */}
+                {onCreateInlineComment && onHighlightClick && (
+                    <InlineCommentHighlighter
+                        previewRef={previewRef}
+                        scrollContainerRef={scrollContainerRef}
+                        comments={comments}
+                        onCreateComment={onCreateInlineComment}
+                        onHighlightClick={onHighlightClick}
+                        activeCommentId={activeCommentId}
+                    />
+                )}
             </div>
 
             {/* Zoom Controls - Bottom Right */}

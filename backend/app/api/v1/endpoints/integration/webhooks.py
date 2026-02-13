@@ -31,6 +31,8 @@ import json
 from app.db import get_db
 from app.models.enterprise import WebhookSubscription  # Wir erstellen dieses Model
 from app.api import deps
+from app.api.deps import get_current_user
+from app.models.core import User
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -202,7 +204,9 @@ async def send_webhook(
     summary="Verfügbare Webhook-Events auflisten",
     description="Gibt alle Events zurück, die abonniert werden können.",
 )
-async def list_webhook_events():
+async def list_webhook_events(
+    current_user: User = Depends(get_current_user),
+):
     """Listet alle verfügbaren Webhook-Events auf."""
     return {
         "events": [
@@ -292,6 +296,7 @@ async def list_webhook_events():
 async def create_webhook_subscription(
     subscription: WebhookSubscriptionCreate,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """Erstellt eine neue Webhook-Subscription."""
 
@@ -337,6 +342,7 @@ async def create_webhook_subscription(
 )
 async def list_webhook_subscriptions(
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """Listet alle Webhook-Subscriptions auf."""
 
@@ -369,6 +375,7 @@ async def list_webhook_subscriptions(
 async def delete_webhook_subscription(
     subscription_id: int,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """Löscht eine Webhook-Subscription."""
 
@@ -399,6 +406,7 @@ async def delete_webhook_subscription(
 async def test_webhook_subscription(
     subscription_id: int,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """Testet eine Webhook-Subscription mit einem Test-Event."""
 

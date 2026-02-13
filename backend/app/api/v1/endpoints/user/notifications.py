@@ -161,6 +161,11 @@ NOTIFICATION_TYPES = {
         "description": "Benachrichtigung wenn Ihr Textbaustein abgelehnt wurde",
         "default_enabled": True,
     },
+    "comment_mention": {
+        "label": "Kommentar-Erwähnung",
+        "description": "Benachrichtigung wenn Sie in einem Kommentar erwähnt werden",
+        "default_enabled": True,
+    },
 }
 
 
@@ -218,6 +223,15 @@ async def create_notification(
     db.add(notification)
     await db.commit()
     await db.refresh(notification)
+
+    # SSE Real-time Event pushen
+    from app.services.event_bus import publish_event
+    await publish_event(str(user_id), "notification:new", {
+        "notification_type": notification_type,
+        "title": title,
+        "entity_type": entity_type,
+        "entity_id": entity_id,
+    })
 
     # Queue email if user has email enabled and digest is immediate (or unset)
     should_email = (
@@ -364,7 +378,7 @@ def get_user_id(current_user) -> str:
     if hasattr(current_user, 'id'):
         return str(current_user.id)
     elif isinstance(current_user, dict):
-        return get_user_id(current_user)
+        return str(current_user.get("id", "unknown"))
     return "unknown"
 
 

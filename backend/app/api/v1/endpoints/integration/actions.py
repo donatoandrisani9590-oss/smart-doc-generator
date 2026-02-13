@@ -20,6 +20,8 @@ from app.db import get_db
 from app.models.documents import DocumentType, Clause
 from app.models.enterprise import GeneratedDocument, Deadline
 from app.api import deps
+from app.api.deps import get_current_user
+from app.models.core import User
 import logging
 
 router = APIRouter()
@@ -139,7 +141,7 @@ class SearchDocumentsResponse(BaseModel):
 async def create_contract(
     request: CreateContractRequest,
     db: AsyncSession = Depends(get_db),
-    # current_user = Depends(deps.get_current_user)  # Optional: Auth aktivieren
+    current_user: User = Depends(get_current_user),
 ):
     """
     Erstellt einen Arbeitsvertrag basierend auf vereinfachten Eingabedaten.
@@ -254,6 +256,7 @@ async def list_document_types(
     country_code: Literal["DE", "IT"] = "DE",
     category: Optional[str] = None,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """Listet alle aktiven Dokumenttypen auf."""
 
@@ -297,6 +300,7 @@ async def list_document_types(
 async def get_deadline_summary(
     country_code: Literal["DE", "IT"] = "DE",
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """Gibt eine Bot-freundliche Zusammenfassung der Fristen zurück."""
 
@@ -393,6 +397,7 @@ async def get_deadline_summary(
 async def search_documents(
     request: SearchDocumentsRequest,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """Sucht nach Dokumenten basierend auf Suchbegriff."""
 
@@ -460,7 +465,9 @@ async def search_documents(
     summary="API-Status prüfen",
     description="Prüft ob die API erreichbar und funktionsfähig ist.",
 )
-async def check_health():
+async def check_health(
+    current_user: User = Depends(get_current_user),
+):
     """Einfacher Health-Check für Bot-Integration."""
     return {
         "status": "healthy",

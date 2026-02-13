@@ -12,34 +12,36 @@ import os
 
 from app.db import get_db
 from app.models.enterprise import GeneratedDocument
+from app.api.deps import get_current_user
+from app.models.core import User
 
 router = APIRouter()
 
 
 @router.get("")
 async def list_documents(
-    user_id: str = "anonymous",
     country_code: Optional[str] = None,
     limit: int = 50,
     offset: int = 0,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     """
     List generated documents for a user.
     Returns document history with metadata.
     """
-    query = select(GeneratedDocument).where(GeneratedDocument.created_by == user_id)
-    
+    query = select(GeneratedDocument).where(GeneratedDocument.created_by == str(current_user.id))
+
     if country_code:
         query = query.where(GeneratedDocument.country_code == country_code.upper())
-    
+
     query = query.order_by(desc(GeneratedDocument.created_at)).offset(offset).limit(limit)
-    
+
     result = await db.execute(query)
     documents = result.scalars().all()
-    
+
     # Count total
-    count_query = select(GeneratedDocument).where(GeneratedDocument.created_by == user_id)
+    count_query = select(GeneratedDocument).where(GeneratedDocument.created_by == str(current_user.id))
     if country_code:
         count_query = count_query.where(GeneratedDocument.country_code == country_code.upper())
     count_result = await db.execute(count_query)
@@ -81,7 +83,8 @@ def _get_form_summary(form_data: dict) -> dict:
 @router.get("/{document_id}")
 async def get_document(
     document_id: int,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     """Get details of a specific generated document."""
     result = await db.execute(
@@ -108,7 +111,8 @@ async def get_document(
 @router.get("/{document_id}/download")
 async def download_document(
     document_id: int,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     """Download a generated document."""
     result = await db.execute(
@@ -135,7 +139,8 @@ async def download_document(
 @router.delete("/{document_id}")
 async def delete_document(
     document_id: int,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     """Delete a generated document from history."""
     result = await db.execute(
@@ -160,7 +165,8 @@ async def delete_document(
 async def regenerate_document(
     document_id: int,
     format: str = "pdf",
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     """
     Regenerate a document using the saved form data.

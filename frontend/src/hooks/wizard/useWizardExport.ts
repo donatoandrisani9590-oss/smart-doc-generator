@@ -67,7 +67,7 @@ export function useWizardExport(params: UseWizardExportParams): UseWizardExportR
         // Validate all required fields
         const allValid = [0, 1, 2, 4].every(step => validateStep(step));
         if (!allValid) {
-            toast.error("Validierungsfehler", "Bitte fuellen Sie alle Pflichtfelder aus");
+            toast.error("Validierungsfehler", "Bitte füllen Sie alle Pflichtfelder aus");
             return;
         }
 

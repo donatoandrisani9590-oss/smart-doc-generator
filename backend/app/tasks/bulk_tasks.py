@@ -17,6 +17,21 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+_sync_engine = None
+
+
+def _get_sync_engine():
+    global _sync_engine
+    if _sync_engine is None:
+        from sqlalchemy import create_engine
+        from app.core.config import settings
+        _sync_engine = create_engine(
+            settings.DATABASE_URL.replace("+asyncpg", ""),
+            pool_size=2,
+            max_overflow=3,
+        )
+    return _sync_engine
+
 
 def check_job_cancelled(job_id: int) -> bool:
     """
@@ -25,13 +40,11 @@ def check_job_cancelled(job_id: int) -> bool:
     Diese Funktion wird während der Verarbeitung regelmäßig aufgerufen,
     um auf Cancellation-Requests zu reagieren.
     """
-    from sqlalchemy import create_engine
     from sqlalchemy.orm import sessionmaker
-    from app.core.config import settings
     from app.models.enterprise import BulkJob
 
     # Synchrone DB-Verbindung für Celery Task
-    engine = create_engine(settings.DATABASE_URL.replace("+asyncpg", ""))
+    engine = _get_sync_engine()
     Session = sessionmaker(bind=engine)
     session = Session()
 
@@ -46,12 +59,10 @@ def update_job_progress(job_id: int, processed: int, status: str = None, error: 
     """
     Aktualisiert den Fortschritt eines Jobs.
     """
-    from sqlalchemy import create_engine
     from sqlalchemy.orm import sessionmaker
-    from app.core.config import settings
     from app.models.enterprise import BulkJob
 
-    engine = create_engine(settings.DATABASE_URL.replace("+asyncpg", ""))
+    engine = _get_sync_engine()
     Session = sessionmaker(bind=engine)
     session = Session()
 

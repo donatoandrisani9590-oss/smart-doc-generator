@@ -31,6 +31,12 @@ export interface CommentMention {
     seen_at?: string | null;
 }
 
+export interface SelectionRange {
+    start: number;
+    end: number;
+    text?: string;
+}
+
 export interface Comment {
     id: number;
     anchor_type: string;
@@ -45,6 +51,8 @@ export interface Comment {
     author?: CommentAuthor | null;
     mentions: CommentMention[];
     reply_count: number;
+    block_id?: string | null;
+    selection_range?: SelectionRange | null;
 }
 
 export interface CommentThread {
@@ -64,6 +72,8 @@ export interface CreateCommentRequest {
     anchor_id: number;
     parent_id?: number;
     content: string;
+    block_id?: string;
+    selection_range?: SelectionRange;
 }
 
 export interface UserSuggestion {
@@ -132,7 +142,7 @@ export function useComments(
             return response.data;
         },
         staleTime: 30 * 1000, // 30 Sekunden
-        refetchInterval: enabled ? 60 * 1000 : false, // Alle 60 Sekunden refreshen (für "Near-Realtime")
+        refetchInterval: enabled ? 5 * 60 * 1000 : false, // 5 Min Fallback (SSE übernimmt Real-time)
         enabled: enabled && anchorId > 0,
     });
 }

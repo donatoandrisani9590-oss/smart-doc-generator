@@ -19,6 +19,7 @@ import { KeyboardShortcutsDialog } from "./KeyboardShortcutsDialog";
 import { OnboardingTour } from "@/components/onboarding/OnboardingTour";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { SkipLink, LiveRegion } from "@/hooks/useAccessibility";
+import { useEventStream } from "@/hooks/useEventStream";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -46,6 +47,9 @@ export const Layout = () => {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [showTour, setShowTour] = useState(false);
     const { resolvedTheme } = useTheme();
+
+    // SSE Real-time Updates (einmal pro Layout-Mount)
+    useEventStream();
 
     // Collapse sidebar on settings/admin pages to avoid double-nav
     const isSidebarCollapsed = location.pathname.startsWith('/settings') || location.pathname.startsWith('/admin');

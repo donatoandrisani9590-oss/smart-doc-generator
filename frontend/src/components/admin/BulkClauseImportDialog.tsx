@@ -43,6 +43,7 @@ import {
     Sparkles,
 } from "lucide-react";
 import { apiFetch } from "@/lib/api-client";
+import { sanitizeHtml } from "@/utils/sanitize";
 
 // §-Paragraph Erkennung
 interface DetectedParagraph {
@@ -447,12 +448,13 @@ export function BulkClauseImportDialog({
                                     <div
                                         className="prose prose-sm max-w-none text-sm"
                                         dangerouslySetInnerHTML={{
-                                            __html:
+                                            __html: sanitizeHtml(
                                                 paragraphs.find(
                                                     (p) =>
                                                         p.index ===
                                                         previewIndex
-                                                )?.content_html || "",
+                                                )?.content_html || ""
+                                            ),
                                         }}
                                     />
                                 </div>

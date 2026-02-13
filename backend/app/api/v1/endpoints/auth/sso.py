@@ -145,11 +145,21 @@ async def sso_authorize(request: Request):
     authorize_url = f"{urls['authorize_url']}?{query_string}"
 
     logger.info(f"SSO authorize redirect to {settings.SSO_PROVIDER}")
-    return RedirectResponse(url=authorize_url, status_code=302)
+    response = RedirectResponse(url=authorize_url, status_code=302)
+    response.set_cookie(
+        key="sso_state",
+        value=state,
+        max_age=600,  # 10 Minuten
+        httponly=True,
+        samesite="lax",
+        secure=True,
+    )
+    return response
 
 
 @router.get("/sso/callback")
 async def sso_callback(
+    request: Request,
     code: Optional[str] = None,
     state: Optional[str] = None,
     error: Optional[str] = None,
@@ -174,6 +184,14 @@ async def sso_callback(
     if not code:
         return RedirectResponse(
             url=f"{frontend_url}/login?sso_error=Kein Autorisierungscode erhalten",
+            status_code=302,
+        )
+
+    # Validate state parameter (CSRF protection)
+    expected_state = request.cookies.get("sso_state")
+    if not state or state != expected_state:
+        return RedirectResponse(
+            url=f"{frontend_url}/login?sso_error=Ungültiger State-Parameter (CSRF-Schutz)",
             status_code=302,
         )
 

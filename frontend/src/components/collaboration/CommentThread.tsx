@@ -16,7 +16,7 @@
  * />
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     MessageSquare,
@@ -47,8 +47,10 @@ import {
 } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "@/lib/dateUtils";
+import { useAuth } from "@/contexts/AuthContext";
 import { MentionInput } from "./MentionInput";
 import { useComments, useCreateComment, useResolveComment, useDeleteComment } from "@/hooks/useComments";
+import type { SelectionRange } from "@/hooks/useComments";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // TYPES
@@ -73,6 +75,8 @@ export interface Comment {
     updated_at?: string | null;
     author?: CommentAuthor | null;
     reply_count: number;
+    block_id?: string | null;
+    selection_range?: SelectionRange | null;
 }
 
 export interface CommentThread {
@@ -88,6 +92,13 @@ export interface CommentThreadProps {
     className?: string;
     /** Kompakter Modus für Sidebars */
     compact?: boolean;
+    /** Vorausgefüllte Textauswahl für neuen Inline-Kommentar */
+    pendingSelection?: SelectionRange | null;
+    onPendingSelectionClear?: () => void;
+    /** Callback wenn Nutzer auf Zitat-Snippet klickt */
+    onNavigateToHighlight?: (commentId: number) => void;
+    /** Aktuell fokussierter Kommentar (für Auto-Scroll) */
+    activeCommentId?: number | null;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -268,6 +279,7 @@ interface ThreadProps {
     onReply: (parentId: number, content: string) => void;
     currentUserId?: number;
     isSubmitting?: boolean;
+    onNavigateToHighlight?: (commentId: number) => void;
 }
 
 const Thread = ({
@@ -277,6 +289,7 @@ const Thread = ({
     onReply,
     currentUserId,
     isSubmitting,
+    onNavigateToHighlight,
 }: ThreadProps) => {
     const [isExpanded, setIsExpanded] = useState(!thread.root.is_resolved);
     const [showReplyInput, setShowReplyInput] = useState(false);
@@ -289,11 +302,27 @@ const Thread = ({
         setShowReplyInput(false);
     };
 
+    const selectionRange = thread.root.selection_range;
+
     return (
-        <div className={cn(
-            "border rounded-xl overflow-hidden transition-colors",
-            thread.root.is_resolved ? "border-green-200 bg-green-50/30" : "border-border"
-        )}>
+        <div
+            className={cn(
+                "border rounded-xl overflow-hidden transition-colors",
+                thread.root.is_resolved ? "border-green-200 bg-green-50/30" : "border-border"
+            )}
+            data-comment-thread-id={thread.root.id}
+        >
+            {/* Inline-Zitat */}
+            {selectionRange?.text && onNavigateToHighlight && (
+                <button
+                    onClick={() => onNavigateToHighlight(thread.root.id)}
+                    className="w-full text-left text-xs text-primary/80 bg-primary/5 px-4 py-2 border-b border-primary/10 truncate hover:bg-primary/10 transition-colors cursor-pointer"
+                    title="Zur markierten Stelle springen"
+                >
+                    &ldquo;{selectionRange.text.length > 80 ? selectionRange.text.substring(0, 80) + "..." : selectionRange.text}&rdquo;
+                </button>
+            )}
+
             {/* Root Comment */}
             <SingleComment
                 comment={thread.root}
@@ -391,10 +420,16 @@ export const CommentThread = ({
     onCommentCountChange,
     className,
     compact: _compact = false,
+    pendingSelection,
+    onPendingSelectionClear,
+    onNavigateToHighlight,
+    activeCommentId,
 }: CommentThreadProps) => {
     // Note: _compact is reserved for future compact mode styling
+    const { user } = useAuth();
     const [newComment, setNewComment] = useState("");
     const [showNewInput, setShowNewInput] = useState(false);
+    const commentsListRef = useRef<HTMLDivElement>(null);
 
     // API Hooks
     const { data, isLoading, refetch } = useComments(anchorType, anchorId);
@@ -409,8 +444,25 @@ export const CommentThread = ({
         }
     }, [data?.total, onCommentCountChange]);
 
-    // TODO: Get from auth context
-    const currentUserId = 1;
+    // Wenn eine Inline-Selection ansteht, automatisch Input öffnen
+    useEffect(() => {
+        if (pendingSelection) {
+            setShowNewInput(true);
+        }
+    }, [pendingSelection]);
+
+    // Auto-Scroll zum aktiven Kommentar
+    useEffect(() => {
+        if (!activeCommentId || !commentsListRef.current) return;
+        const el = commentsListRef.current.querySelector(
+            `[data-comment-thread-id="${activeCommentId}"]`
+        );
+        if (el) {
+            el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }
+    }, [activeCommentId]);
+
+    const currentUserId = user?.id ?? 0;
 
     const handleCreateComment = async () => {
         if (!newComment.trim()) return;
@@ -420,9 +472,11 @@ export const CommentThread = ({
                 anchor_type: anchorType,
                 anchor_id: anchorId,
                 content: newComment,
+                ...(pendingSelection && { selection_range: pendingSelection }),
             });
             setNewComment("");
             setShowNewInput(false);
+            onPendingSelectionClear?.();
             refetch();
         } catch (error) {
             console.error("Failed to create comment:", error);
@@ -499,6 +553,12 @@ export const CommentThread = ({
                         className="border-b overflow-hidden"
                     >
                         <div className="p-4">
+                            {/* Zitat bei Inline-Kommentar */}
+                            {pendingSelection?.text && (
+                                <div className="mb-3 p-2 bg-primary/5 border-l-2 border-primary rounded text-sm text-muted-foreground italic">
+                                    &ldquo;{pendingSelection.text.length > 120 ? pendingSelection.text.substring(0, 120) + "..." : pendingSelection.text}&rdquo;
+                                </div>
+                            )}
                             <MentionInput
                                 value={newComment}
                                 onChange={setNewComment}
@@ -513,6 +573,7 @@ export const CommentThread = ({
                                     onClick={() => {
                                         setShowNewInput(false);
                                         setNewComment("");
+                                        onPendingSelectionClear?.();
                                     }}
                                 >
                                     Abbrechen
@@ -536,7 +597,7 @@ export const CommentThread = ({
             </AnimatePresence>
 
             {/* Comments List */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            <div ref={commentsListRef} className="flex-1 overflow-y-auto p-4 space-y-4">
                 {isLoading ? (
                     <div className="flex items-center justify-center py-8">
                         <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
@@ -562,6 +623,7 @@ export const CommentThread = ({
                                 onReply={handleReply}
                                 currentUserId={currentUserId}
                                 isSubmitting={createComment.isPending}
+                                onNavigateToHighlight={onNavigateToHighlight}
                             />
                         ))}
                     </AnimatePresence>

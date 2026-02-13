@@ -16,6 +16,7 @@ import logging
 from app.db import get_db
 from app.models.enterprise import CopilotStudioConfig
 from app.api import deps
+from app.models.core import User
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -74,6 +75,7 @@ class ApiKeyResponse(BaseModel):
 )
 async def get_config(
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(deps.get_current_user),
 ):
     """Gibt die aktuelle Copilot Studio Konfiguration zurück."""
 
@@ -125,6 +127,7 @@ async def get_config(
 async def update_config(
     update: CopilotConfigUpdate,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(deps.get_current_user),
 ):
     """Aktualisiert die Copilot Studio Konfiguration."""
 
@@ -188,6 +191,7 @@ async def update_config(
 )
 async def generate_api_key(
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(deps.get_current_user),
 ):
     """
     Generiert einen neuen API-Schlüssel für die Copilot Studio Integration.
@@ -229,6 +233,7 @@ async def generate_api_key(
 )
 async def revoke_api_key(
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(deps.get_current_user),
 ):
     """Widerruft den aktuellen API-Schlüssel."""
 

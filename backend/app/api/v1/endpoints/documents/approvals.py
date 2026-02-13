@@ -26,6 +26,7 @@ from app.db import get_db
 from app.api.deps import get_current_user
 from app.models.core import User
 from app.models.enterprise import GeneratedDocument, DocumentApproval, Notification, AuditLog
+from app.services.event_bus import publish_event
 
 router = APIRouter()
 
@@ -245,6 +246,7 @@ async def request_approval(
         message=f'{current_user.email} bittet um Genehmigung für "{doc_title}".',
         entity_id=approval.id,
         priority=data.priority,
+        action_url=f"/documents/{approval.document_id}",
     )
 
     # Audit log
@@ -259,6 +261,19 @@ async def request_approval(
 
     await db.commit()
     await db.refresh(approval)
+
+    # SSE: Events NACH Commit pushen
+    await publish_event(str(data.approver_id), "approval:update", {
+        "approval_id": approval.id,
+        "document_id": approval.document_id,
+        "status": approval.status,
+    })
+    await publish_event(str(data.approver_id), "notification:new", {
+        "notification_type": "approval_required",
+        "title": "Genehmigung erforderlich",
+        "entity_type": "document_approval",
+        "entity_id": approval.id,
+    })
 
     return await _build_response(approval, db)
 
@@ -286,8 +301,14 @@ async def list_pending_approvals(
         query = select(DocumentApproval).where(
             DocumentApproval.requested_by_id == current_user.id,
         )
+    elif role == "all":
+        # Alle Genehmigungen, bei denen der User beteiligt ist (als Approver oder Requester)
+        query = select(DocumentApproval).where(
+            (DocumentApproval.approver_id == current_user.id)
+            | (DocumentApproval.requested_by_id == current_user.id)
+        )
     else:
-        raise HTTPException(status_code=400, detail="role muss 'approver' oder 'requester' sein")
+        raise HTTPException(status_code=400, detail="role muss 'approver', 'requester' oder 'all' sein")
 
     query = query.order_by(DocumentApproval.requested_at.desc())
     result = await db.execute(query)
@@ -378,6 +399,18 @@ async def approve_document(
     await db.commit()
     await db.refresh(approval)
 
+    # SSE: Events NACH Commit pushen
+    if approval.requested_by_id:
+        await publish_event(str(approval.requested_by_id), "approval:update", {
+            "approval_id": approval.id, "document_id": approval.document_id, "status": approval.status,
+        })
+        await publish_event(str(approval.requested_by_id), "notification:new", {
+            "notification_type": "document_shared",
+            "title": "Dokument genehmigt",
+            "entity_type": "document_approval",
+            "entity_id": approval.document_id,
+        })
+
     return await _build_response(approval, db)
 
 
@@ -440,6 +473,18 @@ async def request_changes(
     await db.commit()
     await db.refresh(approval)
 
+    # SSE: Events NACH Commit pushen
+    if approval.requested_by_id:
+        await publish_event(str(approval.requested_by_id), "approval:update", {
+            "approval_id": approval.id, "document_id": approval.document_id, "status": approval.status,
+        })
+        await publish_event(str(approval.requested_by_id), "notification:new", {
+            "notification_type": "document_corrected",
+            "title": "Änderungen angefordert",
+            "entity_type": "document_approval",
+            "entity_id": approval.document_id,
+        })
+
     return await _build_response(approval, db)
 
 
@@ -501,6 +546,18 @@ async def reject_document(
     await db.commit()
     await db.refresh(approval)
 
+    # SSE: Events NACH Commit pushen
+    if approval.requested_by_id:
+        await publish_event(str(approval.requested_by_id), "approval:update", {
+            "approval_id": approval.id, "document_id": approval.document_id, "status": approval.status,
+        })
+        await publish_event(str(approval.requested_by_id), "notification:new", {
+            "notification_type": "document_corrected",
+            "title": "Dokument abgelehnt",
+            "entity_type": "document_approval",
+            "entity_id": approval.document_id,
+        })
+
     return await _build_response(approval, db)
 
 
@@ -544,6 +601,7 @@ async def resubmit_for_approval(
         message=f"{current_user.email} hat das Dokument nach Änderungen erneut zur Genehmigung eingereicht.",
         entity_id=approval.id,
         priority=approval.priority,
+        action_url=f"/documents/{approval.document_id}",
     )
 
     # Audit log
@@ -559,5 +617,17 @@ async def resubmit_for_approval(
 
     await db.commit()
     await db.refresh(approval)
+
+    # SSE: Events NACH Commit pushen
+    if approval.approver_id:
+        await publish_event(str(approval.approver_id), "approval:update", {
+            "approval_id": approval.id, "document_id": approval.document_id, "status": approval.status,
+        })
+        await publish_event(str(approval.approver_id), "notification:new", {
+            "notification_type": "approval_required",
+            "title": "Dokument erneut eingereicht",
+            "entity_type": "document_approval",
+            "entity_id": approval.id,
+        })
 
     return await _build_response(approval, db)

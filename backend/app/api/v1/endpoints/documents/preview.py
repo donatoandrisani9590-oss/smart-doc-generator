@@ -350,8 +350,8 @@ async def generate_composer_preview(
     clauses = []
     for inst in instances:
         # Get content - prefer custom content over original
-        if inst.custom_content_html:
-            content = inst.custom_content_html
+        if inst.content_html:
+            content = inst.content_html
         elif inst.source_clause_id:
             # Load from source clause
             source = await db.get(Clause, inst.source_clause_id)

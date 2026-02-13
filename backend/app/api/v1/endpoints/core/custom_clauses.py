@@ -127,6 +127,39 @@ async def create_custom_template(
     }
 
 
+@router.get("/templates/popular")
+async def get_popular_templates(
+    country_code: str = "DE",
+    limit: int = 10,
+    db: AsyncSession = Depends(get_db),
+    current_user: Annotated[User, Depends(get_current_user)] = None
+):
+    """Get most popular public custom templates by usage count."""
+    # Only show public templates in popular list
+    result = await db.execute(
+        select(CustomClauseTemplate)
+        .where(
+            CustomClauseTemplate.country_code == country_code.upper(),
+            CustomClauseTemplate.is_public == True
+        )
+        .order_by(desc(CustomClauseTemplate.usage_count))
+        .limit(min(limit, 50))  # Cap at 50
+    )
+    templates = result.scalars().all()
+
+    return {
+        "items": [
+            {
+                "id": t.id,
+                "title": t.title,
+                "category": t.category,
+                "usage_count": t.usage_count or 0
+            }
+            for t in templates
+        ]
+    }
+
+
 @router.get("/templates/{template_id}")
 async def get_custom_template(
     template_id: int,
@@ -261,37 +294,4 @@ async def use_template(
         "title": template.title,
         "content": template.content,
         "usage_count": template.usage_count
-    }
-
-
-@router.get("/templates/popular")
-async def get_popular_templates(
-    country_code: str = "DE",
-    limit: int = 10,
-    db: AsyncSession = Depends(get_db),
-    current_user: Annotated[User, Depends(get_current_user)] = None
-):
-    """Get most popular public custom templates by usage count."""
-    # Only show public templates in popular list
-    result = await db.execute(
-        select(CustomClauseTemplate)
-        .where(
-            CustomClauseTemplate.country_code == country_code.upper(),
-            CustomClauseTemplate.is_public == True
-        )
-        .order_by(desc(CustomClauseTemplate.usage_count))
-        .limit(min(limit, 50))  # Cap at 50
-    )
-    templates = result.scalars().all()
-
-    return {
-        "items": [
-            {
-                "id": t.id,
-                "title": t.title,
-                "category": t.category,
-                "usage_count": t.usage_count or 0
-            }
-            for t in templates
-        ]
     }

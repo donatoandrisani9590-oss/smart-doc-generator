@@ -568,6 +568,15 @@ async def create_comment(
     await db.commit()
     await db.refresh(comment)
 
+    # SSE: comment:new Event an erwähnte User pushen
+    from app.services.event_bus import publish_event
+    for uid in mentioned_user_ids:
+        await publish_event(str(uid), "comment:new", {
+            "anchor_type": comment.anchor_type,
+            "anchor_id": comment.anchor_id,
+            "comment_id": comment.id,
+        })
+
     return CommentResponse(
         id=comment.id,
         anchor_type=comment.anchor_type,
@@ -773,6 +782,16 @@ async def resolve_comment(
     )
 
     await db.commit()
+
+    # SSE: comment:resolved Event an Kommentar-Ersteller pushen
+    if comment.created_by_id and comment.created_by_id != current_user.id:
+        from app.services.event_bus import publish_event
+        await publish_event(str(comment.created_by_id), "comment:resolved", {
+            "anchor_type": comment.anchor_type,
+            "anchor_id": comment.anchor_id,
+            "comment_id": comment.id,
+            "is_resolved": request.is_resolved,
+        })
 
     return {
         "message": "Thread als gelöst markiert" if request.is_resolved else "Thread wieder geöffnet",
