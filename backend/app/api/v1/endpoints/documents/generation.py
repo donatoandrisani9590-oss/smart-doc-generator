@@ -874,8 +874,26 @@ async def generate_document_by_type(
         # Save document record to repository ("Meine Dokumente")
         try:
             from app.models.enterprise import GeneratedDocument
+            from app.services.preview import assemble_html_preview as _assemble_preview
             employee_name = f"{vorname} {nachname}".strip() or None
             doc_title = f"{doc_type.name} - {employee_name}" if employee_name else doc_type.name
+
+            # Generate HTML preview for document detail view
+            preview_html = None
+            if request_data.editor_html_content:
+                # Freetext editor content → use directly
+                preview_html = request_data.editor_html_content
+            else:
+                try:
+                    preview_html = _assemble_preview(
+                        design_settings=design_settings,
+                        clauses=[{"content": c["content"]} for c in active_clauses],
+                        form_data=form_data,
+                        country_code=country_code,
+                        document_type_name=doc_type.name,
+                    )
+                except Exception as preview_err:
+                    logger.warning(f"Could not generate HTML preview: {preview_err}")
 
             generated_doc = GeneratedDocument(
                 document_type_id=document_type_id,
@@ -890,6 +908,7 @@ async def generate_document_by_type(
                 file_format=request_data.output_format,
                 current_version=1,
                 is_correctable=True,
+                content_html=preview_html,
             )
             db.add(generated_doc)
             await db.commit()

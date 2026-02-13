@@ -408,6 +408,7 @@ async def get_document_detail(
         "created_at": document.created_at.isoformat() if document.created_at else None,
         "created_by_id": document.created_by_id,
         "retention_date": document.retention_date.isoformat() if document.retention_date else None,
+        "content_html": document.content_html,
         "form_data": form_data,
         "versions": [
             {

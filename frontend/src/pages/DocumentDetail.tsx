@@ -1,18 +1,17 @@
 /**
- * DocumentDetail Page - Warm & Friendly Design
+ * DocumentDetail Page - Split-Screen Review Layout
  *
- * - Status action bar at top (EPL-inspired)
- * - Info cards with warm headers
- * - Notes/comments panel in sidebar
- * - Clean, modern layout
+ * Left (60%): Document HTML preview (DIN A4 floating paper)
+ * Right (40%): Collapsible sidebar with tabs (Details / Verlauf)
+ * Top: Status action bar with document actions
  */
 
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useRepositoryDocument } from "@/hooks/useApi";
+import { DocumentPreviewPanel } from "@/components/documents/DocumentPreviewPanel";
 
 interface RelatedDocument {
     id: number;
@@ -37,9 +36,12 @@ import {
     Share2,
     FileText,
     FileCheck,
-    MessageSquare,
     Copy,
     CheckCircle,
+    PanelRightClose,
+    PanelRightOpen,
+    Clock,
+    Info,
 } from "lucide-react";
 
 // Deutsche Labels für Formulardaten-Anzeige
@@ -64,7 +66,6 @@ const FORM_FIELD_LABELS: Record<string, string> = {
 
 function formatFieldLabel(key: string): string {
     if (FORM_FIELD_LABELS[key]) return FORM_FIELD_LABELS[key];
-    // Fallback: Underscores ersetzen + erster Buchstabe groß
     const label = key.replace(/_/g, " ");
     return label.charAt(0).toUpperCase() + label.slice(1);
 }
@@ -75,13 +76,11 @@ function formatFieldValue(key: string, value: unknown): string {
 
     const strValue = String(value);
 
-    // Datumsfelder (ISO yyyy-mm-dd → dd.mm.yyyy)
     if (key.toLowerCase().includes("datum") && /^\d{4}-\d{2}-\d{2}$/.test(strValue)) {
         const [y, m, d] = strValue.split("-");
         return `${d}.${m}.${y}`;
     }
 
-    // Gehalt mit € formatieren
     if (key === "gehalt") {
         const num = parseFloat(strValue);
         if (!isNaN(num)) {
@@ -89,12 +88,10 @@ function formatFieldValue(key: string, value: unknown): string {
         }
     }
 
-    // Wochenstunden mit Einheit
     if (key === "wochenstunden") {
         return `${strValue} Std./Woche`;
     }
 
-    // Urlaubstage mit Einheit
     if (key === "urlaubstage") {
         return `${strValue} Tage`;
     }
@@ -102,12 +99,16 @@ function formatFieldValue(key: string, value: unknown): string {
     return strValue;
 }
 
+type SidebarTab = "details" | "verlauf";
+
 export const DocumentDetailPage = () => {
     const { documentId } = useParams<{ documentId: string }>();
     const navigate = useNavigate();
     const [showCorrection, setShowCorrection] = useState(false);
     const [showShareDialog, setShowShareDialog] = useState(false);
     const [copied, setCopied] = useState(false);
+    const [sidebarOpen, setSidebarOpen] = useState(true);
+    const [activeTab, setActiveTab] = useState<SidebarTab>("details");
 
     const docIdNum = documentId ? parseInt(documentId, 10) : 0;
     const { data: document, isLoading, error, refetch } = useRepositoryDocument(docIdNum);
@@ -117,7 +118,6 @@ export const DocumentDetailPage = () => {
 
     const [relatedDocs, setRelatedDocs] = useState<RelatedDocument[]>([]);
 
-    // Fetch related documents
     useEffect(() => {
         if (!documentId) return;
 
@@ -186,26 +186,38 @@ export const DocumentDetailPage = () => {
     }
 
     return (
-        <div className="space-y-6 max-w-6xl mx-auto">
-            {/* Status Action Bar - EPL Inspired */}
-            <div className="bg-white dark:bg-card rounded-xl p-4 shadow-soft-sm border border-warm-200/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex flex-col h-[calc(100vh-4rem)] max-w-[1600px] mx-auto">
+            {/* Status Action Bar */}
+            <div className="shrink-0 bg-white dark:bg-card rounded-xl p-3 shadow-soft-sm border border-warm-200/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mx-1 mb-3">
                 <div className="flex items-center gap-3">
-                    <div className="p-2 bg-green-50 dark:bg-green-950/30 rounded-lg">
-                        <FileCheck className="w-5 h-5 text-green-600 dark:text-green-400" />
+                    <Button variant="ghost" size="icon" className="shrink-0" onClick={() => navigate("/documents")}>
+                        <ArrowLeft className="w-5 h-5" />
+                    </Button>
+                    <div className="p-1.5 bg-green-50 dark:bg-green-950/30 rounded-lg">
+                        <FileCheck className="w-4 h-4 text-green-600 dark:text-green-400" />
                     </div>
-                    <div>
-                        <p className="font-medium text-foreground">Fertiggestellt</p>
-                        <p className="text-xs text-muted-foreground">
-                            Version {document.current_version} &middot; Erstellt am{" "}
+                    <div className="min-w-0">
+                        <h1 className="font-semibold text-foreground truncate text-sm sm:text-base">
+                            {document.title || document.document_type_name}
+                        </h1>
+                        <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                            {document.employee_name && (
+                                <>
+                                    <User className="w-3 h-3" />
+                                    <span>{document.employee_name}</span>
+                                    <span>&middot;</span>
+                                </>
+                            )}
+                            v{document.current_version} &middot;{" "}
                             {document.created_at
                                 ? new Date(document.created_at).toLocaleDateString("de")
                                 : "-"}
                         </p>
                     </div>
                 </div>
-                <div className="flex gap-2 flex-wrap">
+                <div className="flex gap-1.5 flex-wrap shrink-0">
                     <Button variant="outline" size="sm" onClick={handleCopyLink}>
-                        {copied ? <CheckCircle className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+                        {copied ? <CheckCircle className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
                         <span className="ml-1.5 hidden sm:inline">{copied ? "Kopiert" : "Link"}</span>
                     </Button>
                     {document.is_correctable && (
@@ -216,194 +228,226 @@ export const DocumentDetailPage = () => {
                             disabled={!!isLockedByOther}
                             title={isLockedByOther ? `Gesperrt von ${lockStatus?.locked_by_name || lockStatus?.locked_by_email}` : undefined}
                         >
-                            <Edit3 className="w-4 h-4 mr-1.5" />
+                            <Edit3 className="w-3.5 h-3.5 mr-1.5" />
                             Korrigieren
                         </Button>
                     )}
                     <Button variant="outline" size="sm" onClick={() => setShowShareDialog(true)}>
-                        <Share2 className="w-4 h-4 mr-1.5" />
+                        <Share2 className="w-3.5 h-3.5 mr-1.5" />
                         Teilen
                     </Button>
                     <Button size="sm" onClick={() => window.open(document.file_path, "_blank")}>
-                        <Download className="w-4 h-4 mr-1.5" />
+                        <Download className="w-3.5 h-3.5 mr-1.5" />
                         Download
+                    </Button>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 hidden lg:flex"
+                        onClick={() => setSidebarOpen(!sidebarOpen)}
+                        title={sidebarOpen ? "Seitenleiste ausblenden" : "Seitenleiste einblenden"}
+                    >
+                        {sidebarOpen ? (
+                            <PanelRightClose className="w-4 h-4" />
+                        ) : (
+                            <PanelRightOpen className="w-4 h-4" />
+                        )}
                     </Button>
                 </div>
             </div>
 
             {/* Document Lock Banner */}
-            <DocumentLockBanner documentId={docIdNum} />
+            <div className="shrink-0 mx-1">
+                <DocumentLockBanner documentId={docIdNum} />
+            </div>
 
-            {/* Header - Simplified */}
-            <div className="flex items-center gap-4">
-                <Button variant="ghost" size="icon" onClick={() => navigate("/documents")}>
-                    <ArrowLeft className="w-5 h-5" />
-                </Button>
-                <div>
-                    <h1 className="text-2xl font-bold text-foreground">
-                        {document.title || document.document_type_name}
-                    </h1>
-                    <p className="text-muted-foreground flex items-center gap-2">
-                        {document.employee_name && (
-                            <span className="flex items-center gap-1">
-                                <User className="w-4 h-4" />
-                                {document.employee_name}
-                            </span>
-                        )}
-                        {document.employee_name && <span>&middot;</span>}
-                        {document.document_type_name}
-                    </p>
+            {/* Split-Screen: Preview + Sidebar */}
+            <div className="flex-1 flex gap-4 min-h-0 mx-1 pb-2">
+                {/* Left: Document Preview */}
+                <div
+                    className={`flex-1 min-w-0 transition-all duration-300 ${
+                        sidebarOpen ? "lg:flex-[3]" : ""
+                    }`}
+                >
+                    <DocumentPreviewPanel
+                        contentHtml={document.content_html ?? null}
+                        documentTitle={document.title || document.document_type_name || "Dokument"}
+                        filePath={document.file_path}
+                    />
+                </div>
+
+                {/* Right: Sidebar */}
+                <div
+                    className={`shrink-0 transition-all duration-300 overflow-hidden ${
+                        sidebarOpen
+                            ? "w-full lg:w-[380px] lg:flex-[2]"
+                            : "w-0 lg:w-0 opacity-0 pointer-events-none"
+                    }`}
+                >
+                    <div className="flex flex-col h-full min-w-[320px]">
+                        {/* Tab Switcher */}
+                        <div className="flex border-b border-warm-200/50 mb-3">
+                            <button
+                                className={`flex-1 px-4 py-2.5 text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
+                                    activeTab === "details"
+                                        ? "text-primary border-b-2 border-primary"
+                                        : "text-muted-foreground hover:text-foreground"
+                                }`}
+                                onClick={() => setActiveTab("details")}
+                            >
+                                <Info className="w-3.5 h-3.5" />
+                                Details
+                            </button>
+                            <button
+                                className={`flex-1 px-4 py-2.5 text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
+                                    activeTab === "verlauf"
+                                        ? "text-primary border-b-2 border-primary"
+                                        : "text-muted-foreground hover:text-foreground"
+                                }`}
+                                onClick={() => setActiveTab("verlauf")}
+                            >
+                                <Clock className="w-3.5 h-3.5" />
+                                Verlauf
+                            </button>
+                        </div>
+
+                        {/* Tab Content */}
+                        <div className="flex-1 overflow-y-auto space-y-4 pr-1">
+                            {activeTab === "details" && (
+                                <>
+                                    {/* Employee Info Card */}
+                                    <div className="card-soft p-0 overflow-hidden">
+                                        <div className="px-4 py-2.5 info-card-header">
+                                            <h3 className="text-xs font-medium flex items-center gap-2 uppercase tracking-wide">
+                                                <User className="w-3.5 h-3.5 text-primary" />
+                                                Mitarbeiter
+                                            </h3>
+                                        </div>
+                                        <div className="p-4 grid grid-cols-2 gap-3">
+                                            <div>
+                                                <p className="text-xs text-muted-foreground mb-0.5">Name</p>
+                                                <p className="font-medium text-sm">{document.employee_name || "-"}</p>
+                                            </div>
+                                            {document.employee_id && (
+                                                <div>
+                                                    <p className="text-xs text-muted-foreground mb-0.5">Personalnr.</p>
+                                                    <p className="font-medium text-sm">{document.employee_id}</p>
+                                                </div>
+                                            )}
+                                            <div>
+                                                <p className="text-xs text-muted-foreground mb-0.5">Erstellt am</p>
+                                                <p className="font-medium text-sm">
+                                                    {document.created_at
+                                                        ? new Date(document.created_at).toLocaleDateString("de")
+                                                        : "-"}
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <p className="text-xs text-muted-foreground mb-0.5">Version</p>
+                                                <p className="font-medium text-sm">v{document.current_version}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Document Info Card */}
+                                    <div className="card-soft p-0 overflow-hidden">
+                                        <div className="px-4 py-2.5 info-card-header">
+                                            <h3 className="text-xs font-medium flex items-center gap-2 uppercase tracking-wide">
+                                                <FileText className="w-3.5 h-3.5 text-primary" />
+                                                Dokument
+                                            </h3>
+                                        </div>
+                                        <div className="p-4 grid grid-cols-2 gap-3">
+                                            <div>
+                                                <p className="text-xs text-muted-foreground mb-0.5">Typ</p>
+                                                <p className="font-medium text-sm">{document.document_type_name}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-xs text-muted-foreground mb-0.5">Format</p>
+                                                <p className="font-medium text-sm uppercase">
+                                                    {document.file_path?.split(".").pop() || "-"}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Form Data */}
+                                    {document.form_data && Object.keys(document.form_data).length > 0 && (
+                                        <div className="card-soft p-0 overflow-hidden">
+                                            <div className="px-4 py-2.5 info-card-header">
+                                                <h3 className="text-xs font-medium flex items-center gap-2 uppercase tracking-wide">
+                                                    <FileText className="w-3.5 h-3.5 text-primary" />
+                                                    Formulardaten
+                                                </h3>
+                                            </div>
+                                            <div className="p-4">
+                                                <div className="space-y-2">
+                                                    {Object.entries(document.form_data).map(([key, value]) => (
+                                                        <div
+                                                            key={key}
+                                                            className="flex justify-between items-baseline py-1.5 border-b border-warm-100 last:border-0"
+                                                        >
+                                                            <span className="text-xs text-muted-foreground">
+                                                                {formatFieldLabel(key)}
+                                                            </span>
+                                                            <span className="font-medium text-sm text-right ml-2">
+                                                                {formatFieldValue(key, value)}
+                                                            </span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </>
+                            )}
+
+                            {activeTab === "verlauf" && (
+                                <>
+                                    {/* Version History */}
+                                    <VersionHistoryPanel
+                                        documentId={document.id}
+                                        onDownloadVersion={(version) => {
+                                            window.open(version.file_path, "_blank");
+                                        }}
+                                    />
+
+                                    {/* Related Documents */}
+                                    {relatedDocs.length > 0 && (
+                                        <div className="card-soft p-0 overflow-hidden">
+                                            <div className="px-4 py-2.5 info-card-header">
+                                                <h3 className="text-xs font-medium uppercase tracking-wide">
+                                                    Verwandte Dokumente
+                                                </h3>
+                                            </div>
+                                            <div className="p-2 space-y-0.5">
+                                                {relatedDocs.map((related) => (
+                                                    <Link
+                                                        key={related.id}
+                                                        to={`/documents/${related.id}`}
+                                                        className="block p-2.5 rounded-lg hover:bg-warm-50 transition-colors"
+                                                    >
+                                                        <p className="text-sm font-medium truncate" title={related.title || related.employee_name || undefined}>
+                                                            {related.title || related.employee_name}
+                                                        </p>
+                                                        <p className="text-xs text-muted-foreground">
+                                                            {related.document_type_name}
+                                                        </p>
+                                                    </Link>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </>
+                            )}
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Main Content - Left Column */}
-                <div className="lg:col-span-2 space-y-6">
-                    {/* Employee Info Card */}
-                    <div className="card-soft p-0 overflow-hidden">
-                        <div className="px-5 py-3 info-card-header">
-                            <h3 className="text-sm font-medium flex items-center gap-2">
-                                <User className="w-4 h-4 text-primary" />
-                                Mitarbeiter-Informationen
-                            </h3>
-                        </div>
-                        <div className="p-5 grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <div>
-                                <p className="text-xs text-muted-foreground mb-1">Name</p>
-                                <p className="font-medium">{document.employee_name || "-"}</p>
-                            </div>
-                            {document.employee_id && (
-                                <div>
-                                    <p className="text-xs text-muted-foreground mb-1">Personalnr.</p>
-                                    <p className="font-medium">{document.employee_id}</p>
-                                </div>
-                            )}
-                            <div>
-                                <p className="text-xs text-muted-foreground mb-1">Erstellt am</p>
-                                <p className="font-medium">
-                                    {document.created_at
-                                        ? new Date(document.created_at).toLocaleDateString("de")
-                                        : "-"}
-                                </p>
-                            </div>
-                            <div>
-                                <p className="text-xs text-muted-foreground mb-1">Version</p>
-                                <p className="font-medium">v{document.current_version}</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Document Info Card */}
-                    <div className="card-soft p-0 overflow-hidden">
-                        <div className="px-5 py-3 info-card-header">
-                            <h3 className="text-sm font-medium flex items-center gap-2">
-                                <FileText className="w-4 h-4 text-primary" />
-                                Dokument-Informationen
-                            </h3>
-                        </div>
-                        <div className="p-5 grid grid-cols-2 gap-4">
-                            <div>
-                                <p className="text-xs text-muted-foreground mb-1">Typ</p>
-                                <p className="font-medium">{document.document_type_name}</p>
-                            </div>
-                            <div>
-                                <p className="text-xs text-muted-foreground mb-1">Version</p>
-                                <p className="font-medium">v{document.current_version}</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Form Data - If available */}
-                    {document.form_data && Object.keys(document.form_data).length > 0 && (
-                        <div className="card-soft p-0 overflow-hidden">
-                            <div className="px-5 py-3 info-card-header">
-                                <h3 className="text-sm font-medium flex items-center gap-2">
-                                    <FileText className="w-4 h-4 text-primary" />
-                                    Formulardaten
-                                </h3>
-                            </div>
-                            <div className="p-5">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                    {Object.entries(document.form_data).map(([key, value]) => (
-                                        <div
-                                            key={key}
-                                            className="p-3 bg-warm-50/50 rounded-lg"
-                                        >
-                                            <p className="text-xs text-muted-foreground mb-1">
-                                                {formatFieldLabel(key)}
-                                            </p>
-                                            <p className="font-medium text-sm">
-                                                {formatFieldValue(key, value)}
-                                            </p>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                </div>
-
-                {/* Sidebar - Right Column */}
-                <div className="space-y-6">
-                    {/* Notes / Comments Panel - EPL Inspired */}
-                    <div className="card-soft p-0 overflow-hidden">
-                        <div className="px-5 py-3 info-card-header flex items-center justify-between">
-                            <h3 className="text-sm font-medium flex items-center gap-2">
-                                <MessageSquare className="w-4 h-4 text-primary" />
-                                Notizen
-                            </h3>
-                        </div>
-                        <div className="p-4 max-h-[300px] overflow-y-auto">
-                            <div className="text-center py-6">
-                                <div className="w-10 h-10 mx-auto rounded-full bg-warm-100 flex items-center justify-center mb-2">
-                                    <MessageSquare className="w-4 h-4 text-warm-500" />
-                                </div>
-                                <p className="text-sm text-muted-foreground">Keine Notizen vorhanden</p>
-                            </div>
-                        </div>
-                        <div className="p-3 border-t border-warm-200/50">
-                            <div className="flex gap-2">
-                                <Input placeholder="Notiz hinzufügen..." className="h-9 text-sm" />
-                                <Button size="sm" variant="outline" className="shrink-0">
-                                    Senden
-                                </Button>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Version History */}
-                    <VersionHistoryPanel
-                        documentId={document.id}
-                        onDownloadVersion={(version) => {
-                            window.open(version.file_path, "_blank");
-                        }}
-                    />
-
-                    {/* Related Documents */}
-                    {relatedDocs.length > 0 && (
-                        <div className="card-soft p-0 overflow-hidden">
-                            <div className="px-5 py-3 info-card-header">
-                                <h3 className="text-sm font-medium">Verwandte Dokumente</h3>
-                            </div>
-                            <div className="p-3 space-y-1">
-                                {relatedDocs.map((related) => (
-                                    <Link
-                                        key={related.id}
-                                        to={`/documents/${related.id}`}
-                                        className="block p-3 rounded-lg hover:bg-warm-50 transition-colors"
-                                    >
-                                        <p className="text-sm font-medium truncate" title={related.title || related.employee_name || undefined}>
-                                            {related.title || related.employee_name}
-                                        </p>
-                                        <p className="text-xs text-muted-foreground">
-                                            {related.document_type_name}
-                                        </p>
-                                    </Link>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-                </div>
+            {/* Mobile: Sidebar below preview */}
+            <div className="lg:hidden mt-4 mx-1 space-y-4 pb-4">
+                {/* Show sidebar content inline on mobile */}
             </div>
 
             {/* Dialogs */}
@@ -423,7 +467,7 @@ export const DocumentDetailPage = () => {
                 open={showShareDialog}
                 onOpenChange={setShowShareDialog}
                 documentId={document.id}
-                documentTitle={document.title || document.employee_name}
+                documentTitle={document.title || document.employee_name || undefined}
             />
         </div>
     );

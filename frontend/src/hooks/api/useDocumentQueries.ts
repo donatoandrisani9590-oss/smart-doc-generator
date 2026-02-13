@@ -444,6 +444,22 @@ export interface RepositoryDocument {
     version_count: number;
 }
 
+export interface RepositoryDocumentDetail extends RepositoryDocument {
+    document_type_category: string | null;
+    content_html: string | null;
+    form_data: Record<string, unknown> | null;
+    versions: Array<{
+        id: number;
+        version_number: number;
+        file_path: string;
+        change_reason: string | null;
+        changed_fields: string[];
+        created_by: string;
+        created_at: string | null;
+        is_current: boolean;
+    }>;
+}
+
 export interface RepositoryResponse {
     documents: RepositoryDocument[];
     total: number;
@@ -515,7 +531,7 @@ export const useRepositoryStats = (countryCode?: string) => {
 };
 
 export const useRepositoryDocument = (documentId: number) => {
-    return useQuery({
+    return useQuery<RepositoryDocumentDetail>({
         queryKey: ["repository-document", documentId],
         queryFn: async () => {
             const res = await fetch(`${API_BASE}/repository/${documentId}`);

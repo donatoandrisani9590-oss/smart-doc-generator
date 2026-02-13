@@ -29,6 +29,7 @@ class GeneratedDocument(Base):
     form_data = Column(Text, nullable=True)  # JSON snapshot of form values
     current_version = Column(Integer, default=1)  # Track version number
     is_correctable = Column(Boolean, default=True)  # Can this doc be corrected?
+    content_html = Column(Text, nullable=True)  # HTML preview for document detail view
 
 class DocumentLock(Base):
     """
