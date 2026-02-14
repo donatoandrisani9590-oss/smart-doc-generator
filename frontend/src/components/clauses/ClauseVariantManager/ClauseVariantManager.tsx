@@ -87,7 +87,15 @@ export const ClauseVariantManager = ({
                 return false;
             }
         }
-        // TODO: Dokumenttyp-Filter würde Backend-Erweiterung erfordern
+        // Dokumenttyp-Zuordnungs-Filter
+        if (filterMode === "with-docs") {
+            // Gruppen mit mindestens einer Dokumenttyp-Zuordnung
+            // Prüfe ob base_clause_id gesetzt ist (= zugeordnet)
+            return !!(group as VariantGroup & { base_clause_id?: number }).base_clause_id;
+        }
+        if (filterMode === "without-docs") {
+            return !(group as VariantGroup & { base_clause_id?: number }).base_clause_id;
+        }
         return true;
     }) || [];
 

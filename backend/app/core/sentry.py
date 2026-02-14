@@ -103,5 +103,5 @@ def set_user_context(user_id: str, email: str | None = None) -> None:
         try:
             import sentry_sdk
             sentry_sdk.set_user({"id": user_id, "email": email})
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug("Failed to set Sentry user context: %s", e)

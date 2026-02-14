@@ -122,7 +122,7 @@ class DocumentApproval(Base):
     __tablename__ = "document_approvals"
 
     id = Column(Integer, primary_key=True, index=True)
-    document_id = Column(Integer, ForeignKey("generated_documents.id", ondelete="CASCADE"), nullable=False, index=True)
+    document_id = Column(Integer, ForeignKey("generated_documents.id", ondelete="SET NULL"), nullable=True, index=True)
 
     # Status
     status = Column(String(30), default="pending_approval", nullable=False, index=True)
@@ -406,7 +406,7 @@ class DocumentVersion(Base):
     __tablename__ = "document_versions"
 
     id = Column(Integer, primary_key=True, index=True)
-    document_id = Column(Integer, ForeignKey("generated_documents.id", ondelete="CASCADE"), nullable=False, index=True)
+    document_id = Column(Integer, ForeignKey("generated_documents.id", ondelete="RESTRICT"), nullable=False, index=True)
 
     # Version info
     version_number = Column(Integer, nullable=False)

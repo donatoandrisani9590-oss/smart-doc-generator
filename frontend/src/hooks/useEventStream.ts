@@ -62,8 +62,8 @@ export function useEventStream() {
                 queryClient.invalidateQueries({
                     queryKey: ["comments", "list", d.anchor_type, d.anchor_id],
                 });
-            } catch {
-                // Fallback: alle Kommentare invalidieren
+            } catch (err) {
+                console.warn("[SSE] comment:new JSON-Parse fehlgeschlagen:", err);
                 queryClient.invalidateQueries({ queryKey: ["comments"] });
             }
         });
@@ -74,7 +74,8 @@ export function useEventStream() {
                 queryClient.invalidateQueries({
                     queryKey: ["comments", "list", d.anchor_type, d.anchor_id],
                 });
-            } catch {
+            } catch (err) {
+                console.warn("[SSE] comment:resolved JSON-Parse fehlgeschlagen:", err);
                 queryClient.invalidateQueries({ queryKey: ["comments"] });
             }
         });
@@ -86,7 +87,8 @@ export function useEventStream() {
                 queryClient.invalidateQueries({
                     queryKey: ["document-approvals", "document", d.document_id],
                 });
-            } catch {
+            } catch (err) {
+                console.warn("[SSE] approval:update JSON-Parse fehlgeschlagen:", err);
                 queryClient.invalidateQueries({ queryKey: ["document-approvals"] });
             }
         });
@@ -97,6 +99,10 @@ export function useEventStream() {
     }, [queryClient]);
 
     const disconnect = useCallback(() => {
+        if (backgroundTimerRef.current) {
+            clearTimeout(backgroundTimerRef.current);
+            backgroundTimerRef.current = null;
+        }
         if (eventSourceRef.current) {
             eventSourceRef.current.close();
             eventSourceRef.current = null;

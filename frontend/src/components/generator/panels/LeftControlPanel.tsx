@@ -52,7 +52,7 @@ export const LeftControlPanel = ({ documentTypes }: LeftControlPanelProps) => {
 
     const selectedDocumentType = documentTypes.find(t => t.id === documentTypeId);
     const documentTypeName = selectedDocumentType?.name || "Dokument";
-    const documentCountryCode = selectedDocumentType?.country_code;
+    const documentCountryCode = selectedDocumentType?.country_code || "DE";
     const enabledClausesCount = documentClauses.filter(c => c.is_enabled).length;
     const totalClausesCount = documentClauses.length;
 
@@ -61,7 +61,7 @@ export const LeftControlPanel = ({ documentTypes }: LeftControlPanelProps) => {
         documentTypeId,
         formData: state.formData,
         documentTitle,
-        hasExported: false, // TODO: Aus state lesen wenn implementiert
+        hasExported: state.hasExported,
     });
 
     return (

@@ -167,6 +167,7 @@ export interface WizardState {
     isLoading: boolean;
     isSaving: boolean;
     isGenerating: boolean;
+    hasExported: boolean;
     hasUnsavedChanges: boolean;
 
     // Validierung
@@ -314,6 +315,7 @@ export const initialWizardState: WizardState = {
     isLoading: false,
     isSaving: false,
     isGenerating: false,
+    hasExported: false,
     hasUnsavedChanges: false,
 
     validationErrors: [],

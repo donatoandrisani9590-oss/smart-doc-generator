@@ -60,12 +60,12 @@ async def load_user_clauses(
             Clause.approval_status.in_(["active", "approved"]),
             or_(
                 Clause.country_code == country_code,
-                Clause.country_code == None,
+                Clause.country_code.is_(None),
             ),
             # TENANT ISOLATION: Only own clauses + global clauses
             or_(
                 Clause.user_id == user_id,
-                Clause.user_id == None,
+                Clause.user_id.is_(None),
             ),
         )
     )
@@ -377,7 +377,7 @@ async def assemble_clauses(
                 Clause.is_active == True,
                 or_(
                     Clause.user_id == user_id,
-                    Clause.user_id == None,
+                    Clause.user_id.is_(None),
                 ),
             )
         )

@@ -808,10 +808,11 @@ class SignatureService {
 
   async handleWebhook(
     provider: SignatureProvider,
-    payload: Record<string, unknown>
+    _payload: Record<string, unknown>
   ): Promise<void> {
     // This would be implemented on the backend to handle provider webhooks
-    console.log(`Webhook received from ${provider}:`, payload);
+    // NB: Payload may contain PII – only log provider, not payload
+    console.debug(`[SignatureService] Webhook received from ${provider}`);
 
     // Parse webhook and update request status accordingly
     // This is a placeholder for actual webhook handling logic

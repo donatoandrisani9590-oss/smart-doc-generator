@@ -188,8 +188,8 @@ export function StationeryGalleryPage() {
 
     const handleSetDefault = async (id: number) => {
         try {
-            const response = await apiFetch(`/api/v1/user-templates/${id}/set-default`, {
-                method: "POST",
+            const response = await apiFetch(`/api/v1/user-templates/${id}/default`, {
+                method: "PUT",
             });
             if (response.ok) {
                 // Update local state: un-default all, then set this one

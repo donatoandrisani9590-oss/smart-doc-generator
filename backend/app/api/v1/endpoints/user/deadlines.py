@@ -7,6 +7,7 @@ Tracking von:
 - Andere HR-relevante Fristen
 """
 from __future__ import annotations
+import logging
 from typing import Any, List, Annotated, Optional
 from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -17,6 +18,8 @@ from pydantic import BaseModel
 from app.db import get_db
 from app.api import deps
 from app.models.documents import DocumentDeadline, DeadlineFieldMapping
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -88,7 +91,8 @@ def calculate_deadline_info(deadline: DocumentDeadline) -> dict:
             "days_remaining": days_remaining,
             "urgency": urgency,
         }
-    except Exception:
+    except (ValueError, TypeError, AttributeError) as e:
+        logger.debug("Fristberechnung fehlgeschlagen: %s", e)
         return {"days_remaining": 999, "urgency": "normal"}
 
 

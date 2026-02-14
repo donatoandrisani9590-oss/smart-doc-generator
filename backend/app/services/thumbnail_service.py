@@ -54,6 +54,7 @@ def generate_thumbnail(
                 capture_output=True,
                 text=True,
                 timeout=30,
+                start_new_session=True,  # Eigene Process-Group für sauberes Cleanup
             )
 
             if result.returncode != 0:
@@ -72,28 +73,29 @@ def generate_thumbnail(
             import fitz  # PyMuPDF
 
             doc = fitz.open(str(pdf_path))
-            if len(doc) == 0:
-                logger.warning("PDF hat keine Seiten")
+            try:
+                if len(doc) == 0:
+                    logger.warning("PDF hat keine Seiten")
+                    return None
+
+                page = doc[0]
+
+                # Zoom für Zielbreite berechnen
+                zoom = width / page.rect.width
+                mat = fitz.Matrix(zoom, zoom)
+                pix = page.get_pixmap(matrix=mat, alpha=False)
+
+                # PNG speichern
+                if output_path is None:
+                    output_path = THUMBNAIL_STORAGE / f"{docx_path.stem}_thumb.png"
+
+                output_path.parent.mkdir(parents=True, exist_ok=True)
+                pix.save(str(output_path))
+
+                logger.info(f"Thumbnail generiert: {output_path}")
+                return output_path
+            finally:
                 doc.close()
-                return None
-
-            page = doc[0]
-
-            # Zoom für Zielbreite berechnen
-            zoom = width / page.rect.width
-            mat = fitz.Matrix(zoom, zoom)
-            pix = page.get_pixmap(matrix=mat, alpha=False)
-
-            # PNG speichern
-            if output_path is None:
-                output_path = THUMBNAIL_STORAGE / f"{docx_path.stem}_thumb.png"
-
-            output_path.parent.mkdir(parents=True, exist_ok=True)
-            pix.save(str(output_path))
-
-            doc.close()
-            logger.info(f"Thumbnail generiert: {output_path}")
-            return output_path
 
     except FileNotFoundError:
         logger.warning("LibreOffice (soffice) nicht gefunden. Thumbnail-Generierung übersprungen.")

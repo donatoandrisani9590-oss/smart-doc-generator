@@ -9,7 +9,7 @@
  * consumers continue to work without modification.
  */
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import {
     type WizardState,
     type WizardActions,
@@ -27,12 +27,16 @@ import {
     useWizardComments,
     useWizardExport,
 } from "./wizard";
+import { useAuth } from "@/contexts/AuthContext";
 
 // ══════════════════════════════════════════════════════════════════════════════
 // HOOK
 // ══════════════════════════════════════════════════════════════════════════════
 
 export function useDocumentWizard(initialDraftId?: number): WizardContextValue {
+
+    // ── 0. Auth Context (for comment author) ──────────────────────────────
+    const { user } = useAuth();
 
     // ── 1. Form Data (incl. undo/redo, document types) ──────────────────────
 
@@ -42,6 +46,8 @@ export function useDocumentWizard(initialDraftId?: number): WizardContextValue {
 
     const commentsHook = useWizardComments({
         markUnsaved: () => form.setHasUnsavedChanges(true),
+        currentUserName: user?.email || "Unbekannt",
+        currentUserId: user?.id || 0,
     });
 
     // ── 3. Navigation (needs form state for validation + localStorage) ──────
@@ -103,10 +109,24 @@ export function useDocumentWizard(initialDraftId?: number): WizardContextValue {
     // ── 7b. Stationery Zones (Header/Footer from Blanko template) ────────
 
     const [stationeryZones, setStationeryZones] = useState<WizardState["stationeryZones"]>(null);
+    const stationeryAbortRef = useRef<AbortController | null>(null);
 
     const loadStationeryZones = useCallback(async (templateId: number) => {
+        // Cancel any in-flight request to prevent race conditions
+        if (stationeryAbortRef.current) {
+            stationeryAbortRef.current.abort();
+        }
+        const abortController = new AbortController();
+        stationeryAbortRef.current = abortController;
+
         try {
-            const response = await apiFetch(`/api/v1/user-templates/${templateId}/zones`);
+            const response = await apiFetch(`/api/v1/user-templates/${templateId}/zones`, {
+                signal: abortController.signal,
+            });
+
+            // Don't update state if this request was superseded
+            if (abortController.signal.aborted) return;
+
             if (response.ok) {
                 const data: {
                     template_id: number;
@@ -133,7 +153,9 @@ export function useDocumentWizard(initialDraftId?: number): WizardContextValue {
                     setUserTemplateIdState(null);
                 }
             }
-        } catch {
+        } catch (err) {
+            // Ignore abort errors - expected when switching templates quickly
+            if (err instanceof DOMException && err.name === "AbortError") return;
             // Zones are optional, don't block document creation
             setStationeryZones(null);
         }
@@ -160,12 +182,19 @@ export function useDocumentWizard(initialDraftId?: number): WizardContextValue {
             setHasLocalEdits(true);
             form.setHasUnsavedChanges(true);
         }
-    }, [form]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- form.setHasUnsavedChanges is a stable callback
+    }, [form.setHasUnsavedChanges]);
 
     const resetEditorToPreview = useCallback(() => {
         setEditorContentState(preview.previewHtml);
         setHasLocalEdits(false);
     }, [preview.previewHtml]);
+
+    // Reset editor state when document type changes
+    useEffect(() => {
+        setEditorContentState("");
+        setHasLocalEdits(false);
+    }, [form.documentTypeId]);
 
     // Sync previewHtml -> editorContent when no manual edits
     useEffect(() => {
@@ -248,6 +277,7 @@ export function useDocumentWizard(initialDraftId?: number): WizardContextValue {
         isLoading: form.isLoading,
         isSaving: drafts.isSaving || drafts.isAutoSaving,
         isGenerating: exportHook.isGenerating,
+        hasExported: exportHook.hasExported,
         hasUnsavedChanges: form.hasUnsavedChanges || drafts.autoSaveHasUnsavedChanges,
         validationErrors: nav.validationErrors,
         // Auto-Save

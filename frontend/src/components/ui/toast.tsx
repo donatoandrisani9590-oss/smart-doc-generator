@@ -13,6 +13,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle, XCircle, AlertTriangle, Info, X, Loader2, Cloud, CloudOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+/** Toast auto-dismiss durations (ms) */
+const TOAST_DURATION_DEFAULT = 4000;
+const TOAST_DURATION_ERROR = 6000;
+const TOAST_DURATION_SAVED = 2000;
+const TOAST_DURATION_SAVE_ERROR = 5000;
+
 type ToastType = "success" | "error" | "warning" | "info" | "saving" | "saved" | "saveError";
 
 interface Toast {
@@ -124,7 +130,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
         // Auto-dismiss (unless persistent)
         if (!toast.persistent) {
-            const duration = toast.duration ?? (toast.type === "error" || toast.type === "saveError" ? 6000 : 4000);
+            const duration = toast.duration ?? (toast.type === "error" || toast.type === "saveError" ? TOAST_DURATION_ERROR : TOAST_DURATION_DEFAULT);
             const timeout = setTimeout(() => removeToast(id), duration);
             timeoutRefs.current.set(id, timeout);
         }
@@ -137,7 +143,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     }, [addToast]);
 
     const error = useCallback((title: string, description?: string) => {
-        addToast({ type: "error", title, description, duration: 6000 });
+        addToast({ type: "error", title, description, duration: TOAST_DURATION_ERROR });
     }, [addToast]);
 
     const warning = useCallback((title: string, description?: string) => {
@@ -157,15 +163,13 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
     const saved = useCallback((id: string, title = "Gespeichert") => {
         updateToast(id, { type: "saved", title, persistent: false });
-        // Auto-dismiss after 2 seconds
-        const timeout = setTimeout(() => removeToast(id), 2000);
+        const timeout = setTimeout(() => removeToast(id), TOAST_DURATION_SAVED);
         timeoutRefs.current.set(id, timeout);
     }, [updateToast, removeToast]);
 
     const saveFailed = useCallback((id: string, errorMessage = "Speichern fehlgeschlagen") => {
         updateToast(id, { type: "saveError", title: errorMessage, persistent: false });
-        // Auto-dismiss after 5 seconds
-        const timeout = setTimeout(() => removeToast(id), 5000);
+        const timeout = setTimeout(() => removeToast(id), TOAST_DURATION_SAVE_ERROR);
         timeoutRefs.current.set(id, timeout);
     }, [updateToast, removeToast]);
 

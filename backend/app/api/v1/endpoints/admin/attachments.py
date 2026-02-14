@@ -2,15 +2,19 @@
 Attachments API: Manage static documents (GDPR forms, etc.) that can be appended to generated docs.
 Requires authentication. Admin required for create/delete.
 """
+import logging
+import os
+import re
+
+import aiofiles
+import magic
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, delete
 from pydantic import BaseModel, Field, field_validator
 from typing import Optional, Annotated
-import os
-import aiofiles
-import re
-import magic
+
+logger = logging.getLogger(__name__)
 
 from app.db import get_db
 from app.models.enterprise import Attachment, DocumentTypeAttachment
@@ -164,8 +168,8 @@ async def create_attachment(
             doc = fitz.open(full_path)
             page_count = doc.page_count
             doc.close()
-        except Exception:
-            pass  # Page count is optional
+        except (ImportError, RuntimeError, OSError) as e:
+            logger.debug("PDF-Seitenzahl konnte nicht ermittelt werden: %s", e)
 
     # Create DB record
     attachment = Attachment(

@@ -486,18 +486,21 @@ async def get_related_documents(
         employee_result = await db.execute(employee_query)
         same_employee_docs = employee_result.scalars().all()
 
-        # Get document types for these docs
-        for doc in same_employee_docs:
-            doc_type_result = await db.execute(
-                select(DocumentType.name).where(DocumentType.id == doc.document_type_id)
+        # Batch-load document type names (avoid N+1 query)
+        emp_doc_type_ids = list(set(d.document_type_id for d in same_employee_docs if d.document_type_id))
+        emp_doc_types = {}
+        if emp_doc_type_ids:
+            dt_result = await db.execute(
+                select(DocumentType).where(DocumentType.id.in_(emp_doc_type_ids))
             )
-            doc_type_name = doc_type_result.scalar()
+            emp_doc_types = {dt.id: dt.name for dt in dt_result.scalars().all()}
 
+        for doc in same_employee_docs:
             related.append({
                 "id": doc.id,
                 "title": doc.title,
                 "employee_name": doc.employee_name,
-                "document_type_name": doc_type_name,
+                "document_type_name": emp_doc_types.get(doc.document_type_id),
                 "created_at": doc.created_at.isoformat() if doc.created_at else None,
                 "relation": "same_employee",
             })

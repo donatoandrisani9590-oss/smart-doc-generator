@@ -140,6 +140,7 @@ export function useAutoSave<T>(
     const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const savePromiseRef = useRef<Promise<void> | null>(null);
     const mountedRef = useRef(true);
+    const statusTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     // Debounced data for change detection
     const [debouncedData] = useDebounce(data, debounce);
@@ -193,6 +194,9 @@ export function useAutoSave<T>(
             mountedRef.current = false;
             if (intervalRef.current) {
                 clearInterval(intervalRef.current);
+            }
+            if (statusTimeoutRef.current) {
+                clearTimeout(statusTimeoutRef.current);
             }
         };
     }, []);
@@ -265,11 +269,15 @@ export function useAutoSave<T>(
                     clearLocalStorage();
                     onSaveSuccess?.();
 
-                    // Reset status after 3 seconds
-                    setTimeout(() => {
+                    // Reset status after 3 seconds (clear previous timeout to avoid leaks)
+                    if (statusTimeoutRef.current) {
+                        clearTimeout(statusTimeoutRef.current);
+                    }
+                    statusTimeoutRef.current = setTimeout(() => {
                         if (mountedRef.current) {
                             setSaveStatus('idle');
                         }
+                        statusTimeoutRef.current = null;
                     }, 3000);
                 }
             } catch (err) {

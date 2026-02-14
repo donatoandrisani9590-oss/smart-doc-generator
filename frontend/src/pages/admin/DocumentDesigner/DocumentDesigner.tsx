@@ -348,27 +348,20 @@ export const DocumentDesigner = () => {
     const handleSave = async () => {
         setIsSaving(true);
         try {
-            const payload = {
-                ...documentType,
-                clauses: assignedClauses.map((ac) => ({
-                    clause_id: ac.id,
-                    display_order: ac.order,
-                    is_mandatory: ac.is_mandatory,
-                    condition: ac.condition,
-                })),
-                attachments: assignedAttachments.map((aa) => ({
-                    attachment_id: aa.id,
-                    display_order: aa.display_order,
-                    is_mandatory: aa.is_mandatory,
-                    is_preselected: aa.is_preselected,
-                })),
-            };
-
-            // In production:
+            // TODO: Replace simulated save with real API call
             // const url = isNewDocument ? "/api/v1/document-types" : `/api/v1/document-types/${id}`;
-            // await fetch(url, { method: isNewDocument ? "POST" : "PUT", body: JSON.stringify(payload) });
-
-            console.log("Saving:", payload);
+            // const payload = {
+            //     ...documentType,
+            //     clauses: assignedClauses.map((ac) => ({
+            //         clause_id: ac.id, display_order: ac.order,
+            //         is_mandatory: ac.is_mandatory, condition: ac.condition,
+            //     })),
+            //     attachments: assignedAttachments.map((aa) => ({
+            //         attachment_id: aa.id, display_order: aa.display_order,
+            //         is_mandatory: aa.is_mandatory, is_preselected: aa.is_preselected,
+            //     })),
+            // };
+            // await apiFetch(url, { method: isNewDocument ? "POST" : "PUT", body: JSON.stringify(payload) });
             await new Promise((r) => setTimeout(r, 1000)); // Simulate API call
             navigate("/admin/document-types");
         } catch (error) {

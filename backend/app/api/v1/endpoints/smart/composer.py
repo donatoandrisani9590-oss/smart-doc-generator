@@ -9,14 +9,18 @@ Smart UX Konzept Endpoints:
 
 Implementiert gemäß SMART_UX_IMPLEMENTATION_PLAN.md
 """
+import json
+import logging
+import re
+from datetime import datetime, timezone
+from typing import Optional, List
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, and_, or_
 from sqlalchemy.orm import selectinload
-from typing import Optional, List
-from datetime import datetime, timezone
-import json
-import re
+
+logger = logging.getLogger(__name__)
 
 from app.db import get_db
 from app.api.deps import get_current_user
@@ -696,8 +700,8 @@ async def promote_to_library(
             clause_title=request.title,
             submitted_by=getattr(current_user, 'full_name', current_user.email),
         )
-    except Exception:
-        pass  # Notification-Fehler sollten nicht den Hauptflow blockieren
+    except Exception as e:
+        logger.warning("Admin-Benachrichtigung für Klausel-Promotion fehlgeschlagen (clause_id=%s): %s", new_clause.id, e)
 
     return PromoteResponse(
         status="submitted",
@@ -732,12 +736,12 @@ async def search_library(
             Clause.is_active == True,
             or_(
                 Clause.country_code == country_code,
-                Clause.country_code == None  # Länderübergreifende Textbausteine
+                Clause.country_code.is_(None),  # Länderübergreifende Textbausteine
             ),
             Clause.approval_status.in_(["active", "approved"]),
             or_(
                 Clause.user_id == current_user.id,
-                Clause.user_id == None,
+                Clause.user_id.is_(None),
             ),
         )
     )
@@ -772,8 +776,20 @@ async def search_library(
     clauses_response = []
     for clause in clauses:
         # Prüfen ob Varianten existieren (vereinfacht)
-        has_variants = False  # TODO: ClauseVariantGroup abfragen
-        variant_count = 0
+        # ClauseVariantGroup-Zuordnung prüfen
+        variant_group_result = await db.execute(
+            select(func.count(ClauseVariant.id))
+            .join(ClauseVariantGroup, ClauseVariant.group_id == ClauseVariantGroup.id)
+            .where(
+                and_(
+                    ClauseVariantGroup.base_clause_id == clause.id,
+                    ClauseVariantGroup.is_active == True,
+                    ClauseVariant.is_active == True,
+                )
+            )
+        )
+        variant_count = variant_group_result.scalar() or 0
+        has_variants = variant_count > 0
 
         clauses_response.append(LibraryClauseResponse(
             id=clause.id,
@@ -808,12 +824,12 @@ async def get_library_categories(
                 Clause.is_active == True,
                 or_(
                     Clause.country_code == country_code,
-                    Clause.country_code == None
+                    Clause.country_code.is_(None),
                 ),
-                Clause.category != None,
+                Clause.category.isnot(None),
                 or_(
                     Clause.user_id == current_user.id,
-                    Clause.user_id == None,
+                    Clause.user_id.is_(None),
                 ),
             )
         )

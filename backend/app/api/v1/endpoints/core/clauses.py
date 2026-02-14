@@ -1,6 +1,7 @@
 from __future__ import annotations
+import logging
 from typing import Any, List, Annotated, Optional
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, or_
 from pydantic import BaseModel
@@ -10,6 +11,8 @@ from app.api import deps
 from app.schemas import clause as schemas
 from app.models import documents as models
 from app.models.enterprise import GeneratedDocument
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -40,14 +43,14 @@ async def read_clauses(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[models.Base, Depends(deps.get_current_user)],
     skip: int = 0,
-    limit: int = 100,
+    limit: int = Query(default=100, ge=1, le=1000),
     country_code: Optional[str] = None
 ) -> Any:
     # Tenant Isolation: Only own clauses + global clauses (user_id IS NULL)
     query = select(models.Clause).where(
         or_(
             models.Clause.user_id == current_user.id,
-            models.Clause.user_id == None,
+            models.Clause.user_id.is_(None),
         )
     )
     if country_code:
@@ -122,8 +125,9 @@ async def get_clause_impact_analysis(
             )
             usage_result = await db.execute(usage_query)
             usage_count = usage_result.scalar() or 0
-        except Exception:
-            # Tabelle existiert möglicherweise nicht
+        except (Exception,) as e:
+            # Tabelle GeneratedDocument existiert möglicherweise nicht
+            logger.debug("Usage-Abfrage fehlgeschlagen für Dokumenttyp %s: %s", dt.id, e)
             usage_count = 0
 
         affected_types.append(DocumentTypeUsage(

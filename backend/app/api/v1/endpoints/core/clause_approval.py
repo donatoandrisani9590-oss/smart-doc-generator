@@ -8,6 +8,7 @@ Textbaustein-Freigabe-Workflow API (v4.2 Feature: Kapitel 15.3)
 - Textbaustein wird aktiv
 """
 from __future__ import annotations
+import logging
 from typing import Any, List, Annotated, Optional
 from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException
@@ -18,6 +19,8 @@ from pydantic import BaseModel
 from app.db import get_db
 from app.api import deps
 from app.models.documents import Clause
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -108,7 +111,7 @@ async def get_pending_approvals(
     query = select(Clause).where(
         or_(
             Clause.user_id == current_user.id,
-            Clause.user_id == None,
+            Clause.user_id.is_(None),
         )
     )
 
@@ -338,8 +341,8 @@ async def approve_clause(
                 clause_title=clause.title,
                 approved=True,
             )
-        except Exception:
-            pass  # Notification-Fehler blockieren nicht den Hauptflow
+        except Exception as e:
+            logger.warning("Benachrichtigung für Klausel-Freigabe fehlgeschlagen (clause_id=%s): %s", clause_id, e)
 
     return {
         "message": "Textbaustein freigegeben und aktiviert",
@@ -391,8 +394,8 @@ async def reject_clause(
                 approved=False,
                 reason=request.reason,
             )
-        except Exception:
-            pass  # Notification-Fehler blockieren nicht den Hauptflow
+        except Exception as e:
+            logger.warning("Benachrichtigung für Klausel-Ablehnung fehlgeschlagen (clause_id=%s): %s", clause_id, e)
 
     return {
         "message": "Textbaustein abgelehnt",

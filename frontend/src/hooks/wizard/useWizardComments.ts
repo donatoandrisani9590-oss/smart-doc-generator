@@ -15,6 +15,10 @@ import type { Comment, AddCommentParams } from "@/components/generator/WizardCon
 export interface UseWizardCommentsParams {
     /** Callback to mark unsaved changes in the parent */
     markUnsaved: () => void;
+    /** Current user display name from Auth context */
+    currentUserName?: string;
+    /** Current user ID from Auth context */
+    currentUserId?: number;
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -35,7 +39,7 @@ export interface UseWizardCommentsReturn {
 // HOOK
 // ══════════════════════════════════════════════════════════════════════════════
 
-export function useWizardComments({ markUnsaved }: UseWizardCommentsParams): UseWizardCommentsReturn {
+export function useWizardComments({ markUnsaved, currentUserName, currentUserId }: UseWizardCommentsParams): UseWizardCommentsReturn {
     const [comments, setComments] = useState<Comment[]>([]);
 
     const addComment = useCallback((params: AddCommentParams) => {
@@ -43,8 +47,8 @@ export function useWizardComments({ markUnsaved }: UseWizardCommentsParams): Use
             id: `comment-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
             anchorId: "",
             content: params.content,
-            author: "Aktueller Benutzer", // TODO: echten Benutzer aus Auth
-            authorId: 1,
+            author: currentUserName || "Unbekannt",
+            authorId: currentUserId || 0,
             createdAt: new Date().toISOString(),
             resolved: false,
             textSelection: params.textSelection,
@@ -77,8 +81,8 @@ export function useWizardComments({ markUnsaved }: UseWizardCommentsParams): Use
         const newReply = {
             id: `reply-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
             content,
-            author: "Aktueller Benutzer", // TODO: echten Benutzer aus Auth
-            authorId: 1,
+            author: currentUserName || "Unbekannt",
+            authorId: currentUserId || 0,
             createdAt: new Date().toISOString(),
             mentions: [],
         };

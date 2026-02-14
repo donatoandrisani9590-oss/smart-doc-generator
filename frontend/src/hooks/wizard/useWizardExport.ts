@@ -35,6 +35,7 @@ export interface UseWizardExportParams {
 
 export interface UseWizardExportReturn {
     isGenerating: boolean;
+    hasExported: boolean;
     exportDocument: (format: "pdf" | "docx") => Promise<void>;
 }
 
@@ -59,6 +60,7 @@ export function useWizardExport(params: UseWizardExportParams): UseWizardExportR
 
     const toast = useToast();
     const [isGenerating, setIsGenerating] = useState(false);
+    const [hasExported, setHasExported] = useState(false);
     const exportLockRef = useRef(false);
 
     const exportDocument = useCallback(async (format: "pdf" | "docx") => {
@@ -118,6 +120,7 @@ export function useWizardExport(params: UseWizardExportParams): UseWizardExportR
             document.body.removeChild(link);
             window.URL.revokeObjectURL(url);
 
+            setHasExported(true);
             toast.success("Dokument erstellt", `${format.toUpperCase()}-Datei wurde heruntergeladen`);
         } catch (error) {
             logError("Export failed", { error: error as unknown as Record<string, unknown> });
@@ -131,6 +134,7 @@ export function useWizardExport(params: UseWizardExportParams): UseWizardExportR
 
     return {
         isGenerating,
+        hasExported,
         exportDocument,
     };
 }

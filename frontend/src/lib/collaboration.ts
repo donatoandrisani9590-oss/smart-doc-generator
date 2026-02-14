@@ -150,7 +150,7 @@ export class CollaborationManager {
       this.setupAwareness();
       this.setupConnectionListeners();
 
-      console.log(`[Collaboration] Connecting to ${url} for room ${roomName}`);
+      console.debug(`[Collaboration] Connecting to ${url} for room ${roomName}`);
     } catch (error) {
       console.error('[Collaboration] Failed to connect:', error);
       throw error;
@@ -172,7 +172,7 @@ export class CollaborationManager {
     this.notifyConnectionChange(false);
     this.notifyUsersChange([]);
 
-    console.log('[Collaboration] Disconnected');
+    console.debug('[Collaboration] Disconnected');
   }
 
   destroy(): void {
@@ -189,7 +189,7 @@ export class CollaborationManager {
     this.syncCallbacks.clear();
     this.connectionCallbacks.clear();
 
-    console.log('[Collaboration] Destroyed');
+    console.debug('[Collaboration] Destroyed');
   }
 
   // --------------------------------------------------------------------------
@@ -204,7 +204,7 @@ export class CollaborationManager {
       );
 
       this.persistence.on('synced', () => {
-        console.log('[Collaboration] Local persistence synced');
+        console.debug('[Collaboration] Local persistence synced');
       });
     } catch (error) {
       console.error('[Collaboration] Failed to setup persistence:', error);
@@ -300,7 +300,7 @@ export class CollaborationManager {
       this._isConnected = isConnected;
       this.notifyConnectionChange(isConnected);
 
-      console.log(`[Collaboration] Status: ${event.status}`);
+      console.debug(`[Collaboration] Status: ${event.status}`);
     });
 
     // Sync status
@@ -308,12 +308,12 @@ export class CollaborationManager {
       this._isSynced = isSynced;
       this.notifySyncChange(isSynced);
 
-      console.log(`[Collaboration] Synced: ${isSynced}`);
+      console.debug(`[Collaboration] Synced: ${isSynced}`);
     });
 
     // Connection close
     this.provider.on('connection-close', () => {
-      console.log('[Collaboration] Connection closed');
+      console.debug('[Collaboration] Connection closed');
     });
 
     // Connection error

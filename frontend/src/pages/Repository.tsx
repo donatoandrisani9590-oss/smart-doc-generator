@@ -8,6 +8,7 @@
  */
 
 import { useState, useMemo } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate, Link, Navigate } from "react-router-dom";
 // Card imports removed - using direct div styling for SimpleDocs design
 import { Button } from "@/components/ui/button";
@@ -59,6 +60,7 @@ export const RepositoryPage = () => {
     const navigate = useNavigate();
     const toast = useToast();
     const undo = useUndo();
+    const queryClient = useQueryClient();
 
     // Feature toggle check
     const isEnabled = useFeatureEnabled("show_documents_overview");
@@ -210,6 +212,9 @@ export const RepositoryPage = () => {
             setShowDeleteDialog(false);
             setPendingAction(null);
             refetch();
+            // Invalidate stats cache so counts update after bulk actions
+            queryClient.invalidateQueries({ queryKey: ["repository-stats"] });
+            queryClient.invalidateQueries({ queryKey: ["drafts"] });
 
             // Success feedback with Undo for destructive actions
             const messages: Record<string, string> = {

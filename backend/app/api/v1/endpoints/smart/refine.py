@@ -9,15 +9,19 @@ Allows users to select text in the TinyMCE editor and refine it with AI:
 
 Privacy: Uses Mistral AI (EU) or Ollama (local) - GDPR compliant.
 """
+import logging
+from typing import Optional
+
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
-from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db import get_db
 from app.api.deps import get_current_user
 from app.services.llm_service import LLMService, LLMMessage, LLMConfig, get_llm_service
 from app.services.ai_instructions import get_ai_instructions
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/smart/refine", tags=["smart-refine"])
 
@@ -219,5 +223,6 @@ async def _generate_summary(
             config=LLMConfig(temperature=0.1, max_tokens=100),
         )
         return response.content.strip()
-    except Exception:
+    except Exception as e:
+        logger.debug("Zusammenfassung der Änderungen konnte nicht generiert werden: %s", e)
         return "Text wurde gemäß Anweisung überarbeitet."

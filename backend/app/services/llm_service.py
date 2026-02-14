@@ -17,6 +17,7 @@ Privacy-First Design:
 """
 import os
 import json
+import asyncio
 import httpx
 from abc import ABC, abstractmethod
 from enum import Enum
@@ -56,6 +57,17 @@ class LLMConfig(BaseModel):
     max_tokens: int = 2000
     top_p: float = 0.9
     json_mode: bool = False  # Request JSON output
+
+    def get_max_tokens(self, model: str = "") -> int:
+        """Return max_tokens capped to the model's context limit."""
+        # Models with smaller output limits
+        small_output_models = {
+            "llama-3.1-8b-instant": 8192,
+            "gemma2-9b-it": 8192,
+            "mistral-small-latest": 8192,
+        }
+        model_limit = small_output_models.get(model, 32768)
+        return min(self.max_tokens, model_limit)
 
 
 class BaseLLMClient(ABC):
@@ -123,7 +135,7 @@ class MistralClient(BaseLLMClient):
             "model": self.default_model,
             "messages": [{"role": m.role, "content": m.content} for m in messages],
             "temperature": config.temperature,
-            "max_tokens": config.max_tokens,
+            "max_tokens": config.get_max_tokens(self.default_model),
             "top_p": config.top_p,
         }
 
@@ -205,39 +217,59 @@ class GroqClient(BaseLLMClient):
             "model": self.default_model,
             "messages": [{"role": m.role, "content": m.content} for m in messages],
             "temperature": config.temperature,
-            "max_tokens": config.max_tokens,
+            "max_tokens": config.get_max_tokens(self.default_model),
             "top_p": config.top_p,
         }
 
         if config.json_mode:
             payload["response_format"] = {"type": "json_object"}
 
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                f"{self.base_url}/chat/completions",
-                headers={
-                    "Authorization": f"Bearer {self.api_key}",
-                    "Content-Type": "application/json"
-                },
-                json=payload,
-                timeout=30.0
-            )
+        max_retries = 3
+        for attempt in range(max_retries):
+            async with httpx.AsyncClient() as client:
+                response = await client.post(
+                    f"{self.base_url}/chat/completions",
+                    headers={
+                        "Authorization": f"Bearer {self.api_key}",
+                        "Content-Type": "application/json"
+                    },
+                    json=payload,
+                    timeout=30.0
+                )
 
-            if response.status_code == 429:
-                raise Exception("Groq rate limit reached. Please wait a moment.")
+                if response.status_code == 429:
+                    if attempt < max_retries - 1:
+                        wait_time = 2 ** (attempt + 1)  # 2s, 4s
+                        retry_after = response.headers.get("retry-after")
+                        if retry_after:
+                            try:
+                                wait_time = min(float(retry_after), 10.0)
+                            except ValueError:
+                                pass
+                        logger.warning(
+                            f"Groq rate limit (Versuch {attempt + 1}/{max_retries}), "
+                            f"Retry in {wait_time}s..."
+                        )
+                        await asyncio.sleep(wait_time)
+                        continue
+                    raise Exception(
+                        "Groq Rate-Limit nach Retries erreicht. Bitte kurz warten."
+                    )
 
-            if response.status_code != 200:
-                raise Exception(f"Groq API error: {response.status_code} - {response.text}")
+                if response.status_code != 200:
+                    raise Exception(f"Groq API error: {response.status_code} - {response.text}")
 
-            data = response.json()
+                data = response.json()
 
-            return LLMResponse(
-                content=data["choices"][0]["message"]["content"],
-                provider="groq",
-                model=data["model"],
-                usage=data.get("usage"),
-                raw_response=data
-            )
+                return LLMResponse(
+                    content=data["choices"][0]["message"]["content"],
+                    provider="groq",
+                    model=data["model"],
+                    usage=data.get("usage"),
+                    raw_response=data
+                )
+
+        raise Exception("Groq API: Max Retries erreicht")
 
 
 class OllamaClient(BaseLLMClient):
@@ -287,7 +319,7 @@ class OllamaClient(BaseLLMClient):
             "stream": False,
             "options": {
                 "temperature": config.temperature,
-                "num_predict": config.max_tokens,
+                "num_predict": config.get_max_tokens(self.default_model),
                 "top_p": config.top_p,
             }
         }

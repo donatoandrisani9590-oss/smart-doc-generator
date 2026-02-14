@@ -547,7 +547,7 @@ async def get_template_thumbnail(
         thumb_path = Path(template.thumbnail_path).resolve()
         # Sicherheitscheck: Pfad muss innerhalb des Storage-Verzeichnisses liegen
         from app.services.thumbnail_service import THUMBNAIL_STORAGE
-        if not str(thumb_path).startswith(str(THUMBNAIL_STORAGE.resolve())):
+        if not thumb_path.is_relative_to(THUMBNAIL_STORAGE.resolve()):
             logger.warning(f"Path traversal attempt: {template.thumbnail_path}")
             thumb_path = None
 
@@ -648,8 +648,10 @@ async def set_default_template(
         if template.country_code is not None
         else UserTemplate.country_code.is_(None)
     )
-    unset_query = (
-        select(UserTemplate)
+    # Atomares Update: Alle anderen Defaults in einem Statement zurücksetzen
+    from sqlalchemy import update
+    await db.execute(
+        update(UserTemplate)
         .where(
             and_(
                 country_filter,
@@ -658,11 +660,8 @@ async def set_default_template(
                 UserTemplate.template_type == "stationery",
             )
         )
+        .values(is_default=False)
     )
-    result = await db.execute(unset_query)
-    other_defaults = result.scalars().all()
-    for other in other_defaults:
-        other.is_default = False
 
     # Diese Vorlage als Standard setzen
     template.is_default = True

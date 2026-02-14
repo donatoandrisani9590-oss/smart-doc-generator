@@ -180,7 +180,12 @@ class HtmlToDocxConverter:
         max_cols = 0
         for row in rows:
             cells = row.find_all(['td', 'th'])
-            col_count = sum(int(cell.get('colspan', 1)) for cell in cells)
+            col_count = 0
+            for cell in cells:
+                try:
+                    col_count += int(cell.get('colspan', 1))
+                except (ValueError, TypeError):
+                    col_count += 1
             max_cols = max(max_cols, col_count)
 
         if max_cols == 0:
@@ -210,7 +215,10 @@ class HtmlToDocxConverter:
                 self._process_cell_content(cell, cell_el, is_header)
 
                 # Handle colspan
-                colspan = int(cell_el.get('colspan', 1))
+                try:
+                    colspan = int(cell_el.get('colspan', 1))
+                except (ValueError, TypeError):
+                    colspan = 1
                 if colspan > 1 and col_idx + colspan <= max_cols:
                     for merge_idx in range(1, colspan):
                         cell.merge(table.cell(row_idx, col_idx + merge_idx))

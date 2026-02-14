@@ -34,6 +34,9 @@ class Settings(BaseSettings):
     SENTRY_TRACES_SAMPLE_RATE: float = 0.1  # 10% of transactions
 
     DATABASE_URL: str = "postgresql+asyncpg://user:password@localhost/docgen_db"
+    DB_POOL_SIZE: int = 20
+    DB_MAX_OVERFLOW: int = 10
+    DB_POOL_RECYCLE: int = 3600  # Sekunden
     REDIS_URL: str = "redis://localhost:6379/0"
 
     # API Base URL for generating absolute URLs (e.g., for logo in preview)

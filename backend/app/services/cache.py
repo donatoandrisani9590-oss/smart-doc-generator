@@ -118,8 +118,9 @@ class CacheService:
             except Exception:
                 pass
         
-        # Memory cache pattern matching
-        keys_to_delete = [k for k in self._memory_cache if pattern.replace("*", "") in k]
+        # Memory cache pattern matching (fnmatch for proper glob support)
+        import fnmatch
+        keys_to_delete = [k for k in self._memory_cache if fnmatch.fnmatch(k, pattern)]
         for k in keys_to_delete:
             del self._memory_cache[k]
             count += 1

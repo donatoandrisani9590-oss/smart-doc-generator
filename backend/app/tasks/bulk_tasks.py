@@ -223,8 +223,8 @@ def process_bulk_job(
                 for f in generated_files:
                     try:
                         os.remove(f)
-                    except:
-                        pass
+                    except OSError as e:
+                        logger.warning(f"Datei konnte nicht gelöscht werden: {f}: {e}")
                 return {"status": "cancelled", "processed": idx}
 
         try:
@@ -290,8 +290,8 @@ def process_bulk_job(
         for f in generated_files:
             try:
                 os.remove(f)
-            except:
-                pass
+            except OSError as e:
+                logger.warning(f"Datei konnte nicht gelöscht werden: {f}: {e}")
         return {"status": "cancelled", "processed": len(rows)}
 
     # Create ZIP file
@@ -313,14 +313,14 @@ def process_bulk_job(
         for f in generated_files:
             try:
                 os.remove(f)
-            except:
-                pass
+            except OSError as e:
+                logger.warning(f"Datei konnte nicht gelöscht werden: {f}: {e}")
 
         # Cleanup output directory
         try:
             os.rmdir(output_dir)
-        except:
-            pass
+        except OSError as e:
+            logger.warning(f"Verzeichnis konnte nicht gelöscht werden: {output_dir}: {e}")
 
         # Update job as completed
         update_job_progress(
