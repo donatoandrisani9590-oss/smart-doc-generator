@@ -165,7 +165,7 @@ export const Layout = () => {
                     className="flex-1 overflow-y-auto overflow-x-hidden bg-background scroll-smooth"
                     tabIndex={-1}
                 >
-                    <div className="p-8 max-w-7xl mx-auto w-full">
+                    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">
                         <div className="w-full animate-in fade-in duration-200">
                             <Outlet />
                         </div>
