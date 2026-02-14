@@ -122,7 +122,7 @@ export const Layout = () => {
             )}
 
             {/* Main Content Area */}
-            <main className="flex-1 flex flex-col min-h-screen relative" role="main">
+            <main className="flex-1 flex flex-col min-h-screen min-w-0 relative" role="main">
                 {/* Header - Detached & Airy */}
                 <header
                     className="h-16 px-8 flex items-center justify-between glass-header z-10 sticky top-0"
