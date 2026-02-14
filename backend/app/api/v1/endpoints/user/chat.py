@@ -7,7 +7,10 @@ All data stays in EU or on your machine.
 import asyncio
 import time
 
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
@@ -20,6 +23,8 @@ from app.models.core import User
 from app.services.llm_service import (
     LLMService, LLMMessage, LLMConfig, get_llm_service, log_llm_call
 )
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -290,6 +295,117 @@ async def chat(
             status_code=500,
             detail=f"Fehler bei der Kommunikation mit dem Assistenten: {str(e)}"
         )
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# STREAMING CHAT ENDPOINT
+# ═══════════════════════════════════════════════════════════════════════════
+
+@router.post("/stream")
+async def chat_stream(
+    request: ChatRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Stream chat responses token-by-token via Server-Sent Events.
+
+    Same as POST /chat but with real-time streaming for better UX.
+
+    SSE frames:
+    - data: {"token": "..."} — each generated token
+    - data: {"done": true, "provider": "...", "suggestions": [...]} — final frame
+    - data: {"error": "..."} — on failure
+    """
+    try:
+        llm = await get_llm_service()
+    except RuntimeError as e:
+        raise HTTPException(
+            status_code=503,
+            detail=f"LLM nicht verfügbar: {str(e)}"
+        )
+
+    # Load custom AI instructions
+    from app.services.ai_instructions import get_ai_instructions
+    custom_instructions = await get_ai_instructions(db, request.country_code)
+
+    # Build messages (identical to blocking endpoint)
+    system_prompt = get_system_prompt(request.mode, request.country_code, request.context, custom_instructions)
+
+    messages = [LLMMessage(role="system", content=system_prompt)]
+    for msg in request.messages:
+        messages.append(LLMMessage(role=msg.role, content=msg.content))
+
+    config = LLMConfig(temperature=0.7, max_tokens=1024)
+
+    async def _stream_generator():
+        """Async generator yielding SSE frames."""
+        _start = time.time()
+        full_text = ""
+        provider_name = "unknown"
+
+        try:
+            provider_info = await llm.get_provider_info()
+            provider_name = provider_info.get("provider", "unknown")
+
+            async for token in llm.chat_stream(messages, config):
+                full_text += token
+                yield f"data: {json.dumps({'token': token}, ensure_ascii=False)}\n\n"
+
+            # Generate follow-up suggestions (same logic as blocking endpoint)
+            suggestions = []
+            if request.mode == "clause":
+                suggestions = [
+                    "Kannst du diesen Textbaustein vereinfachen?",
+                    "Gibt es rechtliche Risiken bei dieser Formulierung?",
+                    "Welche Alternativen gibt es?"
+                ]
+            elif request.mode == "formal":
+                suggestions = [
+                    "Kannst du den Ton formeller gestalten?",
+                    "Wie kann ich das kürzer formulieren?"
+                ]
+            elif request.mode == "document":
+                suggestions = [
+                    "Welche Daten fehlen noch?",
+                    "Zeige eine Vorschau",
+                    "Ändere das Gehalt"
+                ]
+
+            # Send done frame with suggestions
+            latency_ms = int((time.time() - _start) * 1000)
+            yield f"data: {json.dumps({'done': True, 'provider': provider_name, 'suggestions': suggestions}, ensure_ascii=False)}\n\n"
+
+            # Log the call (fire-and-forget)
+            asyncio.create_task(log_llm_call(
+                feature="chat",
+                response=None,
+                latency_ms=latency_ms,
+                user_id=str(current_user.id),
+                country_code=request.country_code,
+            ))
+
+        except Exception as e:
+            latency_ms = int((time.time() - _start) * 1000)
+            logger.error(f"Streaming chat error: {e}")
+            yield f"data: {json.dumps({'error': str(e)}, ensure_ascii=False)}\n\n"
+            asyncio.create_task(log_llm_call(
+                feature="chat",
+                latency_ms=latency_ms,
+                error_message=str(e),
+                user_id=str(current_user.id),
+                country_code=request.country_code,
+            ))
+
+    return StreamingResponse(
+        _stream_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
 
 
 @router.post("/smart", response_model=SmartChatResponse)
