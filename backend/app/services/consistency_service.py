@@ -25,6 +25,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.services.llm_service import (
     LLMService, LLMMessage, LLMConfig, get_llm_service, log_llm_call
 )
+from app.services.cache import cache, consistency_check_key
 
 logger = logging.getLogger(__name__)
 
@@ -153,7 +154,6 @@ class ConsistencyService:
     def __init__(self, db: AsyncSession, llm_service: Optional[LLMService] = None):
         self.db = db
         self.llm = llm_service
-        self._cache: Dict[str, ConsistencyCheckResult] = {}
 
     def _compute_hash(self, employee_name: str, form_data: dict) -> str:
         """Compute cache key from employee + form data."""
@@ -228,11 +228,13 @@ class ConsistencyService:
         """
         start_time = time.time()
 
-        # Check cache
-        cache_key = self._compute_hash(employee_name, current_form_data)
-        if cache_key in self._cache:
-            logger.debug(f"Returning cached consistency check: {cache_key}")
-            return self._cache[cache_key]
+        # Check cache (Redis via CacheService with memory fallback)
+        check_hash = self._compute_hash(employee_name, current_form_data)
+        redis_key = consistency_check_key(check_hash)
+        cached_data = await cache.get(redis_key)
+        if cached_data:
+            logger.debug(f"Returning cached consistency check: {check_hash}")
+            return ConsistencyCheckResult(**cached_data)
 
         # Get related documents
         related_docs = await self._get_related_documents(employee_name, employee_id)
@@ -245,7 +247,7 @@ class ConsistencyService:
                 checked_at=datetime.utcnow().isoformat(),
                 employee_name=employee_name,
             )
-            self._cache[cache_key] = result
+            await cache.set(redis_key, result.model_dump(), ttl=1800)
             return result
 
         # Parse form_data from historical documents
@@ -337,12 +339,8 @@ class ConsistencyService:
             employee_name=employee_name,
         )
 
-        # Cache result (limit cache size)
-        self._cache[cache_key] = result
-        if len(self._cache) > 100:
-            oldest_keys = list(self._cache.keys())[:50]
-            for key in oldest_keys:
-                del self._cache[key]
+        # Cache result (Redis with TTL, memory fallback)
+        await cache.set(redis_key, result.model_dump(), ttl=1800)  # 30min TTL
 
         return result
 

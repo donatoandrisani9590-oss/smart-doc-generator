@@ -160,6 +160,12 @@ async def update_company_settings(
 
     await db.commit()
     await db.refresh(settings)
+
+    # Invalidate AI instructions cache if ai_instructions were updated
+    if "ai_instructions" in update_data:
+        from app.services.cache import invalidate_ai_instructions
+        await invalidate_ai_instructions(country_code)
+
     return settings
 
 

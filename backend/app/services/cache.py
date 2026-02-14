@@ -193,3 +193,44 @@ async def invalidate_document_type(document_type_id: int):
 async def invalidate_all():
     """Clear all caches."""
     await cache.clear()
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# AI CACHE KEYS (Compliance, Consistency, AI Instructions)
+# ═══════════════════════════════════════════════════════════════════════════
+
+def compliance_scan_key(content_hash: str, country_code: str) -> str:
+    """Cache key for compliance scan results."""
+    return f"compliance:v1:{country_code}:{content_hash}"
+
+
+def consistency_check_key(check_hash: str) -> str:
+    """Cache key for consistency check results."""
+    return f"consistency:v1:{check_hash}"
+
+
+def ai_instructions_key(country_code: str, document_type_id: Optional[int] = None) -> str:
+    """Cache key for AI instructions (global + per document type)."""
+    return f"ai_instructions:{country_code}:{document_type_id or 'global'}"
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# AI CACHE INVALIDATION
+# ═══════════════════════════════════════════════════════════════════════════
+
+async def invalidate_compliance_cache():
+    """Invalidate all compliance scan cache entries."""
+    await cache.delete_pattern("compliance:*")
+
+
+async def invalidate_consistency_cache():
+    """Invalidate all consistency check cache entries."""
+    await cache.delete_pattern("consistency:*")
+
+
+async def invalidate_ai_instructions(country_code: str = None):
+    """Invalidate AI instructions cache."""
+    if country_code:
+        await cache.delete_pattern(f"ai_instructions:{country_code}:*")
+    else:
+        await cache.delete_pattern("ai_instructions:*")

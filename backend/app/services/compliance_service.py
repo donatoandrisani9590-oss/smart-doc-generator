@@ -23,6 +23,7 @@ import logging
 from app.services.llm_service import (
     LLMService, LLMMessage, LLMConfig, get_llm_service, log_llm_call
 )
+from app.services.cache import cache, compliance_scan_key
 
 logger = logging.getLogger(__name__)
 
@@ -224,7 +225,6 @@ class ComplianceService:
     def __init__(self, llm_service: Optional[LLMService] = None):
         self.llm = llm_service
         self.patterns = RISK_PATTERNS_DE
-        self._cache: Dict[str, ComplianceScanResult] = {}
 
     def _strip_html(self, html: str) -> str:
         """Convert HTML to plain text for pattern matching."""
@@ -312,11 +312,13 @@ class ComplianceService:
         plain_text = self._strip_html(content_html)
         content_hash = self._compute_hash(plain_text, country_code)
 
-        # Check cache
-        if cache_enabled and content_hash in self._cache:
-            cached = self._cache[content_hash]
-            logger.debug(f"Returning cached compliance scan: {content_hash}")
-            return cached
+        # Check cache (Redis via CacheService with memory fallback)
+        if cache_enabled:
+            cache_key = compliance_scan_key(content_hash, country_code)
+            cached_data = await cache.get(cache_key)
+            if cached_data:
+                logger.debug(f"Returning cached compliance scan: {content_hash}")
+                return ComplianceScanResult(**cached_data)
 
         risks: List[ComplianceRisk] = []
 
@@ -394,15 +396,14 @@ class ComplianceService:
             content_hash=content_hash
         )
 
-        # Cache result
+        # Cache result (Redis with TTL, memory fallback)
         if cache_enabled:
-            self._cache[content_hash] = result
-            # Limit cache size
-            if len(self._cache) > 100:
-                # Remove oldest entries
-                oldest_keys = list(self._cache.keys())[:50]
-                for key in oldest_keys:
-                    del self._cache[key]
+            ttl = 7200 if use_llm else 3600  # 2h for LLM-enhanced, 1h for pattern-only
+            await cache.set(
+                compliance_scan_key(content_hash, country_code),
+                result.model_dump(),
+                ttl=ttl,
+            )
 
         logger.info(
             f"Compliance scan completed: {len(risks)} risks, "
@@ -530,9 +531,10 @@ Analysiere diesen Text und gib zusätzliche Risiken im JSON-Format zurück."""
             logger.error(f"LLM analysis error: {e}")
             return []
 
-    def clear_cache(self):
-        """Clear the compliance scan cache."""
-        self._cache.clear()
+    async def clear_cache(self):
+        """Clear the compliance scan cache (Redis + memory)."""
+        from app.services.cache import invalidate_compliance_cache
+        await invalidate_compliance_cache()
 
 
 # Singleton instance
