@@ -413,61 +413,61 @@
 .dark .bg-white\/90 { background-color: hsl(225 18% 13% / 0.9) !important; }
 .dark .bg-white\/95 { background-color: hsl(225 18% 13% / 0.95) !important; }
 
-/* ── Red status ── */
+/* ── Red status (improved contrast: min 4.5:1 on dark bg) ── */
 .dark .bg-red-50    { background-color: hsl(0 40% 15%) !important; }
 .dark .bg-red-100   { background-color: hsl(0 35% 18%) !important; }
-.dark .text-red-600  { color: hsl(0 72% 65%) !important; }
-.dark .text-red-700  { color: hsl(0 70% 68%) !important; }
-.dark .text-red-800  { color: hsl(0 65% 72%) !important; }
-.dark .border-red-200 { border-color: hsl(0 30% 25%) !important; }
-.dark .border-red-300 { border-color: hsl(0 28% 30%) !important; }
+.dark .text-red-600  { color: hsl(0 80% 68%) !important; }
+.dark .text-red-700  { color: hsl(0 78% 72%) !important; }
+.dark .text-red-800  { color: hsl(0 72% 76%) !important; }
+.dark .border-red-200 { border-color: hsl(0 30% 28%) !important; }
+.dark .border-red-300 { border-color: hsl(0 28% 35%) !important; }
 
-/* ── Green status ── */
+/* ── Green status (improved contrast: brighter greens for dark bg) ── */
 .dark .bg-green-50  { background-color: hsl(140 25% 14%) !important; }
 .dark .bg-green-100 { background-color: hsl(140 22% 17%) !important; }
-.dark .text-green-600 { color: hsl(140 58% 58%) !important; }
-.dark .text-green-700 { color: hsl(140 55% 62%) !important; }
-.dark .text-green-800 { color: hsl(140 50% 66%) !important; }
-.dark .border-green-200 { border-color: hsl(140 20% 22%) !important; }
-.dark .border-green-300 { border-color: hsl(140 18% 28%) !important; }
+.dark .text-green-600 { color: hsl(140 65% 62%) !important; }
+.dark .text-green-700 { color: hsl(140 60% 66%) !important; }
+.dark .text-green-800 { color: hsl(140 55% 72%) !important; }
+.dark .border-green-200 { border-color: hsl(140 20% 25%) !important; }
+.dark .border-green-300 { border-color: hsl(140 18% 32%) !important; }
 
-/* ── Blue status ── */
+/* ── Blue status (improved contrast: brighter blues) ── */
 .dark .bg-blue-50   { background-color: hsl(220 35% 15%) !important; }
 .dark .bg-blue-100  { background-color: hsl(220 30% 18%) !important; }
-.dark .text-blue-500 { color: hsl(220 75% 65%) !important; }
-.dark .text-blue-600 { color: hsl(220 70% 68%) !important; }
-.dark .text-blue-700 { color: hsl(220 65% 65%) !important; }
-.dark .text-blue-800 { color: hsl(220 60% 72%) !important; }
-.dark .border-blue-200 { border-color: hsl(220 25% 25%) !important; }
-.dark .border-blue-300 { border-color: hsl(220 22% 30%) !important; }
+.dark .text-blue-500 { color: hsl(220 82% 70%) !important; }
+.dark .text-blue-600 { color: hsl(220 78% 72%) !important; }
+.dark .text-blue-700 { color: hsl(220 72% 70%) !important; }
+.dark .text-blue-800 { color: hsl(220 68% 76%) !important; }
+.dark .border-blue-200 { border-color: hsl(220 25% 28%) !important; }
+.dark .border-blue-300 { border-color: hsl(220 22% 35%) !important; }
 
-/* ── Yellow status ── */
+/* ── Yellow status (improved contrast) ── */
 .dark .bg-yellow-50  { background-color: hsl(45 30% 14%) !important; }
 .dark .bg-yellow-100 { background-color: hsl(45 28% 17%) !important; }
-.dark .text-yellow-600 { color: hsl(45 75% 58%) !important; }
-.dark .text-yellow-700 { color: hsl(45 70% 60%) !important; }
-.dark .text-yellow-800 { color: hsl(45 65% 65%) !important; }
-.dark .border-yellow-200 { border-color: hsl(45 25% 22%) !important; }
-.dark .border-yellow-300 { border-color: hsl(45 22% 28%) !important; }
+.dark .text-yellow-600 { color: hsl(45 82% 62%) !important; }
+.dark .text-yellow-700 { color: hsl(45 78% 66%) !important; }
+.dark .text-yellow-800 { color: hsl(45 72% 72%) !important; }
+.dark .border-yellow-200 { border-color: hsl(45 25% 25%) !important; }
+.dark .border-yellow-300 { border-color: hsl(45 22% 32%) !important; }
 
-/* ── Amber status ── */
+/* ── Amber status (improved contrast: warmer, brighter) ── */
 .dark .bg-amber-50  { background-color: hsl(38 30% 14%) !important; }
 .dark .bg-amber-100 { background-color: hsl(38 28% 17%) !important; }
-.dark .text-amber-500 { color: hsl(38 78% 55%) !important; }
-.dark .text-amber-600 { color: hsl(38 75% 58%) !important; }
-.dark .text-amber-700 { color: hsl(38 70% 62%) !important; }
-.dark .text-amber-800 { color: hsl(38 65% 66%) !important; }
-.dark .border-amber-200 { border-color: hsl(38 25% 22%) !important; }
-.dark .border-amber-300 { border-color: hsl(38 22% 28%) !important; }
+.dark .text-amber-500 { color: hsl(38 85% 60%) !important; }
+.dark .text-amber-600 { color: hsl(38 82% 64%) !important; }
+.dark .text-amber-700 { color: hsl(38 78% 68%) !important; }
+.dark .text-amber-800 { color: hsl(38 72% 72%) !important; }
+.dark .border-amber-200 { border-color: hsl(38 25% 25%) !important; }
+.dark .border-amber-300 { border-color: hsl(38 22% 32%) !important; }
 
-/* ── Orange status ── */
+/* ── Orange status (improved contrast) ── */
 .dark .bg-orange-50  { background-color: hsl(25 30% 14%) !important; }
 .dark .bg-orange-100 { background-color: hsl(25 28% 17%) !important; }
-.dark .text-orange-500 { color: hsl(25 82% 58%) !important; }
-.dark .text-orange-600 { color: hsl(25 80% 60%) !important; }
-.dark .text-orange-700 { color: hsl(25 75% 62%) !important; }
-.dark .border-orange-200 { border-color: hsl(25 25% 22%) !important; }
-.dark .border-orange-300 { border-color: hsl(25 22% 28%) !important; }
+.dark .text-orange-500 { color: hsl(25 88% 64%) !important; }
+.dark .text-orange-600 { color: hsl(25 85% 66%) !important; }
+.dark .text-orange-700 { color: hsl(25 80% 68%) !important; }
+.dark .border-orange-200 { border-color: hsl(25 25% 25%) !important; }
+.dark .border-orange-300 { border-color: hsl(25 22% 32%) !important; }
 
 /* ── Purple status ── */
 .dark .bg-purple-50  { background-color: hsl(270 30% 15%) !important; }

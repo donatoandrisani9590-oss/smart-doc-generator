@@ -69,7 +69,7 @@ export function StationeryCard({ template, onSetDefault, onDelete, onDownload }:
                 ) : (
                     /* Placeholder with document icon */
                     <div className="w-full h-full flex items-center justify-center">
-                        <FileText className="w-16 h-16 text-warm-300" />
+                        <FileText className="w-16 h-16 text-warm-400" />
                     </div>
                 )}
 

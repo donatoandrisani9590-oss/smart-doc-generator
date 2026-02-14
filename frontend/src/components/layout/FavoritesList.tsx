@@ -55,7 +55,7 @@ export const FavoritesList = () => {
                                     "hover:bg-muted/50 transition-colors"
                                 )}
                             >
-                                <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                                <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
                                 <span className="truncate">{fav.resolved_name}</span>
                             </Link>
                         ))

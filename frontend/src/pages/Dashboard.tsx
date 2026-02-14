@@ -114,7 +114,7 @@ export const Dashboard = () => {
                                             {stats?.documents_this_month ?? 0}
                                         </p>
                                     )}
-                                    <p className="text-[11px] text-white/60 uppercase tracking-wider mt-1">
+                                    <p className="text-[11px] text-white/70 uppercase tracking-wider mt-1">
                                         Diesen Monat
                                     </p>
                                 </div>
@@ -126,7 +126,7 @@ export const Dashboard = () => {
                                             {stats?.open_drafts ?? 0}
                                         </p>
                                     )}
-                                    <p className="text-[11px] text-white/60 uppercase tracking-wider mt-1">
+                                    <p className="text-[11px] text-white/70 uppercase tracking-wider mt-1">
                                         Offen
                                     </p>
                                 </div>
@@ -138,7 +138,7 @@ export const Dashboard = () => {
                                             {stats?.documents_total ?? 0}
                                         </p>
                                     )}
-                                    <p className="text-[11px] text-white/60 uppercase tracking-wider mt-1">
+                                    <p className="text-[11px] text-white/70 uppercase tracking-wider mt-1">
                                         Gesamt
                                     </p>
                                 </div>
@@ -168,17 +168,17 @@ export const Dashboard = () => {
                     {/* Search Bar inside Hero */}
                     <form onSubmit={handleSearch} className="mt-6">
                         <div className="relative group max-w-2xl">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-white/50 group-focus-within:text-white/80 transition-colors" />
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-white/70 group-focus-within:text-white/90 transition-colors" />
                             <Input
                                 type="text"
                                 placeholder="Dokumente, Vorlagen oder Personen suchen..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="pl-11 h-11 bg-white/10 border-white/20 text-white placeholder:text-white/40 focus:bg-white/15 focus:border-white/40 transition-all rounded-xl text-sm"
+                                className="pl-11 h-11 bg-white/10 border-white/20 text-white placeholder:text-white/60 focus:bg-white/15 focus:border-white/40 transition-all rounded-xl text-sm"
                                 data-global-search
                             />
                             {searchQuery.trim() && (
-                                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-white/50 bg-white/10 px-2 py-0.5 rounded">
+                                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-white/70 bg-white/10 px-2 py-0.5 rounded">
                                     Enter ↵
                                 </span>
                             )}
@@ -252,7 +252,7 @@ export const Dashboard = () => {
                                     <>
                                         <Clock className="w-4 h-4 text-amber-500" />
                                         <h3 className="font-medium text-foreground">Offene Entwürfe</h3>
-                                        <span className="text-xs bg-amber-50 dark:bg-amber-950/30 text-amber-700 px-2.5 py-0.5 rounded-full font-medium border border-amber-100">
+                                        <span className="text-xs bg-amber-50 dark:bg-amber-950/30 text-amber-800 px-2.5 py-0.5 rounded-full font-medium border border-amber-100">
                                             {stats?.open_drafts}
                                         </span>
                                     </>
@@ -295,7 +295,7 @@ export const Dashboard = () => {
                                                                 </span>
                                                             )}
                                                             {isExpiringSoon && (
-                                                                <span className="text-[10px] bg-amber-50 dark:bg-amber-950/30 text-amber-700 px-1.5 py-0 rounded flex items-center gap-1">
+                                                                <span className="text-[10px] bg-amber-50 dark:bg-amber-950/30 text-amber-800 px-1.5 py-0 rounded flex items-center gap-1">
                                                                     <AlertTriangle className="w-3 h-3" />
                                                                     {daysRemaining === 0 ? "Heute" : `${daysRemaining}d`}
                                                                 </span>

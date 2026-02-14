@@ -599,8 +599,8 @@ export const RepositoryPage = () => {
                                         <div className="flex items-center gap-2">
                                             {/* Status Badge */}
                                             <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${item.type === "draft"
-                                                    ? "bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400"
-                                                    : "bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400"
+                                                    ? "bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300"
+                                                    : "bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300"
                                                 }`}>
                                                 {item.type === "draft" ? "Entwurf" : "Fertig"}
                                             </span>
