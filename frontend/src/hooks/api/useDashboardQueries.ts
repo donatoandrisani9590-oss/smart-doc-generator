@@ -128,7 +128,60 @@ export const useToggleFavorite = () => {
             if (!res.ok) throw new Error("Failed to toggle favorite");
             return res.json() as Promise<{ is_favorite: boolean; action: string; id?: number }>;
         },
-        onSuccess: () => {
+        onMutate: async (request) => {
+            const itemId = request.document_type_id ?? request.document_id;
+            const checkKey = ["favorite-check", request.favorite_type, itemId];
+
+            await queryClient.cancelQueries({ queryKey: checkKey });
+            await queryClient.cancelQueries({ queryKey: ["favorites"] });
+
+            const previousCheck = queryClient.getQueryData<{ is_favorite: boolean }>(checkKey);
+            const previousFavorites = queryClient.getQueryData<Favorite[]>(["favorites", request.favorite_type]);
+
+            const newValue = !previousCheck?.is_favorite;
+            queryClient.setQueryData(checkKey, { is_favorite: newValue });
+
+            if (previousFavorites) {
+                if (newValue) {
+                    queryClient.setQueryData(["favorites", request.favorite_type], [
+                        ...previousFavorites,
+                        {
+                            id: -1,
+                            favorite_type: request.favorite_type,
+                            document_type_id: request.document_type_id ?? null,
+                            document_id: request.document_id ?? null,
+                            display_name: request.display_name ?? null,
+                            display_order: previousFavorites.length,
+                            resolved_name: request.display_name ?? "...",
+                            category: null,
+                        } satisfies Favorite,
+                    ]);
+                } else {
+                    queryClient.setQueryData(
+                        ["favorites", request.favorite_type],
+                        previousFavorites.filter((f) =>
+                            request.favorite_type === "document_type"
+                                ? f.document_type_id !== request.document_type_id
+                                : f.document_id !== request.document_id
+                        )
+                    );
+                }
+            }
+
+            return { previousCheck, previousFavorites, checkKey };
+        },
+        onError: (_err, request, context) => {
+            if (context?.checkKey) {
+                queryClient.setQueryData(context.checkKey, context.previousCheck);
+            }
+            queryClient.setQueryData(
+                ["favorites", request.favorite_type],
+                context?.previousFavorites
+            );
+        },
+        onSettled: (_data, _err, request) => {
+            const itemId = request.document_type_id ?? request.document_id;
+            queryClient.invalidateQueries({ queryKey: ["favorite-check", request.favorite_type, itemId] });
             queryClient.invalidateQueries({ queryKey: ["favorites"] });
         },
     });

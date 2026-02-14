@@ -9,6 +9,7 @@ import { Link } from "react-router-dom";
 import { useState } from "react";
 import { useFavorites } from "@/hooks/useApi";
 import { cn } from "@/lib/utils";
+import { MotionContainer, MotionListItem } from "@/components/ui/motion";
 
 export const FavoritesList = () => {
     const [isExpanded, setIsExpanded] = useState(true);
@@ -45,9 +46,10 @@ export const FavoritesList = () => {
                             <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
                         </div>
                     ) : (
-                        favorites?.map((fav) => (
+                        <MotionContainer>
+                        {favorites?.map((fav, index) => (
+                            <MotionListItem key={fav.id} index={index} disableInteraction>
                             <Link
-                                key={fav.id}
                                 to={`/generate?document_type=${fav.document_type_id}`}
                                 className={cn(
                                     "flex items-center gap-2 px-2 py-1.5 text-sm rounded-md",
@@ -58,7 +60,9 @@ export const FavoritesList = () => {
                                 <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
                                 <span className="truncate">{fav.resolved_name}</span>
                             </Link>
-                        ))
+                            </MotionListItem>
+                        ))}
+                        </MotionContainer>
                     )}
                 </div>
             )}

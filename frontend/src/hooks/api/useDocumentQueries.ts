@@ -49,8 +49,36 @@ export const useDeleteDocument = () => {
             if (!res.ok) throw new Error("Failed to delete document");
             return res.json();
         },
-        onSuccess: () => {
+        onMutate: async (documentId) => {
+            await queryClient.cancelQueries({ queryKey: ["repository"] });
+
+            const repositoryQueries = queryClient.getQueriesData<RepositoryResponse>({
+                queryKey: ["repository"],
+            });
+
+            queryClient.setQueriesData<RepositoryResponse>(
+                { queryKey: ["repository"] },
+                (old) => {
+                    if (!old?.documents) return old;
+                    return {
+                        ...old,
+                        documents: old.documents.filter((d) => d.id !== documentId),
+                        total: Math.max(0, old.total - 1),
+                    };
+                }
+            );
+
+            return { repositoryQueries };
+        },
+        onError: (_err, _documentId, context) => {
+            context?.repositoryQueries?.forEach(([key, data]) => {
+                if (data) queryClient.setQueryData(key, data);
+            });
+        },
+        onSettled: () => {
             queryClient.invalidateQueries({ queryKey: ["document-history"] });
+            queryClient.invalidateQueries({ queryKey: ["repository"] });
+            queryClient.invalidateQueries({ queryKey: ["repository-stats"] });
         },
     });
 };

@@ -32,6 +32,7 @@ import { ApprovalRequestsWidget } from "@/components/dashboard/ApprovalRequestsW
 import { DocumentUploadDialog } from "@/components/documents/DocumentUploadDialog";
 import { OnboardingBanner } from "@/components/dashboard/OnboardingBanner";
 import { useFeatureEnabled } from "@/hooks/useFeatureSettings";
+import { MotionContainer, MotionListItem } from "@/components/ui/motion";
 
 // Greeting based on time
 const getGreeting = () => {
@@ -269,14 +270,14 @@ export const Dashboard = () => {
                         </div>
                         <div className="p-2">
                             {hasDrafts ? (
-                                <div className="space-y-1">
-                                    {activity!.recent_drafts.slice(0, 3).map((draft: any) => {
+                                <MotionContainer className="space-y-1">
+                                    {activity!.recent_drafts.slice(0, 3).map((draft: any, index: number) => {
                                         const daysRemaining = draft.days_remaining ?? 30;
                                         const isExpiringSoon = daysRemaining <= 7;
 
                                         return (
+                                            <MotionListItem key={draft.id} index={index} disableInteraction>
                                             <Link
-                                                key={draft.id}
                                                 to={`/generate?draft=${draft.id}`}
                                                 className="flex items-center justify-between px-4 py-3 rounded-lg hover:bg-warm-50 hover:shadow-sm transition-all group mx-2 bg-white dark:bg-card border border-transparent hover:border-warm-200"
                                             >
@@ -305,14 +306,15 @@ export const Dashboard = () => {
                                                 </div>
                                                 <ChevronRight className="w-4 h-4 text-warm-400 group-hover:text-primary transition-colors" />
                                             </Link>
+                                            </MotionListItem>
                                         );
                                     })}
-                                </div>
+                                </MotionContainer>
                             ) : hasRecentDocs ? (
-                                <div className="space-y-1">
-                                    {activity!.recent_documents.slice(0, 3).map((doc) => (
+                                <MotionContainer className="space-y-1">
+                                    {activity!.recent_documents.slice(0, 3).map((doc, index) => (
+                                        <MotionListItem key={doc.id} index={index} disableInteraction>
                                         <Link
-                                            key={doc.id}
                                             to={`/documents/${doc.id}`}
                                             className="flex items-center justify-between px-4 py-3 rounded-lg hover:bg-warm-50 hover:shadow-sm transition-all group mx-2 bg-white dark:bg-card border border-transparent hover:border-warm-200"
                                         >
@@ -331,8 +333,9 @@ export const Dashboard = () => {
                                             </div>
                                             <ChevronRight className="w-4 h-4 text-warm-400 group-hover:text-primary transition-colors" />
                                         </Link>
+                                        </MotionListItem>
                                     ))}
-                                </div>
+                                </MotionContainer>
                             ) : null}
                         </div>
                     </div>

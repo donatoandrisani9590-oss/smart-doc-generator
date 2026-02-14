@@ -16,6 +16,7 @@ import { ThemeToggle } from "./ThemeToggle";
 import { CountrySelector } from "./CountrySelector";
 import { useTheme } from "@/contexts/ThemeContext";
 import { KeyboardShortcutsDialog } from "./KeyboardShortcutsDialog";
+import { CommandPalette } from "./CommandPalette";
 import { OnboardingTour } from "@/components/onboarding/OnboardingTour";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { SkipLink, LiveRegion } from "@/hooks/useAccessibility";
@@ -46,6 +47,7 @@ export const Layout = () => {
     const [pageAnnouncement, setPageAnnouncement] = useState("");
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [showTour, setShowTour] = useState(false);
+    const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
     const { resolvedTheme } = useTheme();
 
     // SSE Real-time Updates (einmal pro Layout-Mount)
@@ -77,10 +79,7 @@ export const Layout = () => {
 
     // Global keyboard shortcuts
     useKeyboardShortcuts({
-        onSearch: () => {
-            const searchInput = document.querySelector('[data-global-search]') as HTMLInputElement;
-            searchInput?.focus();
-        },
+        onSearch: () => setCommandPaletteOpen(true),
         onNewDocument: () => navigate("/generate"),
         onHelp: () => setShowShortcuts(true),
     });
@@ -174,6 +173,12 @@ export const Layout = () => {
                     <div className="h-12" />
                 </div>
             </main>
+
+            {/* Command Palette (Cmd+K) */}
+            <CommandPalette
+                open={commandPaletteOpen}
+                onOpenChange={setCommandPaletteOpen}
+            />
 
             {/* Keyboard Shortcuts Dialog */}
             <KeyboardShortcutsDialog

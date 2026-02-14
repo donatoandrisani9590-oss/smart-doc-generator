@@ -154,15 +154,32 @@ export const useDeleteDocumentType = () => {
             }
             return res.json();
         },
+        onMutate: async (documentTypeId) => {
+            await queryClient.cancelQueries({ queryKey: ["document-types"] });
+
+            const previousTypes = queryClient.getQueriesData<DocumentType[]>({
+                queryKey: ["document-types"],
+            });
+
+            queryClient.setQueriesData<DocumentType[]>(
+                { queryKey: ["document-types"] },
+                (old) => old?.filter((dt) => dt.id !== documentTypeId)
+            );
+
+            return { previousTypes };
+        },
+        onError: (error: Error, _documentTypeId, context) => {
+            context?.previousTypes?.forEach(([key, data]) => {
+                if (data) queryClient.setQueryData(key, data);
+            });
+            toast.error("Löschen fehlgeschlagen", {
+                description: error.message || "Der Dokumenttyp konnte nicht gelöscht werden.",
+            });
+        },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["document-types"] });
             toast.success("Dokumenttyp gelöscht", {
                 description: "Der Dokumenttyp wurde erfolgreich deaktiviert.",
-            });
-        },
-        onError: (error: Error) => {
-            toast.error("Löschen fehlgeschlagen", {
-                description: error.message || "Der Dokumenttyp konnte nicht gelöscht werden.",
             });
         },
     });

@@ -58,6 +58,7 @@ import {
 import { useToast } from "@/components/ui/toast";
 import { useUndo } from "@/hooks/useUndo";
 import { formatDistanceToNow } from "@/lib/dateUtils";
+import { MotionContainer, MotionListItem } from "@/components/ui/motion";
 
 export const RepositoryPage = () => {
     const navigate = useNavigate();
@@ -559,10 +560,12 @@ export const RepositoryPage = () => {
                         </div>
                     ) : (
                         /* Unified View: Entwürfe + Dokumente */
-                        <div className="divide-y divide-warm-100 dark:divide-warm-700">
-                            {filteredItems.map((item) => (
-                                <div
+                        <MotionContainer className="divide-y divide-warm-100 dark:divide-warm-700">
+                            {filteredItems.map((item, index) => (
+                                <MotionListItem
                                     key={`${item.type}-${item.id}`}
+                                    index={index}
+                                    disableInteraction
                                     className="flex items-center gap-4 px-4 py-3.5 transition-colors cursor-pointer group hover:bg-warm-50 dark:hover:bg-warm-800/40"
                                     onClick={() =>
                                         item.type === "draft"
@@ -674,9 +677,9 @@ export const RepositoryPage = () => {
                                             </>
                                         )}
                                     </div>
-                                </div>
+                                </MotionListItem>
                             ))}
-                        </div>
+                        </MotionContainer>
                     )}
 
                     {/* Pagination */}
