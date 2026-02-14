@@ -278,18 +278,18 @@ export const RepositoryPage = () => {
     return (
         <div className="space-y-6 max-w-6xl mx-auto">
             {/* Header */}
-            <div className="flex items-start justify-between">
-                <div>
+            <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
                     <h1 className="text-2xl font-semibold text-foreground">Meine Dokumente</h1>
                     <p className="text-muted-foreground mt-1">
                         {drafts?.length ? `${drafts.length} Entwürfe, ` : ""}
                         {stats ? `${stats.total_documents} fertige Dokumente` : "Alle Ihre Dokumente"}
                     </p>
                 </div>
-                <Link to="/generate">
+                <Link to="/generate" className="flex-shrink-0">
                     <Button className="h-9 gap-2 btn-primary-soft">
                         <PlusCircle className="w-4 h-4" />
-                        Neues Dokument
+                        <span className="hidden sm:inline">Neues Dokument</span>
                     </Button>
                 </Link>
             </div>

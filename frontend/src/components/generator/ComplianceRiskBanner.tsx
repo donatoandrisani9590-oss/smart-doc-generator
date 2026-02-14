@@ -176,11 +176,7 @@ export function ComplianceRiskBanner({
       if (response.data.content_hash !== lastScannedHash) {
         setResult(response.data);
         setLastScannedHash(response.data.content_hash);
-
-        // Auto-expand if critical risks found
-        if (response.data.risks.some((r: ComplianceRisk) => r.severity === "critical")) {
-          setIsExpanded(true);
-        }
+        // Banner starts collapsed — user clicks to expand details
       }
     } catch (err) {
       console.error("Compliance scan failed:", err);
