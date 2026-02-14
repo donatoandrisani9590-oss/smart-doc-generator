@@ -58,6 +58,8 @@ export type FeatureKey =
   | "enable_smart_mode"
   | "enable_compliance_scanner"
   | "enable_chat_assistant"
+  | "enable_ai_streaming"
+  | "enable_ghostwriter"
   | "show_quick_templates"
   | "compact_sidebar";
 
@@ -72,6 +74,8 @@ export const DEFAULT_SETTINGS: Record<FeatureKey, boolean> = {
   enable_smart_mode: true,
   enable_compliance_scanner: true,
   enable_chat_assistant: true,
+  enable_ai_streaming: true,
+  enable_ghostwriter: true,
   show_quick_templates: true,
   compact_sidebar: false,
 };

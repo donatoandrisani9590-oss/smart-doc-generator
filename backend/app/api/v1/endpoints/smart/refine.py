@@ -10,11 +10,13 @@ Allows users to select text in the TinyMCE editor and refine it with AI:
 Privacy: Uses Mistral AI (EU) or Ollama (local) - GDPR compliant.
 """
 import asyncio
+import json
 import logging
 import time
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -199,6 +201,129 @@ async def get_presets(
             {"id": "clear", "label": "Verständlicher formulieren", "icon": "eye", "description": "Klarer, weniger Fachjargon"},
         ]
     }
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# STREAMING ENDPOINT
+# ═══════════════════════════════════════════════════════════════════════════
+
+@router.post("/stream")
+async def refine_text_stream(
+    request: RefineRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    """
+    Stream refined text token-by-token via Server-Sent Events.
+
+    SSE frames:
+    - data: {"token": "..."} — each generated token
+    - data: {"done": true, "provider": "...", "changes_summary": "..."} — final frame
+    - data: {"error": "..."} — on failure
+    """
+    try:
+        llm = await get_llm_service()
+    except RuntimeError as e:
+        raise HTTPException(
+            status_code=503,
+            detail=f"KI-Service nicht verfügbar: {str(e)}"
+        )
+
+    # Resolve preset instruction or use custom
+    instruction = PRESET_INSTRUCTIONS.get(request.instruction, request.instruction)
+
+    # Load optional AI instructions
+    custom_ai_instructions = ""
+    try:
+        custom_ai_instructions = await get_ai_instructions(
+            db, request.country_code, request.document_type_id
+        )
+    except (ValueError, KeyError, AttributeError, TypeError):
+        pass
+    except Exception as e:
+        logger.warning(f"Unerwarteter Fehler beim Laden der KI-Anweisungen: {e}")
+
+    # Build prompts (same as non-streaming endpoint)
+    system_prompt = f"""Du bist ein erfahrener HR-Textexperte für {_country_name(request.country_code)}.
+Deine Aufgabe ist es, den gegebenen Text gemäß der Anweisung zu überarbeiten.
+
+Regeln:
+- Gib NUR den überarbeiteten Text zurück, keine Erklärungen oder Kommentare.
+- Behalte die Sprache des Originaltexts bei (Deutsch oder Italienisch je nach Land).
+- Behalte das HTML-Format bei, wenn der Text HTML-Tags enthält.
+- Ändere nur das, was die Anweisung verlangt. Behalte den Rest so nah am Original wie möglich.
+- Wenn der Text bereits gut ist und keine Änderung nötig ist, gib ihn unverändert zurück.
+{f"- Berücksichtige folgende Unternehmensrichtlinien: {custom_ai_instructions}" if custom_ai_instructions else ""}
+{f"- Dokumentkontext: {request.context}" if request.context else ""}"""
+
+    user_prompt = f"""Anweisung: {instruction}
+
+Text zum Überarbeiten:
+{request.text}"""
+
+    messages = [
+        LLMMessage(role="system", content=system_prompt),
+        LLMMessage(role="user", content=user_prompt),
+    ]
+    config = LLMConfig(
+        temperature=0.3,
+        max_tokens=min(len(request.text) * 3, 4000),
+    )
+
+    async def _stream_generator():
+        """Async generator yielding SSE frames."""
+        _start = time.time()
+        full_text = ""
+        provider_name = "unknown"
+
+        try:
+            provider_info = await llm.get_provider_info()
+            provider_name = provider_info.get("provider", "unknown")
+
+            async for token in llm.chat_stream(messages, config):
+                full_text += token
+                yield f"data: {json.dumps({'token': token}, ensure_ascii=False)}\n\n"
+
+            # Generate changes summary (blocking, short call)
+            latency_ms = int((time.time() - _start) * 1000)
+            summary = await _generate_summary(
+                llm, request.text, full_text.strip(), instruction,
+                current_user, request.country_code
+            )
+
+            # Send done frame
+            yield f"data: {json.dumps({'done': True, 'provider': provider_name, 'changes_summary': summary}, ensure_ascii=False)}\n\n"
+
+            # Log the call (fire-and-forget)
+            asyncio.create_task(log_llm_call(
+                feature="refine",
+                response=None,  # No LLMResponse for streaming
+                latency_ms=latency_ms,
+                user_id=str(current_user.id),
+                country_code=request.country_code,
+            ))
+
+        except Exception as e:
+            latency_ms = int((time.time() - _start) * 1000)
+            logger.error(f"Streaming refine error: {e}")
+            yield f"data: {json.dumps({'error': str(e)}, ensure_ascii=False)}\n\n"
+            asyncio.create_task(log_llm_call(
+                feature="refine",
+                latency_ms=latency_ms,
+                error_message=str(e),
+                user_id=str(current_user.id),
+                country_code=request.country_code,
+            ))
+
+    return StreamingResponse(
+        _stream_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
 
 
 # ═══════════════════════════════════════════════════════════════════════════

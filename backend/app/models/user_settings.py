@@ -37,6 +37,8 @@ class UserFeatureSettings(Base):
     enable_smart_mode = Column(Boolean, default=True, nullable=False)
     enable_compliance_scanner = Column(Boolean, default=True, nullable=False)
     enable_chat_assistant = Column(Boolean, default=True, nullable=False)
+    enable_ai_streaming = Column(Boolean, default=True, nullable=False)
+    enable_ghostwriter = Column(Boolean, default=True, nullable=False)
 
     # UI Preferences
     show_quick_templates = Column(Boolean, default=True, nullable=False)
@@ -103,6 +105,18 @@ FEATURE_DEFINITIONS = {
         "description": "Natürlichsprachliche Dokumenterstellung",
         "category": "ai",
         "icon": "MessageSquare"
+    },
+    "enable_ai_streaming": {
+        "label": "KI-Streaming",
+        "description": "Zeigt KI-generierte Texte in Echtzeit Token für Token an",
+        "category": "ai",
+        "icon": "Zap"
+    },
+    "enable_ghostwriter": {
+        "label": "KI-Ghostwriter",
+        "description": "Generiert proaktiv Einleitungsabsätze basierend auf Formulardaten",
+        "category": "ai",
+        "icon": "Sparkles"
     },
     "show_quick_templates": {
         "label": "Schnellstart-Templates",

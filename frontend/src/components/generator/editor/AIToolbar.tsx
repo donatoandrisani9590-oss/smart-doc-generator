@@ -8,6 +8,8 @@
  * - Freundlicher formulieren
  * - Verständlicher formulieren
  * - Freie Anweisung...
+ *
+ * Supports SSE streaming for real-time token display.
  */
 
 import { useState, useCallback, useRef, useEffect } from "react";
@@ -22,6 +24,7 @@ import {
     Loader2,
     Check,
     AlertCircle,
+    X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -31,6 +34,7 @@ import {
 } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
 import { api, type ApiError } from "@/lib/api-client";
+import { apiStreamSSE } from "@/lib/api-stream";
 
 interface AIToolbarProps {
     /** Get currently selected text from the editor */
@@ -73,13 +77,17 @@ export const AIToolbar = ({
     const [statusMessage, setStatusMessage] = useState("");
     const [showCustomInput, setShowCustomInput] = useState(false);
     const [customInstruction, setCustomInstruction] = useState("");
+    const [streamedText, setStreamedText] = useState("");
+    const [isStreaming, setIsStreaming] = useState(false);
 
     // Track timeout IDs for cleanup on unmount
     const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const abortControllerRef = useRef<AbortController | null>(null);
 
     useEffect(() => {
         return () => {
             if (timeoutRef.current) clearTimeout(timeoutRef.current);
+            abortControllerRef.current?.abort();
         };
     }, []);
 
@@ -91,6 +99,10 @@ export const AIToolbar = ({
             extra?.();
             timeoutRef.current = null;
         }, ms);
+    }, []);
+
+    const handleCancelStream = useCallback(() => {
+        abortControllerRef.current?.abort();
     }, []);
 
     const handleRefine = useCallback(async (instruction: string) => {
@@ -105,36 +117,121 @@ export const AIToolbar = ({
 
         setStatus("loading");
         setStatusMessage("KI überarbeitet...");
+        setStreamedText("");
+        setIsStreaming(true);
+
+        const requestBody = {
+            text: selectedText,
+            instruction,
+            context: documentContext || undefined,
+            country_code: countryCode,
+            document_type_id: documentTypeId || undefined,
+        };
+
+        // Create AbortController for cancellation
+        const controller = new AbortController();
+        abortControllerRef.current = controller;
 
         try {
-            const { data } = await api.post<RefineResponse>("/api/v1/smart/refine", {
-                text: selectedText,
-                instruction,
-                context: documentContext || undefined,
-                country_code: countryCode,
-                document_type_id: documentTypeId || undefined,
-            });
+            let fullText = "";
+            let changesSummary = "";
 
-            replaceSelectedText(data.refined_text);
-            setStatus("success");
-            setStatusMessage(data.changes_summary);
+            for await (const event of apiStreamSSE(
+                "/api/v1/smart/refine/stream",
+                requestBody,
+                controller.signal
+            )) {
+                // Handle error event from stream
+                if (event.error) {
+                    setIsStreaming(false);
+                    setStatus("error");
+                    setStatusMessage(event.error);
+                    clearStatusAfter(5000);
+                    return;
+                }
 
-            // Auto-close after success
-            clearStatusAfter(3000, () => {
-                setIsOpen(false);
-                setShowCustomInput(false);
-            });
+                // Accumulate tokens
+                if (event.token) {
+                    fullText += event.token;
+                    setStreamedText(fullText);
+                }
+
+                // Capture changes summary
+                if (event.changes_summary) {
+                    changesSummary = event.changes_summary;
+                }
+
+                // Stream complete
+                if (event.done) {
+                    setIsStreaming(false);
+                    replaceSelectedText(fullText);
+                    setStreamedText("");
+                    setStatus("success");
+                    setStatusMessage(changesSummary || "Text wurde überarbeitet.");
+
+                    clearStatusAfter(3000, () => {
+                        setIsOpen(false);
+                        setShowCustomInput(false);
+                    });
+                    return;
+                }
+            }
+
+            // If we exit the loop without a done event, apply what we have
+            if (fullText) {
+                setIsStreaming(false);
+                replaceSelectedText(fullText);
+                setStreamedText("");
+                setStatus("success");
+                setStatusMessage(changesSummary || "Text wurde überarbeitet.");
+                clearStatusAfter(3000, () => {
+                    setIsOpen(false);
+                    setShowCustomInput(false);
+                });
+            } else {
+                setIsStreaming(false);
+                setStatus("error");
+                setStatusMessage("Keine Antwort vom KI-Service erhalten.");
+                clearStatusAfter(5000);
+            }
 
         } catch (err: unknown) {
-            let message = "KI-Verarbeitung fehlgeschlagen";
-            if (err && typeof err === "object" && "status" in err && "message" in err) {
-                message = (err as ApiError).message;
-            } else if (err instanceof Error) {
-                message = err.message;
+            setIsStreaming(false);
+            setStreamedText("");
+
+            // User cancelled - don't show error
+            if (err instanceof DOMException && err.name === "AbortError") {
+                setStatus("idle");
+                setStatusMessage("");
+                return;
             }
-            setStatus("error");
-            setStatusMessage(message);
-            clearStatusAfter(5000);
+
+            // Fallback: try blocking endpoint
+            try {
+                const { data } = await api.post<RefineResponse>("/api/v1/smart/refine", requestBody);
+
+                replaceSelectedText(data.refined_text);
+                setStatus("success");
+                setStatusMessage(data.changes_summary);
+
+                clearStatusAfter(3000, () => {
+                    setIsOpen(false);
+                    setShowCustomInput(false);
+                });
+
+            } catch (fallbackErr: unknown) {
+                let message = "KI-Verarbeitung fehlgeschlagen";
+                if (fallbackErr && typeof fallbackErr === "object" && "status" in fallbackErr && "message" in fallbackErr) {
+                    message = (fallbackErr as ApiError).message;
+                } else if (fallbackErr instanceof Error) {
+                    message = fallbackErr.message;
+                }
+                setStatus("error");
+                setStatusMessage(message);
+                clearStatusAfter(5000);
+            }
+        } finally {
+            abortControllerRef.current = null;
         }
     }, [getSelectedText, replaceSelectedText, documentContext, countryCode, documentTypeId, clearStatusAfter]);
 
@@ -165,24 +262,42 @@ export const AIToolbar = ({
                 <div className="flex items-center gap-2 px-3 py-2.5 border-b bg-primary/5">
                     <Sparkles className="w-4 h-4 text-primary" />
                     <span className="text-sm font-medium text-primary">KI-Nachbesserung</span>
-                    {status === "loading" && (
+                    {(status === "loading" || isStreaming) && (
                         <Loader2 className="w-3.5 h-3.5 animate-spin text-primary ml-auto" />
                     )}
                 </div>
 
-                {/* Status Message */}
-                {statusMessage && (
-                    <div className={`px-3 py-2 text-xs flex items-start gap-2 border-b ${
+                {/* Status Message / Streaming Preview */}
+                {(statusMessage || isStreaming) && (
+                    <div className={`px-3 py-2 text-xs flex flex-col gap-1.5 border-b ${
                         status === "success" ? "bg-green-50 text-green-700" :
                         status === "error" ? "bg-red-50 text-red-700" :
                         status === "no-selection" ? "bg-amber-50 text-amber-700" :
                         "bg-primary/5 text-primary"
                     }`}>
-                        {status === "success" && <Check className="w-3.5 h-3.5 mt-0.5 shrink-0" />}
-                        {status === "error" && <AlertCircle className="w-3.5 h-3.5 mt-0.5 shrink-0" />}
-                        {status === "no-selection" && <AlertCircle className="w-3.5 h-3.5 mt-0.5 shrink-0" />}
-                        {status === "loading" && <Loader2 className="w-3.5 h-3.5 mt-0.5 shrink-0 animate-spin" />}
-                        <span>{statusMessage}</span>
+                        <div className="flex items-start gap-2">
+                            {status === "success" && <Check className="w-3.5 h-3.5 mt-0.5 shrink-0" />}
+                            {status === "error" && <AlertCircle className="w-3.5 h-3.5 mt-0.5 shrink-0" />}
+                            {status === "no-selection" && <AlertCircle className="w-3.5 h-3.5 mt-0.5 shrink-0" />}
+                            {status === "loading" && !isStreaming && <Loader2 className="w-3.5 h-3.5 mt-0.5 shrink-0 animate-spin" />}
+                            {isStreaming && <Loader2 className="w-3.5 h-3.5 mt-0.5 shrink-0 animate-spin" />}
+                            <span className="flex-1">{isStreaming ? "KI schreibt..." : statusMessage}</span>
+                            {isStreaming && (
+                                <button
+                                    onClick={handleCancelStream}
+                                    className="ml-auto p-0.5 hover:bg-primary/10 rounded"
+                                    title="Abbrechen"
+                                >
+                                    <X className="w-3.5 h-3.5" />
+                                </button>
+                            )}
+                        </div>
+                        {isStreaming && streamedText && (
+                            <div className="max-h-[150px] overflow-y-auto text-xs font-mono bg-white/50 rounded p-2 border border-primary/10">
+                                {streamedText}
+                                <span className="inline-block w-0.5 h-3.5 bg-primary animate-pulse ml-0.5" />
+                            </div>
+                        )}
                     </div>
                 )}
 
@@ -194,7 +309,7 @@ export const AIToolbar = ({
                             <button
                                 key={preset.id}
                                 onClick={() => handleRefine(preset.id)}
-                                disabled={status === "loading"}
+                                disabled={status === "loading" || isStreaming}
                                 className="w-full flex items-center gap-3 px-3 py-2 text-sm hover:bg-warm-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-left"
                             >
                                 <Icon className="w-4 h-4 text-muted-foreground shrink-0" />
@@ -218,7 +333,7 @@ export const AIToolbar = ({
                             onChange={(e) => setCustomInstruction(e.target.value)}
                             placeholder="z.B. 'Formuliere den Absatz als Aufzählung' oder 'Ergänze einen Hinweis auf die Probezeit'"
                             className="min-h-[70px] text-sm resize-none"
-                            disabled={status === "loading"}
+                            disabled={status === "loading" || isStreaming}
                             autoFocus
                             onKeyDown={(e) => {
                                 if (e.key === "Enter" && !e.shiftKey) {
@@ -242,7 +357,7 @@ export const AIToolbar = ({
                             <Button
                                 size="sm"
                                 onClick={handleCustomSubmit}
-                                disabled={!customInstruction.trim() || status === "loading"}
+                                disabled={!customInstruction.trim() || status === "loading" || isStreaming}
                                 className="text-xs gap-1.5"
                             >
                                 <Sparkles className="w-3.5 h-3.5" />
@@ -253,7 +368,7 @@ export const AIToolbar = ({
                 ) : (
                     <button
                         onClick={() => setShowCustomInput(true)}
-                        disabled={status === "loading"}
+                        disabled={status === "loading" || isStreaming}
                         className="w-full flex items-center gap-3 px-3 py-2.5 text-sm hover:bg-warm-50 transition-colors disabled:opacity-50 text-left"
                     >
                         <MessageSquare className="w-4 h-4 text-muted-foreground shrink-0" />

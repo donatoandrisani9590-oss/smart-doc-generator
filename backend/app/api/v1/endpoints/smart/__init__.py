@@ -6,6 +6,7 @@ from app.api.v1.endpoints.smart import (
     clause_ai_selection,
     refine,
     consistency,
+    draft,
 )
 
 __all__ = [
@@ -15,4 +16,5 @@ __all__ = [
     "clause_ai_selection",
     "refine",
     "consistency",
+    "draft",
 ]

@@ -83,6 +83,16 @@ class BaseLLMClient(ABC):
         pass
 
     @abstractmethod
+    async def chat_stream(
+        self,
+        messages: List[LLMMessage],
+        config: Optional[LLMConfig] = None
+    ) -> AsyncGenerator[str, None]:
+        """Send streaming chat completion request, yielding tokens."""
+        pass  # pragma: no cover
+        yield  # Make it a generator  # noqa: E501
+
+    @abstractmethod
     async def is_available(self) -> bool:
         """Check if the provider is available."""
         pass
@@ -166,6 +176,58 @@ class MistralClient(BaseLLMClient):
                 usage=data.get("usage"),
                 raw_response=data
             )
+
+    async def chat_stream(
+        self,
+        messages: List[LLMMessage],
+        config: Optional[LLMConfig] = None
+    ) -> AsyncGenerator[str, None]:
+        """Stream chat response from Mistral API (OpenAI-compatible SSE)."""
+        if not self.api_key:
+            raise ValueError("MISTRAL_API_KEY not configured")
+
+        config = config or LLMConfig()
+
+        payload = {
+            "model": self.default_model,
+            "messages": [{"role": m.role, "content": m.content} for m in messages],
+            "temperature": config.temperature,
+            "max_tokens": config.get_max_tokens(self.default_model),
+            "top_p": config.top_p,
+            "stream": True,
+        }
+
+        async with httpx.AsyncClient() as client:
+            async with client.stream(
+                "POST",
+                f"{self.base_url}/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {self.api_key}",
+                    "Content-Type": "application/json",
+                },
+                json=payload,
+                timeout=60.0,
+            ) as response:
+                if response.status_code != 200:
+                    error_body = await response.aread()
+                    raise Exception(f"Mistral API error: {response.status_code} - {error_body.decode()}")
+
+                async for line in response.aiter_lines():
+                    if not line.strip():
+                        continue
+                    if not line.startswith("data: "):
+                        continue
+                    data_str = line[6:]  # Strip "data: " prefix
+                    if data_str.strip() == "[DONE]":
+                        break
+                    try:
+                        chunk = json.loads(data_str)
+                        delta = chunk.get("choices", [{}])[0].get("delta", {})
+                        content = delta.get("content")
+                        if content:
+                            yield content
+                    except json.JSONDecodeError:
+                        continue
 
 
 class GroqClient(BaseLLMClient):
@@ -271,6 +333,61 @@ class GroqClient(BaseLLMClient):
 
         raise Exception("Groq API: Max Retries erreicht")
 
+    async def chat_stream(
+        self,
+        messages: List[LLMMessage],
+        config: Optional[LLMConfig] = None
+    ) -> AsyncGenerator[str, None]:
+        """Stream chat response from Groq API (OpenAI-compatible SSE)."""
+        if not self.api_key:
+            raise ValueError("GROQ_API_KEY not configured")
+
+        config = config or LLMConfig()
+
+        payload = {
+            "model": self.default_model,
+            "messages": [{"role": m.role, "content": m.content} for m in messages],
+            "temperature": config.temperature,
+            "max_tokens": config.get_max_tokens(self.default_model),
+            "top_p": config.top_p,
+            "stream": True,
+        }
+
+        async with httpx.AsyncClient() as client:
+            async with client.stream(
+                "POST",
+                f"{self.base_url}/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {self.api_key}",
+                    "Content-Type": "application/json",
+                },
+                json=payload,
+                timeout=60.0,
+            ) as response:
+                if response.status_code == 429:
+                    error_body = await response.aread()
+                    raise Exception(f"Groq Rate-Limit erreicht: {error_body.decode()}")
+                if response.status_code != 200:
+                    error_body = await response.aread()
+                    raise Exception(f"Groq API error: {response.status_code} - {error_body.decode()}")
+
+                async for line in response.aiter_lines():
+                    if not line.strip():
+                        continue
+                    if not line.startswith("data: "):
+                        continue
+                    data_str = line[6:]
+                    if data_str.strip() == "[DONE]":
+                        break
+                    try:
+                        chunk = json.loads(data_str)
+                        delta = chunk.get("choices", [{}])[0].get("delta", {})
+                        content = delta.get("content")
+                        if content:
+                            yield content
+                    except json.JSONDecodeError:
+                        continue
+
 
 class OllamaClient(BaseLLMClient):
     """
@@ -350,6 +467,50 @@ class OllamaClient(BaseLLMClient):
                 },
                 raw_response=data
             )
+
+    async def chat_stream(
+        self,
+        messages: List[LLMMessage],
+        config: Optional[LLMConfig] = None
+    ) -> AsyncGenerator[str, None]:
+        """Stream chat response from local Ollama instance (NDJSON)."""
+        config = config or LLMConfig()
+
+        payload = {
+            "model": self.default_model,
+            "messages": [{"role": m.role, "content": m.content} for m in messages],
+            "stream": True,
+            "options": {
+                "temperature": config.temperature,
+                "num_predict": config.get_max_tokens(self.default_model),
+                "top_p": config.top_p,
+            }
+        }
+
+        async with httpx.AsyncClient() as client:
+            async with client.stream(
+                "POST",
+                f"{self.base_url}/api/chat",
+                json=payload,
+                timeout=120.0,
+            ) as response:
+                if response.status_code != 200:
+                    error_body = await response.aread()
+                    raise Exception(f"Ollama error: {response.status_code} - {error_body.decode()}")
+
+                async for line in response.aiter_lines():
+                    if not line.strip():
+                        continue
+                    try:
+                        chunk = json.loads(line)
+                        content = chunk.get("message", {}).get("content", "")
+                        if content:
+                            yield content
+                        # Ollama signals done with "done": true
+                        if chunk.get("done", False):
+                            break
+                    except json.JSONDecodeError:
+                        continue
 
 
 class LLMService:
@@ -440,6 +601,25 @@ class LLMService:
         """
         client = await self._get_client()
         return await client.chat(messages, config)
+
+    async def chat_stream(
+        self,
+        messages: List[LLMMessage],
+        config: Optional[LLMConfig] = None
+    ) -> AsyncGenerator[str, None]:
+        """
+        Stream chat completion tokens from best available provider.
+
+        Args:
+            messages: List of chat messages
+            config: Optional configuration (temperature, max_tokens, etc.)
+
+        Yields:
+            String tokens as they are generated
+        """
+        client = await self._get_client()
+        async for token in client.chat_stream(messages, config):
+            yield token
 
     async def chat_json(
         self,

@@ -21,8 +21,11 @@ import {
 import { DocumentEditor } from "@/components/editor/DocumentEditor";
 import { StationeryCanvas } from "./StationeryCanvas";
 import { AIToolbar } from "./AIToolbar";
+import { GhostwriterCard } from "../GhostwriterCard";
 import { useWizardContext } from "../WizardContext";
 import { useCountry } from "@/hooks/useCountry";
+import { useGhostwriterDraft } from "@/hooks/useGhostwriterDraft";
+import { useFeatureEnabled } from "@/hooks/useFeatureSettings";
 import { WorkflowStepper } from "../WorkflowStepper";
 import { ComplianceRiskBanner } from "../ComplianceRiskBanner";
 import { ConsistencyBanner } from "../ConsistencyBanner";
@@ -46,6 +49,15 @@ export const RightEditorPanel = () => {
         if (!nachname) return "";
         return `${vorname || ""} ${nachname}`.trim();
     }, [state.formData]);
+
+    // Ghostwriter draft suggestion
+    const ghostwriterEnabled = useFeatureEnabled("enable_ghostwriter");
+    const ghostwriter = useGhostwriterDraft({
+        documentTypeId: state.documentTypeId,
+        formData: (state.formData || {}) as unknown as Record<string, unknown>,
+        countryCode: country,
+        enabled: ghostwriterEnabled,
+    });
 
     // Quick comment popover state
     const [isAddCommentOpen, setIsAddCommentOpen] = useState(false);
@@ -248,6 +260,28 @@ export const RightEditorPanel = () => {
                                 currentFormData={state.formData as unknown as Record<string, unknown>}
                                 countryCode={country}
                                 documentTypeId={state.documentTypeId ?? undefined}
+                                className="mb-4"
+                            />
+                        )}
+
+                        {/* Ghostwriter Draft Suggestion */}
+                        {(ghostwriter.draftHtml || ghostwriter.isStreaming) && !ghostwriter.isDismissed && (
+                            <GhostwriterCard
+                                draftHtml={ghostwriter.draftHtml}
+                                isStreaming={ghostwriter.isStreaming}
+                                streamedText={ghostwriter.streamedText}
+                                isGenerating={ghostwriter.isGenerating}
+                                error={ghostwriter.error}
+                                onAccept={() => {
+                                    const html = ghostwriter.accept();
+                                    if (editorRef.current && html) {
+                                        const currentContent = editorRef.current.getContent();
+                                        editorRef.current.setContent(html + currentContent);
+                                        actions.setEditorContent(editorRef.current.getContent(), true);
+                                    }
+                                }}
+                                onDismiss={ghostwriter.dismiss}
+                                onRegenerate={ghostwriter.regenerate}
                                 className="mb-4"
                             />
                         )}
