@@ -247,9 +247,20 @@ export const DocumentEditor = ({
               body.style.fontSize = "11pt";
               body.style.lineHeight = "1.15";
               body.style.color = "#1D1D1F";
-              body.style.padding = "25mm 20mm 20mm 25mm";
               body.style.margin = "0";
               body.style.background = "#ffffff";
+              body.style.boxSizing = "border-box";
+              body.style.width = "100%";
+              body.style.maxWidth = "100%";
+              body.style.overflowX = "hidden";
+
+              // Responsive padding: Use smaller margins when container is narrow
+              const containerWidth = editor.getContainer()?.offsetWidth || 800;
+              if (containerWidth < 750) {
+                body.style.padding = "15mm 12mm 15mm 15mm";
+              } else {
+                body.style.padding = "25mm 20mm 20mm 25mm";
+              }
             });
           },
         }}

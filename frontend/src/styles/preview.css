@@ -354,7 +354,7 @@
 /* Container styling - responsive, fits parent container */
 .document-editor-container {
     width: 100%;
-    max-width: 210mm;
+    max-width: 100%;
     margin: 0 auto;
     background: #ffffff;
     box-shadow:
@@ -402,6 +402,15 @@
     overflow: hidden !important;
 }
 
+/* Ensure TinyMCE fills container width */
+.document-editor-container .tox-tinymce {
+    width: 100% !important;
+}
+
+.document-editor-container .tox-edit-area {
+    overflow: visible !important;
+}
+
 /* Minimal statusbar styling (word count) */
 .document-editor-container .tox-statusbar {
     background: #fafafa !important;
@@ -419,8 +428,8 @@
 
 /* Loading state */
 .document-editor-loading {
-    width: 210mm;
-    max-width: 100%;
+    width: 100%;
+    max-width: 210mm;
     margin: 0 auto;
     background: #ffffff;
     box-shadow:

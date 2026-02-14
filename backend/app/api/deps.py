@@ -41,6 +41,11 @@ class MockUser:
     locked_until = None
 
 
+def _extract_token_from_cookie(request: Request) -> Optional[str]:
+    """Extract access token from HTTP-only cookie (fallback when no Bearer header)."""
+    return request.cookies.get("access_token")
+
+
 async def get_current_user(
     request: Request,
     token: Annotated[Optional[str], Depends(oauth2_scheme)] = None,
@@ -60,6 +65,10 @@ async def get_current_user(
         detail="Ungültige Anmeldedaten",
         headers={"WWW-Authenticate": "Bearer"},
     )
+
+    # Dual-mode: Try Bearer header first, then HTTP-only cookie
+    if not token:
+        token = _extract_token_from_cookie(request)
 
     if not token:
         raise credentials_exception

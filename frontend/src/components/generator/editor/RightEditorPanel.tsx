@@ -216,7 +216,7 @@ export const RightEditorPanel = () => {
             </div>
 
             {/* Editor Container - A4 Paper in gray background */}
-            <div className="flex-1 overflow-auto bg-slate-200 p-4 md:p-6">
+            <div className="flex-1 overflow-auto bg-slate-200 p-3 md:p-4 lg:p-6">
                 {isPreviewLoading && !displayContent ? (
                     <div className="flex items-center justify-center h-full">
                         <div className="text-center space-y-3">
@@ -225,7 +225,7 @@ export const RightEditorPanel = () => {
                         </div>
                     </div>
                 ) : (
-                    <div className="mx-auto" style={{ maxWidth: "210mm" }}>
+                    <div className="mx-auto w-full" style={{ maxWidth: "min(210mm, 100%)" }}>
                         {/* Compliance Risk Banner - proaktive Risikoerkennung */}
                         <ComplianceRiskBanner
                             contentHtml={displayContent}

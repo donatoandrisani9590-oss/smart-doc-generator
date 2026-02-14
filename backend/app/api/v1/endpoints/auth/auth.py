@@ -1,7 +1,7 @@
 from datetime import timedelta, datetime, timezone
 from typing import Annotated, Optional
 import logging
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Response
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -17,6 +17,43 @@ from app.api import deps
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+
+def _set_auth_cookies(response: Response, access_token: str, refresh_token: str) -> None:
+    """Set HTTP-only cookies for access and refresh tokens (when USE_COOKIE_AUTH is enabled)."""
+    if not settings.USE_COOKIE_AUTH:
+        return
+
+    cookie_kwargs = {
+        "httponly": True,
+        "secure": settings.COOKIE_SECURE,
+        "samesite": settings.COOKIE_SAMESITE,
+        "path": "/",
+    }
+    if settings.COOKIE_DOMAIN:
+        cookie_kwargs["domain"] = settings.COOKIE_DOMAIN
+
+    response.set_cookie(
+        key="access_token",
+        value=access_token,
+        max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        **cookie_kwargs,
+    )
+    response.set_cookie(
+        key="refresh_token",
+        value=refresh_token,
+        max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 86400,
+        **cookie_kwargs,
+    )
+
+
+def _clear_auth_cookies(response: Response) -> None:
+    """Clear auth cookies on logout."""
+    cookie_kwargs = {"path": "/", "httponly": True}
+    if settings.COOKIE_DOMAIN:
+        cookie_kwargs["domain"] = settings.COOKIE_DOMAIN
+    response.delete_cookie(key="access_token", **cookie_kwargs)
+    response.delete_cookie(key="refresh_token", **cookie_kwargs)
 
 
 class UserResponse(BaseModel):
@@ -48,8 +85,9 @@ class RegisterResponse(BaseModel):
 
 @router.post("/login", response_model=token_schema.Token)
 async def login_access_token(
+    response: Response,
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
-    db: Annotated[AsyncSession, Depends(get_db)]
+    db: Annotated[AsyncSession, Depends(get_db)],
 ):
     """
     Login endpoint with brute-force protection (SEC-017).
@@ -123,11 +161,16 @@ async def login_access_token(
         subject=user.id, expires_delta=access_token_expires
     )
     refresh_token = security.create_refresh_token(subject=user.id)
+
+    # Set HTTP-only cookies (if enabled via USE_COOKIE_AUTH)
+    _set_auth_cookies(response, access_token, refresh_token)
+
     return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
 
 
 @router.post("/refresh", response_model=token_schema.Token)
 async def refresh_access_token(
+    response: Response,
     data: token_schema.RefreshTokenRequest,
     db: Annotated[AsyncSession, Depends(get_db)],
 ):
@@ -159,6 +202,9 @@ async def refresh_access_token(
         subject=user.id, expires_delta=access_token_expires
     )
     new_refresh_token = security.create_refresh_token(subject=user.id)
+
+    # Set HTTP-only cookies (if enabled via USE_COOKIE_AUTH)
+    _set_auth_cookies(response, new_access_token, new_refresh_token)
 
     logger.info(f"Token refreshed for: {user.email}")
     return {"access_token": new_access_token, "refresh_token": new_refresh_token, "token_type": "bearer"}
@@ -235,6 +281,16 @@ async def register_user(
         access_token=access_token,
         token_type="bearer"
     )
+
+
+@router.post("/logout")
+async def logout(response: Response):
+    """
+    Logout endpoint - clears HTTP-only auth cookies.
+    The frontend should also clear localStorage tokens.
+    """
+    _clear_auth_cookies(response)
+    return {"message": "Erfolgreich abgemeldet"}
 
 
 @router.get("/me", response_model=UserResponse)

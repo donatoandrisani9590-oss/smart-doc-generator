@@ -50,7 +50,6 @@ import {
     Trash2,
     History,
     Filter,
-    Loader2,
     FileUp,
     MoreVertical,
     Eye,
@@ -297,6 +296,21 @@ export const ClausesPage = () => {
         onNewDocument: handleCreateClause,
     });
 
+    // Client-side Pagination für große Listen
+    const ITEMS_PER_PAGE = 50;
+    const [clausePage, setClausePage] = useState(1);
+
+    // Reset page on filter change
+    useEffect(() => {
+        setClausePage(1);
+    }, [searchQuery, categoryFilter, statusFilter, countryFilter]);
+
+    const totalClausePages = Math.ceil(filteredClauses.length / ITEMS_PER_PAGE);
+    const paginatedClauses = useMemo(() => {
+        const start = (clausePage - 1) * ITEMS_PER_PAGE;
+        return filteredClauses.slice(start, start + ITEMS_PER_PAGE);
+    }, [filteredClauses, clausePage]);
+
     // Anzahl aktiver Filter berechnen
     const activeFilterCount = useMemo(() => {
         let count = 0;
@@ -498,8 +512,28 @@ export const ClausesPage = () => {
 
             {/* Clauses List */}
             {isLoading ? (
-                <div className="flex items-center justify-center py-12">
-                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                <div className="space-y-4">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                        <Card key={i} className="border-l-4 border-l-muted">
+                            <CardHeader className="pb-2">
+                                <div className="flex items-start justify-between gap-4 animate-pulse">
+                                    <div className="flex-1 space-y-2">
+                                        <div className="h-5 bg-muted rounded w-1/3" />
+                                        <div className="flex gap-2">
+                                            <div className="h-5 bg-muted rounded w-20" />
+                                            <div className="h-5 bg-muted rounded w-16" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="space-y-2 animate-pulse">
+                                    <div className="h-4 bg-muted rounded w-full" />
+                                    <div className="h-4 bg-muted rounded w-3/4" />
+                                </div>
+                            </CardContent>
+                        </Card>
+                    ))}
                 </div>
             ) : filteredClauses.length === 0 ? (
                 <Card className="border-dashed">
@@ -581,7 +615,7 @@ export const ClausesPage = () => {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {filteredClauses.map((clause: Clause) => (
+                            {paginatedClauses.map((clause: Clause) => (
                                 <TableRow
                                     key={clause.id}
                                     className={cn(
@@ -677,7 +711,7 @@ export const ClausesPage = () => {
             ) : (
                 /* Karten-Ansicht */
                 <div className="grid gap-4">
-                    {filteredClauses.map((clause: Clause) => (
+                    {paginatedClauses.map((clause: Clause) => (
                         <Card
                             key={clause.id}
                             className={cn(
@@ -803,6 +837,33 @@ export const ClausesPage = () => {
                             </CardContent>
                         </Card>
                     ))}
+                </div>
+            )}
+
+            {/* Client-side Pagination */}
+            {totalClausePages > 1 && (
+                <div className="flex items-center justify-between pt-4">
+                    <p className="text-sm text-muted-foreground">
+                        {filteredClauses.length} Textbausteine · Seite {clausePage} von {totalClausePages}
+                    </p>
+                    <div className="flex gap-2">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            disabled={clausePage <= 1}
+                            onClick={() => setClausePage(p => p - 1)}
+                        >
+                            Zurück
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            disabled={clausePage >= totalClausePages}
+                            onClick={() => setClausePage(p => p + 1)}
+                        >
+                            Weiter
+                        </Button>
+                    </div>
                 </div>
             )}
                 </TabsContent>

@@ -39,6 +39,12 @@ class Settings(BaseSettings):
     DB_POOL_RECYCLE: int = 3600  # Sekunden
     REDIS_URL: str = "redis://localhost:6379/0"
 
+    # HTTP-only Cookie Settings (for gradual migration from localStorage tokens)
+    USE_COOKIE_AUTH: bool = False  # Enable to set HTTP-only cookies on login/refresh
+    COOKIE_DOMAIN: str = ""  # Leave empty for auto (same-origin); set for cross-origin
+    COOKIE_SECURE: bool = True  # Must be True in production (HTTPS)
+    COOKIE_SAMESITE: str = "lax"  # "strict", "lax", or "none" (cross-origin needs "none")
+
     # API Base URL for generating absolute URLs (e.g., for logo in preview)
     API_BASE_URL: str = "http://localhost:8000"
 

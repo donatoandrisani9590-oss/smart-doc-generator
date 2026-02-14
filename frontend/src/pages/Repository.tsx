@@ -14,7 +14,7 @@ import { useNavigate, Link, Navigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Skeleton } from "@/components/ui/skeleton";
+import { SkeletonRepositoryTable } from "@/components/ui/skeleton";
 import {
     useRepository,
     useRepositoryStats,
@@ -41,6 +41,9 @@ import {
     FileCheck,
     AlertTriangle,
     Play,
+    ArrowUpDown,
+    ArrowUp,
+    ArrowDown,
 } from "lucide-react";
 import { DocumentCorrectionDialog } from "@/components/documents/DocumentCorrectionDialog";
 import { useFeatureEnabled } from "@/hooks/useFeatureSettings";
@@ -472,13 +475,60 @@ export const RepositoryPage = () => {
                         </button>
                     )}
                 </div>
+
+                {/* Sortierbare Spaltenköpfe */}
+                {filteredItems.length > 0 && (
+                    <div className="hidden md:flex items-center gap-4 px-4 py-2 border-b bg-warm-50/50 text-xs font-medium text-muted-foreground">
+                        <div className="w-5" /> {/* Checkbox Spacer */}
+                        <div className="w-10" /> {/* Icon Spacer */}
+                        <button
+                            className="flex items-center gap-1 flex-1 min-w-0 hover:text-foreground transition-colors"
+                            onClick={() => {
+                                const newOrder = filters.sort_by === "title" && filters.sort_order === "asc" ? "desc" : "asc";
+                                setFilters(prev => ({ ...prev, sort_by: "title", sort_order: newOrder, page: 1 }));
+                            }}
+                        >
+                            Name
+                            {filters.sort_by === "title" ? (
+                                filters.sort_order === "asc" ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />
+                            ) : (
+                                <ArrowUpDown className="w-3 h-3 opacity-40" />
+                            )}
+                        </button>
+                        <button
+                            className="flex items-center gap-1 w-40 hover:text-foreground transition-colors"
+                            onClick={() => {
+                                const newOrder = filters.sort_by === "document_type" && filters.sort_order === "asc" ? "desc" : "asc";
+                                setFilters(prev => ({ ...prev, sort_by: "document_type", sort_order: newOrder, page: 1 }));
+                            }}
+                        >
+                            Typ
+                            {filters.sort_by === "document_type" ? (
+                                filters.sort_order === "asc" ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />
+                            ) : (
+                                <ArrowUpDown className="w-3 h-3 opacity-40" />
+                            )}
+                        </button>
+                        <button
+                            className="flex items-center gap-1 w-32 hover:text-foreground transition-colors"
+                            onClick={() => {
+                                const newOrder = filters.sort_by === "created_at" && filters.sort_order === "desc" ? "asc" : "desc";
+                                setFilters(prev => ({ ...prev, sort_by: "created_at", sort_order: newOrder, page: 1 }));
+                            }}
+                        >
+                            Datum
+                            {filters.sort_by === "created_at" ? (
+                                filters.sort_order === "asc" ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />
+                            ) : (
+                                <ArrowUpDown className="w-3 h-3 opacity-40" />
+                            )}
+                        </button>
+                        <div className="w-24" /> {/* Actions Spacer */}
+                    </div>
+                )}
                 <div>
                     {isLoading ? (
-                        <div className="p-2 space-y-3">
-                            {[1, 2, 3, 4, 5].map((i) => (
-                                <Skeleton key={i} className="h-16 w-full" />
-                            ))}
-                        </div>
+                        <SkeletonRepositoryTable rows={5} />
                     ) : filteredItems.length === 0 ? (
                         <div className="text-center py-12">
                             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
