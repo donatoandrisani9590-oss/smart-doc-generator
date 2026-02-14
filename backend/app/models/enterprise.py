@@ -734,3 +734,43 @@ class CopilotStudioConfig(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now())
 
+
+# ═══════════════════════════════════════════════════════════════════════════
+# LLM CALL LOG (Observability)
+# ═══════════════════════════════════════════════════════════════════════════
+
+class LLMCallLog(Base):
+    """
+    Tracks all LLM API calls for observability and cost monitoring.
+
+    Recorded automatically via log_llm_call() after each LLM invocation.
+    Fire-and-forget logging — does not block the response.
+    """
+    __tablename__ = "llm_call_logs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
+
+    # Who
+    user_id = Column(String(255), nullable=True, index=True)
+
+    # What
+    feature = Column(String(50), nullable=False, index=True)  # refine, compliance, chat, smart_mode, clause_ai, consistency, document_upload
+    provider = Column(String(20), nullable=False, index=True)  # groq, mistral, ollama
+    model = Column(String(100), nullable=True)
+
+    # Tokens
+    prompt_tokens = Column(Integer, default=0)
+    completion_tokens = Column(Integer, default=0)
+    total_tokens = Column(Integer, default=0)
+
+    # Performance
+    latency_ms = Column(Integer, default=0)
+
+    # Status
+    status = Column(String(10), default="success", index=True)  # success, error
+    error_message = Column(Text, nullable=True)
+
+    # Context
+    country_code = Column(String(2), nullable=True)
+

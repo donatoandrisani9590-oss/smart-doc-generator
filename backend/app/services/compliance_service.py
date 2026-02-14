@@ -9,8 +9,10 @@ Features:
 
 Privacy: Uses Mistral AI (EU) or Ollama (local) - no US data transfer.
 """
+import asyncio
 import re
 import hashlib
+import time
 from datetime import datetime
 from enum import Enum
 from typing import List, Optional, Dict, Any, Callable
@@ -19,7 +21,7 @@ from bs4 import BeautifulSoup
 import logging
 
 from app.services.llm_service import (
-    LLMService, LLMMessage, LLMConfig, get_llm_service
+    LLMService, LLMMessage, LLMConfig, get_llm_service, log_llm_call
 )
 
 logger = logging.getLogger(__name__)
@@ -475,6 +477,7 @@ Antworte NUR mit dem JSON-Objekt, ohne Erklärungen davor oder danach.{custom_in
 Analysiere diesen Text und gib zusätzliche Risiken im JSON-Format zurück."""
 
         try:
+            _llm_start = time.time()
             response = await self.llm.chat_json(
                 messages=[
                     LLMMessage(role="system", content=system_prompt),
@@ -486,6 +489,12 @@ Analysiere diesen Text und gib zusätzliche Risiken im JSON-Format zurück."""
                     json_mode=True
                 )
             )
+            asyncio.create_task(log_llm_call(
+                feature="compliance",
+                latency_ms=int((time.time() - _llm_start) * 1000),
+                user_id=None,
+                country_code=country_code,
+            ))
 
             llm_risks = []
             for idx, risk_data in enumerate(response.get("additional_risks", [])):
@@ -512,6 +521,12 @@ Analysiere diesen Text und gib zusätzliche Risiken im JSON-Format zurück."""
             return llm_risks
 
         except Exception as e:
+            asyncio.create_task(log_llm_call(
+                feature="compliance",
+                latency_ms=int((time.time() - _llm_start) * 1000),
+                error_message=str(e),
+                country_code=country_code,
+            ))
             logger.error(f"LLM analysis error: {e}")
             return []
 

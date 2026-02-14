@@ -14,6 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
+    Activity,
     Building2,
     Palette,
     FileText,
@@ -53,6 +54,7 @@ const FeatureSettingsPanel = lazy(() => import("@/components/settings/FeatureSet
 const CopilotStudioSettings = lazy(() => import("@/components/settings/CopilotStudioSettings").then(m => ({ default: m.CopilotStudioSettings })));
 const UserTemplatesPage = lazy(() => import("./admin/UserTemplatesPage").then(m => ({ default: m.UserTemplatesPage })));
 const StationeryGalleryPage = lazy(() => import("./admin/StationeryGalleryPage").then(m => ({ default: m.StationeryGalleryPage })));
+const LLMUsagePage = lazy(() => import("./admin/LLMUsagePage"));
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Navigation Structure - 6 Groups, 16 Items
@@ -117,6 +119,7 @@ const SETTINGS_NAV: SettingsNavGroup[] = [
         items: [
             { id: "retention", label: "Aufbewahrung", icon: Archive, component: RetentionPoliciesPage, adminOnly: true },
             { id: "audit", label: "Protokoll", icon: Shield, component: AuditLogPage, adminOnly: true },
+            { id: "llm-usage", label: "KI-Nutzung", icon: Activity, component: LLMUsagePage, adminOnly: true },
         ],
     },
     {

@@ -9,7 +9,9 @@ Allows users to select text in the TinyMCE editor and refine it with AI:
 
 Privacy: Uses Mistral AI (EU) or Ollama (local) - GDPR compliant.
 """
+import asyncio
 import logging
+import time
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -18,7 +20,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db import get_db
 from app.api.deps import get_current_user
-from app.services.llm_service import LLMService, LLMMessage, LLMConfig, get_llm_service
+from app.services.llm_service import LLMService, LLMMessage, LLMConfig, get_llm_service, log_llm_call
 from app.services.ai_instructions import get_ai_instructions
 
 logger = logging.getLogger(__name__)
@@ -139,6 +141,7 @@ Text zum Überarbeiten:
 {request.text}"""
 
     try:
+        _llm_start = time.time()
         response = await llm.chat(
             messages=[
                 LLMMessage(role="system", content=system_prompt),
@@ -149,11 +152,18 @@ Text zum Überarbeiten:
                 max_tokens=min(len(request.text) * 3, 4000),
             )
         )
+        asyncio.create_task(log_llm_call(
+            feature="refine",
+            response=response,
+            latency_ms=int((time.time() - _llm_start) * 1000),
+            user_id=str(current_user.id),
+            country_code=request.country_code,
+        ))
 
         refined = response.content.strip()
 
         # Generate a brief changes summary
-        summary = await _generate_summary(llm, request.text, refined, instruction)
+        summary = await _generate_summary(llm, request.text, refined, instruction, current_user, request.country_code)
 
         return RefineResponse(
             refined_text=refined,
@@ -162,6 +172,13 @@ Text zum Überarbeiten:
         )
 
     except Exception as e:
+        asyncio.create_task(log_llm_call(
+            feature="refine",
+            latency_ms=int((time.time() - _llm_start) * 1000),
+            error_message=str(e),
+            user_id=str(current_user.id),
+            country_code=request.country_code,
+        ))
         raise HTTPException(
             status_code=500,
             detail=f"KI-Verarbeitung fehlgeschlagen: {str(e)}"
@@ -203,12 +220,15 @@ async def _generate_summary(
     original: str,
     refined: str,
     instruction: str,
+    current_user=None,
+    country_code: str = None,
 ) -> str:
     """Generate a brief summary of what was changed."""
     if original.strip() == refined.strip():
         return "Keine Änderungen nötig – der Text ist bereits gut."
 
     try:
+        _llm_start = time.time()
         response = await llm.chat(
             messages=[
                 LLMMessage(
@@ -222,6 +242,13 @@ async def _generate_summary(
             ],
             config=LLMConfig(temperature=0.1, max_tokens=100),
         )
+        asyncio.create_task(log_llm_call(
+            feature="refine",
+            response=response,
+            latency_ms=int((time.time() - _llm_start) * 1000),
+            user_id=str(current_user.id) if current_user else None,
+            country_code=country_code,
+        ))
         return response.content.strip()
     except Exception as e:
         logger.debug("Zusammenfassung der Änderungen konnte nicht generiert werden: %s", e)

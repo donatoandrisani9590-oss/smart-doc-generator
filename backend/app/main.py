@@ -52,13 +52,14 @@ from app.api.v1.endpoints.user import (
 from app.api.v1.endpoints.admin import (
     company_settings, logo, templates, attachments, audit,
     works_council, bulk, word_import, document_type_import, feature_settings,
+    llm_usage,
 )
 
 # User Templates
 from app.api.v1.endpoints import user_templates
 
 # Smart UX
-from app.api.v1.endpoints.smart import composer, smart_mode, compliance, clause_ai_selection, refine
+from app.api.v1.endpoints.smart import composer, smart_mode, compliance, clause_ai_selection, refine, consistency
 
 # Integration (Copilot Studio, Power Platform)
 from app.api.v1.endpoints.integration import actions, webhooks, copilot_studio
@@ -534,8 +535,14 @@ app.include_router(clause_ai_selection.router, prefix=f"{settings.API_V1_STR}", 
 # AI Text Refinement (Inline Editor)
 app.include_router(refine.router, prefix=f"{settings.API_V1_STR}", tags=["smart-refine"])
 
+# Cross-Document Consistency Check
+app.include_router(consistency.router, prefix=f"{settings.API_V1_STR}", tags=["smart-consistency"])
+
 # User Feature Settings (Toggles)
 app.include_router(feature_settings.router, prefix=f"{settings.API_V1_STR}/feature-settings", tags=["feature-settings"])
+
+# LLM Usage Observability
+app.include_router(llm_usage.router, prefix=f"{settings.API_V1_STR}", tags=["llm-usage"])
 
 # Document Upload with AI Extraction
 app.include_router(document_upload.router, prefix=f"{settings.API_V1_STR}/document-upload", tags=["document-upload"])

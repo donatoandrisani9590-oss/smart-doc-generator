@@ -19,14 +19,16 @@ Why not RAG/Embeddings?
 
 Privacy: All processing happens via Mistral (EU) or Ollama (local).
 """
+import asyncio
 import logging
+import time
 from typing import List, Optional, Dict, Any
 from sqlalchemy import select, and_, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.documents import Clause
 from app.services.llm_service import (
-    LLMService, LLMMessage, LLMConfig, LLMResponse, get_llm_service
+    LLMService, LLMMessage, LLMConfig, LLMResponse, get_llm_service, log_llm_call
 )
 
 logger = logging.getLogger(__name__)
@@ -295,6 +297,7 @@ async def select_clauses_with_ai(
         }
 
     try:
+        _llm_start = time.time()
         response = await llm.chat_json(
             messages=[
                 LLMMessage(role="system", content=system_prompt),
@@ -306,6 +309,12 @@ async def select_clauses_with_ai(
                 json_mode=True,
             ),
         )
+        asyncio.create_task(log_llm_call(
+            feature="clause_ai",
+            latency_ms=int((time.time() - _llm_start) * 1000),
+            user_id=str(user_id),
+            country_code=country_code,
+        ))
 
         # 6. Parse response
         import json
@@ -331,6 +340,13 @@ async def select_clauses_with_ai(
         }
 
     except json.JSONDecodeError as e:
+        asyncio.create_task(log_llm_call(
+            feature="clause_ai",
+            latency_ms=int((time.time() - _llm_start) * 1000),
+            error_message=str(e),
+            user_id=str(user_id),
+            country_code=country_code,
+        ))
         logger.error(f"AI returned invalid JSON: {e}")
         return {
             "selected_clauses": [],
@@ -339,6 +355,13 @@ async def select_clauses_with_ai(
             "clauses_available": len(clauses),
         }
     except Exception as e:
+        asyncio.create_task(log_llm_call(
+            feature="clause_ai",
+            latency_ms=int((time.time() - _llm_start) * 1000),
+            error_message=str(e),
+            user_id=str(user_id),
+            country_code=country_code,
+        ))
         logger.error(f"AI clause selection failed: {e}", exc_info=True)
         return {
             "selected_clauses": [],

@@ -8,7 +8,7 @@
  * - Toolbar mit Word-ähnlichen Funktionen
  */
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useMemo } from "react";
 import { Loader2, MessageSquarePlus, MessagesSquare, AlertTriangle } from "lucide-react";
 import type { Editor as TinyMCEEditor } from "tinymce";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,7 @@ import { useWizardContext } from "../WizardContext";
 import { useCountry } from "@/hooks/useCountry";
 import { WorkflowStepper } from "../WorkflowStepper";
 import { ComplianceRiskBanner } from "../ComplianceRiskBanner";
+import { ConsistencyBanner } from "../ConsistencyBanner";
 
 export const RightEditorPanel = () => {
     const { state, actions } = useWizardContext();
@@ -38,6 +39,13 @@ export const RightEditorPanel = () => {
         userTemplateId,
         stationeryZones,
     } = state;
+
+    // Employee name for consistency check
+    const employeeName = useMemo(() => {
+        const { vorname, nachname } = state.formData || {};
+        if (!nachname) return "";
+        return `${vorname || ""} ${nachname}`.trim();
+    }, [state.formData]);
 
     // Quick comment popover state
     const [isAddCommentOpen, setIsAddCommentOpen] = useState(false);
@@ -232,6 +240,17 @@ export const RightEditorPanel = () => {
                             countryCode={country}
                             className="mb-4"
                         />
+
+                        {/* Consistency Banner - Widersprüche zu bisherigen Dokumenten */}
+                        {employeeName && displayContent && (
+                            <ConsistencyBanner
+                                employeeName={employeeName}
+                                currentFormData={state.formData as unknown as Record<string, unknown>}
+                                countryCode={country}
+                                documentTypeId={state.documentTypeId ?? undefined}
+                                className="mb-4"
+                            />
+                        )}
 
                         {/* A4 Paper Container with shadow */}
                         {userTemplateId && stationeryZones ? (

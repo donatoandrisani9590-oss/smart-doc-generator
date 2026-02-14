@@ -9,6 +9,9 @@ Features:
 
 Privacy: Uses Mistral (EU) or Ollama (local) - no US data transfer.
 """
+import asyncio
+import time
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -19,7 +22,7 @@ import json
 from app.db import get_db
 from app.api.deps import get_current_user
 from app.models.documents import DocumentType
-from app.services.llm_service import LLMService, LLMMessage, LLMConfig, get_llm_service
+from app.services.llm_service import LLMService, LLMMessage, LLMConfig, get_llm_service, log_llm_call
 
 router = APIRouter()
 
@@ -391,10 +394,16 @@ Antworte im JSON-Format mit den extrahierten Feldern:
 
 Nur Felder ausgeben, die eindeutig erkannt wurden.{custom_instructions}"""
 
+            _llm_start = time.time()
             response = await llm.chat_json([
                 LLMMessage(role="system", content="Du bist ein Datenextraktions-Assistent."),
                 LLMMessage(role="user", content=extraction_prompt)
             ], LLMConfig(temperature=0.2, json_mode=True))
+            asyncio.create_task(log_llm_call(
+                feature="smart_mode",
+                latency_ms=int((time.time() - _llm_start) * 1000),
+                user_id=str(current_user.id),
+            ))
 
             if isinstance(response, dict):
                 updated_data.update(response)

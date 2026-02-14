@@ -11,6 +11,9 @@ Features:
 
 Privacy: Uses Mistral (EU) or Ollama (local) - no US data transfer.
 """
+import asyncio
+import time
+
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -28,7 +31,7 @@ logger = logging.getLogger(__name__)
 from app.db import get_db
 from app.api.deps import get_current_user
 from app.models.documents import DocumentType
-from app.services.llm_service import get_llm_service, LLMMessage, LLMConfig
+from app.services.llm_service import get_llm_service, LLMMessage, LLMConfig, log_llm_call
 
 router = APIRouter()
 
@@ -215,6 +218,7 @@ def extract_with_patterns(text: str) -> tuple[List[ExtractedField], str, float]:
 
 async def extract_with_llm(text: str, document_type_hint: Optional[str] = None, custom_instructions: str = "") -> tuple[List[ExtractedField], str, float, str]:
     """Deep extraction using LLM."""
+    _llm_start = time.time()
     try:
         llm = await get_llm_service()
 
@@ -258,7 +262,13 @@ Antworte im JSON-Format:
             LLMMessage(role="user", content=prompt)
         ]
 
+        _llm_start = time.time()
         result = await llm.chat_json(messages, LLMConfig(temperature=0.1, json_mode=True))
+        asyncio.create_task(log_llm_call(
+            feature="document_upload",
+            latency_ms=int((time.time() - _llm_start) * 1000),
+            user_id=None,
+        ))
 
         if not isinstance(result, dict):
             return [], "Unbekannt", 0.0, "error"
@@ -279,6 +289,11 @@ Antworte im JSON-Format:
         return fields, doc_type, confidence, provider
 
     except Exception as e:
+        asyncio.create_task(log_llm_call(
+            feature="document_upload",
+            latency_ms=int((time.time() - _llm_start) * 1000),
+            error_message=str(e),
+        ))
         logger.warning(f"LLM extraction failed: {e}")
         return [], "Unbekannt", 0.0, "error"
 

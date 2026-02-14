@@ -10,6 +10,7 @@ from app.api.v1.endpoints.admin import (
     word_import,
     document_type_import,
     feature_settings,
+    llm_usage,
 )
 
 __all__ = [
@@ -23,4 +24,5 @@ __all__ = [
     "word_import",
     "document_type_import",
     "feature_settings",
+    "llm_usage",
 ]

@@ -4,6 +4,9 @@ Brief-Assistent API: LLM-powered writing assistant for document generation.
 Privacy-First: Uses Mistral AI (EU-hosted) or Ollama (local) - NO OpenAI.
 All data stays in EU or on your machine.
 """
+import asyncio
+import time
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel, Field
@@ -15,7 +18,7 @@ from app.db import get_db
 from app.api.deps import get_current_user
 from app.models.core import User
 from app.services.llm_service import (
-    LLMService, LLMMessage, LLMConfig, get_llm_service
+    LLMService, LLMMessage, LLMConfig, get_llm_service, log_llm_call
 )
 
 router = APIRouter()
@@ -236,10 +239,18 @@ async def chat(
         messages.append(LLMMessage(role=msg.role, content=msg.content))
 
     try:
+        _llm_start = time.time()
         response = await llm.chat(
             messages,
             LLMConfig(temperature=0.7, max_tokens=1024)
         )
+        asyncio.create_task(log_llm_call(
+            feature="chat",
+            response=response,
+            latency_ms=int((time.time() - _llm_start) * 1000),
+            user_id=str(current_user.id),
+            country_code=request.country_code,
+        ))
 
         # Generate suggestions for follow-up
         suggestions = []
@@ -268,6 +279,13 @@ async def chat(
         )
 
     except Exception as e:
+        asyncio.create_task(log_llm_call(
+            feature="chat",
+            latency_ms=int((time.time() - _llm_start) * 1000),
+            error_message=str(e),
+            user_id=str(current_user.id),
+            country_code=request.country_code,
+        ))
         raise HTTPException(
             status_code=500,
             detail=f"Fehler bei der Kommunikation mit dem Assistenten: {str(e)}"
@@ -320,6 +338,7 @@ async def smart_chat(
     ]
 
     try:
+        _llm_start = time.time()
         response = await llm.chat(
             messages,
             LLMConfig(
@@ -328,6 +347,13 @@ async def smart_chat(
                 json_mode=True
             )
         )
+        asyncio.create_task(log_llm_call(
+            feature="chat",
+            response=response,
+            latency_ms=int((time.time() - _llm_start) * 1000),
+            user_id=str(current_user.id),
+            country_code=request.country_code,
+        ))
 
         # Parse the intent
         intent = parse_document_intent(response.content)
@@ -371,6 +397,13 @@ async def smart_chat(
         )
 
     except Exception as e:
+        asyncio.create_task(log_llm_call(
+            feature="chat",
+            latency_ms=int((time.time() - _llm_start) * 1000),
+            error_message=str(e),
+            user_id=str(current_user.id),
+            country_code=request.country_code,
+        ))
         raise HTTPException(
             status_code=500,
             detail=f"Smart Chat fehlgeschlagen: {str(e)}"
@@ -472,10 +505,18 @@ Der Textbaustein sollte:
     ]
 
     try:
+        _llm_start = time.time()
         response = await llm.chat(
             messages,
             LLMConfig(temperature=0.5, max_tokens=1500)
         )
+        asyncio.create_task(log_llm_call(
+            feature="chat",
+            response=response,
+            latency_ms=int((time.time() - _llm_start) * 1000),
+            user_id=str(current_user.id),
+            country_code=country_code,
+        ))
 
         return {
             "title": title,
@@ -489,6 +530,13 @@ Der Textbaustein sollte:
         }
 
     except Exception as e:
+        asyncio.create_task(log_llm_call(
+            feature="chat",
+            latency_ms=int((time.time() - _llm_start) * 1000),
+            error_message=str(e),
+            user_id=str(current_user.id),
+            country_code=country_code,
+        ))
         raise HTTPException(
             status_code=500,
             detail=f"Textbaustein-Generierung fehlgeschlagen: {str(e)}"
@@ -536,10 +584,17 @@ async def improve_text(
     ]
 
     try:
+        _llm_start = time.time()
         response = await llm.chat(
             messages,
             LLMConfig(temperature=0.5, max_tokens=1000)
         )
+        asyncio.create_task(log_llm_call(
+            feature="chat",
+            response=response,
+            latency_ms=int((time.time() - _llm_start) * 1000),
+            user_id=str(current_user.id),
+        ))
 
         return {
             "original": text,
@@ -549,6 +604,12 @@ async def improve_text(
         }
 
     except Exception as e:
+        asyncio.create_task(log_llm_call(
+            feature="chat",
+            latency_ms=int((time.time() - _llm_start) * 1000),
+            error_message=str(e),
+            user_id=str(current_user.id),
+        ))
         raise HTTPException(
             status_code=500,
             detail=f"Textverbesserung fehlgeschlagen: {str(e)}"

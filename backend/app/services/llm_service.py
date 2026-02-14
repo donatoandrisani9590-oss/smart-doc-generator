@@ -488,3 +488,52 @@ llm_service = LLMService()
 async def get_llm_service() -> LLMService:
     """Get the LLM service instance (for dependency injection)."""
     return llm_service
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# LLM CALL LOGGING (Observability)
+# ═══════════════════════════════════════════════════════════════════════════
+
+async def log_llm_call(
+    feature: str,
+    response: Optional[LLMResponse] = None,
+    latency_ms: int = 0,
+    user_id: Optional[str] = None,
+    country_code: Optional[str] = None,
+    error_message: Optional[str] = None,
+) -> None:
+    """
+    Log an LLM call to the database (fire-and-forget).
+
+    Call this after each llm.chat() or llm.chat_json() invocation.
+    Failures are silently logged — never blocks the main response.
+    """
+    try:
+        from app.db import async_session_factory
+        from app.models.enterprise import LLMCallLog
+
+        provider = response.provider if response else "unknown"
+        model = response.model if response else None
+        usage = response.usage or {} if response else {}
+        status = "error" if error_message else "success"
+
+        log_entry = LLMCallLog(
+            user_id=user_id,
+            feature=feature,
+            provider=provider,
+            model=model,
+            prompt_tokens=usage.get("prompt_tokens", 0) or 0,
+            completion_tokens=usage.get("completion_tokens", 0) or 0,
+            total_tokens=usage.get("total_tokens", 0) or 0,
+            latency_ms=latency_ms,
+            status=status,
+            error_message=error_message,
+            country_code=country_code,
+        )
+
+        async with async_session_factory() as session:
+            session.add(log_entry)
+            await session.commit()
+
+    except Exception as e:
+        logger.debug(f"LLM call logging failed (non-critical): {e}")
