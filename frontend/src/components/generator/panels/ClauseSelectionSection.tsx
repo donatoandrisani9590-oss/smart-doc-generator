@@ -33,14 +33,15 @@ export const ClauseSelectionSection = () => {
     };
 
     // Map for ClauseReorderPanel
-    const mapToReorderClause = (clause: DocumentClause): ReorderClause => ({
+    // Use array index + 1 for display order (DB order_index may have gaps/duplicates)
+    const mapToReorderClause = (clause: DocumentClause, index: number): ReorderClause => ({
         id: clause.id,
         uniqueId: clause.unique_id,
         title: clause.name,
         is_mandatory: clause.is_required,
         is_enabled: clause.is_enabled,
         is_order_locked: false,
-        order: clause.order_index,
+        order: index + 1,
         clause_type: "standard" as const,
     });
 
