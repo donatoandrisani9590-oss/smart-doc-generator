@@ -122,7 +122,7 @@
   .dark h4,
   .dark h5,
   .dark h6 {
-    color: hsl(220 10% 92%);
+    color: hsl(var(--foreground));
   }
 
   * {
@@ -150,7 +150,7 @@
   h5,
   h6 {
     @apply font-semibold tracking-tight;
-    color: hsl(228 58% 33%);
+    color: hsl(var(--primary));
   }
 }
 
@@ -218,7 +218,7 @@
 
   /* Soft Cards (Borderless by default) */
   .card-soft {
-    background-color: white;
+    background-color: hsl(var(--card));
     border-radius: 0.75rem;
     /* rounded-xl */
     box-shadow: var(--shadow-soft-md);
@@ -226,14 +226,10 @@
     border: 1px solid transparent;
   }
 
-  .dark .card-soft {
-    background-color: hsl(225 18% 13%);
-  }
-
   .card-soft:hover {
     box-shadow: var(--shadow-soft-lg);
     transform: translateY(-0.125rem);
-    border-color: hsl(220 13% 87%);
+    border-color: hsl(var(--border));
   }
 
   .dark .card-soft:hover {
@@ -242,7 +238,7 @@
 
   /* Inputs - Clean & Friendly */
   .input-soft {
-    background-color: white;
+    background-color: hsl(var(--card));
     border: 1px solid transparent;
     box-shadow: var(--shadow-soft-xs);
     border-radius: var(--radius);
@@ -313,8 +309,8 @@
 
   /* Sidebar - Clean white */
   .glass-sidebar {
-    background: white;
-    border-right: 1px solid hsl(220 13% 91%);
+    background: hsl(var(--card));
+    border-right: 1px solid hsl(var(--border));
   }
 
   .dark .glass-sidebar {
@@ -338,15 +334,11 @@
 
   /* Status filter cards (Repository page) */
   .status-card {
-    background: white;
+    background: hsl(var(--card));
     border-radius: var(--radius);
     padding: 1rem 1.25rem;
     border: 1px solid hsl(var(--border));
     transition: all 0.2s;
-  }
-
-  .dark .status-card {
-    background: hsl(225 18% 13%);
   }
 
   .status-card:hover {
@@ -366,8 +358,8 @@
 
   /* Info card header */
   .info-card-header {
-    background: hsl(220 14% 98% / 0.7);
-    border-bottom: 1px solid hsl(220 13% 91% / 0.5);
+    background: hsl(var(--muted) / 0.7);
+    border-bottom: 1px solid hsl(var(--border) / 0.5);
   }
 
   .dark .info-card-header {
@@ -399,6 +391,21 @@
 /* Thumb: always white, even in dark mode */
 .switch-thumb {
   background-color: #ffffff !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   DOCUMENT TYPE BADGE (Repository - Inline-Variable-basiert)
+   Nutzt CSS custom properties von style={{ --dtb-bg, --dtb-text, ... }}
+   damit Dark Mode mit Inline-Styles funktioniert.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.doc-type-badge {
+  background-color: var(--dtb-bg);
+  color: var(--dtb-text);
+}
+.dark .doc-type-badge {
+  background-color: var(--dtb-dark-bg);
+  color: var(--dtb-dark-text);
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════

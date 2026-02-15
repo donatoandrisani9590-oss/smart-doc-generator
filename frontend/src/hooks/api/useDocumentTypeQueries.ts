@@ -28,6 +28,8 @@ export interface DocumentType {
     default_notice_period?: string;
     default_vacation_days?: number;
     default_weekly_hours?: number;
+    // Rechtsstand (letzte Aktualisierung der Vorlage)
+    updated_at?: string | null;
 }
 
 export const useDocumentTypes = (countryCode?: string) => {

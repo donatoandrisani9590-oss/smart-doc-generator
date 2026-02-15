@@ -437,6 +437,153 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
+   DARK MODE SUPPORT
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Document Preview Container ── */
+.dark .magic-preview-container {
+    background: hsl(225 18% 13%);
+    border-color: hsl(225 12% 20%);
+    color: hsl(220 10% 85%);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+
+.dark .magic-preview-container h1 {
+    color: hsl(220 10% 92%);
+}
+
+.dark .magic-preview-container h2 {
+    color: hsl(220 10% 88%);
+}
+
+.dark .magic-preview-container h3 {
+    color: hsl(220 10% 82%);
+}
+
+/* ── Document Tables ── */
+.dark .magic-preview-container .doc-table th,
+.dark .magic-preview-container .doc-table td {
+    border-color: hsl(225 12% 22%);
+}
+
+.dark .magic-preview-container .doc-table th {
+    background: hsl(225 14% 16%);
+    color: hsl(220 10% 85%);
+}
+
+.dark .magic-preview-container .doc-table tr:nth-child(even) {
+    background: hsl(225 14% 14%);
+}
+
+/* ── Detected Value Tooltip ── */
+.dark .detected-value::before {
+    background: hsl(225 18% 20%);
+    color: hsl(220 10% 92%);
+}
+
+/* ── Mapping Cards ── */
+.dark .mapping-card {
+    background: hsl(225 18% 13%);
+    border-color: hsl(225 12% 20%);
+}
+
+.dark .mapping-card:hover {
+    border-color: hsl(225 12% 28%);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.dark .mapping-card.selected {
+    border-color: hsl(228 58% 55%);
+    box-shadow: 0 0 0 3px hsl(228 58% 55% / 0.2);
+}
+
+.dark .mapping-card.confirmed {
+    background: hsl(140 25% 14%);
+    border-color: hsl(140 30% 28%);
+}
+
+.dark .mapping-card-value {
+    background: hsl(225 14% 16%);
+    border-color: hsl(225 12% 22%);
+    color: hsl(220 10% 88%);
+}
+
+/* ── Confidence Badges ── */
+.dark .confidence-badge.high {
+    background: hsl(140 25% 16%);
+    color: hsl(140 60% 68%);
+    border-color: hsl(140 25% 28%);
+}
+
+.dark .confidence-badge.medium {
+    background: hsl(45 25% 16%);
+    color: hsl(45 78% 66%);
+    border-color: hsl(45 22% 28%);
+}
+
+.dark .confidence-badge.low {
+    background: hsl(0 25% 16%);
+    color: hsl(0 72% 72%);
+    border-color: hsl(0 22% 28%);
+}
+
+/* ── Type Badges ── */
+.dark .type-badge.date {
+    background: hsl(220 30% 18%);
+    color: hsl(220 78% 72%);
+    border-color: hsl(220 25% 28%);
+}
+
+.dark .type-badge.currency {
+    background: hsl(140 25% 16%);
+    color: hsl(140 60% 68%);
+    border-color: hsl(140 25% 28%);
+}
+
+.dark .type-badge.number {
+    background: hsl(270 25% 18%);
+    color: hsl(270 60% 72%);
+    border-color: hsl(270 22% 28%);
+}
+
+.dark .type-badge.name {
+    background: hsl(25 25% 16%);
+    color: hsl(25 78% 68%);
+    border-color: hsl(25 22% 28%);
+}
+
+.dark .type-badge.address {
+    background: hsl(170 25% 14%);
+    color: hsl(170 60% 65%);
+    border-color: hsl(170 22% 25%);
+}
+
+.dark .type-badge.email {
+    background: hsl(235 25% 18%);
+    color: hsl(235 60% 72%);
+    border-color: hsl(235 22% 28%);
+}
+
+.dark .type-badge.phone {
+    background: hsl(330 25% 16%);
+    color: hsl(330 60% 72%);
+    border-color: hsl(330 22% 28%);
+}
+
+/* ── Keyboard Hint ── */
+.dark .keyboard-hint {
+    background: hsl(225 14% 18%);
+    border-color: hsl(225 12% 28%);
+    color: hsl(220 8% 60%);
+    box-shadow: 0 1px 0 hsl(225 12% 22%);
+}
+
+/* ── Progress Indicator ── */
+.dark .mapping-progress {
+    background: hsl(225 14% 18%);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
    RESPONSIVE ADJUSTMENTS
    ═══════════════════════════════════════════════════════════════════════════ */
 

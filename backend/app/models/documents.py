@@ -75,6 +75,7 @@ class DocumentType(Base):
     visibility = Column(String(20), default="global", index=True)
     created_by_user_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
     clauses = relationship("DocumentTypeClause", back_populates="document_type", order_by="DocumentTypeClause.display_order")
     variant_groups = relationship("DocumentTypeVariantGroup", back_populates="document_type", order_by="DocumentTypeVariantGroup.display_order")

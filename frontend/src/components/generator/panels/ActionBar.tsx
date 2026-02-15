@@ -14,12 +14,19 @@
 
 import { useState, useMemo, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Save, FileText, FileType2, Loader2, AlertCircle, CheckCircle2, Cloud, CloudOff } from "lucide-react";
+import { Save, FileText, FileType2, Loader2, AlertCircle, CheckCircle2, Cloud, CloudOff, Download, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useToast } from "@/components/ui/toast";
 import { useWizardContext } from "../WizardContext";
 import { ValidationProgress, type ValidationState, type ValidationIssue } from "../ValidationProgress";
 import { ExportSuccessModal } from "../ExportSuccessModal";
+import { ExportReviewModal } from "../ExportReviewModal";
 
 // Pflichtfelder Definition
 const REQUIRED_FIELDS = [
@@ -43,6 +50,10 @@ export const ActionBar = () => {
 
     // Guard against double-click race condition (setState is async)
     const exportInProgressRef = useRef(false);
+
+    // Export Review Modal state (Zusammenfassung vor Export)
+    const [showReviewModal, setShowReviewModal] = useState(false);
+    const [reviewExportFormat, setReviewExportFormat] = useState<"pdf" | "docx">("pdf");
 
     // Export Success Modal state
     const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -144,44 +155,59 @@ export const ActionBar = () => {
         }
     };
 
-    // PDF Export (with double-click guard)
-    const handleExportPdf = async () => {
-        if (!canExport || exportInProgressRef.current) return;
+    // Review-Modal öffnen statt direkt exportieren
+    const handleOpenReview = useCallback((format: "pdf" | "docx") => {
+        setReviewExportFormat(format);
+        setShowReviewModal(true);
+    }, []);
+
+    // Shared export logic (DRY)
+    const performExport = async (format: "pdf" | "docx"): Promise<boolean> => {
+        if (!canExport || exportInProgressRef.current) return false;
         exportInProgressRef.current = true;
-        setIsExportingPdf(true);
+        if (format === "pdf") setIsExportingPdf(true);
+        else setIsExportingDocx(true);
+
         try {
-            await actions.exportDocument("pdf");
-            setLastExportFormat("pdf");
-            setShowSuccessModal(true);
+            await actions.exportDocument(format);
+            return true;
+        } catch (err) {
+            toast.error(
+                "Export fehlgeschlagen",
+                err instanceof Error ? err.message : "Bitte versuchen Sie es erneut.",
+            );
+            return false;
         } finally {
-            setIsExportingPdf(false);
+            if (format === "pdf") setIsExportingPdf(false);
+            else setIsExportingDocx(false);
             exportInProgressRef.current = false;
         }
     };
 
-    // DOCX Export (with double-click guard)
-    const handleExportDocx = async () => {
-        if (!canExport || exportInProgressRef.current) return;
-        exportInProgressRef.current = true;
-        setIsExportingDocx(true);
-        try {
-            await actions.exportDocument("docx");
-            setLastExportFormat("docx");
+    // Export nach Review-Bestätigung
+    const handleConfirmExport = async () => {
+        const format = reviewExportFormat;
+        const success = await performExport(format);
+        setShowReviewModal(false);
+        if (success) {
+            setLastExportFormat(format);
             setShowSuccessModal(true);
-        } finally {
-            setIsExportingDocx(false);
-            exportInProgressRef.current = false;
         }
     };
 
-    // Download Again from Modal
+    // Direct export (für Download Again — überspringt Review)
+    const handleDirectExport = async (format: "pdf" | "docx") => {
+        const success = await performExport(format);
+        if (success) {
+            setLastExportFormat(format);
+            setShowSuccessModal(true);
+        }
+    };
+
+    // Download Again from Success Modal (skips review)
     const handleDownloadAgain = async (format: "pdf" | "docx") => {
         setShowSuccessModal(false);
-        if (format === "pdf") {
-            await handleExportPdf();
-        } else {
-            await handleExportDocx();
-        }
+        await handleDirectExport(format);
     };
 
     // Navigate to "Meine Dokumente" from success modal
@@ -242,53 +268,66 @@ export const ActionBar = () => {
                 Als Entwurf speichern
             </Button>
 
-            {/* Export Buttons */}
-            <div className="grid grid-cols-2 gap-2">
+            {/* Export Button mit Format-Auswahl */}
+            {canExport ? (
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button
+                            variant="default"
+                            className="w-full gap-2"
+                            disabled={isAnyLoading}
+                        >
+                            {(isExportingPdf || isExportingDocx) ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                                <Download className="w-4 h-4" />
+                            )}
+                            {isExportingPdf ? "Exportiert PDF…" : isExportingDocx ? "Exportiert DOCX…" : "Exportieren"}
+                            {!isAnyLoading && <ChevronDown className="w-3.5 h-3.5 ml-auto opacity-60" />}
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="center" className="w-[calc(var(--radix-dropdown-menu-trigger-width))]">
+                        <DropdownMenuItem onClick={() => handleOpenReview("pdf")} className="gap-2 cursor-pointer">
+                            <FileText className="w-4 h-4 text-red-500" />
+                            Als PDF exportieren
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleOpenReview("docx")} className="gap-2 cursor-pointer">
+                            <FileType2 className="w-4 h-4 text-blue-500" />
+                            Als DOCX exportieren
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            ) : (
                 <Button
                     variant="default"
-                    className="gap-2"
-                    onClick={canExport ? handleExportPdf : handleDisabledExportClick}
+                    className="w-full gap-2"
+                    onClick={handleDisabledExportClick}
                     disabled={isAnyLoading}
-                    data-disabled={!canExport}
                 >
-                    {isExportingPdf ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : !canExport ? (
-                        <AlertCircle className="w-4 h-4" />
-                    ) : (
-                        <FileText className="w-4 h-4" />
-                    )}
-                    PDF
+                    <AlertCircle className="w-4 h-4" />
+                    Exportieren
                 </Button>
-                <Button
-                    variant="secondary"
-                    className="gap-2"
-                    onClick={canExport ? handleExportDocx : handleDisabledExportClick}
-                    disabled={isAnyLoading}
-                    data-disabled={!canExport}
-                >
-                    {isExportingDocx ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : !canExport ? (
-                        <AlertCircle className="w-4 h-4" />
-                    ) : (
-                        <FileType2 className="w-4 h-4" />
-                    )}
-                    DOCX
-                </Button>
-            </div>
+            )}
 
             {/* Hinweis wenn nicht exportierbar */}
-            {!canExport && !validationState.isValid && (
+            {!canExport && (
                 <p className="text-xs text-muted-foreground text-center">
-                    Bitte füllen Sie alle Pflichtfelder und den Dokumenttitel aus.
+                    {!documentTypeId
+                        ? "Bitte wählen Sie einen Dokumenttyp."
+                        : "Bitte füllen Sie alle Pflichtfelder aus."}
                 </p>
             )}
-            {!canExport && validationState.isValid && !documentTypeId && (
-                <p className="text-xs text-muted-foreground text-center">
-                    Bitte wählen Sie einen Dokumenttyp.
-                </p>
-            )}
+
+            {/* Export Review Modal (Zusammenfassung vor Export) */}
+            <ExportReviewModal
+                isOpen={showReviewModal}
+                onClose={() => setShowReviewModal(false)}
+                onConfirm={handleConfirmExport}
+                isExporting={isExportingPdf || isExportingDocx}
+                exportFormat={reviewExportFormat}
+                documentTitle={documentTitle}
+                formData={formData}
+            />
 
             {/* Export Success Modal */}
             <ExportSuccessModal

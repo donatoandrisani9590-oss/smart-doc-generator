@@ -8,11 +8,17 @@
  * v4.2.2: i18n-Unterstützung für DE/IT Dokumenttypen
  */
 
-import { useMemo } from "react";
+import { useMemo, useState, useCallback } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
     Select,
     SelectContent,
@@ -20,8 +26,171 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, Info, AlertCircle } from "lucide-react";
 import { useWizardContext } from "../WizardContext";
+
+// ══════════════════════════════════════════════════════════════════════════════
+// KONTEXTUELLE HILFETEXTE (PACTA-inspiriert)
+// Juristisch relevante Felder erhalten Erklärungen + Beispiele
+// ══════════════════════════════════════════════════════════════════════════════
+
+const FIELD_HINTS: Record<string, { de: string; it: string }> = {
+    probezeit: {
+        de: "Maximal 6 Monate zulässig (§ 622 Abs. 3 BGB). Während der Probezeit gilt eine verkürzte Kündigungsfrist von 2 Wochen.",
+        it: "Massimo 6 mesi consentiti (§ 622 comma 3 BGB). Durante il periodo di prova si applica un preavviso ridotto di 2 settimane.",
+    },
+    kuendigungsfrist: {
+        de: "Gesetzliches Minimum: 4 Wochen zum 15. oder Monatsende (§ 622 BGB). Die Frist verlängert sich mit der Betriebszugehörigkeit.",
+        it: "Minimo legale: 4 settimane al 15 o a fine mese (§ 622 BGB). Il termine si allunga con l'anzianità aziendale.",
+    },
+    gehalt: {
+        de: "Bruttogehalt pro Monat. Beachten Sie den geltenden Mindestlohn (2025: 12,82 €/h) und eventuelle Tarifverträge.",
+        it: "Retribuzione lorda mensile. Rispettare il salario minimo vigente (2025: 12,82 €/h) e eventuali contratti collettivi.",
+    },
+    wochenstunden: {
+        de: "Reguläre Arbeitszeit. Vollzeit i.d.R. 35–40 Std. Teilzeit unter 35 Std. Maximum 48 Std/Woche (§ 3 ArbZG).",
+        it: "Orario di lavoro regolare. Tempo pieno: 35–40 ore. Part-time: sotto 35 ore. Massimo 48 ore/settimana (§ 3 ArbZG).",
+    },
+    urlaubstage: {
+        de: "Gesetzliches Minimum: 20 Tage bei 5-Tage-Woche (§ 3 BUrlG). Branchenüblich sind 25–30 Tage.",
+        it: "Minimo legale: 20 giorni con settimana di 5 giorni (§ 3 BUrlG). Standard di settore: 25–30 giorni.",
+    },
+    entgeltgruppe: {
+        de: "Tarifliche Eingruppierung, z.B. E9 (TVöD), EG 5 (IG Metall). Nur relevant bei tarifgebundenen Unternehmen.",
+        it: "Classificazione tariffaria, es. E9 (TVöD), EG 5 (IG Metall). Rilevante solo per aziende con contratto collettivo.",
+    },
+    au_frist: {
+        de: "Ab wann muss eine Arbeitsunfähigkeitsbescheinigung vorgelegt werden? Gesetzlich ab dem 4. Tag, vertraglich oft ab dem 1. Tag.",
+        it: "Da quando è necessario presentare un certificato medico? Per legge dal 4° giorno, contrattualmente spesso dal 1° giorno.",
+    },
+    vertragsstrafe: {
+        de: "Darf maximal ein Bruttomonatsgehalt betragen. Nur bei schuldhafter Vertragsverletzung durchsetzbar.",
+        it: "Non può superare uno stipendio lordo mensile. Applicabile solo in caso di violazione contrattuale colposa.",
+    },
+    vwl_betrag: {
+        de: "Vermögenswirksame Leistungen: Arbeitgeberzuschuss zum Vermögensaufbau. Üblich sind 26,59 € bis 40 € monatlich.",
+        it: "Prestazioni patrimoniali: contributo del datore per la formazione del patrimonio. Importo comune: 26,59 € – 40 € mensili.",
+    },
+    signatory_name: {
+        de: "Name der vertretungsberechtigten Person (Geschäftsführer, Personalleiter oder Prokurist mit Vollmacht).",
+        it: "Nome della persona autorizzata a firmare (amministratore delegato, responsabile del personale o procuratore con delega).",
+    },
+};
+
+/**
+ * FieldHint - Info-Icon mit Tooltip für kontextuelle Hilfetexte
+ */
+const FieldHint = ({ fieldKey, lang }: { fieldKey: string; lang: "de" | "it" }) => {
+    const hint = FIELD_HINTS[fieldKey];
+    if (!hint) return null;
+
+    return (
+        <Tooltip delayDuration={200}>
+            <TooltipTrigger asChild>
+                <button
+                    type="button"
+                    className="inline-flex items-center justify-center w-3.5 h-3.5 ml-1 text-muted-foreground/50 hover:text-primary transition-colors rounded-full"
+                    aria-label="Hilfe"
+                    tabIndex={-1}
+                >
+                    <Info className="w-3 h-3" />
+                </button>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="max-w-[260px] text-xs leading-relaxed">
+                {hint[lang]}
+            </TooltipContent>
+        </Tooltip>
+    );
+};
+
+// ══════════════════════════════════════════════════════════════════════════════
+// INLINE-FELD-VALIDIERUNG
+// Fachliche Regeln werden nach onBlur angezeigt (touched-Tracking)
+// ══════════════════════════════════════════════════════════════════════════════
+
+type ValidationRule = {
+    /** Prüft ob der Wert ungültig ist — gibt Fehlermeldung zurück oder null */
+    validate: (value: string) => { de: string; it: string } | null;
+};
+
+const FIELD_VALIDATIONS: Record<string, ValidationRule> = {
+    gehalt: {
+        validate: (v) => {
+            const num = parseFloat(v);
+            if (v && !isNaN(num) && num < 0) {
+                return {
+                    de: "Gehalt darf nicht negativ sein.",
+                    it: "La retribuzione non può essere negativa.",
+                };
+            }
+            // Mindestlohn-Warnung: 12,82 €/h × 173,33 Std ≈ 2.222 €/Monat
+            if (v && !isNaN(num) && num > 0 && num < 2222) {
+                return {
+                    de: "Liegt unter dem Mindestlohn (ca. 2.222 €/Monat bei Vollzeit).",
+                    it: "Inferiore al salario minimo (ca. 2.222 €/mese a tempo pieno).",
+                };
+            }
+            return null;
+        },
+    },
+    wochenstunden: {
+        validate: (v) => {
+            const num = parseFloat(v);
+            if (v && !isNaN(num) && num > 48) {
+                return {
+                    de: "Maximum 48 Std/Woche (§ 3 ArbZG).",
+                    it: "Massimo 48 ore/settimana (§ 3 ArbZG).",
+                };
+            }
+            if (v && !isNaN(num) && num < 1) {
+                return {
+                    de: "Wochenstunden müssen mindestens 1 betragen.",
+                    it: "Le ore settimanali devono essere almeno 1.",
+                };
+            }
+            return null;
+        },
+    },
+    urlaubstage: {
+        validate: (v) => {
+            const num = parseInt(v, 10);
+            if (v && !isNaN(num) && num < 20) {
+                return {
+                    de: "Gesetzliches Minimum: 20 Tage (§ 3 BUrlG).",
+                    it: "Minimo legale: 20 giorni (§ 3 BUrlG).",
+                };
+            }
+            if (v && !isNaN(num) && num > 45) {
+                return {
+                    de: "Ungewöhnlich hoch — bitte überprüfen.",
+                    it: "Insolitamente alto — si prega di verificare.",
+                };
+            }
+            return null;
+        },
+    },
+    plz: {
+        validate: (v) => {
+            if (v && !/^\d{4,5}$/.test(v.trim())) {
+                return {
+                    de: "PLZ muss 4–5 Ziffern haben.",
+                    it: "Il CAP deve avere 4–5 cifre.",
+                };
+            }
+            return null;
+        },
+    },
+};
+
+/**
+ * FieldError - Inline-Fehlermeldung unter dem Input
+ */
+const FieldError = ({ message }: { message: string }) => (
+    <p className="flex items-center gap-1 text-[11px] text-destructive mt-0.5 animate-in fade-in slide-in-from-top-1 duration-200">
+        <AlertCircle className="w-3 h-3 shrink-0" />
+        {message}
+    </p>
+);
 
 // Definition der Pflichtfelder für die Fortschrittsanzeige
 const REQUIRED_FIELDS = [
@@ -147,11 +316,50 @@ interface FormFieldsSectionProps {
 
 export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) => {
     const { state, actions } = useWizardContext();
-    const { formData, validationErrors } = state;
+    const { formData } = state;
 
     // Ermittle Sprache aus countryCode (IT → it, sonst de)
     const lang: LanguageCode = countryCode?.toUpperCase() === "IT" ? "it" : "de";
     const labels = FIELD_LABELS[lang];
+
+    // ── Touched-Tracking für Inline-Validierung ─────────────────────────
+    const [touched, setTouched] = useState<Set<string>>(new Set());
+
+    const markTouched = useCallback((field: string) => {
+        setTouched(prev => {
+            if (prev.has(field)) return prev;
+            const next = new Set(prev);
+            next.add(field);
+            return next;
+        });
+    }, []);
+
+    /** Gibt Inline-Fehler für ein Feld zurück (nur wenn touched) */
+    const getInlineError = useCallback((field: string, value: string): string | null => {
+        if (!touched.has(field)) return null;
+
+        // 1. Pflichtfeld-Prüfung
+        if (REQUIRED_FIELDS.includes(field as typeof REQUIRED_FIELDS[number]) && !value.trim()) {
+            return lang === "de" ? "Pflichtfeld" : "Campo obbligatorio";
+        }
+
+        // 2. Fachliche Validierung
+        const rule = FIELD_VALIDATIONS[field];
+        if (rule) {
+            const result = rule.validate(value);
+            if (result) return result[lang];
+        }
+
+        return null;
+    }, [touched, lang]);
+
+    /** CSS-Klasse für ein validiertes Input-Feld */
+    const fieldClass = useCallback((field: string, value: string, extra?: string): string => {
+        const error = getInlineError(field, value);
+        const baseClass = "h-8 text-sm";
+        const errorClass = error ? "border-red-500 focus-visible:ring-red-500/30" : "";
+        return [baseClass, errorClass, extra].filter(Boolean).join(" ");
+    }, [getInlineError]);
 
     // Berechne ausgefüllte Pflichtfelder (inkl. Dokumenttitel für konsistente Zählung)
     const requiredFieldsProgress = useMemo(() => {
@@ -166,10 +374,8 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
         return { filled, total, percentage };
     }, [formData, state.documentTitle]);
 
-    const getError = (field: string) =>
-        validationErrors.find((e) => e.field === field)?.message;
-
     return (
+        <TooltipProvider>
         <div className="space-y-4 p-3 bg-background rounded-lg border">
             {/* Fortschrittsanzeige für Pflichtfelder */}
             <div className="space-y-2 pb-3 border-b">
@@ -210,8 +416,12 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
                             id="vorname"
                             value={formData.vorname}
                             onChange={(e) => actions.updateFormField("vorname", e.target.value)}
-                            className={`h-8 text-sm ${getError("vorname") ? "border-destructive" : ""}`}
+                            onBlur={() => markTouched("vorname")}
+                            className={fieldClass("vorname", formData.vorname)}
                         />
+                        {getInlineError("vorname", formData.vorname) && (
+                            <FieldError message={getInlineError("vorname", formData.vorname)!} />
+                        )}
                     </div>
                     <div className="space-y-1">
                         <Label htmlFor="nachname" className="text-xs">
@@ -221,8 +431,12 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
                             id="nachname"
                             value={formData.nachname}
                             onChange={(e) => actions.updateFormField("nachname", e.target.value)}
-                            className={`h-8 text-sm ${getError("nachname") ? "border-destructive" : ""}`}
+                            onBlur={() => markTouched("nachname")}
+                            className={fieldClass("nachname", formData.nachname)}
                         />
+                        {getInlineError("nachname", formData.nachname) && (
+                            <FieldError message={getInlineError("nachname", formData.nachname)!} />
+                        )}
                     </div>
                 </div>
 
@@ -244,8 +458,12 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
                             id="plz"
                             value={formData.plz}
                             onChange={(e) => actions.updateFormField("plz", e.target.value)}
-                            className="h-8 text-sm"
+                            onBlur={() => markTouched("plz")}
+                            className={fieldClass("plz", formData.plz)}
                         />
+                        {getInlineError("plz", formData.plz) && (
+                            <FieldError message={getInlineError("plz", formData.plz)!} />
+                        )}
                     </div>
                     <div className="space-y-1">
                         <Label htmlFor="ort" className="text-xs">{labels.ort}</Label>
@@ -284,24 +502,33 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
                         id="position"
                         value={formData.position}
                         onChange={(e) => actions.updateFormField("position", e.target.value)}
+                        onBlur={() => markTouched("position")}
                         placeholder={labels.position_placeholder}
-                        className={`h-8 text-sm ${getError("position") ? "border-destructive" : ""}`}
+                        className={fieldClass("position", formData.position)}
                     />
+                    {getInlineError("position", formData.position) && (
+                        <FieldError message={getInlineError("position", formData.position)!} />
+                    )}
                 </div>
 
                 <div className="space-y-3">
                     <div className="space-y-1">
-                        <Label htmlFor="gehalt" className="text-xs">
+                        <Label htmlFor="gehalt" className="text-xs flex items-center">
                             {labels.gehalt} <span className="text-destructive">*</span>
+                            <FieldHint fieldKey="gehalt" lang={lang} />
                         </Label>
                         <Input
                             id="gehalt"
                             type="number"
                             value={formData.gehalt}
                             onChange={(e) => actions.updateFormField("gehalt", e.target.value)}
+                            onBlur={() => markTouched("gehalt")}
                             placeholder={labels.gehalt_placeholder}
-                            className={`h-8 text-sm ${getError("gehalt") ? "border-destructive" : ""}`}
+                            className={fieldClass("gehalt", formData.gehalt)}
                         />
+                        {getInlineError("gehalt", formData.gehalt) && (
+                            <FieldError message={getInlineError("gehalt", formData.gehalt)!} />
+                        )}
                     </div>
                     <div className="space-y-1">
                         <Label htmlFor="eintrittsdatum" className="text-xs">
@@ -312,36 +539,57 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
                             type="date"
                             value={formData.eintrittsdatum}
                             onChange={(e) => actions.updateFormField("eintrittsdatum", e.target.value)}
-                            className={`h-8 text-sm ${getError("eintrittsdatum") ? "border-destructive" : ""}`}
+                            onBlur={() => markTouched("eintrittsdatum")}
+                            className={fieldClass("eintrittsdatum", formData.eintrittsdatum)}
                         />
+                        {getInlineError("eintrittsdatum", formData.eintrittsdatum) && (
+                            <FieldError message={getInlineError("eintrittsdatum", formData.eintrittsdatum)!} />
+                        )}
                     </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2">
                     <div className="space-y-1">
-                        <Label htmlFor="wochenstunden" className="text-xs">{labels.wochenstunden}</Label>
+                        <Label htmlFor="wochenstunden" className="text-xs flex items-center">
+                            {labels.wochenstunden}
+                            <FieldHint fieldKey="wochenstunden" lang={lang} />
+                        </Label>
                         <Input
                             id="wochenstunden"
                             type="number"
                             value={formData.wochenstunden}
                             onChange={(e) => actions.updateFormField("wochenstunden", e.target.value)}
-                            className="h-8 text-sm"
+                            onBlur={() => markTouched("wochenstunden")}
+                            className={fieldClass("wochenstunden", formData.wochenstunden)}
                         />
+                        {getInlineError("wochenstunden", formData.wochenstunden) && (
+                            <FieldError message={getInlineError("wochenstunden", formData.wochenstunden)!} />
+                        )}
                     </div>
                     <div className="space-y-1">
-                        <Label htmlFor="urlaubstage" className="text-xs">{labels.urlaubstage}</Label>
+                        <Label htmlFor="urlaubstage" className="text-xs flex items-center">
+                            {labels.urlaubstage}
+                            <FieldHint fieldKey="urlaubstage" lang={lang} />
+                        </Label>
                         <Input
                             id="urlaubstage"
                             type="number"
                             value={formData.urlaubstage}
                             onChange={(e) => actions.updateFormField("urlaubstage", e.target.value)}
-                            className="h-8 text-sm"
+                            onBlur={() => markTouched("urlaubstage")}
+                            className={fieldClass("urlaubstage", formData.urlaubstage)}
                         />
+                        {getInlineError("urlaubstage", formData.urlaubstage) && (
+                            <FieldError message={getInlineError("urlaubstage", formData.urlaubstage)!} />
+                        )}
                     </div>
                 </div>
 
                 <div className="space-y-1">
-                    <Label htmlFor="probezeit" className="text-xs">{labels.probezeit}</Label>
+                    <Label htmlFor="probezeit" className="text-xs flex items-center">
+                        {labels.probezeit}
+                        <FieldHint fieldKey="probezeit" lang={lang} />
+                    </Label>
                     <Select
                         value={formData.probezeit}
                         onValueChange={(v) => actions.updateFormField("probezeit", v)}
@@ -358,7 +606,10 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
                 </div>
 
                 <div className="space-y-1">
-                    <Label htmlFor="entgeltgruppe" className="text-xs">{labels.entgeltgruppe}</Label>
+                    <Label htmlFor="entgeltgruppe" className="text-xs flex items-center">
+                        {labels.entgeltgruppe}
+                        <FieldHint fieldKey="entgeltgruppe" lang={lang} />
+                    </Label>
                     <Input
                         id="entgeltgruppe"
                         value={formData.entgeltgruppe}
@@ -369,7 +620,10 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
                 </div>
 
                 <div className="space-y-1">
-                    <Label htmlFor="kuendigungsfrist" className="text-xs">{labels.kuendigungsfrist}</Label>
+                    <Label htmlFor="kuendigungsfrist" className="text-xs flex items-center">
+                        {labels.kuendigungsfrist}
+                        <FieldHint fieldKey="kuendigungsfrist" lang={lang} />
+                    </Label>
                     <Select
                         value={formData.kuendigungsfrist}
                         onValueChange={(v) => actions.updateFormField("kuendigungsfrist", v)}
@@ -386,7 +640,10 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
                 </div>
 
                 <div className="space-y-1">
-                    <Label htmlFor="au_frist" className="text-xs">{labels.au_frist}</Label>
+                    <Label htmlFor="au_frist" className="text-xs flex items-center">
+                        {labels.au_frist}
+                        <FieldHint fieldKey="au_frist" lang={lang} />
+                    </Label>
                     <Select
                         value={formData.au_frist}
                         onValueChange={(v) => actions.updateFormField("au_frist", v)}
@@ -435,7 +692,10 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
                             />
                         </div>
                         <div className="space-y-1">
-                            <Label htmlFor="vwl_betrag" className="text-xs">{labels.vwl_betrag}</Label>
+                            <Label htmlFor="vwl_betrag" className="text-xs flex items-center">
+                                {labels.vwl_betrag}
+                                <FieldHint fieldKey="vwl_betrag" lang={lang} />
+                            </Label>
                             <Input
                                 id="vwl_betrag"
                                 value={formData.vwl_betrag}
@@ -478,8 +738,9 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
                                 actions.updateFormField("vertragsstrafe", checked === true)
                             }
                         />
-                        <Label htmlFor="vertragsstrafe" className="text-sm cursor-pointer">
+                        <Label htmlFor="vertragsstrafe" className="text-sm cursor-pointer flex items-center">
                             {labels.vertragsstrafe}
+                            <FieldHint fieldKey="vertragsstrafe" lang={lang} />
                         </Label>
                     </div>
                     <div className="flex items-center space-x-2">
@@ -516,19 +777,25 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
                 </h4>
 
                 <div className="space-y-1">
-                    <Label htmlFor="signatory_name" className="text-xs">
+                    <Label htmlFor="signatory_name" className="text-xs flex items-center">
                         {labels.signatory_name} <span className="text-destructive">*</span>
+                        <FieldHint fieldKey="signatory_name" lang={lang} />
                     </Label>
                     <Input
                         id="signatory_name"
                         value={formData.signatory_name}
                         onChange={(e) => actions.updateFormField("signatory_name", e.target.value)}
+                        onBlur={() => markTouched("signatory_name")}
                         placeholder={labels.signatory_placeholder}
-                        className={`h-8 text-sm ${getError("signatory_name") ? "border-destructive" : ""}`}
+                        className={fieldClass("signatory_name", formData.signatory_name)}
                     />
+                    {getInlineError("signatory_name", formData.signatory_name) && (
+                        <FieldError message={getInlineError("signatory_name", formData.signatory_name)!} />
+                    )}
                 </div>
             </div>
         </div>
+        </TooltipProvider>
     );
 };
 

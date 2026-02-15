@@ -80,7 +80,7 @@ class RiskPattern(BaseModel):
 RISK_PATTERNS_DE: List[Dict[str, Any]] = [
     # KRITISCH: Unzulässige Rechtsverzichte
     {
-        "pattern": r"verzicht(et|en)?\s+(auf|den)\s+\w*\s*(anspruch|recht|urlaub|gehalt|lohn|vergütung)",
+        "pattern": r"verzicht(et|en)?\s+.{0,30}(anspruch|ansprüche|recht|rechte|urlaub|gehalt|lohn|vergütung)",
         "severity": RiskSeverity.CRITICAL,
         "title": "Unzulässiger Rechtsverzicht",
         "description": "Arbeitnehmer können nicht wirksam auf gesetzliche Mindestansprüche verzichten. Solche Textbausteine sind unwirksam.",
@@ -98,7 +98,7 @@ RISK_PATTERNS_DE: List[Dict[str, Any]] = [
         "category": "urlaub"
     },
     {
-        "pattern": r"(ausschluss|verzicht|verbot).{0,30}(gewerkschaft|betriebsrat|arbeitnehmervertretung|tarifvertrag)",
+        "pattern": r"(ausschluss|verzicht|verbot|darf\s+kein|nicht\s+beitreten|kein.{0,5}beitr).{0,40}(gewerkschaft|betriebsrat|arbeitnehmervertretung|tarifvertrag)|(gewerkschaft|betriebsrat).{0,40}(untersagt|verboten|ausgeschlossen|nicht\s+erlaubt|nicht\s+gestattet|darf\s+nicht)",
         "severity": RiskSeverity.CRITICAL,
         "title": "Verstoß gegen Koalitionsfreiheit",
         "description": "Einschränkungen der Gewerkschaftszugehörigkeit oder Betriebsratsarbeit sind verfassungswidrig.",
@@ -146,6 +146,28 @@ RISK_PATTERNS_DE: List[Dict[str, Any]] = [
         "suggestion": "Mindestens 4 Wochen Kündigungsfrist zum Monatsende vorsehen.",
         "category": "kuendigung",
         "value_check": "kuendigungsfrist_weeks < 4"
+    },
+
+    # Arbeitszeit-Überschreitung
+    {
+        "pattern": r"(wöchentliche\s+)?arbeitszeit.{0,30}?(\d+)\s*stunden",
+        "severity": RiskSeverity.HIGH,
+        "title": "Überhöhte Wochenarbeitszeit",
+        "description": "Die gesetzliche Höchstarbeitszeit beträgt 48 Stunden/Woche (8h × 6 Tage). Nur ausnahmsweise bis 60h bei Ausgleich innerhalb von 6 Monaten.",
+        "legal_reference": "§ 3, § 7 ArbZG",
+        "suggestion": "Wochenarbeitszeit auf maximal 40-48 Stunden begrenzen. Über 48h nur mit tarifvertraglicher Grundlage und Ausgleichszeitraum.",
+        "category": "arbeitszeit",
+        "value_check": "arbeitszeit_stunden > 48"
+    },
+    # Kündigungsausschluss/Kündigungsverbot
+    {
+        "pattern": r"(kündigung|kündigungs).{0,60}(ausgeschlossen|unzulässig|unwirksam|verzicht|nicht\s+möglich|nicht\s+gestattet|nicht\s+erlaubt)",
+        "severity": RiskSeverity.CRITICAL,
+        "title": "Unzulässiger Kündigungsausschluss",
+        "description": "Das ordentliche Kündigungsrecht kann nicht wirksam ausgeschlossen werden. Ein genereller Kündigungsverzicht ist unwirksam.",
+        "legal_reference": "§ 622 BGB, § 307 BGB",
+        "suggestion": "Textbaustein ersatzlos streichen. Beide Parteien behalten ihr Kündigungsrecht.",
+        "category": "kuendigung"
     },
 
     # MITTEL: Prüfenswerte Formulierungen
@@ -314,7 +336,7 @@ class ComplianceService:
 
         # Check cache (Redis via CacheService with memory fallback)
         if cache_enabled:
-            cache_key = compliance_scan_key(content_hash, country_code)
+            cache_key = compliance_scan_key(content_hash, country_code, use_llm)
             cached_data = await cache.get(cache_key)
             if cached_data:
                 logger.debug(f"Returning cached compliance scan: {content_hash}")
@@ -400,7 +422,7 @@ class ComplianceService:
         if cache_enabled:
             ttl = 7200 if use_llm else 3600  # 2h for LLM-enhanced, 1h for pattern-only
             await cache.set(
-                compliance_scan_key(content_hash, country_code),
+                compliance_scan_key(content_hash, country_code, use_llm),
                 result.model_dump(),
                 ttl=ttl,
             )

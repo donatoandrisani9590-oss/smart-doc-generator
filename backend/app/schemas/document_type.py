@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import Optional, List
+from datetime import datetime
 
 class DocumentTypeClauseLink(BaseModel):
     clause_id: int
@@ -81,11 +82,12 @@ class DocumentTypeInDBBase(DocumentTypeBase):
         from_attributes = True
 
 class DocumentType(DocumentTypeInDBBase):
-    pass
+    updated_at: Optional[datetime] = None
 
 
 class DocumentTypeWithVariantGroups(DocumentTypeInDBBase):
     """DocumentType mit zugeordneten Varianten-Gruppen (für Detail-View)."""
+    updated_at: Optional[datetime] = None
     variant_groups: List[DocumentTypeVariantGroupResponse] = []
 
 

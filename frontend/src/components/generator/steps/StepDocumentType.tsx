@@ -11,7 +11,7 @@
  */
 
 import { useState, useMemo, useEffect } from "react";
-import { FileText, ArrowRight, Search, Clock, Star, X, Sparkles, LayoutTemplate, ChevronDown } from "lucide-react";
+import { FileText, ArrowRight, Search, Clock, Star, X, Sparkles, LayoutTemplate, ChevronDown, Scale } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -28,6 +28,7 @@ interface DocumentType {
     id: number;
     name: string;
     category?: string;
+    updated_at?: string | null;
 }
 
 interface StepDocumentTypeProps {
@@ -63,6 +64,18 @@ const CATEGORY_LABELS: Record<string, string> = {
 function translateCategory(category: string): string {
     const lower = category.toLowerCase();
     return CATEGORY_LABELS[lower] || category;
+}
+
+/** Formatiert ein ISO-Datum als kurzen Rechtsstand-Text (z.B. "Stand: Feb 2025") */
+function formatRechtsstand(dateStr?: string | null): string | null {
+    if (!dateStr) return null;
+    try {
+        const date = new Date(dateStr);
+        if (isNaN(date.getTime())) return null;
+        return date.toLocaleDateString("de-DE", { month: "short", year: "numeric" });
+    } catch {
+        return null;
+    }
 }
 
 export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeProps) => {
@@ -193,7 +206,9 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
                 </div>
 
                 {/* Ausgewählter Typ - Deutliche Hervorhebung */}
-                {selectedType && (
+                {selectedType && (() => {
+                    const rechtsstand = formatRechtsstand(selectedType.updated_at);
+                    return (
                     <div className="flex items-center gap-3 p-3 bg-primary/5 border-l-4 border-l-primary border border-primary/10 rounded-lg">
                         <Star className="w-4 h-4 text-primary fill-primary shrink-0" />
                         <span className="font-medium text-foreground">{selectedType.name}</span>
@@ -201,6 +216,21 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
                             <Badge variant="outline" className="text-xs bg-white">
                                 {translateCategory(selectedType.category)}
                             </Badge>
+                        )}
+                        {rechtsstand && (
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Badge variant="outline" className="text-[10px] bg-white/80 text-muted-foreground gap-1 cursor-help">
+                                            <Scale className="w-3 h-3" />
+                                            Stand: {rechtsstand}
+                                        </Badge>
+                                    </TooltipTrigger>
+                                    <TooltipContent side="bottom" className="text-xs">
+                                        Letzte Aktualisierung der Vorlage
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
                         )}
                         <Button
                             variant="ghost"
@@ -211,7 +241,8 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
                             <X className="w-3 h-3" />
                         </Button>
                     </div>
-                )}
+                    );
+                })()}
 
                 {/* Dokumenttyp-Liste - Saubere Gruppierung */}
                 {showTypeList && <div className="border border-warm-200 rounded-lg overflow-hidden bg-white">
@@ -268,7 +299,9 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
                                         </span>
                                     </div>
                                     <div>
-                                        {types.map((type, idx) => (
+                                        {types.map((type, idx) => {
+                                            const stand = formatRechtsstand(type.updated_at);
+                                            return (
                                             <button
                                                 key={type.id}
                                                 onClick={() => handleDocumentTypeChange(type.id)}
@@ -285,11 +318,17 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
                                                     state.documentTypeId === type.id ? "text-primary" : "text-warm-400"
                                                 )} />
                                                 <span className={cn(
-                                                    "text-sm",
+                                                    "text-sm flex-1",
                                                     state.documentTypeId === type.id ? "font-medium text-foreground" : "text-foreground"
                                                 )}>{type.name}</span>
+                                                {stand && (
+                                                    <span className="text-[10px] text-muted-foreground/70 shrink-0">
+                                                        {stand}
+                                                    </span>
+                                                )}
                                             </button>
-                                        ))}
+                                            );
+                                        })}
                                     </div>
                                 </div>
                             ))}

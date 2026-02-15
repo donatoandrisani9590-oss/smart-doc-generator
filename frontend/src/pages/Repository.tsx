@@ -60,6 +60,30 @@ import { useUndo } from "@/hooks/useUndo";
 import { formatDistanceToNow } from "@/lib/dateUtils";
 import { MotionContainer, MotionListItem } from "@/components/ui/motion";
 
+// ── Dokumenttyp-Farbkodierung (Corporate Palette) ─────────────────────
+// Inline-Styles statt dynamischer Tailwind-Klassen (JIT kann dynamische Klassen nicht generieren)
+const DOC_TYPE_COLORS = [
+    { border: "#243186", badgeBg: "rgba(36,49,134,0.08)",  badgeText: "#243186", darkBadgeBg: "rgba(36,49,134,0.15)",  darkBadgeText: "#94A3D8" },  // Primary
+    { border: "#6EBD84", badgeBg: "rgba(110,189,132,0.10)", badgeText: "#6EBD84", darkBadgeBg: "rgba(110,189,132,0.15)", darkBadgeText: "#A8E8B8" }, // Secondary
+    { border: "#A8A2A0", badgeBg: "rgba(168,162,160,0.12)", badgeText: "#736B67", darkBadgeBg: "rgba(168,162,160,0.15)", darkBadgeText: "#C5BFBD" }, // Warm
+    { border: "#4A5EB0", badgeBg: "rgba(74,94,176,0.08)",  badgeText: "#4A5EB0", darkBadgeBg: "rgba(74,94,176,0.15)",  darkBadgeText: "#94A3D8" },  // Indigo-ish
+    { border: "#8B6EBD", badgeBg: "rgba(139,110,189,0.08)", badgeText: "#8B6EBD", darkBadgeBg: "rgba(139,110,189,0.15)", darkBadgeText: "#C4A8E8" }, // Purple
+    { border: "#BD6E6E", badgeBg: "rgba(189,110,110,0.08)", badgeText: "#BD6E6E", darkBadgeBg: "rgba(189,110,110,0.15)", darkBadgeText: "#E8A8A8" }, // Red-ish
+] as const;
+
+const getDocTypeColorIndex = (typeName: string): number => {
+    let hash = 0;
+    for (let i = 0; i < typeName.length; i++) {
+        hash = ((hash << 5) - hash + typeName.charCodeAt(i)) | 0;
+    }
+    return Math.abs(hash) % DOC_TYPE_COLORS.length;
+};
+
+const getDocTypeColor = (typeName?: string | null) => {
+    if (!typeName) return DOC_TYPE_COLORS[0]; // Fallback: Primary
+    return DOC_TYPE_COLORS[getDocTypeColorIndex(typeName)];
+};
+
 export const RepositoryPage = () => {
     const navigate = useNavigate();
     const toast = useToast();
@@ -561,12 +585,15 @@ export const RepositoryPage = () => {
                     ) : (
                         /* Unified View: Entwürfe + Dokumente */
                         <MotionContainer className="divide-y divide-warm-100 dark:divide-warm-700">
-                            {filteredItems.map((item, index) => (
+                            {filteredItems.map((item, index) => {
+                                const typeColor = getDocTypeColor(item.document_type_name);
+                                return (
                                 <MotionListItem
                                     key={`${item.type}-${item.id}`}
                                     index={index}
                                     disableInteraction
                                     className="flex items-center gap-4 px-4 py-3.5 transition-colors cursor-pointer group hover:bg-warm-50 dark:hover:bg-warm-800/40"
+                                    style={{ borderLeft: `4px solid ${typeColor.border}` }}
                                     onClick={() =>
                                         item.type === "draft"
                                             ? navigate(`/generate?draft=${item.id}`)
@@ -616,7 +643,17 @@ export const RepositoryPage = () => {
                                         </div>
                                         <div className="flex items-center gap-4 text-sm text-muted-foreground">
                                             {item.document_type_name && (
-                                                <span>{item.document_type_name}</span>
+                                                <span
+                                                    className="text-xs font-medium px-1.5 py-0.5 rounded doc-type-badge"
+                                                    style={{
+                                                        "--dtb-bg": typeColor.badgeBg,
+                                                        "--dtb-text": typeColor.badgeText,
+                                                        "--dtb-dark-bg": typeColor.darkBadgeBg,
+                                                        "--dtb-dark-text": typeColor.darkBadgeText,
+                                                    } as React.CSSProperties}
+                                                >
+                                                    {item.document_type_name}
+                                                </span>
                                             )}
                                             {item.employee_name && (
                                                 <span className="flex items-center gap-1">
@@ -678,7 +715,8 @@ export const RepositoryPage = () => {
                                         )}
                                     </div>
                                 </MotionListItem>
-                            ))}
+                                );
+                            })}
                         </MotionContainer>
                     )}
 

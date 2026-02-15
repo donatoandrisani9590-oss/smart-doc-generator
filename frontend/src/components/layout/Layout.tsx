@@ -165,7 +165,7 @@ export const Layout = () => {
                     tabIndex={-1}
                 >
                     <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">
-                        <div className="w-full animate-in fade-in duration-200">
+                        <div key={location.pathname} className="w-full animate-enter">
                             <Outlet />
                         </div>
                     </div>

@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate, useParams } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { lazy, Suspense } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { ErrorBoundary, PageErrorBoundary } from "@/components/ErrorBoundary";
@@ -37,11 +37,6 @@ function PageLoading() {
   );
 }
 
-// Redirect-Komponente für /composer/:draftId → /generate?draft=:draftId
-const ComposerDraftRedirect = () => {
-  const { draftId } = useParams<{ draftId: string }>();
-  return <Navigate to={`/generate?draft=${draftId}`} replace />;
-};
 
 function App() {
   return (
@@ -73,9 +68,8 @@ function App() {
                 <Route index element={<PageErrorBoundary><Dashboard /></PageErrorBoundary>} />
                 <Route path="generate" element={<PageErrorBoundary><DocumentGenerator /></PageErrorBoundary>} />
                 <Route path="bulk" element={<PageErrorBoundary><BulkUploadPage /></PageErrorBoundary>} />
-                {/* Composer versteckt - Redirect zu /generate (v4.2 UX-Refactoring) */}
-                <Route path="composer" element={<Navigate to="/generate" replace />} />
-                <Route path="composer/:draftId" element={<ComposerDraftRedirect />} />
+                {/* Legacy: /composer → /generate (v4.2 UX-Refactoring) */}
+                <Route path="composer/*" element={<Navigate to="/generate" replace />} />
                 <Route path="documents" element={<PageErrorBoundary><RepositoryPage /></PageErrorBoundary>} />
                 <Route path="documents/:documentId" element={<PageErrorBoundary><DocumentDetailPage /></PageErrorBoundary>} />
                 <Route path="search" element={<PageErrorBoundary><SearchPage /></PageErrorBoundary>} />

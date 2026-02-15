@@ -199,9 +199,10 @@ async def invalidate_all():
 # AI CACHE KEYS (Compliance, Consistency, AI Instructions)
 # ═══════════════════════════════════════════════════════════════════════════
 
-def compliance_scan_key(content_hash: str, country_code: str) -> str:
+def compliance_scan_key(content_hash: str, country_code: str, use_llm: bool = False) -> str:
     """Cache key for compliance scan results."""
-    return f"compliance:v1:{country_code}:{content_hash}"
+    mode = "llm" if use_llm else "pattern"
+    return f"compliance:v1:{mode}:{country_code}:{content_hash}"
 
 
 def consistency_check_key(check_hash: str) -> str:
