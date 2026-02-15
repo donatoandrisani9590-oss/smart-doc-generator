@@ -182,13 +182,13 @@ export const RightEditorPanel = () => {
 
                     {/* Toggle Chat-Assistent Sidebar */}
                     <Button
-                        variant={showChatSidebar ? "secondary" : "ghost"}
+                        variant={showChatSidebar ? "default" : "outline"}
                         size="sm"
                         onClick={handleToggleChat}
                         className="gap-1.5"
-                        title={showChatSidebar ? "Chat ausblenden" : "KI-Chat einblenden"}
                     >
                         <Sparkles className="w-4 h-4" />
+                        {showChatSidebar ? "Chat ausblenden" : "KI-Chat"}
                     </Button>
 
                     {/* Separator */}
