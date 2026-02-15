@@ -188,7 +188,7 @@ export const RightEditorPanel = () => {
                         className="gap-1.5"
                     >
                         <Sparkles className="w-4 h-4" />
-                        {showChatSidebar ? "Chat ausblenden" : "KI-Chat"}
+                        {showChatSidebar ? "Chat-Assistent ausblenden" : "KI-Chat — Chat-Assistent einblenden"}
                     </Button>
 
                     {/* Separator */}
