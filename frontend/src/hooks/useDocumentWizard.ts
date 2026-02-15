@@ -175,6 +175,7 @@ export function useDocumentWizard(initialDraftId?: number): WizardContextValue {
     const [editorContent, setEditorContentState] = useState("");
     const [hasLocalEdits, setHasLocalEdits] = useState(false);
     const [showCommentSidebar, setShowCommentSidebar] = useState(false);
+    const [showChatSidebar, setShowChatSidebar] = useState(false);
 
     const setEditorContent = useCallback((content: string, isManualEdit: boolean = true) => {
         setEditorContentState(content);
@@ -205,6 +206,10 @@ export function useDocumentWizard(initialDraftId?: number): WizardContextValue {
 
     const toggleCommentSidebar = useCallback(() => {
         setShowCommentSidebar(prev => !prev);
+    }, []);
+
+    const toggleChatSidebar = useCallback(() => {
+        setShowChatSidebar(prev => !prev);
     }, []);
 
     // ── 9. Export ────────────────────────────────────────────────────────────
@@ -271,6 +276,7 @@ export function useDocumentWizard(initialDraftId?: number): WizardContextValue {
         editorContent,
         hasLocalEdits,
         showCommentSidebar,
+        showChatSidebar,
         // Comments
         comments: commentsHook.comments,
         // Status
@@ -324,6 +330,7 @@ export function useDocumentWizard(initialDraftId?: number): WizardContextValue {
         setEditorContent,
         resetEditorToPreview,
         toggleCommentSidebar,
+        toggleChatSidebar,
         enterSplitScreenMode: nav.enterSplitScreenMode,
         // Comments
         addComment: commentsHook.addComment,

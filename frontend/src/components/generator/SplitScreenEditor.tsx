@@ -14,7 +14,9 @@ import { FileText, Eye } from "lucide-react";
 import { LeftControlPanel } from "./panels/LeftControlPanel";
 import { RightEditorPanel } from "./editor/RightEditorPanel";
 import { CommentSidebar } from "./comments/CommentSidebar";
+import { ChatAssistent } from "@/components/chat/ChatAssistent";
 import { useWizardContext } from "./WizardContext";
+import { useCountry } from "@/hooks/useCountry";
 
 interface DocumentType {
     id: number;
@@ -28,8 +30,9 @@ interface SplitScreenEditorProps {
 }
 
 export const SplitScreenEditor = ({ documentTypes }: SplitScreenEditorProps) => {
-    const { state } = useWizardContext();
-    const { showCommentSidebar } = state;
+    const { state, actions } = useWizardContext();
+    const { showCommentSidebar, showChatSidebar } = state;
+    const { country } = useCountry();
 
     // Mobile tab state: "form" oder "preview"
     const [mobileTab, setMobileTab] = useState<"form" | "preview">("form");
@@ -88,6 +91,30 @@ export const SplitScreenEditor = ({ documentTypes }: SplitScreenEditorProps) => 
                     }`}
                 >
                     <CommentSidebar />
+                </div>
+            )}
+
+            {/* Chat-Assistent Seitenleiste */}
+            {showChatSidebar && (
+                <div
+                    className={`w-full lg:w-[340px] bg-background border-t lg:border-t-0 lg:border-l overflow-hidden flex-shrink-0 max-h-[40vh] lg:max-h-none ${
+                        mobileTab === "preview" ? "block" : "hidden lg:block"
+                    }`}
+                >
+                    <ChatAssistent
+                        countryCode={country}
+                        context={{
+                            documentTitle: state.documentTitle,
+                            documentTypeId: state.documentTypeId,
+                            formData: state.formData,
+                        }}
+                        onInsertText={(text) => {
+                            actions.setEditorContent(
+                                state.editorContent + text,
+                                true
+                            );
+                        }}
+                    />
                 </div>
             )}
         </div>

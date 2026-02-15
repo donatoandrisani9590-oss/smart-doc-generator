@@ -159,6 +159,7 @@ export interface WizardState {
     editorContent: string;          // Aktueller TinyMCE-Inhalt
     hasLocalEdits: boolean;         // True wenn direkt im Editor bearbeitet
     showCommentSidebar: boolean;    // Kommentar-Panel sichtbar
+    showChatSidebar: boolean;       // Chat-Assistent-Panel sichtbar
 
     // Kommentare (Apple Pages Style)
     comments: Comment[];
@@ -228,6 +229,7 @@ export interface WizardActions {
     setEditorContent: (content: string, isUserEdit?: boolean) => void;
     resetEditorToPreview: () => void;
     toggleCommentSidebar: () => void;
+    toggleChatSidebar: () => void;
     enterSplitScreenMode: () => void;
 
     // Kommentar Actions
@@ -309,6 +311,7 @@ export const initialWizardState: WizardState = {
     editorContent: "",
     hasLocalEdits: false,
     showCommentSidebar: false,
+    showChatSidebar: false,
 
     comments: [],
 

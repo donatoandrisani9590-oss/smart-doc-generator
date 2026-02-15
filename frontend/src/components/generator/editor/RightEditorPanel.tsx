@@ -9,7 +9,7 @@
  */
 
 import { useState, useCallback, useRef, useMemo } from "react";
-import { Loader2, MessageSquarePlus, MessagesSquare, AlertTriangle } from "lucide-react";
+import { Loader2, MessageSquarePlus, MessagesSquare, AlertTriangle, Sparkles } from "lucide-react";
 import type { Editor as TinyMCEEditor } from "tinymce";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -39,6 +39,7 @@ export const RightEditorPanel = () => {
         hasLocalEdits,
         isPreviewLoading,
         showCommentSidebar,
+        showChatSidebar,
         userTemplateId,
         stationeryZones,
     } = state;
@@ -116,6 +117,11 @@ export const RightEditorPanel = () => {
         actions.toggleCommentSidebar();
     }, [actions]);
 
+    // Toggle chat sidebar
+    const handleToggleChat = useCallback(() => {
+        actions.toggleChatSidebar();
+    }, [actions]);
+
     // Reset to preview (discard local edits)
     const handleResetToPreview = useCallback(() => {
         actions.resetEditorToPreview();
@@ -173,6 +179,17 @@ export const RightEditorPanel = () => {
                         countryCode={country}
                         documentTypeId={state.documentTypeId}
                     />
+
+                    {/* Toggle Chat-Assistent Sidebar */}
+                    <Button
+                        variant={showChatSidebar ? "secondary" : "ghost"}
+                        size="sm"
+                        onClick={handleToggleChat}
+                        className="gap-1.5"
+                        title={showChatSidebar ? "Chat ausblenden" : "KI-Chat einblenden"}
+                    >
+                        <Sparkles className="w-4 h-4" />
+                    </Button>
 
                     {/* Separator */}
                     <div className="w-px h-5 bg-warm-200 mx-1" />
