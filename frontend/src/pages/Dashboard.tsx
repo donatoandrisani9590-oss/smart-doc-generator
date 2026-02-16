@@ -156,6 +156,16 @@ export const Dashboard = () => {
                                     Hochladen
                                 </Button>
                             )}
+                            {!hasNoDocumentTypes && (
+                                <Button
+                                    variant="outline"
+                                    className="h-10 px-5 border-2 border-white/40 bg-transparent text-white hover:bg-white/15 hover:border-white/60 hover:shadow-[0_4px_14px_rgba(255,255,255,0.2)] transition-all duration-300 ease-out rounded-full gap-2"
+                                    onClick={() => navigate("/agent")}
+                                >
+                                    <Sparkles className="w-4 h-4" />
+                                    KI-Assistent
+                                </Button>
+                            )}
                             <Button
                                 className="h-10 px-5 gap-2 bg-white text-[#243186] hover:bg-white/90 hover:shadow-[0_4px_14px_rgba(255,255,255,0.3)] transition-all duration-300 ease-out font-medium rounded-full border-2 border-white"
                                 onClick={() => hasNoDocumentTypes ? navigate("/settings?tab=templates") : setWizardOpen(true)}
@@ -214,12 +224,19 @@ export const Dashboard = () => {
                         <div className="p-3 bg-primary/10 rounded-xl">
                             <Sparkles className="w-6 h-6 text-primary" />
                         </div>
-                        <div>
+                        <div className="flex-1">
                             <h2 className="text-lg font-semibold text-foreground">KI-Dokumentassistent</h2>
                             <p className="text-sm text-muted-foreground">
                                 Beschreiben Sie, welches Dokument Sie benötigen — die KI führt Sie durch den Prozess.
                             </p>
                         </div>
+                        <Link
+                            to="/agent"
+                            className="flex items-center gap-1.5 text-xs text-primary hover:underline font-medium"
+                        >
+                            Vollansicht
+                            <ChevronRight className="w-3 h-3" />
+                        </Link>
                     </div>
                     <div className="relative z-10">
                         <DocumentWizardChat

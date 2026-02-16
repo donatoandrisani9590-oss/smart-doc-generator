@@ -27,6 +27,7 @@ const NotFoundPage = lazy(() => import("@/pages/NotFound").then(m => ({ default:
 const DeadlinesCalendar = lazy(() => import("@/pages/DeadlinesCalendar"));
 const BulkUploadPage = lazy(() => import("@/pages/BulkUpload"));
 const SettingsHub = lazy(() => import("@/pages/SettingsHub"));
+const AgentPage = lazy(() => import("@/pages/AgentPage"));
 
 // Minimal loading fallback
 function PageLoading() {
@@ -67,6 +68,7 @@ function App() {
               >
                 <Route index element={<PageErrorBoundary><Dashboard /></PageErrorBoundary>} />
                 <Route path="generate" element={<PageErrorBoundary><DocumentGenerator /></PageErrorBoundary>} />
+                <Route path="agent" element={<PageErrorBoundary><AgentPage /></PageErrorBoundary>} />
                 <Route path="bulk" element={<PageErrorBoundary><BulkUploadPage /></PageErrorBoundary>} />
                 {/* Legacy: /composer → /generate (v4.2 UX-Refactoring) */}
                 <Route path="composer/*" element={<Navigate to="/generate" replace />} />

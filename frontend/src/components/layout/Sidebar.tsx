@@ -6,7 +6,8 @@ import {
     Settings2,
     Globe,
     ChevronDown,
-    LayoutTemplate
+    LayoutTemplate,
+    Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { FavoritesList } from "./FavoritesList";
@@ -172,6 +173,13 @@ export const Sidebar = ({ collapsed = false }: SidebarProps) => {
                     </SidebarSection>
 
                     <SidebarSection title="Tools" collapsed={collapsed}>
+                        <SidebarItem
+                            icon={Sparkles}
+                            label="KI-Assistent"
+                            href="/agent"
+                            active={pathname === "/agent"}
+                            collapsed={collapsed}
+                        />
                         <SidebarItem
                             icon={LayoutTemplate}
                             label="Vorlagen verwalten"
