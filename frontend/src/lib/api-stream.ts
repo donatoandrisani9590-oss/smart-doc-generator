@@ -11,11 +11,29 @@ import { apiFetch, type ApiError } from "./api-client";
 
 /** Generic SSE event frame from the streaming endpoint. */
 export interface SSEEvent {
+  // Existing (text streaming — refine, draft, chat)
   token?: string;
   done?: boolean;
   provider?: string;
   changes_summary?: string;
   error?: string;
+
+  // Agent events (Phase 0 prep, used in Phase 1+2)
+  type?: "text_delta" | "thinking" | "tool_start" | "tool_result"
+       | "form_update" | "clause_update" | "clause_draft"
+       | "preview_ready" | "done" | "error";
+  content?: string;
+  tool?: string;
+  args?: Record<string, unknown>;
+  result?: Record<string, unknown>;
+  fields?: Record<string, string>;
+  enable?: number[];
+  disable?: number[];
+  title?: string;
+  html?: string;
+  summary?: string;
+  latency_ms?: number;
+  requires_confirmation?: boolean;
 }
 
 /**
