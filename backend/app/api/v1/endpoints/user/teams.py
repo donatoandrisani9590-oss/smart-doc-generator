@@ -6,6 +6,7 @@ as well as document sharing within teams.
 """
 
 from __future__ import annotations
+import logging
 from typing import Any, Annotated, Optional, List
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -17,6 +18,8 @@ from app.db import get_db
 from app.api import deps
 from app.models import core as core_models
 from app.models import enterprise as models
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -1364,3 +1367,89 @@ async def get_team_ai_instructions(
         "team_name": team.name,
         "ai_instructions": team.ai_instructions or "",
     }
+
+
+class AIInstructionsSuggestRequest(BaseModel):
+    country_code: str = "DE"
+
+
+@router.post("/{team_id}/ai-instructions/suggest")
+async def suggest_team_ai_instructions(
+    team_id: int,
+    payload: AIInstructionsSuggestRequest,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[core_models.User, Depends(deps.get_current_user)],
+) -> Any:
+    """
+    Generate AI instruction suggestions based on the team's document types.
+    Requires admin/owner role.
+    """
+    user_id = str(current_user.id)
+    role = await get_user_role_in_team(db, team_id, user_id)
+    if role not in ("admin", "owner"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Nur Admins können KI-Vorschläge generieren",
+        )
+
+    # Get team info
+    team = await db.get(models.Team, team_id)
+    if not team:
+        raise HTTPException(status_code=404, detail="Team nicht gefunden")
+
+    # Get document types for this country
+    from app.models.documents import DocumentType
+    result = await db.execute(
+        select(DocumentType.name, DocumentType.category).where(
+            DocumentType.country_code == payload.country_code,
+            DocumentType.is_active == True,
+        )
+    )
+    doc_types = [{"name": r.name, "category": r.category} for r in result.all()]
+
+    if not doc_types:
+        return {"suggestions": ""}
+
+    # Generate suggestions via LLM
+    from app.services.llm_service import LLMService, LLMConfig, LLMMessage
+
+    llm = LLMService()
+    config = LLMConfig(temperature=0.3, max_tokens=1000)
+
+    doc_list = ", ".join(dt["name"] for dt in doc_types)
+    messages = [
+        LLMMessage(
+            role="system",
+            content=(
+                "Du bist ein Experte für HR-Dokumentation und Compliance. "
+                "Generiere strukturierte KI-Anweisungen für ein Team. "
+                "Antworte NUR mit dem formatierten Text, keine Erklärungen."
+            ),
+        ),
+        LLMMessage(
+            role="user",
+            content=(
+                f"Team: {team.name}\n"
+                f"Land: {payload.country_code}\n"
+                f"Dokumenttypen: {doc_list}\n\n"
+                "Erstelle Anweisungen in genau diesem Format:\n\n"
+                "## Regelwerk & Vertragsgrundlagen\n"
+                "[Passende Regeln für die Dokumenttypen]\n\n"
+                "## Sprache & Tonalität\n"
+                "[Sprachregeln]\n\n"
+                "## Pflichtangaben & Standards\n"
+                "[Must-Haves für diese Dokumenttypen]\n\n"
+                "## Einschränkungen\n"
+                "[No-Gos]\n\n"
+                "## Freie Anweisungen\n"
+                "[Weitere Hinweise]"
+            ),
+        ),
+    ]
+
+    try:
+        response = await llm.chat(messages, config)
+        return {"suggestions": response.content.strip()}
+    except Exception as e:
+        logger.error(f"AI suggestions failed: {e}")
+        raise HTTPException(status_code=500, detail="KI-Vorschläge fehlgeschlagen")

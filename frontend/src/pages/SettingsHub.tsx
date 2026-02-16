@@ -33,6 +33,7 @@ import {
     Bot,
     LayoutTemplate,
     Stamp,
+    Sparkles,
 } from "lucide-react";
 import { SettingsCommandPalette } from "@/components/settings/SettingsCommandPalette";
 
@@ -55,6 +56,7 @@ const CopilotStudioSettings = lazy(() => import("@/components/settings/CopilotSt
 const UserTemplatesPage = lazy(() => import("./admin/UserTemplatesPage").then(m => ({ default: m.UserTemplatesPage })));
 const StationeryGalleryPage = lazy(() => import("./admin/StationeryGalleryPage").then(m => ({ default: m.StationeryGalleryPage })));
 const LLMUsagePage = lazy(() => import("./admin/LLMUsagePage"));
+const TeamInstructionsPage = lazy(() => import("./admin/TeamInstructionsPage"));
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Navigation Structure - 6 Groups, 16 Items
@@ -119,6 +121,13 @@ const SETTINGS_NAV: SettingsNavGroup[] = [
         items: [
             { id: "retention", label: "Aufbewahrung", icon: Archive, component: RetentionPoliciesPage, adminOnly: true },
             { id: "audit", label: "Protokoll", icon: Shield, component: AuditLogPage, adminOnly: true },
+        ],
+    },
+    {
+        id: "ki",
+        label: "KI-Assistent",
+        items: [
+            { id: "ai-instructions", label: "KI-Anweisungen", icon: Sparkles, component: TeamInstructionsPage },
             { id: "llm-usage", label: "KI-Nutzung", icon: Activity, component: LLMUsagePage, adminOnly: true },
         ],
     },
