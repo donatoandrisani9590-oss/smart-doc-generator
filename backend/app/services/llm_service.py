@@ -544,8 +544,8 @@ class ClaudeClient(BaseLLMClient):
                 api_messages.append({"role": msg.role, "content": msg.content})
 
         response = await client.messages.create(
-            model=config.model if hasattr(config, "model") and config.model else self.default_model,
-            max_tokens=config.max_tokens or 4096,
+            model=self.default_model,
+            max_tokens=config.get_max_tokens(self.default_model),
             temperature=config.temperature,
             system=system_content.strip() if system_content else anthropic.NOT_GIVEN,
             messages=api_messages,
@@ -582,8 +582,8 @@ class ClaudeClient(BaseLLMClient):
                 api_messages.append({"role": msg.role, "content": msg.content})
 
         async with client.messages.stream(
-            model=config.model if hasattr(config, "model") and config.model else self.default_model,
-            max_tokens=config.max_tokens or 4096,
+            model=self.default_model,
+            max_tokens=config.get_max_tokens(self.default_model),
             temperature=config.temperature,
             system=system_content.strip() if system_content else anthropic.NOT_GIVEN,
             messages=api_messages,
