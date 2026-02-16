@@ -133,6 +133,10 @@ class Clause(Base):
     approval_reviewed_by = Column(String(255), nullable=True)
     approval_comment = Column(Text, nullable=True)  # Kommentar bei Ablehnung
 
+    # KI-Generierungs-Metadaten (Agentic Engine)
+    is_ai_generated = Column(Boolean, default=False)
+    ai_generation_context = Column(Text, nullable=True)  # JSON: {prompt, applied_rules[], source_document_id}
+
 class DocumentTypeClause(Base):
     """
     Zuordnung von Textbausteine zu Dokumenttypen.

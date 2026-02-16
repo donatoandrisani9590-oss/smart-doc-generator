@@ -39,6 +39,7 @@ from app.models.enterprise import (
     NotificationPreference,
     SearchHistory,
     LLMCallLog,
+    TeamPattern,
 )
 from app.models.composer import (
     DocumentClauseInstance,
@@ -100,6 +101,7 @@ __all__ = [
     "NotificationPreference",
     "SearchHistory",
     "LLMCallLog",
+    "TeamPattern",
     # Composer (Smart UX)
     "DocumentClauseInstance",
     "ClauseOrigin",

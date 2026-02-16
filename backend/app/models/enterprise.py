@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Text, UUID
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Text, UUID, UniqueConstraint
 from sqlalchemy.sql import func
 from app.db import Base
 import uuid
@@ -309,6 +309,9 @@ class Team(Base):
     # Team settings
     is_active = Column(Boolean, default=True)
     allow_member_invites = Column(Boolean, default=False)  # Can members invite others?
+
+    # KI-Anweisungen (team-spezifisch, ergänzt globale Unternehmensanweisungen)
+    ai_instructions = Column(Text, nullable=True)
 
     # Metadata
     created_by = Column(String(255), nullable=False)
@@ -773,4 +776,26 @@ class LLMCallLog(Base):
 
     # Context
     country_code = Column(String(2), nullable=True)
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# TEAM PATTERNS (Agentic Engine — aggregierte Muster)
+# ═══════════════════════════════════════════════════════════════════════════
+
+class TeamPattern(Base):
+    """Aggregierte Muster pro Team+Dokumenttyp, periodisch berechnet."""
+    __tablename__ = "team_patterns"
+
+    id = Column(Integer, primary_key=True, index=True)
+    team_id = Column(Integer, ForeignKey("teams.id", ondelete="CASCADE"), nullable=False, index=True)
+    document_type_id = Column(Integer, ForeignKey("document_types.id", ondelete="CASCADE"), nullable=False)
+
+    field_defaults = Column(Text, nullable=True)      # JSON: {"wochenstunden": "40", ...}
+    common_clause_ids = Column(Text, nullable=True)    # JSON: [12, 15, 23, 42]
+    sample_size = Column(Integer, default=0)
+    calculated_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    __table_args__ = (
+        UniqueConstraint("team_id", "document_type_id", name="uq_team_pattern_team_doctype"),
+    )
 

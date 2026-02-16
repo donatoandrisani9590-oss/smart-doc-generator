@@ -395,6 +395,56 @@ async def lifespan(app: FastAPI):
                     migrations_run += 1
                     logger.info(f"Migration: added column clauses.{col_name}")
 
+            # --- teams table (Agent Infrastructure) ---
+            teams_cols = await get_columns("teams")
+            teams_migrations = [
+                ("ai_instructions", "ALTER TABLE teams ADD COLUMN ai_instructions TEXT"),
+            ]
+            for col_name, sql in teams_migrations:
+                if col_name not in teams_cols:
+                    await conn.execute(text(sql))
+                    migrations_run += 1
+                    logger.info(f"Migration: added column teams.{col_name}")
+
+            # --- clauses table (Agent Infrastructure) ---
+            cl_agent_migrations = [
+                ("is_ai_generated", "ALTER TABLE clauses ADD COLUMN is_ai_generated BOOLEAN DEFAULT FALSE NOT NULL"),
+                ("ai_generation_context", "ALTER TABLE clauses ADD COLUMN ai_generation_context TEXT"),
+            ]
+            for col_name, sql in cl_agent_migrations:
+                if col_name not in cl_cols:
+                    await conn.execute(text(sql))
+                    migrations_run += 1
+                    logger.info(f"Migration: added column clauses.{col_name}")
+
+            # --- team_patterns table (Agent Infrastructure) ---
+            if not await table_exists("team_patterns"):
+                await conn.execute(text("""
+                    CREATE TABLE team_patterns (
+                        id SERIAL PRIMARY KEY,
+                        team_id INTEGER NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
+                        document_type_id INTEGER NOT NULL REFERENCES document_types(id) ON DELETE CASCADE,
+                        field_defaults TEXT,
+                        common_clause_ids TEXT,
+                        sample_size INTEGER DEFAULT 0,
+                        calculated_at TIMESTAMPTZ DEFAULT NOW(),
+                        UNIQUE (team_id, document_type_id)
+                    )
+                """))
+                await conn.execute(text("CREATE INDEX IF NOT EXISTS ix_team_patterns_team_id ON team_patterns (team_id)"))
+                migrations_run += 1
+                logger.info("Migration: created table team_patterns")
+
+            # --- user_feature_settings: enable_ai_agent ---
+            if await table_exists("user_feature_settings"):
+                ufs_cols_agent = await get_columns("user_feature_settings")
+                if "enable_ai_agent" not in ufs_cols_agent:
+                    await conn.execute(text(
+                        "ALTER TABLE user_feature_settings ADD COLUMN enable_ai_agent BOOLEAN DEFAULT TRUE NOT NULL"
+                    ))
+                    migrations_run += 1
+                    logger.info("Migration: added column user_feature_settings.enable_ai_agent")
+
             if migrations_run > 0:
                 logger.info(f"Schema migrations complete: {migrations_run} columns added")
             else:
