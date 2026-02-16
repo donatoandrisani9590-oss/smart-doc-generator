@@ -1282,3 +1282,85 @@ async def unshare_template(
     await db.commit()
 
     return {"message": "Vorlagen-Freigabe erfolgreich entfernt"}
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# TEAM AI INSTRUCTIONS
+# ═══════════════════════════════════════════════════════════════════════════
+
+class TeamAIInstructionsUpdate(BaseModel):
+    ai_instructions: Optional[str] = None
+
+
+@router.patch("/{team_id}/ai-instructions")
+async def update_team_ai_instructions(
+    team_id: int,
+    payload: TeamAIInstructionsUpdate,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[core_models.User, Depends(deps.get_current_user)],
+) -> Any:
+    """
+    Update AI instructions for a team. Requires admin or owner role.
+    """
+    user_id = str(current_user.id)
+
+    role = await get_user_role_in_team(db, team_id, user_id)
+    if role not in ("owner", "admin"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Nur Team-Admins können KI-Anweisungen ändern",
+        )
+
+    result = await db.execute(
+        select(models.Team).where(models.Team.id == team_id)
+    )
+    team = result.scalar_one_or_none()
+    if not team:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Team nicht gefunden",
+        )
+
+    team.ai_instructions = payload.ai_instructions
+    await db.commit()
+
+    # Invalidate cached AI instructions for this team
+    from app.services.cache import invalidate_team_ai_instructions
+    await invalidate_team_ai_instructions(team_id)
+
+    return {"status": "ok", "team_id": team_id}
+
+
+@router.get("/{team_id}/ai-instructions")
+async def get_team_ai_instructions(
+    team_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[core_models.User, Depends(deps.get_current_user)],
+) -> Any:
+    """
+    Get AI instructions for a team. Requires team membership.
+    """
+    user_id = str(current_user.id)
+
+    role = await get_user_role_in_team(db, team_id, user_id)
+    if role is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Kein Zugriff auf dieses Team",
+        )
+
+    result = await db.execute(
+        select(models.Team).where(models.Team.id == team_id)
+    )
+    team = result.scalar_one_or_none()
+    if not team:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Team nicht gefunden",
+        )
+
+    return {
+        "team_id": team_id,
+        "team_name": team.name,
+        "ai_instructions": team.ai_instructions or "",
+    }
