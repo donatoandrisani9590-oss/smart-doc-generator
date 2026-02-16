@@ -9,6 +9,8 @@ from app.api.v1.endpoints.smart import (
     draft,
     wizard,
     agent,
+    autocomplete,
+    patterns,
 )
 
 __all__ = [
@@ -21,4 +23,6 @@ __all__ = [
     "draft",
     "wizard",
     "agent",
+    "autocomplete",
+    "patterns",
 ]
