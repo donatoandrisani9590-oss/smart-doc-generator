@@ -41,6 +41,7 @@ export const ClauseSelectionSection = () => {
         is_mandatory: clause.is_required,
         is_enabled: clause.is_enabled,
         is_order_locked: false,
+        has_paragraph_number: clause.has_paragraph_number ?? true,
         order: index + 1,
         clause_type: "standard" as const,
     });

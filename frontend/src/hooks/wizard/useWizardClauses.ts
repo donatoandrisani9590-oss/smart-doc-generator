@@ -91,6 +91,7 @@ export function useWizardClauses({ documentTypeId, markUnsaved }: UseWizardClaus
                         is_enabled: clause.is_mandatory || clause.is_default_selected || false,
                         order_index: clause.display_order,
                         has_variants: false,
+                        has_paragraph_number: clause.has_paragraph_number ?? true,
                         variant_group_id: clause.variant_group_id,
                     })));
             } catch (error) {

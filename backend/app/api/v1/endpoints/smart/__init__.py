@@ -7,6 +7,7 @@ from app.api.v1.endpoints.smart import (
     refine,
     consistency,
     draft,
+    wizard,
 )
 
 __all__ = [
@@ -17,4 +18,5 @@ __all__ = [
     "refine",
     "consistency",
     "draft",
+    "wizard",
 ]

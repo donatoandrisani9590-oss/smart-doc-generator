@@ -220,50 +220,51 @@ def render_placeholders_extended(content: str, form_data: dict, country_code: st
 
 def renumber_clause_sections(clauses: list[dict]) -> list[dict]:
     """
-    Renumber § (section) headings sequentially after conditional clause filtering.
+    Inject § (section) headings for clauses that have paragraph numbering enabled.
 
-    When conditional clauses are excluded (e.g. Firmenwagen §12, Home Office §13),
-    the remaining clauses would have gaps in their numbering. This function
-    renumbers them sequentially starting from §1.
+    Clauses with has_paragraph_number=True (default) get a sequential § number
+    (§ 1, § 2, etc.) injected as a <strong> prefix in their content.
+    Clauses with has_paragraph_number=False (letters like Abmahnungen) are
+    rendered without any § prefix.
 
-    Only replaces the heading occurrence inside <strong> tags to avoid
-    modifying cross-references to legal paragraphs (e.g. "§ 622 BGB").
-
-    Handles both HTML entity (&sect;) and literal § character, with optional
-    whitespace or &nbsp; between the symbol and the number.
+    The numbering is based on position among enabled §-clauses only.
     """
-    # Pattern: § or &sect; followed by optional spaces/&nbsp; and a number,
-    # but ONLY inside <strong> tags (the clause heading).
-    # This avoids renumbering cross-references like "§ 622 BGB" in body text.
-    heading_pattern = re.compile(
-        r'(<strong[^>]*>\s*)'           # Opening <strong> tag (capture group 1)
-        r'(§|&sect;)'                   # Section symbol: literal § or HTML entity (group 2)
-        r'(\s*(?:&nbsp;)?\s*)'          # Optional whitespace/&nbsp; (group 3)
-        r'(\d+)'                        # The section number to replace (group 4)
-        r'(\s)',                         # Space after number (group 5) - ensures it's a heading, not "§622"
+    # Pattern to detect if content already starts with a § heading (legacy data)
+    existing_heading = re.compile(
+        r'(<(?:strong|h[1-6])[^>]*>\s*)'
+        r'(§|&sect;)\s*(?:&nbsp;)?\s*\d+\s',
         re.IGNORECASE
     )
 
-    renumbered = []
-    for idx, clause in enumerate(clauses, start=1):
+    result = []
+    para_num = 0
+
+    for clause in clauses:
         content = clause.get("content", "")
-        if not content:
-            renumbered.append(clause)
+        has_para = clause.get("has_paragraph_number", True)
+
+        if not content or not has_para:
+            result.append(clause)
             continue
 
-        # Replace only the FIRST heading match per clause
-        new_content, count = heading_pattern.subn(
-            lambda m, n=idx: f"{m.group(1)}{m.group(2)}{m.group(3)}{n}{m.group(5)}",
-            content,
-            count=1  # Only replace the first occurrence
-        )
+        para_num += 1
+        title = clause.get("title", "")
 
-        if count > 0:
-            renumbered.append({**clause, "content": new_content})
+        # If content already has a § heading (legacy), update its number
+        if existing_heading.search(content):
+            updated = re.sub(
+                r'(<(?:strong|h[1-6])[^>]*>\s*)(§|&sect;)\s*(?:&nbsp;)?\s*\d+',
+                lambda m: f"{m.group(1)}§ {para_num}",
+                content,
+                count=1
+            )
+            result.append({**clause, "content": updated})
         else:
-            renumbered.append(clause)
+            # Inject § heading before content
+            heading = f'<p><strong>§ {para_num} {title}</strong></p>\n'
+            result.append({**clause, "content": heading + content})
 
-    return renumbered
+    return result
 
 
 class GenerateDocumentRequest(BaseModel):
@@ -765,6 +766,7 @@ async def generate_document_by_type(
                     "title": clause.title,
                     "content": clause.content_html,
                     "is_mandatory": ref.is_mandatory,
+                    "has_paragraph_number": getattr(clause, 'has_paragraph_number', True),
                 })
 
     # 5b. Renumber § sections sequentially after conditional filtering

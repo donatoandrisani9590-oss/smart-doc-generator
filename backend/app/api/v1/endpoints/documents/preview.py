@@ -154,6 +154,7 @@ async def generate_preview(
                     "title": clause.title,
                     "content": clause.content_html,
                     "is_mandatory": ref.is_mandatory,
+                    "has_paragraph_number": getattr(clause, 'has_paragraph_number', True),
                     "condition": condition
                 })
         
@@ -350,20 +351,25 @@ async def generate_composer_preview(
     clauses = []
     for inst in instances:
         # Get content - prefer custom content over original
+        source_clause = None
+        if inst.source_clause_id:
+            source_clause = await db.get(Clause, inst.source_clause_id)
+
         if inst.content_html:
             content = inst.content_html
-        elif inst.source_clause_id:
-            # Load from source clause
-            source = await db.get(Clause, inst.source_clause_id)
-            content = source.content_html if source else ""
+        elif source_clause:
+            content = source_clause.content_html or ""
         else:
             content = ""
+
+        has_para = getattr(source_clause, 'has_paragraph_number', True) if source_clause else True
 
         clauses.append({
             "id": inst.id,
             "title": inst.title,
             "content": content,
             "is_mandatory": True,
+            "has_paragraph_number": has_para,
             "condition": None,
         })
 
@@ -429,7 +435,6 @@ async def generate_test_preview(
 
     # Get clauses
     clauses = []
-    paragraph_number = 1
 
     for clause_id in request.clause_ids:
         clause = await db.get(Clause, clause_id)
@@ -439,6 +444,7 @@ async def generate_test_preview(
                 "title": clause.title,
                 "content": clause.content_html,
                 "is_mandatory": True,
+                "has_paragraph_number": getattr(clause, 'has_paragraph_number', True),
                 "condition": None,
             })
 

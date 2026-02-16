@@ -32,6 +32,8 @@ class ClauseBase(BaseModel):
     country_code: Optional[str] = Field("DE", min_length=2, max_length=2, description="ISO country code")
     category: Optional[str] = Field("General", max_length=100, description="Clause category")
     is_active: bool = Field(True, description="Whether clause is active")
+    # Paragraph numbering (v4.4)
+    has_paragraph_number: bool = Field(True, description="Whether clause gets §-numbering in contracts (False for letters like Abmahnungen)")
     # AI metadata fields (v4.3)
     tags: Optional[List[str]] = Field(None, max_length=20, description="Semantic tags for AI matching, e.g. ['kuendigung', 'streng']")
     description: Optional[str] = Field(None, max_length=1000, description="Purpose description for AI context injection")
@@ -107,6 +109,8 @@ class ClauseUpdate(BaseModel):
     country_code: Optional[str] = Field(None, min_length=2, max_length=2)
     category: Optional[str] = Field(None, max_length=100)
     is_active: Optional[bool] = None
+    # Paragraph numbering (v4.4)
+    has_paragraph_number: Optional[bool] = None
     # AI metadata fields (v4.3)
     tags: Optional[List[str]] = Field(None, max_length=20)
     description: Optional[str] = Field(None, max_length=1000)

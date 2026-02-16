@@ -29,6 +29,7 @@ export interface ClauseResponse {
     is_default_selected?: boolean;
     clause_type: string;
     is_order_locked?: boolean;
+    has_paragraph_number?: boolean;
     variant_group_id?: number;
     variant_group_name?: string;
 }

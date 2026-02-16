@@ -102,6 +102,13 @@ class Clause(Base):
     is_active = Column(Boolean, default=True, index=True)
 
     # ══════════════════════════════════════════════════════════════════════════
+    # PARAGRAF-NUMMERIERUNG (v4.4 Feature: Dynamische §-Nummern)
+    # True = Vertrag-Textbaustein mit §-Nummer (§1, §2, ...),
+    # False = Schreiben-Textblock ohne § (für Abmahnungen, Kündigungen etc.)
+    # ══════════════════════════════════════════════════════════════════════════
+    has_paragraph_number = Column(Boolean, default=True)
+
+    # ══════════════════════════════════════════════════════════════════════════
     # AI-METADATEN (v4.3 Feature: KI-Textbaustein-Bridge)
     # Ermöglicht semantisches Matching zwischen User-Intent und Textbausteine.
     # Ohne diese Felder kann die KI die Textbausteine nicht intelligent auswählen.

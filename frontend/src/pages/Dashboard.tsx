@@ -26,7 +26,7 @@ import { useDashboardStats, useMyActivity, useClauses, useDocumentTypes } from "
 import { formatDistanceToNow } from "@/lib/dateUtils";
 import { DocumentWizardDialog } from "@/components/dashboard/DocumentWizardDialog";
 import { QuickTemplates } from "@/components/dashboard/QuickTemplates";
-import { SmartChatInput } from "@/components/chat/SmartChatInput";
+import { DocumentWizardChat } from "@/components/chat/DocumentWizardChat";
 import { DeadlinesWidget } from "@/components/dashboard/DeadlinesWidget";
 import { ApprovalRequestsWidget } from "@/components/dashboard/ApprovalRequestsWidget";
 import { DocumentUploadDialog } from "@/components/documents/DocumentUploadDialog";
@@ -210,21 +210,20 @@ export const Dashboard = () => {
                     <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none group-hover:opacity-10 transition-opacity">
                         <Sparkles className="w-32 h-32" />
                     </div>
-                    <div className="flex items-center gap-4 mb-6 relative z-10">
+                    <div className="flex items-center gap-4 mb-4 relative z-10">
                         <div className="p-3 bg-primary/10 rounded-xl">
                             <Sparkles className="w-6 h-6 text-primary" />
                         </div>
                         <div>
-                            <h2 className="text-lg font-semibold text-foreground">Mit KI erstellen</h2>
-                            <p className="text-muted-foreground">
-                                Beschreiben Sie einfach, was Sie benötigen.
+                            <h2 className="text-lg font-semibold text-foreground">KI-Dokumentassistent</h2>
+                            <p className="text-sm text-muted-foreground">
+                                Beschreiben Sie, welches Dokument Sie benötigen — die KI führt Sie durch den Prozess.
                             </p>
                         </div>
                     </div>
                     <div className="relative z-10">
-                        <SmartChatInput
-                            placeholder="z.B. 'Arbeitsvertrag für Max Müller, 5000€ Gehalt'"
-                            showSuggestions={true}
+                        <DocumentWizardChat
+                            compact
                             onCreateDocument={(docType, initialData) => {
                                 const params = new URLSearchParams();
                                 params.set("type", docType);

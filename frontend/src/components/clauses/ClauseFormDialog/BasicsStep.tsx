@@ -11,7 +11,8 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, AlertCircle, X, Lightbulb } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Sparkles, AlertCircle, X, Lightbulb, Hash } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CATEGORIES, COUNTRIES } from "./constants";
 
@@ -32,6 +33,8 @@ interface BasicsStepProps {
     setTagInput: (value: string) => void;
     tone: string;
     setTone: (value: string) => void;
+    hasParagraphNumber: boolean;
+    setHasParagraphNumber: (value: boolean) => void;
     errors: Record<string, string>;
     touched: Record<string, boolean>;
     setTouched: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
@@ -56,6 +59,8 @@ export const BasicsStep = ({
     setTagInput,
     tone,
     setTone,
+    hasParagraphNumber,
+    setHasParagraphNumber,
     errors,
     touched,
     setTouched,
@@ -211,6 +216,29 @@ export const BasicsStep = ({
                         <span className="font-medium text-sm">{country.label}</span>
                     </button>
                 ))}
+            </div>
+        </div>
+        )}
+
+        {/* Paragraph Numbering Toggle (v4.4) - hidden in compact mode */}
+        {!compact && (
+        <div className="space-y-2">
+            <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                    <Label className="text-sm font-medium flex items-center gap-2">
+                        <Hash className="w-4 h-4" />
+                        Paragraf-Nummerierung (§)
+                    </Label>
+                    <p className="text-xs text-muted-foreground">
+                        {hasParagraphNumber
+                            ? "Textbaustein erhält §-Nummer im Vertrag (§ 1, § 2, ...)"
+                            : "Textblock ohne §-Nummer (für Schreiben wie Abmahnungen)"}
+                    </p>
+                </div>
+                <Switch
+                    checked={hasParagraphNumber}
+                    onCheckedChange={setHasParagraphNumber}
+                />
             </div>
         </div>
         )}

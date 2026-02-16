@@ -149,6 +149,7 @@ export interface DocumentClause {
     is_enabled: boolean;
     is_order_locked: boolean;
     is_recommended?: boolean; // Empfohlener Textbaustein (fällt zurück auf is_mandatory wenn nicht gesetzt)
+    has_paragraph_number?: boolean; // v4.4: §-Nummerierung (true = Vertrag, false = Schreiben)
     order: number;
     clause_type: "standard" | "optional" | "conditional" | "variant";
     // Variant support
@@ -160,6 +161,22 @@ export interface DocumentClause {
         name: string;
         is_default: boolean;
     }>;
+}
+
+/**
+ * Computes §-numbers for enabled clauses that have paragraph numbering.
+ * Returns a Map from uniqueId → paragraph number (1-based).
+ */
+export function computeParagraphNumbers(clauses: DocumentClause[]): Map<string, number> {
+    const result = new Map<string, number>();
+    let paraNum = 0;
+    for (const clause of clauses) {
+        if (clause.is_enabled && clause.has_paragraph_number !== false) {
+            paraNum++;
+            result.set(clause.uniqueId, paraNum);
+        }
+    }
+    return result;
 }
 
 interface ClauseReorderPanelProps {
@@ -175,11 +192,13 @@ interface ClauseReorderPanelProps {
 
 const SortableClauseItem = ({
     clause,
+    paragraphNumber,
     onToggle,
     onVariantChange,
     disabled,
 }: {
     clause: DocumentClause;
+    paragraphNumber?: number;
     onToggle: () => void;
     onVariantChange?: (variantId: number) => void;
     disabled?: boolean;
@@ -234,10 +253,16 @@ const SortableClauseItem = ({
                 )}
             </div>
 
-            {/* Order Number */}
-            <div className="w-7 h-7 bg-primary/10 rounded-full flex items-center justify-center text-xs font-semibold text-primary shrink-0">
-                {clause.order}
-            </div>
+            {/* Order Number / §-Badge */}
+            {paragraphNumber != null ? (
+                <div className="w-8 h-7 bg-primary/15 rounded-md flex items-center justify-center text-xs font-bold text-primary shrink-0">
+                    § {paragraphNumber}
+                </div>
+            ) : (
+                <div className="w-7 h-7 bg-warm-100 rounded-full flex items-center justify-center text-xs font-semibold text-muted-foreground shrink-0">
+                    {clause.order}
+                </div>
+            )}
 
             {/* Clause Info */}
             <div className="flex-1 min-w-0">
@@ -419,6 +444,9 @@ export const ClauseReorderPanel = ({
         onClausesChange(updated);
     };
 
+    // Compute §-numbers (updates live on drag & drop / toggle)
+    const paragraphNumbers = computeParagraphNumbers(clauses);
+
     // Count optional clauses
     const optionalCount = clauses.filter((c) => !c.is_mandatory).length;
     const enabledCount = clauses.filter((c) => c.is_enabled).length;
@@ -497,6 +525,7 @@ export const ClauseReorderPanel = ({
                                             <SortableClauseItem
                                                 key={clause.uniqueId}
                                                 clause={clause}
+                                                paragraphNumber={paragraphNumbers.get(clause.uniqueId)}
                                                 onToggle={() => handleToggle(clause.uniqueId)}
                                                 onVariantChange={(variantId) =>
                                                     handleVariantChange(clause.uniqueId, variantId)

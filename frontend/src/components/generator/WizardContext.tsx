@@ -53,6 +53,7 @@ export interface DocumentClause {
     is_enabled: boolean;
     order_index: number;
     has_variants: boolean;
+    has_paragraph_number?: boolean;
     variant_group_id?: number;
 }
 

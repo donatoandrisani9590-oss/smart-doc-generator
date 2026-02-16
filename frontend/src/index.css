@@ -14,9 +14,9 @@
     /*
       COLOR PALETTE (HSL)
       Matches tailwind.config.js
-      Clean white/blue system based on niederwiesergroup.com
+      Premium warm-white system based on niederwiesergroup.com
     */
-    --background: 0 0% 100%;
+    --background: 220 20% 98%;
     --foreground: 228 30% 11%;
 
     --card: 0 0% 100%;
@@ -31,41 +31,41 @@
     --secondary: 137 40% 58%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 220 14% 96%;
+    --muted: 220 16% 95%;
     --muted-foreground: 220 9% 46%;
 
-    --accent: 220 14% 96%;
+    --accent: 220 16% 95%;
     --accent-foreground: 228 58% 33%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
+    --border: 220 13% 90%;
+    --input: 220 13% 90%;
     --ring: 228 58% 33%;
 
     --radius: 0.75rem;
 
     /* Neutral palette */
     --warm: 220 9% 81%;
-    --warm-50: 220 14% 98%;
-    --warm-100: 220 14% 96%;
+    --warm-50: 220 16% 98%;
+    --warm-100: 220 16% 96%;
     --warm-200: 220 13% 91%;
 
-    /* Hero gradient - pure blue */
-    --gradient-hero: linear-gradient(135deg, hsl(228 58% 30%) 0%, hsl(228 58% 42%) 100%);
-    --gradient-hero-subtle: linear-gradient(135deg, hsl(228 58% 33% / 0.05) 0%, hsl(220 14% 96% / 0.15) 100%);
+    /* Hero gradient - premium deep blue */
+    --gradient-hero: linear-gradient(135deg, hsl(228 58% 28%) 0%, hsl(228 50% 45%) 50%, hsl(228 58% 35%) 100%);
+    --gradient-hero-subtle: linear-gradient(135deg, hsl(228 58% 33% / 0.04) 0%, hsl(220 14% 96% / 0.12) 100%);
 
-    /* Shadows */
-    --shadow-soft-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.02);
-    --shadow-soft-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
-    --shadow-soft-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
-    --shadow-soft-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -4px rgba(0, 0, 0, 0.025);
-    --shadow-soft-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.025);
+    /* Shadows - refined for light mode */
+    --shadow-soft-xs: 0 1px 2px 0 rgba(36, 49, 134, 0.03);
+    --shadow-soft-sm: 0 1px 3px 0 rgba(36, 49, 134, 0.06), 0 1px 2px -1px rgba(36, 49, 134, 0.04);
+    --shadow-soft-md: 0 4px 6px -1px rgba(36, 49, 134, 0.06), 0 2px 4px -2px rgba(36, 49, 134, 0.04);
+    --shadow-soft-lg: 0 10px 15px -3px rgba(36, 49, 134, 0.07), 0 4px 6px -4px rgba(36, 49, 134, 0.03);
+    --shadow-soft-xl: 0 20px 25px -5px rgba(36, 49, 134, 0.08), 0 8px 10px -6px rgba(36, 49, 134, 0.03);
 
     /* Animation Durations */
-    --duration-fast: 0.2s;
-    --duration-normal: 0.3s;
+    --duration-fast: 0.15s;
+    --duration-normal: 0.25s;
     --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   }
 
@@ -127,6 +127,10 @@
 
   * {
     border-color: hsl(var(--border));
+  }
+
+  html {
+    transition: background-color 0.2s ease, color 0.2s ease;
   }
 
   body {
@@ -216,20 +220,23 @@
     box-shadow: var(--shadow-soft-xl);
   }
 
-  /* Soft Cards (Borderless by default) */
+  /* Soft Cards - Premium elevation */
   .card-soft {
     background-color: hsl(var(--card));
     border-radius: 0.75rem;
-    /* rounded-xl */
-    box-shadow: var(--shadow-soft-md);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    border: 1px solid transparent;
+    box-shadow: var(--shadow-soft-sm);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid hsl(var(--border) / 0.5);
   }
 
   .card-soft:hover {
     box-shadow: var(--shadow-soft-lg);
-    transform: translateY(-0.125rem);
-    border-color: hsl(var(--border));
+    transform: translateY(-2px);
+    border-color: hsl(var(--primary) / 0.15);
+  }
+
+  .dark .card-soft {
+    border-color: hsl(225 12% 20% / 0.5);
   }
 
   .dark .card-soft:hover {

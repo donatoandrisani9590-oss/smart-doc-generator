@@ -553,9 +553,19 @@ async def get_document_type_clauses(
             "is_default_selected": link.is_default_selected if hasattr(link, 'is_default_selected') else True,
             "clause_type": link.clause_type if hasattr(link, 'clause_type') else "standard",
             "is_order_locked": link.is_order_locked if hasattr(link, 'is_order_locked') else False,
+            "has_paragraph_number": getattr(clause, 'has_paragraph_number', True),
             "variant_group_id": None,
             "variant_group_name": None,
         })
+
+    # Compute dynamic paragraph numbers based on position
+    para_num = 0
+    for c in clauses:
+        if c["has_paragraph_number"]:
+            para_num += 1
+            c["paragraph_number"] = para_num
+        else:
+            c["paragraph_number"] = None
 
     return clauses
 

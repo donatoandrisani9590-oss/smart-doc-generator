@@ -1,28 +1,46 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { apiFetch } from "@/lib/api-client";
 import { apiStreamSSE } from "@/lib/api-stream";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Loader2, Send, Sparkles, RefreshCw, Square } from "lucide-react";
+import { Loader2, Send, Sparkles, RefreshCw, Square, FileText, ArrowRight } from "lucide-react";
 
 interface Message {
     role: "user" | "assistant";
     content: string;
 }
 
+interface WizardState {
+    extractedData: Record<string, unknown>;
+    suggestedDocumentTypeId: number | null;
+    suggestedDocumentTypeName: string | null;
+    isComplete: boolean;
+}
+
 interface ChatAssistentProps {
     context?: Record<string, unknown>;
     countryCode?: string;
     onInsertText?: (text: string) => void;
+    /** Callback to fill form fields from wizard-extracted data */
+    onFillFormData?: (data: Record<string, unknown>) => void;
 }
 
-export const ChatAssistent = ({ context, countryCode = "DE", onInsertText }: ChatAssistentProps) => {
+export const ChatAssistent = ({ context, countryCode = "DE", onInsertText, onFillFormData }: ChatAssistentProps) => {
+    const navigate = useNavigate();
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [isStreaming, setIsStreaming] = useState(false);
-    const [mode, setMode] = useState<"general" | "clause" | "formal">("general");
+    const [mode, setMode] = useState<"general" | "clause" | "formal" | "document">("general");
+    const [wizardState, setWizardState] = useState<WizardState>({
+        extractedData: {},
+        suggestedDocumentTypeId: null,
+        suggestedDocumentTypeName: null,
+        isComplete: false,
+    });
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -54,12 +72,23 @@ export const ChatAssistent = ({ context, countryCode = "DE", onInsertText }: Cha
         setInput("");
         setIsLoading(true);
 
-        const requestBody = {
-            messages: allMessages,
-            context,
-            country_code: countryCode,
-            mode,
-        };
+        const isWizardMode = mode === "document";
+        const streamEndpoint = isWizardMode ? "/api/v1/smart/wizard/stream" : "/api/v1/chat/stream";
+        const blockingEndpoint = isWizardMode ? "/api/v1/smart/wizard" : "/api/v1/chat";
+
+        const requestBody = isWizardMode
+            ? {
+                messages: allMessages,
+                country_code: countryCode,
+                document_type_id: wizardState.suggestedDocumentTypeId,
+                form_data: Object.keys(wizardState.extractedData).length > 0 ? wizardState.extractedData : undefined,
+            }
+            : {
+                messages: allMessages,
+                context,
+                country_code: countryCode,
+                mode,
+            };
 
         // Try streaming first, fallback to blocking
         try {
@@ -73,7 +102,7 @@ export const ChatAssistent = ({ context, countryCode = "DE", onInsertText }: Cha
             let fullText = "";
 
             for await (const event of apiStreamSSE(
-                "/api/v1/chat/stream",
+                streamEndpoint,
                 requestBody,
                 controller.signal,
             )) {
@@ -89,12 +118,28 @@ export const ChatAssistent = ({ context, countryCode = "DE", onInsertText }: Cha
                     throw new Error(event.error);
                 }
                 if (event.done) {
+                    // Handle wizard structured data from done event
+                    if (isWizardMode) {
+                        const doneEvent = event as any;
+                        const displayMessage = doneEvent.message || fullText;
+                        setMessages((prev) => {
+                            const updated = [...prev];
+                            updated[updated.length - 1] = { role: "assistant", content: displayMessage };
+                            return updated;
+                        });
+                        setWizardState(prev => ({
+                            extractedData: { ...prev.extractedData, ...(doneEvent.extracted_data || {}) },
+                            suggestedDocumentTypeId: doneEvent.suggested_document_type_id ?? prev.suggestedDocumentTypeId,
+                            suggestedDocumentTypeName: doneEvent.suggested_document_type_name ?? prev.suggestedDocumentTypeName,
+                            isComplete: doneEvent.is_complete ?? prev.isComplete,
+                        }));
+                    }
                     break;
                 }
             }
 
             // Ensure final text is set (in case stream ended without done frame)
-            if (fullText) {
+            if (fullText && !isWizardMode) {
                 setMessages((prev) => {
                     const updated = [...prev];
                     updated[updated.length - 1] = { role: "assistant", content: fullText };
@@ -115,7 +160,7 @@ export const ChatAssistent = ({ context, countryCode = "DE", onInsertText }: Cha
 
             // Fallback to blocking endpoint
             try {
-                const response = await apiFetch("/api/v1/chat", {
+                const response = await apiFetch(blockingEndpoint, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(requestBody),
@@ -126,6 +171,14 @@ export const ChatAssistent = ({ context, countryCode = "DE", onInsertText }: Cha
                     ...prev,
                     { role: "assistant", content: data.message },
                 ]);
+                if (isWizardMode) {
+                    setWizardState(prev => ({
+                        extractedData: { ...prev.extractedData, ...(data.extracted_data || {}) },
+                        suggestedDocumentTypeId: data.suggested_document_type_id ?? prev.suggestedDocumentTypeId,
+                        suggestedDocumentTypeName: data.suggested_document_type_name ?? prev.suggestedDocumentTypeName,
+                        isComplete: data.is_complete ?? prev.isComplete,
+                    }));
+                }
             } catch (fallbackError) {
                 console.error("Blocking chat fallback also failed:", fallbackError);
                 setMessages((prev) => [
@@ -153,7 +206,31 @@ export const ChatAssistent = ({ context, countryCode = "DE", onInsertText }: Cha
             stopStreaming();
         }
         setMessages([]);
+        setWizardState({
+            extractedData: {},
+            suggestedDocumentTypeId: null,
+            suggestedDocumentTypeName: null,
+            isComplete: false,
+        });
     };
+
+    const handleWizardCreateDocument = useCallback(() => {
+        const typeId = wizardState.suggestedDocumentTypeId;
+        if (!typeId) return;
+
+        // If inside generator, fill form data directly
+        if (onFillFormData && Object.keys(wizardState.extractedData).length > 0) {
+            onFillFormData(wizardState.extractedData);
+        }
+
+        // Navigate to generator with pre-filled data
+        const params = new URLSearchParams();
+        params.set("type", String(typeId));
+        if (Object.keys(wizardState.extractedData).length > 0) {
+            params.set("data", JSON.stringify(wizardState.extractedData));
+        }
+        navigate(`/generate?${params.toString()}`);
+    }, [wizardState, navigate, onFillFormData]);
 
     const quickPrompts = [
         { label: "Textbaustein formulieren", prompt: "Formuliere einen Textbaustein für..." },
@@ -169,17 +246,17 @@ export const ChatAssistent = ({ context, countryCode = "DE", onInsertText }: Cha
                         <Sparkles className="w-5 h-5 text-primary" />
                         Brief-Assistent
                     </CardTitle>
-                    <div className="flex gap-1">
-                        {(["general", "clause", "formal"] as const).map((m) => (
+                    <div className="flex gap-1 flex-wrap">
+                        {(["general", "clause", "formal", "document"] as const).map((m) => (
                             <Button
                                 key={m}
                                 variant={mode === m ? "secondary" : "ghost"}
                                 size="sm"
-                                onClick={() => setMode(m)}
+                                onClick={() => { setMode(m); if (m !== mode) handleReset(); }}
                                 className="text-xs"
                                 disabled={isLoading}
                             >
-                                {m === "general" ? "Allgemein" : m === "clause" ? "Textbausteine" : "Formell"}
+                                {m === "general" ? "Allgemein" : m === "clause" ? "Textbausteine" : m === "formal" ? "Formell" : "Dokument erstellen"}
                             </Button>
                         ))}
                     </div>
@@ -237,6 +314,31 @@ export const ChatAssistent = ({ context, countryCode = "DE", onInsertText }: Cha
                     )}
                     <div ref={messagesEndRef} />
                 </div>
+
+                {/* Wizard Status Bar */}
+                {mode === "document" && wizardState.suggestedDocumentTypeName && (
+                    <div className="flex items-center gap-2 flex-wrap mb-2 p-2 bg-primary/5 rounded-lg">
+                        <Badge variant="secondary" className="gap-1.5">
+                            <FileText className="w-3 h-3" />
+                            {wizardState.suggestedDocumentTypeName}
+                        </Badge>
+                        {Object.keys(wizardState.extractedData).length > 0 && (
+                            <span className="text-xs text-muted-foreground">
+                                {Object.keys(wizardState.extractedData).length} Felder
+                            </span>
+                        )}
+                        {wizardState.isComplete && (
+                            <Button
+                                size="sm"
+                                onClick={handleWizardCreateDocument}
+                                className="ml-auto gap-1.5 h-7 text-xs"
+                            >
+                                Dokument erstellen
+                                <ArrowRight className="w-3 h-3" />
+                            </Button>
+                        )}
+                    </div>
+                )}
 
                 {/* Input */}
                 <div className="flex gap-2">

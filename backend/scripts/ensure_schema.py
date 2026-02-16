@@ -70,6 +70,8 @@ REQUIRED_COLUMNS = [
     ("comments", "selection_range", "TEXT", None),
     # From: Split-Screen Document Detail with HTML preview
     ("generated_documents", "content_html", "TEXT", None),
+    # From: 008_add_has_paragraph_number.py
+    ("clauses", "has_paragraph_number", "BOOLEAN", "true"),
 ]
 
 # Tables that need to be created if they don't exist

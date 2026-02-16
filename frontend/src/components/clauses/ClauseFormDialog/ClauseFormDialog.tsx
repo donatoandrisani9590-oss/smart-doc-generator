@@ -82,6 +82,8 @@ export const ClauseFormDialog = ({
     const [countryCode, setCountryCode] = useState(defaultCountryCode);
     const [content, setContent] = useState("");
     const [isActive, setIsActive] = useState(true);
+    // Paragraph numbering (v4.4 - §1, §2 for contracts, none for letters)
+    const [hasParagraphNumber, setHasParagraphNumber] = useState(true);
     // AI metadata (v4.3 - enables AI to find and select this clause)
     const [tags, setTags] = useState<string[]>([]);
     const [tagInput, setTagInput] = useState("");
@@ -154,6 +156,7 @@ export const ClauseFormDialog = ({
             setCountryCode(editClause.country_code || "DE");
             setContent(editClause.content || "");
             setIsActive(editClause.is_active);
+            setHasParagraphNumber((editClause as any).has_paragraph_number ?? true);
             setTags((editClause as any).tags || []);
             setDescription((editClause as any).description || "");
             setTone((editClause as any).tone || "neutral");
@@ -172,6 +175,7 @@ export const ClauseFormDialog = ({
             setCountryCode(defaultCountryCode);
             setContent("");
             setIsActive(true);
+            setHasParagraphNumber(true);
             setTags([]);
             setTagInput("");
             setDescription("");
@@ -270,6 +274,7 @@ export const ClauseFormDialog = ({
             country_code: countryCode,
             category: effectiveCategory,
             is_active: isActive,
+            has_paragraph_number: hasParagraphNumber,
             tags: tags.length > 0 ? tags : undefined,
             description: description.trim() || undefined,
             tone: tone || undefined,
@@ -382,6 +387,8 @@ export const ClauseFormDialog = ({
                                         setTagInput={setTagInput}
                                         tone={tone}
                                         setTone={setTone}
+                                        hasParagraphNumber={hasParagraphNumber}
+                                        setHasParagraphNumber={setHasParagraphNumber}
                                         errors={errors}
                                         touched={touched}
                                         setTouched={setTouched}
@@ -428,6 +435,8 @@ export const ClauseFormDialog = ({
                                             setTagInput={setTagInput}
                                             tone={tone}
                                             setTone={setTone}
+                                            hasParagraphNumber={hasParagraphNumber}
+                                            setHasParagraphNumber={setHasParagraphNumber}
                                             errors={errors}
                                             touched={touched}
                                             setTouched={setTouched}
