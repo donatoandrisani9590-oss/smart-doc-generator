@@ -211,8 +211,13 @@ def consistency_check_key(check_hash: str) -> str:
 
 
 def ai_instructions_key(country_code: str, document_type_id: Optional[int] = None) -> str:
-    """Cache key for AI instructions (global + per document type)."""
+    """Cache key for AI instructions (global + per document type) — legacy 2-level."""
     return f"ai_instructions:{country_code}:{document_type_id or 'global'}"
+
+
+def ai_instructions_key_with_team(country_code: str, team_id: Optional[int] = None, document_type_id: Optional[int] = None) -> str:
+    """Cache key for 3-level AI instructions (company + team + doctype)."""
+    return f"ai_instructions:v2:{country_code}:{team_id or 'none'}:{document_type_id or 'none'}"
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -233,5 +238,11 @@ async def invalidate_ai_instructions(country_code: str = None):
     """Invalidate AI instructions cache."""
     if country_code:
         await cache.delete_pattern(f"ai_instructions:{country_code}:*")
+        await cache.delete_pattern(f"ai_instructions:v2:{country_code}:*")
     else:
         await cache.delete_pattern("ai_instructions:*")
+
+
+async def invalidate_team_ai_instructions(team_id: int) -> None:
+    """Invalidate all cached instructions for a team (all countries, all doc types)."""
+    await cache.delete_pattern(f"ai_instructions:v2:*:{team_id}:*")
