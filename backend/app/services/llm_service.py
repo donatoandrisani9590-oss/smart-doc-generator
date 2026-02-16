@@ -34,6 +34,7 @@ class LLMProvider(str, Enum):
     MISTRAL = "mistral"
     OLLAMA = "ollama"
     OPENAI = "openai"  # Fallback only
+    CLAUDE = "claude"  # Agent orchestration only (not auto-detected)
 
 
 class LLMMessage(BaseModel):
@@ -513,6 +514,84 @@ class OllamaClient(BaseLLMClient):
                         continue
 
 
+class ClaudeClient(BaseLLMClient):
+    """Anthropic Claude API client — used for agent orchestration and complex reasoning."""
+
+    def __init__(self):
+        self.api_key = os.getenv("ANTHROPIC_API_KEY")
+        self.default_model = os.getenv("CLAUDE_MODEL", "claude-sonnet-4-5-20250929")
+
+    async def is_available(self) -> bool:
+        return bool(self.api_key)
+
+    async def chat(
+        self,
+        messages: List[LLMMessage],
+        config: Optional[LLMConfig] = None
+    ) -> LLMResponse:
+        import anthropic
+
+        config = config or LLMConfig()
+        client = anthropic.AsyncAnthropic(api_key=self.api_key)
+
+        # Convert messages: separate system from user/assistant
+        system_content = ""
+        api_messages = []
+        for msg in messages:
+            if msg.role == "system":
+                system_content += msg.content + "\n"
+            else:
+                api_messages.append({"role": msg.role, "content": msg.content})
+
+        response = await client.messages.create(
+            model=config.model if hasattr(config, "model") and config.model else self.default_model,
+            max_tokens=config.max_tokens or 4096,
+            temperature=config.temperature,
+            system=system_content.strip() if system_content else anthropic.NOT_GIVEN,
+            messages=api_messages,
+        )
+
+        content = response.content[0].text if response.content else ""
+        return LLMResponse(
+            content=content,
+            provider="claude",
+            model=response.model,
+            usage={
+                "prompt_tokens": response.usage.input_tokens,
+                "completion_tokens": response.usage.output_tokens,
+                "total_tokens": response.usage.input_tokens + response.usage.output_tokens,
+            },
+        )
+
+    async def chat_stream(
+        self,
+        messages: List[LLMMessage],
+        config: Optional[LLMConfig] = None
+    ) -> AsyncGenerator[str, None]:
+        import anthropic
+
+        config = config or LLMConfig()
+        client = anthropic.AsyncAnthropic(api_key=self.api_key)
+
+        system_content = ""
+        api_messages = []
+        for msg in messages:
+            if msg.role == "system":
+                system_content += msg.content + "\n"
+            else:
+                api_messages.append({"role": msg.role, "content": msg.content})
+
+        async with client.messages.stream(
+            model=config.model if hasattr(config, "model") and config.model else self.default_model,
+            max_tokens=config.max_tokens or 4096,
+            temperature=config.temperature,
+            system=system_content.strip() if system_content else anthropic.NOT_GIVEN,
+            messages=api_messages,
+        ) as stream:
+            async for text in stream.text_stream:
+                yield text
+
+
 class LLMService:
     """
     Main LLM service with automatic provider selection.
@@ -534,6 +613,7 @@ class LLMService:
         self.groq = GroqClient()
         self.mistral = MistralClient()
         self.ollama = OllamaClient()
+        self.claude = ClaudeClient()
         self.preferred_provider = preferred_provider
         self._active_client: Optional[BaseLLMClient] = None
 
@@ -543,6 +623,12 @@ class LLMService:
             return self._active_client
 
         # If preferred provider specified, try it first
+        if self.preferred_provider == LLMProvider.CLAUDE:
+            if await self.claude.is_available():
+                self._active_client = self.claude
+                logger.info("Using Claude (Anthropic API)")
+                return self._active_client
+
         if self.preferred_provider == LLMProvider.GROQ:
             if await self.groq.is_available():
                 self._active_client = self.groq
