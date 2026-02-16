@@ -304,13 +304,24 @@ async def lifespan(app: FastAPI):
         from sqlalchemy import text
 
         async with engine.begin() as conn:
-            # Get existing columns for users table
-            result = await conn.execute(text(
-                "SELECT column_name FROM information_schema.columns WHERE table_name = 'users'"
-            ))
-            existing_cols = {row[0] for row in result.fetchall()}
-
             migrations_run = 0
+
+            # Helper: get existing columns for a table
+            async def get_columns(table_name: str) -> set:
+                result = await conn.execute(text(
+                    "SELECT column_name FROM information_schema.columns WHERE table_name = :t"
+                ).bindparams(t=table_name))
+                return {row[0] for row in result.fetchall()}
+
+            # Helper: check if table exists
+            async def table_exists(table_name: str) -> bool:
+                result = await conn.execute(text(
+                    "SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = :t)"
+                ).bindparams(t=table_name))
+                return result.scalar()
+
+            # --- users table ---
+            users_cols = await get_columns("users")
             user_migrations = [
                 ("totp_secret", "ALTER TABLE users ADD COLUMN totp_secret VARCHAR(64)"),
                 ("totp_enabled", "ALTER TABLE users ADD COLUMN totp_enabled BOOLEAN DEFAULT FALSE"),
@@ -319,19 +330,70 @@ async def lifespan(app: FastAPI):
                 ("display_name", "ALTER TABLE users ADD COLUMN display_name VARCHAR(255)"),
             ]
             for col_name, sql in user_migrations:
-                if col_name not in existing_cols:
+                if col_name not in users_cols:
                     await conn.execute(text(sql))
                     migrations_run += 1
                     logger.info(f"Migration: added column users.{col_name}")
 
-            # Create indexes for SSO columns if they were just added
-            if "sso_provider" not in existing_cols:
+            if "sso_provider" not in users_cols:
                 await conn.execute(text(
                     "CREATE INDEX IF NOT EXISTS ix_users_sso_provider ON users (sso_provider)"
                 ))
                 await conn.execute(text(
                     "CREATE INDEX IF NOT EXISTS ix_users_sso_subject_id ON users (sso_subject_id)"
                 ))
+
+            # --- document_types table ---
+            dt_cols = await get_columns("document_types")
+            dt_migrations = [
+                ("updated_at", "ALTER TABLE document_types ADD COLUMN updated_at TIMESTAMPTZ DEFAULT NOW()"),
+            ]
+            for col_name, sql in dt_migrations:
+                if col_name not in dt_cols:
+                    await conn.execute(text(sql))
+                    migrations_run += 1
+                    logger.info(f"Migration: added column document_types.{col_name}")
+
+            # --- user_templates table ---
+            ut_cols = await get_columns("user_templates")
+            ut_migrations = [
+                ("template_type", "ALTER TABLE user_templates ADD COLUMN template_type VARCHAR(20) DEFAULT 'stationery' NOT NULL"),
+                ("is_default", "ALTER TABLE user_templates ADD COLUMN is_default BOOLEAN DEFAULT FALSE NOT NULL"),
+                ("thumbnail_path", "ALTER TABLE user_templates ADD COLUMN thumbnail_path VARCHAR(500)"),
+            ]
+            for col_name, sql in ut_migrations:
+                if col_name not in ut_cols:
+                    await conn.execute(text(sql))
+                    migrations_run += 1
+                    logger.info(f"Migration: added column user_templates.{col_name}")
+            if "template_type" not in ut_cols:
+                await conn.execute(text(
+                    "CREATE INDEX IF NOT EXISTS ix_user_templates_template_type ON user_templates (template_type)"
+                ))
+
+            # --- user_feature_settings table ---
+            if await table_exists("user_feature_settings"):
+                ufs_cols = await get_columns("user_feature_settings")
+                ufs_migrations = [
+                    ("enable_ai_streaming", "ALTER TABLE user_feature_settings ADD COLUMN enable_ai_streaming BOOLEAN DEFAULT TRUE NOT NULL"),
+                    ("enable_ghostwriter", "ALTER TABLE user_feature_settings ADD COLUMN enable_ghostwriter BOOLEAN DEFAULT TRUE NOT NULL"),
+                ]
+                for col_name, sql in ufs_migrations:
+                    if col_name not in ufs_cols:
+                        await conn.execute(text(sql))
+                        migrations_run += 1
+                        logger.info(f"Migration: added column user_feature_settings.{col_name}")
+
+            # --- clauses table ---
+            cl_cols = await get_columns("clauses")
+            cl_migrations = [
+                ("updated_at", "ALTER TABLE clauses ADD COLUMN updated_at TIMESTAMPTZ DEFAULT NOW()"),
+            ]
+            for col_name, sql in cl_migrations:
+                if col_name not in cl_cols:
+                    await conn.execute(text(sql))
+                    migrations_run += 1
+                    logger.info(f"Migration: added column clauses.{col_name}")
 
             if migrations_run > 0:
                 logger.info(f"Schema migrations complete: {migrations_run} columns added")
