@@ -459,6 +459,13 @@ def assemble_html_preview(
     # to eliminate gaps when conditional clauses are excluded
     active_clauses = _renumber_clause_sections(active_clauses)
 
+    # Inject computed fields into form_data before rendering placeholders
+    # _firmenname: company name from design_settings for [firmenname] placeholder
+    if "_firmenname" not in form_data:
+        form_data["_firmenname"] = design_settings.get("company_name", "")
+    if "company_name" not in form_data:
+        form_data["company_name"] = design_settings.get("company_name", "")
+
     # Sanitize and render placeholders in clause content
     for i, clause in enumerate(active_clauses):
         sanitized_content = sanitize_html(clause.get("content", ""))

@@ -62,7 +62,7 @@ interface DocumentEditorProps {
 }
 
 // Compact single-line toolbar for split-screen mode
-const COMPACT_TOOLBAR = "undo redo | bold italic underline | bullist numlist | link table | removeformat";
+const COMPACT_TOOLBAR = "undo redo | fontfamily fontsize | bold italic underline | bullist numlist | link table | removeformat";
 
 // Full two-line toolbar for standalone mode
 const FULL_TOOLBAR = [
