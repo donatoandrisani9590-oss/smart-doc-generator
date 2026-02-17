@@ -3,13 +3,44 @@
  *
  * Loads clauses from the API when document type changes, manages
  * enabled/disabled state, drag-reorder, and variant group selection.
+ * Auto-selects variants based on formData.vertragsart.
  */
 
 import { useState, useCallback, useEffect } from "react";
 import { api } from "@/lib/api-client";
 import { logError } from "@/lib/logger";
-import type { DocumentClause, VariantGroup } from "@/components/generator/WizardContext";
+import type { DocumentClause, VariantGroup, FormData } from "@/components/generator/WizardContext";
 import type { ClauseResponse } from "./types";
+
+// ══════════════════════════════════════════════════════════════════════════════
+// API RESPONSE TYPE for variant-groups endpoint
+// ══════════════════════════════════════════════════════════════════════════════
+
+interface VariantGroupResponse {
+    id: number;
+    variant_group_id: number;
+    variant_group_name: string;
+    variant_group_description: string;
+    display_order: number;
+    is_mandatory: boolean;
+    default_variant_id: number | null;
+    effective_default_id: number | null;
+    variant_count: number;
+    variants: Array<{
+        id: number;
+        variant_name: string;
+        variant_code: string | null;
+        is_default: boolean;
+        clause_id: number;
+        clause_title: string | null;
+        clause_content_preview: string | null;
+        auto_select_condition?: {
+            field: string;
+            operator: string;
+            value: string;
+        } | null;
+    }>;
+}
 
 // ══════════════════════════════════════════════════════════════════════════════
 // PARAMS
@@ -18,6 +49,8 @@ import type { ClauseResponse } from "./types";
 export interface UseWizardClausesParams {
     /** Current document type ID - clauses reload when this changes */
     documentTypeId: number | null;
+    /** Form data for auto-selecting variants */
+    formData: FormData;
     /** Callback to mark unsaved changes in the parent */
     markUnsaved: () => void;
 }
@@ -42,7 +75,7 @@ export interface UseWizardClausesReturn {
 // HOOK
 // ══════════════════════════════════════════════════════════════════════════════
 
-export function useWizardClauses({ documentTypeId, markUnsaved }: UseWizardClausesParams): UseWizardClausesReturn {
+export function useWizardClauses({ documentTypeId, formData, markUnsaved }: UseWizardClausesParams): UseWizardClausesReturn {
     const [documentClauses, setDocumentClauses] = useState<DocumentClause[]>([]);
     const [selectedVariants, setSelectedVariants] = useState<Record<number, { variantId: number; clauseId: number }>>({});
     const [variantGroups, setVariantGroups] = useState<VariantGroup[]>([]);
@@ -55,32 +88,38 @@ export function useWizardClauses({ documentTypeId, markUnsaved }: UseWizardClaus
 
         const loadClauses = async () => {
             try {
-                const response = await api.get<ClauseResponse[]>(
-                    `/api/v1/document-types/${documentTypeId}/clauses`
-                );
+                // Load clauses and variant groups in parallel
+                const [clausesRes, variantGroupsRes] = await Promise.all([
+                    api.get<ClauseResponse[]>(
+                        `/api/v1/document-types/${documentTypeId}/clauses`
+                    ),
+                    api.get<VariantGroupResponse[]>(
+                        `/api/v1/document-types/${documentTypeId}/variant-groups`
+                    ).catch(() => ({ data: [] as VariantGroupResponse[] })),
+                ]);
 
-                // Extract unique variant groups with their clauses
-                const groupsMap = new Map<number, VariantGroup>();
+                // Build variant groups from dedicated endpoint (has auto_select_condition)
+                const groups: VariantGroup[] = variantGroupsRes.data.map((vg) => ({
+                    id: vg.variant_group_id,
+                    name: vg.variant_group_name,
+                    clauses: vg.variants.map((v) => ({
+                        id: v.clause_id,
+                        name: v.clause_title || v.variant_name,
+                    })),
+                    variants: vg.variants.map((v) => ({
+                        id: v.id,
+                        variant_name: v.variant_name,
+                        variant_code: v.variant_code,
+                        is_default: v.is_default,
+                        clause_id: v.clause_id,
+                        clause_title: v.clause_title,
+                        auto_select_condition: v.auto_select_condition,
+                    })),
+                }));
+                setVariantGroups(groups);
 
-                response.data.forEach((clause) => {
-                    if (clause.clause_type === "variant" && clause.variant_group_id) {
-                        if (!groupsMap.has(clause.variant_group_id)) {
-                            groupsMap.set(clause.variant_group_id, {
-                                id: clause.variant_group_id,
-                                name: clause.variant_group_name || `Variante ${clause.variant_group_id}`,
-                                clauses: [],
-                            });
-                        }
-                        groupsMap.get(clause.variant_group_id)!.clauses.push({
-                            id: clause.id,
-                            name: clause.title,
-                        });
-                    }
-                });
-                setVariantGroups(Array.from(groupsMap.values()));
-
-                // Set clauses (filter out variant clauses)
-                setDocumentClauses(response.data
+                // Set clauses (filter out variant-type clauses from the main list)
+                setDocumentClauses(clausesRes.data
                     .filter((clause) => clause.clause_type !== "variant")
                     .map((clause) => ({
                         id: clause.id,
@@ -103,6 +142,46 @@ export function useWizardClauses({ documentTypeId, markUnsaved }: UseWizardClaus
 
         loadClauses();
     }, [documentTypeId]);
+
+    // ── Auto-select variants based on vertragsart ───────────────────────────
+
+    useEffect(() => {
+        if (!variantGroups.length) return;
+
+        const newSelections: Record<number, { variantId: number; clauseId: number }> = {};
+
+        for (const group of variantGroups) {
+            if (!group.variants?.length) continue;
+
+            // Check each variant's auto_select_condition
+            const matchingVariant = group.variants.find((v) => {
+                if (!v.auto_select_condition) return false;
+                const cond = v.auto_select_condition;
+                return (
+                    cond.field === "vertragsart" &&
+                    cond.operator === "=" &&
+                    cond.value === formData.vertragsart
+                );
+            });
+
+            if (matchingVariant) {
+                newSelections[group.id] = {
+                    variantId: matchingVariant.id,
+                    clauseId: matchingVariant.clause_id,
+                };
+            }
+        }
+
+        // Only update if selections actually differ
+        setSelectedVariants((prev) => {
+            const hasChanges = Object.keys(newSelections).some(
+                (k) =>
+                    !prev[Number(k)] ||
+                    prev[Number(k)].variantId !== newSelections[Number(k)].variantId
+            );
+            return hasChanges ? { ...prev, ...newSelections } : prev;
+        });
+    }, [formData.vertragsart, variantGroups]);
 
     // ── Clause Actions ──────────────────────────────────────────────────────
 

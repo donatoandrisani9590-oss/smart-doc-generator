@@ -64,6 +64,7 @@ export function useDocumentWizard(initialDraftId?: number): WizardContextValue {
 
     const clauses = useWizardClauses({
         documentTypeId: form.documentTypeId,
+        formData: form.formData,
         markUnsaved: () => form.setHasUnsavedChanges(true),
     });
 

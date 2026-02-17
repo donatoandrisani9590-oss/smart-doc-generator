@@ -69,6 +69,20 @@ export interface SelectedVariant {
     clauseId: number;
 }
 
+export interface VariantGroupVariant {
+    id: number;
+    variant_name: string;
+    variant_code: string | null;
+    is_default: boolean;
+    clause_id: number;
+    clause_title: string | null;
+    auto_select_condition?: {
+        field: string;
+        operator: string;
+        value: string;
+    } | null;
+}
+
 export interface VariantGroup {
     id: number;
     name: string;
@@ -76,6 +90,7 @@ export interface VariantGroup {
         id: number;
         name: string;
     }>;
+    variants?: VariantGroupVariant[];
 }
 
 // ══════════════════════════════════════════════════════════════════════════════

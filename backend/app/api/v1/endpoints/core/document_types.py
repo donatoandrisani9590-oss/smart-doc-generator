@@ -1,4 +1,5 @@
 from __future__ import annotations
+import json
 from typing import Any, List, Annotated, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -555,7 +556,7 @@ async def get_document_type_clauses(
             "is_order_locked": link.is_order_locked if hasattr(link, 'is_order_locked') else False,
             "has_paragraph_number": getattr(clause, 'has_paragraph_number', True),
             "variant_group_id": None,
-            "variant_group_name": None,
+            "variant_group_name": getattr(link, 'variant_group', None),
         })
 
     # Compute dynamic paragraph numbers based on position
@@ -636,8 +637,17 @@ async def get_document_type_variant_groups(
     variant_groups = []
     for link in links:
         vg = link.variant_group
-        variants = [
-            {
+        variants = []
+        for v in vg.variants:
+            if not v.is_active:
+                continue
+            condition = None
+            if v.auto_select_condition:
+                try:
+                    condition = json.loads(v.auto_select_condition) if isinstance(v.auto_select_condition, str) else v.auto_select_condition
+                except (json.JSONDecodeError, TypeError):
+                    condition = None
+            variants.append({
                 "id": v.id,
                 "variant_name": v.variant_name,
                 "variant_code": v.variant_code,
@@ -645,9 +655,8 @@ async def get_document_type_variant_groups(
                 "clause_id": v.clause_id,
                 "clause_title": v.clause.title if v.clause else None,
                 "clause_content_preview": (v.clause.content_html[:200] + "...") if v.clause and len(v.clause.content_html) > 200 else (v.clause.content_html if v.clause else None),
-            }
-            for v in vg.variants if v.is_active
-        ]
+                "auto_select_condition": condition,
+            })
 
         # Determine effective default variant
         effective_default_id = link.default_variant_id
