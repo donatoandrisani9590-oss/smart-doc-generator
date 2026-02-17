@@ -250,7 +250,19 @@ def evaluate_condition(condition: dict, form_data: dict) -> bool:
     if not condition:
         return True
 
-    # Handle group conditions (AND/OR)
+    # Handle AND/OR key format: {"AND": [...]} or {"OR": [...]}
+    if "AND" in condition:
+        sub_conditions = condition["AND"]
+        if not sub_conditions:
+            return True
+        return all(evaluate_condition(c, form_data) for c in sub_conditions)
+    if "OR" in condition:
+        sub_conditions = condition["OR"]
+        if not sub_conditions:
+            return True
+        return any(evaluate_condition(c, form_data) for c in sub_conditions)
+
+    # Handle group conditions (AND/OR) - legacy format
     condition_type = condition.get("type")
     if condition_type == "group":
         logic = condition.get("logic", "and")
