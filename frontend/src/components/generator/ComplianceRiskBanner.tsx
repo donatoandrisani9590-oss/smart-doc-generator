@@ -9,7 +9,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import {
   AlertTriangle,
-  CheckCircle,
   XCircle,
   Info,
   ChevronDown,
@@ -241,44 +240,21 @@ export function ComplianceRiskBanner({
     );
   }
 
-  // No risks found - success state
+  // No risks found - compact success state (less visual weight)
   if (result && result.risks.length === 0) {
     return (
       <div
         className={cn(
-          "flex items-center gap-3 px-4 py-3 bg-green-50 border border-green-200 rounded-lg",
+          "flex items-center gap-2 px-3 py-2 bg-green-50/60 border border-green-200/60 rounded-lg",
           className
         )}
       >
-        <CheckCircle className="h-5 w-5 text-green-600" />
-        <div className="flex-1">
-          <span className="text-sm font-medium text-green-800">
-            Keine Compliance-Risiken gefunden
-          </span>
-          {result.provider !== "pattern" && (
-            <span className="ml-2 text-xs text-green-600">
-              (inkl. KI-Analyse)
-            </span>
-          )}
-        </div>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Badge
-                variant="outline"
-                className="bg-green-100 text-green-800 border-green-200"
-              >
-                <Shield className="h-3 w-3 mr-1" />
-                {result.overall_score}/100
-              </Badge>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Compliance Score: Je höher, desto besser</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <Shield className="h-4 w-4 text-green-500" />
+        <span className="text-xs text-green-700">
+          Compliance {result.overall_score}/100 — keine Risiken
+        </span>
         {isLoading && (
-          <Loader2 className="h-4 w-4 animate-spin text-green-600" />
+          <Loader2 className="h-3 w-3 animate-spin text-green-500" />
         )}
       </div>
     );

@@ -18,6 +18,7 @@ import json
 from app.db import get_db
 from app.models.enterprise import DocumentDraft
 from app.api.deps import get_current_user
+from app.api.v1.endpoints.documents.preview import build_logo_data_url
 
 router = APIRouter()
 
@@ -356,7 +357,7 @@ async def finalize_draft(
     # Build design settings dict with DIN 5008 values
     design_settings = {
         "company_name": design.company_name if design else "Unternehmen",
-        "logo_path": design.logo_path if design else None,
+        "logo_path": build_logo_data_url(design.logo_path) if design else None,
         "header_line1": design.header_line1 if design else "",
         "header_line2": design.header_line2 if design else "",
         "header_line3": design.header_line3 if design else "",

@@ -8,6 +8,9 @@ from sqlalchemy import select
 from pydantic import BaseModel
 from typing import Optional, Annotated
 import json
+import base64
+import logging
+from pathlib import Path
 
 from app.db import get_db
 from app.models.core import DesignSetting, User
@@ -23,15 +26,58 @@ from app.services.cache import (
 from app.api.deps import get_current_user, get_current_active_admin
 from app.core.config import settings
 
+logger = logging.getLogger(__name__)
 
-def build_logo_url(logo_path: Optional[str]) -> Optional[str]:
-    """Convert logo path to full URL for preview rendering."""
+LOGO_STORAGE_PATH = Path("storage/logos")
+
+# In-memory cache for base64 logos (survives across requests, invalidated on upload)
+_logo_base64_cache: dict[str, Optional[str]] = {}
+
+
+def build_logo_data_url(logo_path: Optional[str]) -> Optional[str]:
+    """Convert logo file path to base64 data URL for inline embedding.
+
+    Uses base64 data URLs instead of HTTP URLs because:
+    1. Railway uses ephemeral storage — logo files may disappear after redeploy
+    2. TinyMCE renders content in an isolated iframe where cross-origin URLs can fail
+    3. Data URLs are self-contained and work reliably in all contexts
+    """
     if not logo_path:
         return None
-    # logo_path is like "de/logo_20250115_123456.png"
-    # We need to return full API URL
-    base_url = getattr(settings, 'API_BASE_URL', 'http://localhost:8000')
-    return f"{base_url}/api/v1/admin/logo/{logo_path}"
+
+    # Check in-memory cache first
+    if logo_path in _logo_base64_cache:
+        return _logo_base64_cache[logo_path]
+
+    full_path = LOGO_STORAGE_PATH / logo_path
+    if not full_path.exists():
+        logger.warning(f"Logo file not found: {full_path}")
+        _logo_base64_cache[logo_path] = None
+        return None
+
+    try:
+        ext = logo_path.rsplit(".", 1)[-1].lower() if "." in logo_path else "png"
+        mime_types = {"png": "image/png", "jpg": "image/jpeg", "jpeg": "image/jpeg"}
+        mime = mime_types.get(ext, "image/png")
+
+        data = full_path.read_bytes()
+        b64 = base64.b64encode(data).decode("ascii")
+        data_url = f"data:{mime};base64,{b64}"
+
+        _logo_base64_cache[logo_path] = data_url
+        return data_url
+    except Exception as e:
+        logger.warning(f"Could not read logo file {logo_path}: {e}")
+        _logo_base64_cache[logo_path] = None
+        return None
+
+
+def invalidate_logo_cache(logo_path: Optional[str] = None) -> None:
+    """Clear logo base64 cache (call after logo upload/delete)."""
+    if logo_path:
+        _logo_base64_cache.pop(logo_path, None)
+    else:
+        _logo_base64_cache.clear()
 
 router = APIRouter()
 
@@ -106,7 +152,7 @@ async def generate_preview(
         
         design_dict = {
             "company_name": design.company_name if design else "Company",
-            "logo_path": build_logo_url(design.logo_path) if design else None,
+            "logo_path": build_logo_data_url(design.logo_path) if design else None,
             "header_line1": design.header_line1 if design else "",
             "header_line2": design.header_line2 if design else "",
             "header_line3": design.header_line3 if design else "",
@@ -383,7 +429,7 @@ async def generate_composer_preview(
 
     design_dict = {
         "company_name": design.company_name if design else "Unternehmen",
-        "logo_path": build_logo_url(design.logo_path) if design else None,
+        "logo_path": build_logo_data_url(design.logo_path) if design else None,
         "header_line1": design.header_line1 if design else "",
         "header_line2": design.header_line2 if design else "",
         "header_line3": design.header_line3 if design else "",
@@ -469,7 +515,7 @@ async def generate_test_preview(
 
     design_dict = {
         "company_name": design.company_name if design else "Muster GmbH",
-        "logo_path": build_logo_url(design.logo_path) if design else None,
+        "logo_path": build_logo_data_url(design.logo_path) if design else None,
         "header_line1": design.header_line1 if design else "Muster GmbH",
         "header_line2": design.header_line2 if design else "Musterstraße 123",
         "header_line3": design.header_line3 if design else "12345 Musterstadt",

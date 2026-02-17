@@ -8,6 +8,8 @@ import re
 from pathlib import Path
 from typing import Annotated
 
+from app.api.v1.endpoints.documents.preview import invalidate_logo_cache
+
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from fastapi.responses import FileResponse
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -95,6 +97,7 @@ async def upload_logo(
     if design:
         # Delete old logo if exists
         if design.logo_path:
+            invalidate_logo_cache(design.logo_path)
             old_path = LOGO_STORAGE_PATH / design.logo_path
             if old_path.exists():
                 try:
@@ -168,6 +171,9 @@ async def delete_logo(
 
     if not design or not design.logo_path:
         raise HTTPException(status_code=404, detail="Kein Logo vorhanden")
+
+    # Invalidate base64 cache
+    invalidate_logo_cache(design.logo_path)
 
     # Delete file
     full_path = LOGO_STORAGE_PATH / design.logo_path

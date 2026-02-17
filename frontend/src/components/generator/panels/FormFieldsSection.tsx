@@ -400,20 +400,18 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
         <TooltipProvider>
         <div className="space-y-4 p-3 bg-background rounded-lg border">
             {/* Fortschrittsanzeige für Pflichtfelder */}
-            <div className="space-y-2 pb-3 border-b">
-                <div className="flex items-center justify-between text-xs">
-                    <span className="text-muted-foreground flex items-center gap-1.5">
-                        {requiredFieldsProgress.percentage === 100 && (
-                            <CheckCircle2 className="w-3.5 h-3.5 text-green-600" />
-                        )}
-                        <span>
-                            <span className="font-medium text-foreground">
-                                {requiredFieldsProgress.filled}
-                            </span>{" "}
-                            {labels.progress_filled} {requiredFieldsProgress.total} {labels.progress_suffix}
-                        </span>
+            <div className="space-y-1.5 pb-3 border-b">
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    {requiredFieldsProgress.percentage === 100 && (
+                        <CheckCircle2 className="w-3.5 h-3.5 text-green-600 flex-shrink-0" />
+                    )}
+                    <span>
+                        <span className="font-medium text-foreground">
+                            {requiredFieldsProgress.filled}
+                        </span>{" "}
+                        {labels.progress_filled} {requiredFieldsProgress.total} {labels.progress_suffix}
                     </span>
-                    <span className="text-muted-foreground/60">
+                    <span className="ml-auto text-muted-foreground/50 flex-shrink-0">
                         <span className="text-destructive">*</span> = {labels.required}
                     </span>
                 </div>
