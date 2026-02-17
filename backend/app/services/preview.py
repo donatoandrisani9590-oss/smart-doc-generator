@@ -132,7 +132,10 @@ def render_placeholders(content: str, form_data: dict, country_code: str = "DE")
         "startdatum": "eintrittsdatum",
         "vertragsbeginn": "eintrittsdatum",
         "beschaeftigung_von": "eintrittsdatum",
-        "anrede": "_anrede",  # Special: computed field
+        "anrede": "_anrede",  # Special: computed field (Nominativ: Frau/Herr)
+        "anrede_dativ": "_anrede_dativ",  # Special: computed field (Dativ: Frau/Herrn)
+        "anrede_brief": "_anrede_brief",  # Special: "Sehr geehrte Frau" / "Sehr geehrter Herr"
+        "firmenname": "_firmenname",  # Special: from company settings
         # IGBCE Haustarifvertrag Felder
         "entgeltgruppe": "entgeltgruppe",
         "lohngruppe": "entgeltgruppe",
@@ -159,16 +162,49 @@ def render_placeholders(content: str, form_data: dict, country_code: str = "DE")
         if value is None:
             alias = PLACEHOLDER_ALIASES.get(placeholder.lower())
             if alias:
-                value = form_data.get(alias)
+                # Handle special computed fields
+                if alias == "_anrede":
+                    vorname = form_data.get("vorname", "")
+                    if vorname:
+                        return _guess_salutation(vorname, country_code)
+                    return "Frau/Herr" if country_code == "DE" else "Sig./Sig.ra"
+                elif alias == "_anrede_dativ":
+                    vorname = form_data.get("vorname", "")
+                    if vorname:
+                        sal = _guess_salutation(vorname, country_code)
+                        # Dativ: "Herrn" statt "Herr", "Frau" bleibt gleich
+                        if sal == "Herr":
+                            return "Herrn"
+                        elif sal == "Sig.":
+                            return "Sig."
+                        return sal
+                    return "Frau/Herrn" if country_code == "DE" else "Sig./Sig.ra"
+                elif alias == "_anrede_brief":
+                    vorname = form_data.get("vorname", "")
+                    if vorname:
+                        sal = _guess_salutation(vorname, country_code)
+                        if sal == "Frau":
+                            return "Sehr geehrte Frau"
+                        elif sal == "Herr":
+                            return "Sehr geehrter Herr"
+                        elif sal == "Sig.ra":
+                            return "Gentile Sig.ra"
+                        elif sal == "Sig.":
+                            return "Gentile Sig."
+                    return "Sehr geehrte(r) Frau/Herr" if country_code == "DE" else "Gentile Sig./Sig.ra"
+                elif alias == "_firmenname":
+                    return form_data.get("_firmenname", form_data.get("company_name", "[firmenname]"))
+                else:
+                    value = form_data.get(alias)
 
         if value is None:
             return f"[{placeholder}]"
-        
+
         # Date fields (check by name pattern or explicit date field set)
         placeholder_lower = placeholder.lower()
         if "datum" in placeholder_lower or "date" in placeholder_lower or placeholder_lower in DATE_FIELD_NAMES:
             return format_date_localized(value, country_code)
-        
+
         # Currency fields
         if any(kw in placeholder_lower for kw in ("gehalt", "betrag", "urlaubsgeld", "vwl")):
             try:
@@ -177,7 +213,7 @@ def render_placeholders(content: str, form_data: dict, country_code: str = "DE")
                 return format_currency_localized(float(val_str), country_code)
             except (ValueError, TypeError):
                 return str(value)
-        
+
         return str(value)
     
     # Replace both {{ placeholder }} and [placeholder] patterns

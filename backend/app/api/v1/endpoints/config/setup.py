@@ -325,9 +325,9 @@ ARBEITSVERTRAG_CLAUSES = [
             'Die Zahlung erfolgt bargeldlos jeweils zum Ende eines Kalendermonats auf ein vom Arbeitnehmer benanntes Konto.</p>'
             '<p>Der Arbeitnehmer erh&auml;lt dar&uuml;ber hinaus eine Jahressonderzahlung (13.&nbsp;Monatsgehalt) gem&auml;&szlig; den Bestimmungen des Haustarifvertrages (Ziff.&nbsp;48&ndash;52). '
             'Die Auszahlung erfolgt mit dem Novembergehalt.</p>'
-            '<p>Der Arbeitnehmer erh&auml;lt ein zus&auml;tzliches Urlaubsgeld in H&ouml;he von <strong>[urlaubsgeld_pro_tag]&nbsp;&euro;</strong> je Urlaubstag (Haustarifvertrag Ziff.&nbsp;53&ndash;54). '
+            '<p>Der Arbeitnehmer erh&auml;lt ein zus&auml;tzliches Urlaubsgeld in H&ouml;he von <strong>[urlaubsgeld_pro_tag]</strong> je Urlaubstag (Haustarifvertrag Ziff.&nbsp;53&ndash;54). '
             'Das Urlaubsgeld wird mit der Gehaltsabrechnung f&uuml;r den Monat Juni ausgezahlt.</p>'
-            '<p>Der Arbeitgeber zahlt verm&ouml;genswirksame Leistungen in H&ouml;he von <strong>[vwl_betrag]&nbsp;&euro;</strong> brutto monatlich (Haustarifvertrag Ziff.&nbsp;55).</p>',
+            '<p>Der Arbeitgeber zahlt verm&ouml;genswirksame Leistungen in H&ouml;he von <strong>[vwl_betrag]</strong> brutto monatlich (Haustarifvertrag Ziff.&nbsp;55).</p>',
         "category": "Arbeitsrecht", "tags": ["vergütung", "gehalt", "bruttogehalt", "jahressonderzahlung", "urlaubsgeld", "vwl"], "tone": "neutral",
         "is_mandatory": True, "display_order": 9,
     },
@@ -679,7 +679,7 @@ async def fix_clause_umlauts(
 KUENDIGUNG_CLAUSES = [
     {
         "title": "Kündigungserklärung",
-        "content_html": '<p><strong>&sect; 1 K&uuml;ndigungserkl&auml;rung</strong></p><p>Sehr geehrte/r Frau/Herr <strong>[vorname] [nachname]</strong>,</p><p>hiermit k&uuml;ndigen wir das zwischen Ihnen und unserem Unternehmen bestehende Arbeitsverh&auml;ltnis ordentlich und fristgerecht zum n&auml;chstm&ouml;glichen Termin.</p>',
+        "content_html": '<p><strong>&sect; 1 K&uuml;ndigungserkl&auml;rung</strong></p><p>[anrede_brief] <strong>[vorname] [nachname]</strong>,</p><p>hiermit k&uuml;ndigen wir das zwischen Ihnen und unserem Unternehmen bestehende Arbeitsverh&auml;ltnis ordentlich und fristgerecht zum n&auml;chstm&ouml;glichen Termin.</p>',
         "category": "Arbeitsrecht", "tags": ["kündigung", "kündigungserklärung"], "tone": "neutral",
         "is_mandatory": True, "display_order": 1,
     },
@@ -830,7 +830,7 @@ async def seed_kuendigung_clauses(
 ABMAHNUNG_CLAUSES = [
     {
         "title": "Sachverhalt und Pflichtverletzung",
-        "content_html": '<p><strong>&sect; 1 Sachverhalt und Pflichtverletzung</strong></p><p>Sehr geehrte/r Frau/Herr <strong>[vorname] [nachname]</strong>,</p><p>wir m&uuml;ssen Sie hiermit wegen eines Versto&szlig;es gegen Ihre arbeitsvertraglichen Pflichten abmahnen.</p><p>Am <strong>[vorfall_datum]</strong> haben Sie folgende Pflichtverletzung begangen: Sie sind Ihrem Arbeitsplatz unentschuldigt ferngeblieben, ohne Ihren Vorgesetzten rechtzeitig zu informieren oder eine Arbeitsunf&auml;higkeitsbescheinigung vorzulegen.</p>',
+        "content_html": '<p><strong>&sect; 1 Sachverhalt und Pflichtverletzung</strong></p><p>[anrede_brief] <strong>[vorname] [nachname]</strong>,</p><p>wir m&uuml;ssen Sie hiermit wegen eines Versto&szlig;es gegen Ihre arbeitsvertraglichen Pflichten abmahnen.</p><p>Am <strong>[vorfall_datum]</strong> haben Sie folgende Pflichtverletzung begangen: Sie sind Ihrem Arbeitsplatz unentschuldigt ferngeblieben, ohne Ihren Vorgesetzten rechtzeitig zu informieren oder eine Arbeitsunf&auml;higkeitsbescheinigung vorzulegen.</p>',
         "category": "Arbeitsrecht", "tags": ["abmahnung", "pflichtverletzung", "sachverhalt"], "tone": "streng",
         "is_mandatory": True, "display_order": 1,
     },
@@ -967,37 +967,37 @@ async def seed_abmahnung_clauses(
 ARBEITSZEUGNIS_CLAUSES = [
     {
         "title": "Einleitung und Beschäftigungsdaten",
-        "content_html": '<p><strong>&sect; 1 Einleitung und Besch&auml;ftigungsdaten</strong></p><p>Frau/Herr <strong>[vorname] [nachname]</strong>, geboren am <strong>[geburtsdatum]</strong>, war in unserem Unternehmen vom <strong>[eintrittsdatum]</strong> bis zum <strong>[beschaeftigung_bis]</strong> als <strong>[position]</strong> besch&auml;ftigt.</p>',
+        "content_html": '<p><strong>&sect; 1 Einleitung und Besch&auml;ftigungsdaten</strong></p><p>[anrede] <strong>[vorname] [nachname]</strong>, geboren am <strong>[geburtsdatum]</strong>, war in unserem Unternehmen vom <strong>[eintrittsdatum]</strong> bis zum <strong>[beschaeftigung_bis]</strong> als <strong>[position]</strong> besch&auml;ftigt.</p>',
         "category": "Arbeitsrecht", "tags": ["zeugnis", "einleitung", "beschäftigungsdaten"], "tone": "neutral",
         "is_mandatory": True, "display_order": 1,
     },
     {
         "title": "Tätigkeitsbeschreibung",
-        "content_html": '<p><strong>&sect; 2 T&auml;tigkeitsbeschreibung</strong></p><p>Zu den Aufgaben von Frau/Herrn <strong>[nachname]</strong> geh&ouml;rten insbesondere:</p><ul><li>Eigenverantwortliche Bearbeitung aller Aufgaben im Bereich <strong>[position]</strong></li><li>Planung, Organisation und Durchf&uuml;hrung von Projekten im Zust&auml;ndigkeitsbereich</li><li>Zusammenarbeit mit internen Abteilungen und externen Partnern</li><li>Erstellung von Berichten, Analysen und Pr&auml;sentationen</li></ul>',
+        "content_html": '<p><strong>&sect; 2 T&auml;tigkeitsbeschreibung</strong></p><p>Zu den Aufgaben von [anrede_dativ] <strong>[nachname]</strong> geh&ouml;rten insbesondere:</p><ul><li>Eigenverantwortliche Bearbeitung aller Aufgaben im Bereich <strong>[position]</strong></li><li>Planung, Organisation und Durchf&uuml;hrung von Projekten im Zust&auml;ndigkeitsbereich</li><li>Zusammenarbeit mit internen Abteilungen und externen Partnern</li><li>Erstellung von Berichten, Analysen und Pr&auml;sentationen</li></ul>',
         "category": "Arbeitsrecht", "tags": ["zeugnis", "tätigkeitsbeschreibung"], "tone": "neutral",
         "is_mandatory": True, "display_order": 2,
     },
     {
         "title": "Leistungsbeurteilung",
-        "content_html": '<p><strong>&sect; 3 Leistungsbeurteilung</strong></p><p>Frau/Herr <strong>[nachname]</strong> verf&uuml;gt &uuml;ber ein fundiertes und umfassendes Fachwissen, das stets auf dem neuesten Stand gehalten wurde. Neue Aufgabenstellungen wurden schnell und sicher erfasst und eigenst&auml;ndig umgesetzt.</p><p>Die Arbeitsergebnisse waren stets von sehr hoher Qualit&auml;t und &uuml;bertrafen regelm&auml;&szlig;ig die Erwartungen. Auch unter schwierigen Bedingungen und bei hohem Arbeitsaufkommen erzielte Frau/Herr [nachname] stets sehr gute Ergebnisse.</p><p>Frau/Herr [nachname] hat die &uuml;bertragenen Aufgaben stets zu unserer vollsten Zufriedenheit erf&uuml;llt.</p>',
+        "content_html": '<p><strong>&sect; 3 Leistungsbeurteilung</strong></p><p>[anrede] <strong>[nachname]</strong> verf&uuml;gt &uuml;ber ein fundiertes und umfassendes Fachwissen, das stets auf dem neuesten Stand gehalten wurde. Neue Aufgabenstellungen wurden schnell und sicher erfasst und eigenst&auml;ndig umgesetzt.</p><p>Die Arbeitsergebnisse waren stets von sehr hoher Qualit&auml;t und &uuml;bertrafen regelm&auml;&szlig;ig die Erwartungen. Auch unter schwierigen Bedingungen und bei hohem Arbeitsaufkommen erzielte [anrede] [nachname] stets sehr gute Ergebnisse.</p><p>[anrede] [nachname] hat die &uuml;bertragenen Aufgaben stets zu unserer vollsten Zufriedenheit erf&uuml;llt.</p>',
         "category": "Arbeitsrecht", "tags": ["zeugnis", "leistungsbeurteilung"], "tone": "arbeitnehmerfreundlich",
         "is_mandatory": True, "display_order": 3,
     },
     {
         "title": "Arbeitsweise",
-        "content_html": '<p><strong>&sect; 4 Arbeitsweise</strong></p><p>Frau/Herr <strong>[nachname]</strong> arbeitete stets &auml;u&szlig;erst zuverl&auml;ssig, gewissenhaft und selbstst&auml;ndig. Die Arbeitsweise zeichnete sich durch hohe Sorgfalt, Effizienz und ein ausgepr&auml;gtes Qualit&auml;tsbewusstsein aus. Auch komplexe Aufgaben wurden strukturiert und zielorientiert bearbeitet.</p>',
+        "content_html": '<p><strong>&sect; 4 Arbeitsweise</strong></p><p>[anrede] <strong>[nachname]</strong> arbeitete stets &auml;u&szlig;erst zuverl&auml;ssig, gewissenhaft und selbstst&auml;ndig. Die Arbeitsweise zeichnete sich durch hohe Sorgfalt, Effizienz und ein ausgepr&auml;gtes Qualit&auml;tsbewusstsein aus. Auch komplexe Aufgaben wurden strukturiert und zielorientiert bearbeitet.</p>',
         "category": "Arbeitsrecht", "tags": ["zeugnis", "arbeitsweise"], "tone": "arbeitnehmerfreundlich",
         "is_mandatory": True, "display_order": 4,
     },
     {
         "title": "Verhalten gegenüber Vorgesetzten, Kollegen und Kunden",
-        "content_html": '<p><strong>&sect; 5 Verhalten gegen&uuml;ber Vorgesetzten, Kollegen und Kunden</strong></p><p>Das Verhalten von Frau/Herrn <strong>[nachname]</strong> gegen&uuml;ber Vorgesetzten, Kolleginnen und Kollegen sowie externen Partnern und Kunden war jederzeit vorbildlich. Durch die freundliche, aufgeschlossene und kooperative Art wurde Frau/Herr [nachname] von allen sehr gesch&auml;tzt.</p>',
+        "content_html": '<p><strong>&sect; 5 Verhalten gegen&uuml;ber Vorgesetzten, Kollegen und Kunden</strong></p><p>Das Verhalten von [anrede_dativ] <strong>[nachname]</strong> gegen&uuml;ber Vorgesetzten, Kolleginnen und Kollegen sowie externen Partnern und Kunden war jederzeit vorbildlich. Durch die freundliche, aufgeschlossene und kooperative Art wurde [anrede] [nachname] von allen sehr gesch&auml;tzt.</p>',
         "category": "Arbeitsrecht", "tags": ["zeugnis", "verhalten", "sozialverhalten"], "tone": "arbeitnehmerfreundlich",
         "is_mandatory": True, "display_order": 5,
     },
     {
         "title": "Schlussformel und Zukunftswünsche",
-        "content_html": '<p><strong>&sect; 6 Schlussformel und Zukunftsw&uuml;nsche</strong></p><p>Frau/Herr <strong>[vorname] [nachname]</strong> verl&auml;sst unser Unternehmen auf eigenen Wunsch. Wir bedauern diese Entscheidung sehr und danken f&uuml;r die stets hervorragende und engagierte Zusammenarbeit.</p><p>F&uuml;r den weiteren beruflichen und pers&ouml;nlichen Lebensweg w&uuml;nschen wir Frau/Herrn [nachname] alles Gute und weiterhin viel Erfolg.</p>',
+        "content_html": '<p><strong>&sect; 6 Schlussformel und Zukunftsw&uuml;nsche</strong></p><p>[anrede] <strong>[vorname] [nachname]</strong> verl&auml;sst unser Unternehmen auf eigenen Wunsch. Wir bedauern diese Entscheidung sehr und danken f&uuml;r die stets hervorragende und engagierte Zusammenarbeit.</p><p>F&uuml;r den weiteren beruflichen und pers&ouml;nlichen Lebensweg w&uuml;nschen wir [anrede_dativ] [nachname] alles Gute und weiterhin viel Erfolg.</p>',
         "category": "Arbeitsrecht", "tags": ["zeugnis", "schlussformel", "zukunftswünsche"], "tone": "arbeitnehmerfreundlich",
         "is_mandatory": True, "display_order": 6,
     },

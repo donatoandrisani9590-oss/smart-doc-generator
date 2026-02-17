@@ -173,6 +173,20 @@ def render_placeholders_extended(content: str, form_data: dict, country_code: st
         "beginn": "eintrittsdatum",
         "startdatum": "eintrittsdatum",
         "vertragsbeginn": "eintrittsdatum",
+        "anrede": "_anrede",  # Special: computed salutation (Nominativ)
+        "anrede_dativ": "_anrede_dativ",  # Special: computed salutation (Dativ)
+        "anrede_brief": "_anrede_brief",  # Special: "Sehr geehrte Frau" / "Sehr geehrter Herr"
+        "firmenname": "_firmenname",  # Special: from company settings
+        # IGBCE Haustarifvertrag Felder
+        "entgeltgruppe": "entgeltgruppe",
+        "lohngruppe": "entgeltgruppe",
+        "gehaltsgruppe": "entgeltgruppe",
+        "kuendigungsfrist": "kuendigungsfrist",
+        "au_frist": "au_frist",
+        "urlaubsgeld_pro_tag": "urlaubsgeld_pro_tag",
+        "urlaubsgeld": "urlaubsgeld_pro_tag",
+        "vwl_betrag": "vwl_betrag",
+        "vwl": "vwl_betrag",
     }
 
     def replace_match(match: re.Match) -> str:
@@ -191,20 +205,54 @@ def render_placeholders_extended(content: str, form_data: dict, country_code: st
         if value is None:
             alias = PLACEHOLDER_ALIASES.get(placeholder.lower())
             if alias:
-                value = form_data.get(alias)
+                # Handle special computed fields
+                if alias == "_anrede":
+                    vorname = form_data.get("vorname", "")
+                    if vorname:
+                        return _guess_salutation(vorname, country_code)
+                    return "Frau/Herr" if country_code == "DE" else "Sig./Sig.ra"
+                elif alias == "_anrede_dativ":
+                    vorname = form_data.get("vorname", "")
+                    if vorname:
+                        sal = _guess_salutation(vorname, country_code)
+                        if sal == "Herr":
+                            return "Herrn"
+                        elif sal == "Sig.":
+                            return "Sig."
+                        return sal
+                    return "Frau/Herrn" if country_code == "DE" else "Sig./Sig.ra"
+                elif alias == "_anrede_brief":
+                    vorname = form_data.get("vorname", "")
+                    if vorname:
+                        sal = _guess_salutation(vorname, country_code)
+                        if sal == "Frau":
+                            return "Sehr geehrte Frau"
+                        elif sal == "Herr":
+                            return "Sehr geehrter Herr"
+                        elif sal == "Sig.ra":
+                            return "Gentile Sig.ra"
+                        elif sal == "Sig.":
+                            return "Gentile Sig."
+                    return "Sehr geehrte(r) Frau/Herr" if country_code == "DE" else "Gentile Sig./Sig.ra"
+                elif alias == "_firmenname":
+                    return form_data.get("_firmenname", form_data.get("company_name", "[firmenname]"))
+                else:
+                    value = form_data.get(alias)
 
         if value is None:
             return f"[{placeholder}]"
 
         # Date fields - format with localization
-        if "datum" in placeholder.lower() or "date" in placeholder.lower():
+        placeholder_lower = placeholder.lower()
+        if "datum" in placeholder_lower or "date" in placeholder_lower:
             return format_date_localized(str(value), country_code)
 
         # Currency fields
-        if "gehalt" in placeholder.lower() or "betrag" in placeholder.lower():
+        if any(kw in placeholder_lower for kw in ("gehalt", "betrag", "urlaubsgeld", "vwl")):
             try:
-                # Format as European currency
-                num = float(value)
+                # Handle German decimal format (e.g., "26,59" → 26.59)
+                val_str = str(value).replace(",", ".")
+                num = float(val_str)
                 formatted = f"{num:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
                 return f"{formatted} €"
             except (ValueError, TypeError):
@@ -745,6 +793,10 @@ async def generate_document_by_type(
         exclude={"output_format", "attachment_ids", "clause_ids", "user_template_id", "async_pdf", "editor_html_content"},
         exclude_none=True
     )
+
+    # 4b. Inject company name for [firmenname] placeholder resolution
+    form_data["_firmenname"] = design_settings.get("company_name", "Niederwieser GmbH")
+    form_data["company_name"] = design_settings.get("company_name", "Niederwieser GmbH")
 
     # 5. Filter and assemble clauses
     active_clauses = []

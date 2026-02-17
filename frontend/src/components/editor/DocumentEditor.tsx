@@ -205,6 +205,19 @@ export const DocumentEditor = ({
           toolbar: compact ? COMPACT_TOOLBAR : FULL_TOOLBAR,
           toolbar_mode: compact ? "scrolling" : "wrap",
 
+          // === Font Configuration (like Word) ===
+          font_family_formats:
+            "Arial=Arial, Helvetica, sans-serif;" +
+            "Calibri=Calibri, sans-serif;" +
+            "Times New Roman=Times New Roman, Times, serif;" +
+            "Georgia=Georgia, serif;" +
+            "Verdana=Verdana, Geneva, sans-serif;" +
+            "Helvetica=Helvetica, Arial, sans-serif;" +
+            "Courier New=Courier New, Courier, monospace;" +
+            "Trebuchet MS=Trebuchet MS, sans-serif;" +
+            "Garamond=Garamond, serif;",
+          font_size_formats: "8pt 9pt 10pt 11pt 12pt 14pt 16pt 18pt 20pt 24pt 28pt 36pt",
+
           // === Table Plugin Configuration ===
           table_toolbar:
             "tableprops tabledelete | tableinsertrowbefore tableinsertrowafter tabledeleterow | tableinsertcolbefore tableinsertcolafter tabledeletecol",
