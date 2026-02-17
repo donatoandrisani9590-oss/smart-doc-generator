@@ -188,7 +188,7 @@ export const RightEditorPanel = () => {
                         className="gap-1.5"
                     >
                         <Sparkles className="w-4 h-4" />
-                        {showChatSidebar ? "Chat-Assistent ausblenden" : "KI-Chat — Chat-Assistent einblenden"}
+                        KI-Chat
                     </Button>
 
                     {/* Separator */}
@@ -253,7 +253,7 @@ export const RightEditorPanel = () => {
             </div>
 
             {/* Editor Container - A4 Paper in gray background */}
-            <div className="flex-1 overflow-auto bg-slate-200 p-3 md:p-4 lg:p-6">
+            <div className="flex-1 overflow-auto bg-warm-200/60 p-3 md:p-4 lg:p-6 pb-8 md:pb-10 lg:pb-12">
                 {isPreviewLoading && !displayContent ? (
                     <div className="flex items-center justify-center h-full">
                         <div className="text-center space-y-3">

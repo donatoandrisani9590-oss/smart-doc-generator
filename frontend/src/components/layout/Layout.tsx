@@ -36,6 +36,7 @@ const getPageTitle = (pathname: string): string => {
     if (pathname.startsWith("/notifications")) return "Benachrichtigungen";
     if (pathname.startsWith("/settings")) return "Einstellungen";
     if (pathname.startsWith("/admin")) return "Einstellungen";
+    if (pathname.startsWith("/agent")) return "KI-Assistent";
     return "Seite nicht gefunden";
 };
 

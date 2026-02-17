@@ -1,9 +1,11 @@
 /**
- * AgentChat — Claude-powered document creation chat with tool-use visualization.
+ * AgentChat — Claude-powered document creation chat (ChatGPT-inspired design).
  *
  * Connects to POST /api/v1/agent/chat via SSE.
- * Renders tool actions (form_update, clause_update, clause_draft) inline.
- * Supports multi-turn conversation via session_id.
+ * Renders tool actions inline with clean visual hierarchy.
+ * Centered layout with max-width constraint.
+ *
+ * Security: All HTML content is sanitized via sanitizeHtml() before rendering.
  */
 
 import { useState, useRef, useEffect, useCallback } from "react";
@@ -11,11 +13,8 @@ import { apiStreamSSE, type SSEEvent } from "@/lib/api-stream";
 import { sanitizeHtml } from "@/utils/sanitize";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Loader2,
-  Send,
   Sparkles,
   Square,
   Settings2,
@@ -25,12 +24,14 @@ import {
   AlertCircle,
   Shield,
   User,
-  Bot,
   RefreshCw,
+  ArrowUp,
+  FileText,
+  Briefcase,
+  AlertTriangle,
 } from "lucide-react";
 
-// ── Types ────────────────────────────────────────────────────────────
-
+// Types
 interface ToolAction {
   type: "tool_start" | "tool_result" | "form_update" | "clause_update" | "clause_draft";
   tool?: string;
@@ -55,18 +56,13 @@ interface AgentChatProps {
   teamId?: number | null;
   documentTypeId?: number | null;
   formData?: Record<string, unknown>;
-  /** Called when agent sets form fields */
   onFormUpdate?: (fields: Record<string, string>) => void;
-  /** Called when agent enables/disables clauses */
   onClauseUpdate?: (enable: number[], disable: number[]) => void;
-  /** Called when agent creates a clause draft for confirmation */
   onClauseDraft?: (title: string, html: string) => void;
-  /** Called with session_id after first response */
   onSessionCreated?: (sessionId: string) => void;
 }
 
-// ── Tool display helpers ─────────────────────────────────────────────
-
+// Tool display configuration
 const TOOL_LABELS: Record<string, string> = {
   fill_form_fields: "Formular ausfüllen",
   select_clauses: "Textbausteine wählen",
@@ -89,7 +85,12 @@ const TOOL_ICONS: Record<string, typeof Settings2> = {
   get_form_field_definitions: Settings2,
 };
 
-// ── Component ────────────────────────────────────────────────────────
+// Suggestion prompts
+const SUGGESTIONS = [
+  { text: "Erstelle einen Arbeitsvertrag für Max Müller", icon: FileText },
+  { text: "Ich brauche eine Kündigung", icon: AlertTriangle },
+  { text: "Abmahnung wegen Unpünktlichkeit", icon: Briefcase },
+];
 
 export function AgentChat({
   countryCode = "DE",
@@ -108,7 +109,7 @@ export function AgentChat({
   const [error, setError] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   // Auto-scroll during streaming
   useEffect(() => {
@@ -122,18 +123,26 @@ export function AgentChat({
     return () => { abortRef.current?.abort(); };
   }, []);
 
+  // Auto-resize textarea
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.style.height = "auto";
+      inputRef.current.style.height = Math.min(inputRef.current.scrollHeight, 120) + "px";
+    }
+  }, [input]);
+
   const stopStreaming = useCallback(() => {
     abortRef.current?.abort();
     abortRef.current = null;
     setIsStreaming(false);
   }, []);
 
-  const sendMessage = useCallback(async () => {
-    const text = input.trim();
-    if (!text || isStreaming) return;
+  const sendMessage = useCallback(async (text?: string) => {
+    const messageText = (text || input).trim();
+    if (!messageText || isStreaming) return;
 
     setError(null);
-    const userMsg: ChatMessage = { role: "user", content: text };
+    const userMsg: ChatMessage = { role: "user", content: messageText };
     const allMessages = [...messages, userMsg];
     setMessages(allMessages);
     setInput("");
@@ -167,68 +176,42 @@ export function AgentChat({
       };
 
       for await (const event of apiStreamSSE("/api/v1/agent/chat", body, controller.signal)) {
-        // Text streaming
         if (event.type === "text_delta" && event.content) {
           fullText += event.content;
           updateLastMessage();
         }
-
-        // Tool actions
         if (event.type === "tool_start") {
           toolActions.push({ type: "tool_start", tool: event.tool, args: event.args as Record<string, unknown> });
           updateLastMessage();
         }
-
         if (event.type === "tool_result") {
           toolActions.push({ type: "tool_result", tool: event.tool, result: event.result as Record<string, unknown> });
           updateLastMessage();
         }
-
-        // Semantic events
         if (event.type === "form_update" && event.fields) {
           toolActions.push({ type: "form_update", fields: event.fields as Record<string, string> });
           onFormUpdate?.(event.fields as Record<string, string>);
           updateLastMessage();
         }
-
         if (event.type === "clause_update") {
-          toolActions.push({
-            type: "clause_update",
-            enable: event.enable as number[],
-            disable: event.disable as number[],
-          });
+          toolActions.push({ type: "clause_update", enable: event.enable as number[], disable: event.disable as number[] });
           onClauseUpdate?.(event.enable as number[] ?? [], event.disable as number[] ?? []);
           updateLastMessage();
         }
-
         if (event.type === "clause_draft") {
-          toolActions.push({
-            type: "clause_draft",
-            title: event.title,
-            html: event.html,
-            requires_confirmation: event.requires_confirmation,
-          });
+          toolActions.push({ type: "clause_draft", title: event.title, html: event.html, requires_confirmation: event.requires_confirmation });
           onClauseDraft?.(event.title ?? "", event.html ?? "");
           updateLastMessage();
         }
-
-        // Done
         if (event.type === "done") {
           const sid = (event as SSEEvent & { session_id?: string }).session_id;
-          if (sid) {
-            setSessionId(sid);
-            onSessionCreated?.(sid);
-          }
+          if (sid) { setSessionId(sid); onSessionCreated?.(sid); }
         }
-
-        // Error
         if (event.type === "error") {
           setError(event.content || (event as any).message || "Unbekannter Fehler");
         }
       }
-
       updateLastMessage();
-
     } catch (err) {
       if (err instanceof DOMException && err.name === "AbortError") return;
       console.error("Agent stream error:", err);
@@ -259,119 +242,142 @@ export function AgentChat({
   return (
     <div className="flex flex-col h-full">
       {/* Messages Area */}
-      <ScrollArea className="flex-1 px-4 py-3">
-        {messages.length === 0 && (
-          <div className="flex flex-col items-center justify-center h-full py-12 text-center">
-            <div className="p-4 bg-primary/10 rounded-2xl mb-4">
-              <Sparkles className="w-8 h-8 text-primary" />
-            </div>
-            <h3 className="text-lg font-semibold text-foreground mb-2">KI-Dokumentassistent</h3>
-            <p className="text-sm text-muted-foreground max-w-sm">
-              Beschreiben Sie, welches Dokument Sie benötigen. Der Assistent füllt Formulare aus,
-              wählt passende Textbausteine und erstellt Ihr Dokument.
-            </p>
-            <div className="flex flex-wrap gap-2 mt-4 justify-center">
-              {[
-                "Erstelle einen Arbeitsvertrag für Max Müller",
-                "Ich brauche eine Kündigung",
-                "Abmahnung wegen Unpünktlichkeit",
-              ].map((prompt, i) => (
-                <button
-                  key={i}
-                  onClick={() => { setInput(prompt); inputRef.current?.focus(); }}
-                  className="text-xs px-3 py-1.5 rounded-full bg-warm-100 text-muted-foreground hover:bg-warm-200 transition-colors"
-                >
-                  {prompt}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {messages.map((msg, i) => (
-          <div key={i} className={`mb-4 flex gap-3 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-            {msg.role === "assistant" && (
-              <div className="flex-shrink-0 w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center mt-1">
-                <Bot className="w-4 h-4 text-primary" />
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-3xl mx-auto px-4">
+          {/* Empty State */}
+          {messages.length === 0 && (
+            <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
+              <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-5">
+                <Sparkles className="w-7 h-7 text-primary" />
               </div>
-            )}
-            <div className={`max-w-[85%] space-y-2 ${msg.role === "user" ? "order-first" : ""}`}>
-              {/* Tool Actions */}
-              {msg.toolActions && msg.toolActions.length > 0 && (
-                <div className="space-y-1.5">
-                  {msg.toolActions.map((action, j) => (
-                    <ToolActionCard key={j} action={action} />
-                  ))}
-                </div>
-              )}
+              <h2 className="text-xl font-semibold text-foreground mb-2">
+                Wie kann ich helfen?
+              </h2>
+              <p className="text-sm text-muted-foreground max-w-md mb-8">
+                Beschreiben Sie, welches Dokument Sie benötigen. Ich fülle Formulare aus,
+                wähle passende Textbausteine und erstelle Ihr Dokument.
+              </p>
 
-              {/* Text Content */}
-              {msg.content && (
-                <div
-                  className={`px-4 py-2.5 rounded-2xl text-sm whitespace-pre-wrap ${
-                    msg.role === "user"
-                      ? "bg-primary text-primary-foreground rounded-tr-md"
-                      : "bg-warm-100 text-foreground rounded-tl-md"
-                  }`}
-                >
-                  {msg.content}
-                  {isStreaming && i === messages.length - 1 && msg.role === "assistant" && (
-                    <span className="inline-block w-1.5 h-4 ml-0.5 bg-primary/60 animate-pulse rounded-sm" />
+              {/* Suggestion Cards */}
+              <div className="grid gap-2 w-full max-w-lg">
+                {SUGGESTIONS.map((suggestion, i) => {
+                  const Icon = suggestion.icon;
+                  return (
+                    <button
+                      key={i}
+                      onClick={() => sendMessage(suggestion.text)}
+                      className="flex items-center gap-3 px-4 py-3 rounded-xl border border-warm-200 bg-background hover:bg-warm-50 hover:border-warm-300 transition-all text-left group"
+                    >
+                      <Icon className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0" />
+                      <span className="text-sm text-foreground">{suggestion.text}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Messages */}
+          {messages.map((msg, i) => (
+            <div key={i} className="py-4">
+              {msg.role === "user" ? (
+                <div className="flex justify-end">
+                  <div className="max-w-[80%] px-4 py-2.5 rounded-2xl rounded-tr-md bg-primary text-primary-foreground text-sm whitespace-pre-wrap">
+                    {msg.content}
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {/* Tool Actions */}
+                  {msg.toolActions && msg.toolActions.length > 0 && (
+                    <div className="space-y-1.5 pl-1">
+                      {msg.toolActions.map((action, j) => (
+                        <ToolActionCard key={j} action={action} />
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Text Content — no bubble, just text (ChatGPT style) */}
+                  {msg.content && (
+                    <div className="text-sm text-foreground whitespace-pre-wrap leading-relaxed pl-1">
+                      {msg.content}
+                      {isStreaming && i === messages.length - 1 && (
+                        <span className="inline-block w-1.5 h-4 ml-0.5 bg-primary/50 animate-pulse rounded-sm align-middle" />
+                      )}
+                    </div>
+                  )}
+
+                  {/* Streaming without text */}
+                  {!msg.content && isStreaming && i === messages.length - 1 && msg.toolActions?.length === 0 && (
+                    <div className="pl-1">
+                      <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+                    </div>
                   )}
                 </div>
               )}
-
-              {/* Streaming indicator without text yet */}
-              {!msg.content && isStreaming && i === messages.length - 1 && msg.role === "assistant" && msg.toolActions?.length === 0 && (
-                <div className="px-4 py-2.5 rounded-2xl bg-warm-100 rounded-tl-md">
-                  <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
-                </div>
-              )}
             </div>
+          ))}
 
-            {msg.role === "user" && (
-              <div className="flex-shrink-0 w-7 h-7 rounded-full bg-warm-200 flex items-center justify-center mt-1">
-                <User className="w-4 h-4 text-muted-foreground" />
-              </div>
-            )}
-          </div>
-        ))}
+          {/* Error */}
+          {error && (
+            <div className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-red-50 text-red-700 text-sm mb-4">
+              <AlertCircle className="w-4 h-4 flex-shrink-0" />
+              {error}
+            </div>
+          )}
 
-        {error && (
-          <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-50 text-red-700 text-sm mb-4">
-            <AlertCircle className="w-4 h-4 flex-shrink-0" />
-            {error}
-          </div>
-        )}
-
-        <div ref={scrollRef} />
-      </ScrollArea>
+          <div ref={scrollRef} className="h-4" />
+        </div>
+      </div>
 
       {/* Input Area */}
-      <div className="border-t border-warm-200 px-4 py-3">
-        <div className="flex gap-2">
-          <Input
-            ref={inputRef}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Beschreiben Sie Ihr Dokument..."
-            disabled={isStreaming}
-            className="flex-1"
-          />
-          {isStreaming ? (
-            <Button variant="outline" size="icon" onClick={stopStreaming}>
-              <Square className="w-4 h-4" />
-            </Button>
-          ) : (
-            <Button size="icon" onClick={sendMessage} disabled={!input.trim()}>
-              <Send className="w-4 h-4" />
-            </Button>
-          )}
+      <div className="border-t border-warm-100 bg-background">
+        <div className="max-w-3xl mx-auto px-4 py-3">
+          <div className="relative flex items-end gap-2 rounded-2xl border border-warm-200 bg-background px-3 py-2 focus-within:border-primary/40 focus-within:ring-1 focus-within:ring-primary/20 transition-all">
+            <textarea
+              ref={inputRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Beschreiben Sie Ihr Dokument..."
+              disabled={isStreaming}
+              rows={1}
+              className="flex-1 resize-none bg-transparent text-sm placeholder:text-muted-foreground focus:outline-none disabled:opacity-50 max-h-[120px] py-1"
+            />
+            <div className="flex items-center gap-1 flex-shrink-0">
+              {isStreaming ? (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 rounded-full hover:bg-warm-100"
+                  onClick={stopStreaming}
+                >
+                  <Square className="w-4 h-4" />
+                </Button>
+              ) : (
+                <Button
+                  size="icon"
+                  className="h-8 w-8 rounded-full"
+                  onClick={() => sendMessage()}
+                  disabled={!input.trim()}
+                >
+                  <ArrowUp className="w-4 h-4" />
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {/* Reset */}
           {messages.length > 0 && !isStreaming && (
-            <Button variant="ghost" size="icon" onClick={handleReset} title="Neues Gespräch">
-              <RefreshCw className="w-4 h-4" />
-            </Button>
+            <div className="flex justify-center mt-2">
+              <button
+                onClick={handleReset}
+                className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <RefreshCw className="w-3 h-3" />
+                Neues Gespräch
+              </button>
+            </div>
           )}
         </div>
       </div>
@@ -379,17 +385,16 @@ export function AgentChat({
   );
 }
 
-// ── Tool Action Card ─────────────────────────────────────────────────
-
+// Tool Action Card — sanitizeHtml() ensures all HTML content is safe before rendering
 function ToolActionCard({ action }: { action: ToolAction }) {
   if (action.type === "tool_start") {
     const label = TOOL_LABELS[action.tool ?? ""] ?? action.tool;
     const Icon = TOOL_ICONS[action.tool ?? ""] ?? Settings2;
     return (
-      <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-warm-50 border border-warm-200 text-xs text-muted-foreground">
+      <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-warm-50 border border-warm-200 text-xs text-muted-foreground">
         <Icon className="w-3.5 h-3.5" />
         <span>{label}</span>
-        <Loader2 className="w-3 h-3 animate-spin ml-auto" />
+        <Loader2 className="w-3 h-3 animate-spin ml-1" />
       </div>
     );
   }
@@ -398,14 +403,14 @@ function ToolActionCard({ action }: { action: ToolAction }) {
     const label = TOOL_LABELS[action.tool ?? ""] ?? action.tool;
     const isOk = action.result?.status === "ok" || action.result?.status === "requires_confirmation";
     return (
-      <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs ${
+      <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs ${
         isOk ? "bg-green-50 border border-green-200 text-green-700" : "bg-red-50 border border-red-200 text-red-700"
       }`}>
         {isOk ? <CheckCircle2 className="w-3.5 h-3.5" /> : <AlertCircle className="w-3.5 h-3.5" />}
         <span>{label}</span>
         {action.result?.count !== undefined && (
-          <Badge variant="outline" className="ml-auto text-[10px] px-1.5 py-0">
-            {String(action.result.count)} Ergebnisse
+          <Badge variant="outline" className="ml-1 text-[10px] px-1.5 py-0 h-4">
+            {String(action.result.count)}
           </Badge>
         )}
       </div>
@@ -415,12 +420,12 @@ function ToolActionCard({ action }: { action: ToolAction }) {
   if (action.type === "form_update" && action.fields) {
     const fieldCount = Object.keys(action.fields).length;
     return (
-      <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-50 border border-blue-200 text-xs text-blue-700">
+      <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-50 border border-blue-200 text-xs text-blue-700">
         <Settings2 className="w-3.5 h-3.5" />
         <span>{fieldCount} {fieldCount === 1 ? "Feld" : "Felder"} gesetzt</span>
-        <div className="ml-auto flex gap-1">
+        <div className="flex gap-1 ml-1">
           {Object.keys(action.fields).slice(0, 3).map(key => (
-            <Badge key={key} variant="outline" className="text-[10px] px-1.5 py-0 border-blue-300">
+            <Badge key={key} variant="outline" className="text-[10px] px-1.5 py-0 h-4 border-blue-300">
               {key}
             </Badge>
           ))}
@@ -434,25 +439,27 @@ function ToolActionCard({ action }: { action: ToolAction }) {
     const enableCount = action.enable?.length ?? 0;
     const disableCount = action.disable?.length ?? 0;
     return (
-      <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200 text-xs text-emerald-700">
+      <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200 text-xs text-emerald-700">
         <CheckCircle2 className="w-3.5 h-3.5" />
         {enableCount > 0 && <span>{enableCount} aktiviert</span>}
-        {enableCount > 0 && disableCount > 0 && <span>·</span>}
+        {enableCount > 0 && disableCount > 0 && <span className="text-emerald-400">·</span>}
         {disableCount > 0 && <span>{disableCount} deaktiviert</span>}
       </div>
     );
   }
 
   if (action.type === "clause_draft") {
+    // Content is sanitized via sanitizeHtml() before rendering
+    const safeHtml = sanitizeHtml(action.html ?? "");
     return (
-      <div className="px-3 py-2 rounded-lg bg-amber-50 border border-amber-200 text-xs">
+      <div className="px-3 py-2 rounded-lg bg-amber-50 border border-amber-200 text-xs max-w-md">
         <div className="flex items-center gap-2 text-amber-700 font-medium mb-1">
           <FilePlus className="w-3.5 h-3.5" />
           Klausel-Entwurf: {action.title}
         </div>
         <div
           className="text-muted-foreground line-clamp-2 text-[11px]"
-          dangerouslySetInnerHTML={{ __html: sanitizeHtml(action.html ?? "") }}
+          dangerouslySetInnerHTML={{ __html: safeHtml }}
         />
         {action.requires_confirmation && (
           <Badge variant="outline" className="mt-1 text-[10px] border-amber-300 text-amber-600">

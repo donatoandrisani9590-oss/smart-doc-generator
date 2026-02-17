@@ -162,7 +162,7 @@ export const ValidationProgress = ({
                                     config.color
                                 )}
                             />
-                            {status !== "green" && (
+                            {status === "yellow" && (
                                 <div
                                     className={cn(
                                         "absolute inset-0 w-3 h-3 rounded-full animate-ping",
