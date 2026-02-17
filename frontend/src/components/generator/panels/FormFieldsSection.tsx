@@ -239,6 +239,17 @@ const FIELD_LABELS = {
         au_frist_placeholder: "Frist wählen",
         au_frist_1: "am ersten Kalendertag",
         au_frist_3: "am dritten Kalendertag",
+        vertragsart: "Vertragsart",
+        vertragsart_tarif: "Tarifgebunden",
+        vertragsart_at: "AT-Angestellter",
+        vertragsart_hint: "AT = Außertariflich (oberhalb der höchsten Tarifgruppe)",
+        section_at: "AT-Optionen",
+        zielbonus: "Zielbonus / Variable Vergütung",
+        freistellung: "Freistellungsklausel (Garden Leave)",
+        spesen: "Spesen & Reisekosten",
+        renteneintritt: "Renteneintrittsklausel",
+        gehalt_at: "Jahresgehalt (EUR)",
+        gehalt_at_placeholder: "Brutto pro Jahr",
         jahressonderzahlung: "Jahressonderzahlung (13. Gehalt)",
         urlaubsgeld_pro_tag: "Urlaubsgeld (€/Tag)",
         urlaubsgeld_placeholder: "€ pro Urlaubstag",
@@ -290,6 +301,17 @@ const FIELD_LABELS = {
         au_frist_placeholder: "Seleziona termine",
         au_frist_1: "dal primo giorno",
         au_frist_3: "dal terzo giorno",
+        vertragsart: "Tipo di Contratto",
+        vertragsart_tarif: "Con contratto collettivo",
+        vertragsart_at: "Dirigente fuori contratto",
+        vertragsart_hint: "AT = Fuori contratto collettivo (al di sopra del gruppo tariffario più alto)",
+        section_at: "Opzioni AT",
+        zielbonus: "Bonus obiettivo / Retribuzione variabile",
+        freistellung: "Clausola di esonero (Garden Leave)",
+        spesen: "Spese & Rimborsi viaggio",
+        renteneintritt: "Clausola di pensionamento",
+        gehalt_at: "Retribuzione Annua (EUR)",
+        gehalt_at_placeholder: "Lordo annuo",
         jahressonderzahlung: "Tredicesima mensilità",
         urlaubsgeld_pro_tag: "Indennità ferie (€/giorno)",
         urlaubsgeld_placeholder: "€ per giorno di ferie",
@@ -495,6 +517,25 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
                 </h4>
 
                 <div className="space-y-1">
+                    <Label htmlFor="vertragsart" className="text-xs">
+                        {labels.vertragsart}
+                    </Label>
+                    <Select
+                        value={formData.vertragsart}
+                        onValueChange={(v) => actions.updateFormField("vertragsart", v)}
+                    >
+                        <SelectTrigger className="h-8 text-sm">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="tarifgebunden">{labels.vertragsart_tarif}</SelectItem>
+                            <SelectItem value="at_angestellter">{labels.vertragsart_at}</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <p className="text-[10px] text-muted-foreground">{labels.vertragsart_hint}</p>
+                </div>
+
+                <div className="space-y-1">
                     <Label htmlFor="position" className="text-xs">
                         {labels.position} <span className="text-destructive">*</span>
                     </Label>
@@ -514,7 +555,7 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
                 <div className="space-y-3">
                     <div className="space-y-1">
                         <Label htmlFor="gehalt" className="text-xs flex items-center">
-                            {labels.gehalt} <span className="text-destructive">*</span>
+                            {formData.vertragsart === "at_angestellter" ? labels.gehalt_at : labels.gehalt} <span className="text-destructive">*</span>
                             <FieldHint fieldKey="gehalt" lang={lang} />
                         </Label>
                         <Input
@@ -523,7 +564,7 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
                             value={formData.gehalt}
                             onChange={(e) => actions.updateFormField("gehalt", e.target.value)}
                             onBlur={() => markTouched("gehalt")}
-                            placeholder={labels.gehalt_placeholder}
+                            placeholder={formData.vertragsart === "at_angestellter" ? labels.gehalt_at_placeholder : labels.gehalt_placeholder}
                             className={fieldClass("gehalt", formData.gehalt)}
                         />
                         {getInlineError("gehalt", formData.gehalt) && (
@@ -605,19 +646,21 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
                     </Select>
                 </div>
 
-                <div className="space-y-1">
-                    <Label htmlFor="entgeltgruppe" className="text-xs flex items-center">
-                        {labels.entgeltgruppe}
-                        <FieldHint fieldKey="entgeltgruppe" lang={lang} />
-                    </Label>
-                    <Input
-                        id="entgeltgruppe"
-                        value={formData.entgeltgruppe}
-                        onChange={(e) => actions.updateFormField("entgeltgruppe", e.target.value)}
-                        placeholder={labels.entgeltgruppe_placeholder}
-                        className="h-8 text-sm"
-                    />
-                </div>
+                {formData.vertragsart !== "at_angestellter" && (
+                    <div className="space-y-1">
+                        <Label htmlFor="entgeltgruppe" className="text-xs flex items-center">
+                            {labels.entgeltgruppe}
+                            <FieldHint fieldKey="entgeltgruppe" lang={lang} />
+                        </Label>
+                        <Input
+                            id="entgeltgruppe"
+                            value={formData.entgeltgruppe}
+                            onChange={(e) => actions.updateFormField("entgeltgruppe", e.target.value)}
+                            placeholder={labels.entgeltgruppe_placeholder}
+                            className="h-8 text-sm"
+                        />
+                    </div>
+                )}
 
                 <div className="space-y-1">
                     <Label htmlFor="kuendigungsfrist" className="text-xs flex items-center">
@@ -706,18 +749,20 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
                         </div>
                     </div>
 
-                    <div className="flex items-center space-x-2">
-                        <Checkbox
-                            id="schichtzuschlaege"
-                            checked={formData.schichtzuschlaege}
-                            onCheckedChange={(checked) =>
-                                actions.updateFormField("schichtzuschlaege", checked === true)
-                            }
-                        />
-                        <Label htmlFor="schichtzuschlaege" className="text-sm cursor-pointer">
-                            {labels.schichtzuschlaege}
-                        </Label>
-                    </div>
+                    {formData.vertragsart !== "at_angestellter" && (
+                        <div className="flex items-center space-x-2">
+                            <Checkbox
+                                id="schichtzuschlaege"
+                                checked={formData.schichtzuschlaege}
+                                onCheckedChange={(checked) =>
+                                    actions.updateFormField("schichtzuschlaege", checked === true)
+                                }
+                            />
+                            <Label htmlFor="schichtzuschlaege" className="text-sm cursor-pointer">
+                                {labels.schichtzuschlaege}
+                            </Label>
+                        </div>
+                    )}
                     <div className="flex items-center space-x-2">
                         <Checkbox
                             id="arbeitszeitkonto"
@@ -769,6 +814,49 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
                     </div>
                 </div>
             </div>
+
+            {/* AT-Optionen (nur bei AT-Angestellter) */}
+            {formData.vertragsart === "at_angestellter" && (
+                <div className="space-y-3 pt-3 border-t">
+                    <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                        {labels.section_at}
+                    </h4>
+                    <div className="space-y-2">
+                        <div className="flex items-center space-x-2">
+                            <Checkbox
+                                id="zielbonus"
+                                checked={formData.zielbonus}
+                                onCheckedChange={(checked) => actions.updateFormField("zielbonus", checked === true)}
+                            />
+                            <Label htmlFor="zielbonus" className="text-sm cursor-pointer">{labels.zielbonus}</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <Checkbox
+                                id="freistellung"
+                                checked={formData.freistellung}
+                                onCheckedChange={(checked) => actions.updateFormField("freistellung", checked === true)}
+                            />
+                            <Label htmlFor="freistellung" className="text-sm cursor-pointer">{labels.freistellung}</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <Checkbox
+                                id="spesen"
+                                checked={formData.spesen}
+                                onCheckedChange={(checked) => actions.updateFormField("spesen", checked === true)}
+                            />
+                            <Label htmlFor="spesen" className="text-sm cursor-pointer">{labels.spesen}</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <Checkbox
+                                id="renteneintritt"
+                                checked={formData.renteneintritt}
+                                onCheckedChange={(checked) => actions.updateFormField("renteneintritt", checked === true)}
+                            />
+                            <Label htmlFor="renteneintritt" className="text-sm cursor-pointer">{labels.renteneintritt}</Label>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Unterzeichner */}
             <div className="space-y-3 pt-3 border-t">

@@ -29,6 +29,13 @@ export interface FormData {
     entgeltgruppe: string;
     kuendigungsfrist: string;
     au_frist: string;
+    vertragsart: string;  // "tarifgebunden" | "at_angestellter"
+
+    // AT-Angestellter spezifisch
+    zielbonus: boolean;
+    freistellung: boolean;
+    spesen: boolean;
+    renteneintritt: boolean;
 
     // Zusatzleistungen
     firmenwagen: boolean;
@@ -274,6 +281,11 @@ export const initialFormData: FormData = {
     entgeltgruppe: "",
     kuendigungsfrist: "4 Wochen zum 15./Monatsende",
     au_frist: "am ersten Kalendertag",
+    vertragsart: "tarifgebunden",
+    zielbonus: false,
+    freistellung: false,
+    spesen: false,
+    renteneintritt: false,
     firmenwagen: false,
     homeoffice: false,
     jahressonderzahlung: true,
