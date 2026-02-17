@@ -34,6 +34,7 @@ async def search_employees(
     """
     search_pattern = f"%{q}%"
 
+    # DSGVO: Nur Dokumente des eigenen Users (Team-Isolation)
     # Subquery: latest document per employee_name
     latest_per_employee = (
         select(
@@ -45,6 +46,7 @@ async def search_employees(
                 GeneratedDocument.is_deleted == False,
                 GeneratedDocument.employee_name.ilike(search_pattern),
                 GeneratedDocument.country_code == country_code,
+                GeneratedDocument.created_by_id == current_user.id,
             )
         )
         .group_by(GeneratedDocument.employee_name)

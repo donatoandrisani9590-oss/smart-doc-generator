@@ -596,10 +596,10 @@ class LLMService:
     """
     Main LLM service with automatic provider selection.
 
-    Priority order:
-    1. Ollama (if running locally - best for dev)
-    2. Groq (if API key set - free, ultra-fast)
-    3. Mistral AI (if API key set - EU-hosted)
+    Priority order (DSGVO-konform: EU-Provider bevorzugt):
+    1. Ollama (if running locally - best for dev, data stays local)
+    2. Mistral AI (if API key set - EU-hosted, DSGVO-konform)
+    3. Groq (if API key set - US-hosted, last resort with DSGVO warning)
 
     Usage:
         llm = LLMService()
@@ -647,15 +647,11 @@ class LLMService:
                 logger.info("Using Ollama (local)")
                 return self._active_client
 
-        # Auto-detect: Ollama first (local dev), then Groq, then Mistral
+        # Auto-detect: Ollama (local) → Mistral (EU) → Groq (US, last resort)
+        # DSGVO: Mistral (EU-hosted) wird vor Groq (US) bevorzugt
         if await self.ollama.is_available():
             self._active_client = self.ollama
             logger.info("Using Ollama (local) - auto-detected")
-            return self._active_client
-
-        if await self.groq.is_available():
-            self._active_client = self.groq
-            logger.info("Using Groq (free, fast) - auto-detected")
             return self._active_client
 
         if await self.mistral.is_available():
@@ -663,11 +659,16 @@ class LLMService:
             logger.info("Using Mistral AI (EU-hosted) - auto-detected")
             return self._active_client
 
+        if await self.groq.is_available():
+            self._active_client = self.groq
+            logger.warning("Using Groq (US-hosted) - DSGVO-Hinweis: Daten verlassen EU")
+            return self._active_client
+
         raise RuntimeError(
             "No LLM provider available. Please either:\n"
             "1. Start Ollama locally: ollama serve\n"
-            "2. Set GROQ_API_KEY environment variable (free: https://console.groq.com)\n"
-            "3. Set MISTRAL_API_KEY environment variable"
+            "2. Set MISTRAL_API_KEY environment variable (EU-hosted, DSGVO-konform)\n"
+            "3. Set GROQ_API_KEY environment variable (US-hosted, Fallback)"
         )
 
     async def chat(

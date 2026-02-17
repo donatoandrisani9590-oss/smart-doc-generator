@@ -27,13 +27,14 @@ from app.api.deps import get_current_user
 from app.services.ai_instructions import get_ai_instructions
 from app.services.agent_tools import AGENT_TOOLS, execute_tool, MAX_TOOL_ITERATIONS
 from app.services.cache import cache
+from app.services.pii_sanitizer import sanitize_form_data, sanitize_error_message
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/v1/agent")
 
 # ── Conversation memory constants ──────────────────────────────────────
-CONV_TTL = 86400  # 24h
+CONV_TTL = 3600  # 1h (DSGVO: minimale Speicherdauer für PII-haltige Konversationen)
 MAX_CONV_MESSAGES = 50
 
 
@@ -108,11 +109,25 @@ def _build_system_prompt(instructions: str, form_data: Optional[dict] = None) ->
         base += f"\n{instructions}\n"
 
     if form_data:
-        non_empty = {k: v for k, v in form_data.items() if v}
-        if non_empty:
-            base += f"\nAKTUELLE FORMULARDATEN:\n{json.dumps(non_empty, ensure_ascii=False, indent=2)}\n"
+        # DSGVO Art. 5(1c): Datenminimierung — sensitive Felder werden redacted
+        sanitized = sanitize_form_data(form_data)
+        if sanitized:
+            base += f"\nAKTUELLE FORMULARDATEN (sensitive Felder geschützt):\n{json.dumps(sanitized, ensure_ascii=False, indent=2)}\n"
 
     return base
+
+
+# ── Conversation deletion (DSGVO Art. 17 — Recht auf Löschung) ────────
+
+@router.delete("/conversation/{session_id}")
+async def delete_conversation(
+    session_id: str,
+    current_user=Depends(get_current_user),
+):
+    """Lösche eine Konversation aus dem Cache (Recht auf Löschung, Art. 17 DSGVO)."""
+    key = _conversation_key(current_user.id, session_id)
+    await cache.delete(key)
+    return {"status": "ok", "message": "Konversation gelöscht"}
 
 
 # ── Main endpoint ─────────────────────────────────────────────────────
@@ -339,9 +354,10 @@ async def agent_chat_stream(
         except Exception as e:
             logger.error(f"Agent stream error: {e}")
             error_msg = str(e)
-            # Sanitize Anthropic API errors
             if hasattr(e, "message"):
                 error_msg = e.message
+            # DSGVO: Error-Messages können Prompt-Teile mit PII enthalten
+            error_msg = sanitize_error_message(error_msg)
             yield _sse({"type": "error", "message": error_msg})
 
     return StreamingResponse(

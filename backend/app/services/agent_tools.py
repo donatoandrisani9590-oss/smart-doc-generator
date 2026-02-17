@@ -17,6 +17,7 @@ from app.models.documents import (
     Clause, DocumentType, DocumentTypeClause, CompanySettings,
 )
 from app.models.enterprise import GeneratedDocument, FormField
+from app.services.pii_sanitizer import sanitize_employee_history
 
 logger = logging.getLogger(__name__)
 
@@ -384,7 +385,7 @@ async def _exec_create_clause_draft(
 async def _exec_search_employee_history(
     args: dict, db: AsyncSession, user_id: int, country_code: str
 ) -> dict:
-    """Search for previous documents of an employee."""
+    """Search for previous documents of an employee (team-isolated, PII-sanitized)."""
     employee_name = args.get("employee_name", "")
     employee_id = args.get("employee_id")
 
@@ -393,6 +394,8 @@ async def _exec_search_employee_history(
 
     conditions = [
         GeneratedDocument.is_deleted == False,
+        # DSGVO: Team-Isolation — nur eigene Dokumente sichtbar
+        GeneratedDocument.created_by_id == user_id,
     ]
 
     if employee_id:
@@ -436,10 +439,13 @@ async def _exec_search_employee_history(
             "form_data": form_data,
         })
 
+    # DSGVO Art. 5(1c): PII-Sanitierung bevor Daten an Claude gesendet werden
+    sanitized_docs = sanitize_employee_history(docs)
+
     return {
         "status": "ok",
-        "count": len(docs),
-        "documents": docs,
+        "count": len(sanitized_docs),
+        "documents": sanitized_docs,
     }
 
 
