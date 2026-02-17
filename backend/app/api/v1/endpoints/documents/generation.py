@@ -10,7 +10,10 @@ from app.services.template_engine import TemplateEngine
 from app.services.preview import evaluate_condition, _guess_salutation
 from app.services.html_converter import HtmlToDocxConverter
 from app.models import core as models
-from app.models.documents import DocumentType, Clause, DocumentTypeClause
+from app.models.documents import (
+    DocumentType, Clause, DocumentTypeClause,
+    ClauseVariantGroup, ClauseVariant, DocumentTypeVariantGroup,
+)
 from app.models.user_templates import UserTemplate
 from app.services.user_template_service import inject_content_into_template, inject_freetext_into_template, get_user_template_path
 from app.api.v1.endpoints.user_templates import _can_access_template
@@ -351,6 +354,12 @@ class GenerateDocumentRequest(BaseModel):
     editor_html_content: Optional[str] = Field(
         default=None,
         description="Manuell bearbeiteter HTML-Content aus dem Editor"
+    )
+
+    # Variant selections (optional: variant groups → selected variant IDs)
+    selected_variants: Optional[dict[str, int]] = Field(
+        default=None,
+        description="Mapping von Varianten-Gruppen-ID zu gewählter Varianten-ID"
     )
 
     # Async processing option (recommended for PDF to avoid timeouts)
@@ -788,9 +797,49 @@ async def generate_document_by_type(
     )
     clause_refs = clause_refs_result.scalars().all()
 
+    # 3b. Load variant groups for this document type
+    variant_groups_data = None
+    vg_result = await db.execute(
+        select(DocumentTypeVariantGroup)
+        .where(DocumentTypeVariantGroup.document_type_id == document_type_id)
+    )
+    dtvgs = vg_result.scalars().all()
+
+    if dtvgs:
+        variant_groups_data = []
+        for dtvg in dtvgs:
+            group = await db.get(ClauseVariantGroup, dtvg.variant_group_id)
+            if group and group.is_active:
+                variants_result = await db.execute(
+                    select(ClauseVariant)
+                    .where(ClauseVariant.group_id == group.id, ClauseVariant.is_active == True)
+                    .order_by(ClauseVariant.sort_order)
+                )
+                variants = variants_result.scalars().all()
+                variant_list = []
+                for v in variants:
+                    vc = await db.get(Clause, v.clause_id)
+                    condition = None
+                    if v.auto_select_condition:
+                        try:
+                            condition = json.loads(v.auto_select_condition) if isinstance(v.auto_select_condition, str) else v.auto_select_condition
+                        except (json.JSONDecodeError, TypeError):
+                            condition = None
+                    variant_list.append({
+                        "id": v.id, "variant_name": v.variant_name, "variant_code": v.variant_code,
+                        "is_default": v.is_default, "auto_select_condition": condition,
+                        "clause_title": vc.title if vc else "", "clause_content": vc.content_html if vc else "",
+                    })
+                variant_groups_data.append({"id": group.id, "name": group.name, "variants": variant_list})
+
+    # Parse selected_variants from request
+    selected_vars = None
+    if request_data.selected_variants:
+        selected_vars = {int(k): v for k, v in request_data.selected_variants.items()}
+
     # 4. Build form_data context from request
     form_data = request_data.model_dump(
-        exclude={"output_format", "attachment_ids", "clause_ids", "user_template_id", "async_pdf", "editor_html_content"},
+        exclude={"output_format", "attachment_ids", "clause_ids", "user_template_id", "async_pdf", "editor_html_content", "selected_variants"},
         exclude_none=True
     )
 
@@ -799,6 +848,8 @@ async def generate_document_by_type(
     form_data["company_name"] = design_settings.get("company_name", "Niederwieser GmbH")
 
     # 5. Filter and assemble clauses
+    from app.services.preview import resolve_variant_clause
+
     active_clauses = []
     for ref in clause_refs:
         clause = await db.get(Clause, ref.clause_id)
@@ -813,13 +864,23 @@ async def generate_document_by_type(
 
             # Evaluate condition
             if evaluate_condition(condition, form_data):
-                active_clauses.append({
+                clause_data = {
                     "id": clause.id,
                     "title": clause.title,
                     "content": clause.content_html,
                     "is_mandatory": ref.is_mandatory,
                     "has_paragraph_number": getattr(clause, 'has_paragraph_number', True),
-                })
+                    "clause_type": getattr(ref, 'clause_type', 'standard'),
+                    "variant_group": getattr(ref, 'variant_group', None),
+                }
+
+                # Resolve variant if applicable
+                if variant_groups_data and ref.clause_type == "variant" and ref.variant_group:
+                    resolved = resolve_variant_clause(clause_data, variant_groups_data, form_data, selected_vars)
+                    if resolved:
+                        clause_data = resolved
+
+                active_clauses.append(clause_data)
 
     # 5b. Renumber § sections sequentially after conditional filtering
     # When conditional clauses (e.g. Firmenwagen, Home Office) are excluded,
