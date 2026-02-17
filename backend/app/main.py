@@ -445,8 +445,22 @@ async def lifespan(app: FastAPI):
                     migrations_run += 1
                     logger.info("Migration: added column user_feature_settings.enable_ai_agent")
 
+            # --- Data fix: remove duplicate euro sign from AT-Vergütung clause ---
+            result = await conn.execute(text("""
+                UPDATE clauses
+                SET content_html = REPLACE(
+                    content_html,
+                    '[gehalt]&nbsp;&euro;</strong>',
+                    '[gehalt]</strong>'
+                )
+                WHERE content_html LIKE '%[gehalt]&nbsp;&euro;%'
+            """))
+            if result.rowcount and result.rowcount > 0:
+                migrations_run += 1
+                logger.info(f"Migration: fixed AT-Vergütung double-euro in {result.rowcount} clause(s)")
+
             if migrations_run > 0:
-                logger.info(f"Schema migrations complete: {migrations_run} columns added")
+                logger.info(f"Schema migrations complete: {migrations_run} changes applied")
             else:
                 logger.info("Schema migrations: no changes needed")
     except Exception as e:

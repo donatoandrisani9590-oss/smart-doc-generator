@@ -241,146 +241,175 @@ export function AgentChat({
 
   return (
     <div className="flex flex-col h-full">
-      {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="max-w-3xl mx-auto px-4">
-          {/* Empty State */}
-          {messages.length === 0 && (
-            <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
-              <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-5">
-                <Sparkles className="w-7 h-7 text-primary" />
-              </div>
-              <h2 className="text-xl font-semibold text-foreground mb-2">
-                Wie kann ich helfen?
-              </h2>
-              <p className="text-sm text-muted-foreground max-w-md mb-8">
-                Beschreiben Sie, welches Dokument Sie benötigen. Ich fülle Formulare aus,
-                wähle passende Textbausteine und erstelle Ihr Dokument.
-              </p>
+      {messages.length === 0 ? (
+        /* ── Empty State: vertically centered content + input as one unit ── */
+        <div className="flex-1 flex flex-col items-center justify-center px-4">
+          <div className="w-full max-w-3xl flex flex-col items-center">
+            <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-5">
+              <Sparkles className="w-7 h-7 text-primary" />
+            </div>
+            <h2 className="text-xl font-semibold text-foreground mb-2">
+              Wie kann ich helfen?
+            </h2>
+            <p className="text-sm text-muted-foreground max-w-md mb-8 text-center">
+              Beschreiben Sie, welches Dokument Sie benötigen. Ich fülle Formulare aus,
+              wähle passende Textbausteine und erstelle Ihr Dokument.
+            </p>
 
-              {/* Suggestion Cards */}
-              <div className="grid gap-2 w-full max-w-lg">
-                {SUGGESTIONS.map((suggestion, i) => {
-                  const Icon = suggestion.icon;
-                  return (
-                    <button
-                      key={i}
-                      onClick={() => sendMessage(suggestion.text)}
-                      className="flex items-center gap-3 px-4 py-3 rounded-xl border border-warm-200 bg-background hover:bg-warm-50 hover:border-warm-300 transition-all text-left group"
-                    >
-                      <Icon className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0" />
-                      <span className="text-sm text-foreground">{suggestion.text}</span>
-                    </button>
-                  );
-                })}
+            {/* Suggestion Cards */}
+            <div className="grid gap-2 w-full max-w-lg mb-6">
+              {SUGGESTIONS.map((suggestion, i) => {
+                const Icon = suggestion.icon;
+                return (
+                  <button
+                    key={i}
+                    onClick={() => sendMessage(suggestion.text)}
+                    className="flex items-center gap-3 px-4 py-3 rounded-xl border border-warm-200 bg-background hover:bg-warm-50 hover:border-warm-300 transition-all text-left group"
+                  >
+                    <Icon className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0" />
+                    <span className="text-sm text-foreground">{suggestion.text}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Input inline unter den Suggestions */}
+            <div className="w-full max-w-lg">
+              <div className="relative flex items-end gap-2 rounded-2xl border border-warm-200 bg-background px-3 py-2 focus-within:border-primary/40 focus-within:ring-1 focus-within:ring-primary/20 transition-all">
+                <textarea
+                  ref={inputRef}
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Beschreiben Sie Ihr Dokument..."
+                  disabled={isStreaming}
+                  rows={1}
+                  className="flex-1 resize-none bg-transparent text-sm placeholder:text-muted-foreground focus:outline-none disabled:opacity-50 max-h-[120px] py-1"
+                />
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  <Button
+                    size="icon"
+                    className="h-8 w-8 rounded-full"
+                    onClick={() => sendMessage()}
+                    disabled={!input.trim()}
+                  >
+                    <ArrowUp className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
             </div>
-          )}
-
-          {/* Messages */}
-          {messages.map((msg, i) => (
-            <div key={i} className="py-4">
-              {msg.role === "user" ? (
-                <div className="flex justify-end">
-                  <div className="max-w-[80%] px-4 py-2.5 rounded-2xl rounded-tr-md bg-primary text-primary-foreground text-sm whitespace-pre-wrap">
-                    {msg.content}
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {/* Tool Actions */}
-                  {msg.toolActions && msg.toolActions.length > 0 && (
-                    <div className="space-y-1.5 pl-1">
-                      {msg.toolActions.map((action, j) => (
-                        <ToolActionCard key={j} action={action} />
-                      ))}
+          </div>
+        </div>
+      ) : (
+        /* ── Chat Mode: messages scrollable, input fixed at bottom ── */
+        <>
+          <div className="flex-1 overflow-y-auto">
+            <div className="max-w-3xl mx-auto px-4">
+              {messages.map((msg, i) => (
+                <div key={i} className="py-4">
+                  {msg.role === "user" ? (
+                    <div className="flex justify-end">
+                      <div className="max-w-[80%] px-4 py-2.5 rounded-2xl rounded-tr-md bg-primary text-primary-foreground text-sm whitespace-pre-wrap">
+                        {msg.content}
+                      </div>
                     </div>
-                  )}
+                  ) : (
+                    <div className="space-y-2">
+                      {/* Tool Actions */}
+                      {msg.toolActions && msg.toolActions.length > 0 && (
+                        <div className="space-y-1.5 pl-1">
+                          {msg.toolActions.map((action, j) => (
+                            <ToolActionCard key={j} action={action} />
+                          ))}
+                        </div>
+                      )}
 
-                  {/* Text Content — no bubble, just text (ChatGPT style) */}
-                  {msg.content && (
-                    <div className="text-sm text-foreground whitespace-pre-wrap leading-relaxed pl-1">
-                      {msg.content}
-                      {isStreaming && i === messages.length - 1 && (
-                        <span className="inline-block w-1.5 h-4 ml-0.5 bg-primary/50 animate-pulse rounded-sm align-middle" />
+                      {/* Text Content — no bubble, just text (ChatGPT style) */}
+                      {msg.content && (
+                        <div className="text-sm text-foreground whitespace-pre-wrap leading-relaxed pl-1">
+                          {msg.content}
+                          {isStreaming && i === messages.length - 1 && (
+                            <span className="inline-block w-1.5 h-4 ml-0.5 bg-primary/50 animate-pulse rounded-sm align-middle" />
+                          )}
+                        </div>
+                      )}
+
+                      {/* Streaming without text */}
+                      {!msg.content && isStreaming && i === messages.length - 1 && msg.toolActions?.length === 0 && (
+                        <div className="pl-1">
+                          <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+                        </div>
                       )}
                     </div>
                   )}
+                </div>
+              ))}
 
-                  {/* Streaming without text */}
-                  {!msg.content && isStreaming && i === messages.length - 1 && msg.toolActions?.length === 0 && (
-                    <div className="pl-1">
-                      <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
-                    </div>
-                  )}
+              {/* Error */}
+              {error && (
+                <div className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-red-50 text-red-700 text-sm mb-4">
+                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                  {error}
                 </div>
               )}
-            </div>
-          ))}
 
-          {/* Error */}
-          {error && (
-            <div className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-red-50 text-red-700 text-sm mb-4">
-              <AlertCircle className="w-4 h-4 flex-shrink-0" />
-              {error}
-            </div>
-          )}
-
-          <div ref={scrollRef} className="h-4" />
-        </div>
-      </div>
-
-      {/* Input Area */}
-      <div className="border-t border-warm-100 bg-background">
-        <div className="max-w-3xl mx-auto px-4 py-3">
-          <div className="relative flex items-end gap-2 rounded-2xl border border-warm-200 bg-background px-3 py-2 focus-within:border-primary/40 focus-within:ring-1 focus-within:ring-primary/20 transition-all">
-            <textarea
-              ref={inputRef}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Beschreiben Sie Ihr Dokument..."
-              disabled={isStreaming}
-              rows={1}
-              className="flex-1 resize-none bg-transparent text-sm placeholder:text-muted-foreground focus:outline-none disabled:opacity-50 max-h-[120px] py-1"
-            />
-            <div className="flex items-center gap-1 flex-shrink-0">
-              {isStreaming ? (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 rounded-full hover:bg-warm-100"
-                  onClick={stopStreaming}
-                >
-                  <Square className="w-4 h-4" />
-                </Button>
-              ) : (
-                <Button
-                  size="icon"
-                  className="h-8 w-8 rounded-full"
-                  onClick={() => sendMessage()}
-                  disabled={!input.trim()}
-                >
-                  <ArrowUp className="w-4 h-4" />
-                </Button>
-              )}
+              <div ref={scrollRef} className="h-4" />
             </div>
           </div>
 
-          {/* Reset */}
-          {messages.length > 0 && !isStreaming && (
-            <div className="flex justify-center mt-2">
-              <button
-                onClick={handleReset}
-                className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <RefreshCw className="w-3 h-3" />
-                Neues Gespräch
-              </button>
+          {/* Input Area — bottom-fixed during conversation */}
+          <div className="border-t border-warm-100 bg-background">
+            <div className="max-w-3xl mx-auto px-4 py-3">
+              <div className="relative flex items-end gap-2 rounded-2xl border border-warm-200 bg-background px-3 py-2 focus-within:border-primary/40 focus-within:ring-1 focus-within:ring-primary/20 transition-all">
+                <textarea
+                  ref={inputRef}
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Beschreiben Sie Ihr Dokument..."
+                  disabled={isStreaming}
+                  rows={1}
+                  className="flex-1 resize-none bg-transparent text-sm placeholder:text-muted-foreground focus:outline-none disabled:opacity-50 max-h-[120px] py-1"
+                />
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  {isStreaming ? (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 rounded-full hover:bg-warm-100"
+                      onClick={stopStreaming}
+                    >
+                      <Square className="w-4 h-4" />
+                    </Button>
+                  ) : (
+                    <Button
+                      size="icon"
+                      className="h-8 w-8 rounded-full"
+                      onClick={() => sendMessage()}
+                      disabled={!input.trim()}
+                    >
+                      <ArrowUp className="w-4 h-4" />
+                    </Button>
+                  )}
+                </div>
+              </div>
+
+              {/* Reset */}
+              {!isStreaming && (
+                <div className="flex justify-center mt-2">
+                  <button
+                    onClick={handleReset}
+                    className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <RefreshCw className="w-3 h-3" />
+                    Neues Gespräch
+                  </button>
+                </div>
+              )}
             </div>
-          )}
-        </div>
-      </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
