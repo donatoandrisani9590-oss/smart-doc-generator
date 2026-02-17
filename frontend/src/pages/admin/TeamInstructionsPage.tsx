@@ -11,7 +11,7 @@
  * Daten werden als formatierter Text in Team.ai_instructions gespeichert.
  */
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { apiFetch } from "@/lib/api-client";
 import { useMyTeams } from "@/hooks/api/useTeamQueries";
 import { useCountry } from "@/hooks/useCountry";
@@ -26,6 +26,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Save,
   Eye,
   EyeOff,
@@ -37,6 +47,9 @@ import {
   ShieldAlert,
   PenLine,
   CheckCircle2,
+  Info,
+  Users,
+  Plus,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -155,6 +168,11 @@ export function TeamInstructionsPage() {
   const [isSuggestLoading, setIsSuggestLoading] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
 
+  // Unsaved changes warning
+  const [pendingTeamId, setPendingTeamId] = useState<number | null>(null);
+  const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
+  const skipConfirmRef = useRef(false);
+
   // Auto-select first team
   useEffect(() => {
     if (teams && teams.length > 0 && !selectedTeamId) {
@@ -190,6 +208,26 @@ export function TeamInstructionsPage() {
     setHasChanges(true);
   }, []);
 
+  const handleTeamChange = (newTeamId: string) => {
+    const id = Number(newTeamId);
+    if (hasChanges && !skipConfirmRef.current) {
+      setPendingTeamId(id);
+      setShowUnsavedDialog(true);
+    } else {
+      skipConfirmRef.current = false;
+      setSelectedTeamId(id);
+    }
+  };
+
+  const confirmDiscard = () => {
+    setShowUnsavedDialog(false);
+    if (pendingTeamId !== null) {
+      skipConfirmRef.current = true;
+      setSelectedTeamId(pendingTeamId);
+      setPendingTeamId(null);
+    }
+  };
+
   const handleSave = async () => {
     if (!selectedTeamId) return;
 
@@ -209,7 +247,7 @@ export function TeamInstructionsPage() {
         const err = await res.json().catch(() => ({}));
         toast.error(err.detail || "Fehler beim Speichern");
       }
-    } catch (err) {
+    } catch {
       toast.error("Verbindungsfehler");
     } finally {
       setIsSaving(false);
@@ -237,7 +275,7 @@ export function TeamInstructionsPage() {
       } else {
         toast.error("KI-Vorschläge konnten nicht generiert werden");
       }
-    } catch (err) {
+    } catch {
       toast.error("Verbindungsfehler");
     } finally {
       setIsSuggestLoading(false);
@@ -253,14 +291,55 @@ export function TeamInstructionsPage() {
 
   if (!teams || teams.length === 0) {
     return (
-      <div className="text-center py-16">
-        <p className="text-muted-foreground">Erstellen Sie zuerst ein Team, um KI-Anweisungen zu konfigurieren.</p>
+      <div className="flex flex-col items-center justify-center py-16 space-y-4">
+        <div className="p-3 rounded-full bg-warm-100">
+          <Users className="w-8 h-8 text-muted-foreground" />
+        </div>
+        <div className="text-center space-y-1">
+          <p className="text-sm font-medium text-foreground">Noch kein Team vorhanden</p>
+          <p className="text-sm text-muted-foreground max-w-sm">
+            Erstellen Sie zuerst ein Team, um KI-Anweisungen zu konfigurieren.
+            Teams ermöglichen abteilungsspezifische Regeln für die KI.
+          </p>
+        </div>
+        <Button
+          size="sm"
+          className="gap-1.5"
+          onClick={() => {
+            // Navigate to team creation — teams are managed via the API
+            window.location.href = "/settings?tab=users";
+          }}
+        >
+          <Plus className="w-3.5 h-3.5" />
+          Team erstellen
+        </Button>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
+      {/* Unsaved Changes Dialog */}
+      <AlertDialog open={showUnsavedDialog} onOpenChange={setShowUnsavedDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Ungespeicherte Änderungen</AlertDialogTitle>
+            <AlertDialogDescription>
+              Sie haben Änderungen an den KI-Anweisungen vorgenommen, die noch nicht gespeichert wurden.
+              Möchten Sie die Änderungen verwerfen?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => { setShowUnsavedDialog(false); setPendingTeamId(null); }}>
+              Abbrechen
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDiscard}>
+              Verwerfen
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {/* Header */}
       <div>
         <h2 className="text-xl font-semibold text-foreground">KI-Anweisungen</h2>
@@ -269,11 +348,22 @@ export function TeamInstructionsPage() {
         </p>
       </div>
 
+      {/* Hierarchy Info Banner */}
+      <div className="flex items-start gap-3 rounded-lg bg-warm-50 border border-warm-200 p-3">
+        <Info className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+        <p className="text-xs text-muted-foreground leading-relaxed">
+          <span className="font-medium text-foreground">Anweisungs-Hierarchie:</span>{" "}
+          Unternehmensweite Anweisungen (Firmendaten) gelten als Basis. Team-Anweisungen
+          ergänzen und überschreiben diese für das jeweilige Team.
+          Dokumenttyp-spezifische Regeln haben die höchste Priorität.
+        </p>
+      </div>
+
       {/* Team Selector + Actions */}
       <div className="flex items-center gap-3 flex-wrap">
         <Select
           value={selectedTeamId ? String(selectedTeamId) : ""}
-          onValueChange={(v) => setSelectedTeamId(Number(v))}
+          onValueChange={handleTeamChange}
         >
           <SelectTrigger className="w-56">
             <SelectValue placeholder="Team auswählen" />
@@ -288,6 +378,12 @@ export function TeamInstructionsPage() {
         <Badge variant="outline" className="text-xs">
           {filledCount}/{CATEGORIES.length} Kategorien
         </Badge>
+
+        {hasChanges && (
+          <Badge variant="secondary" className="text-xs bg-amber-50 text-amber-700 border-amber-200">
+            Ungespeichert
+          </Badge>
+        )}
 
         <div className="flex-1" />
 

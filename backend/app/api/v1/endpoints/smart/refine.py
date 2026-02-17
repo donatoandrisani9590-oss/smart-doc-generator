@@ -23,7 +23,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db import get_db
 from app.api.deps import get_current_user
 from app.services.llm_service import LLMService, LLMMessage, LLMConfig, get_llm_service, log_llm_call
-from app.services.ai_instructions import get_ai_instructions
+from app.services.ai_instructions import get_ai_instructions, get_user_primary_team_id
 
 logger = logging.getLogger(__name__)
 
@@ -115,8 +115,9 @@ async def refine_text(
     # Load optional AI instructions from user/company settings
     custom_ai_instructions = ""
     try:
+        team_id = await get_user_primary_team_id(db, current_user.id)
         custom_ai_instructions = await get_ai_instructions(
-            db, request.country_code, request.document_type_id
+            db, request.country_code, request.document_type_id, team_id=team_id
         )
     except (ValueError, KeyError, AttributeError, TypeError):
         pass  # AI instructions are optional, skip on config errors
@@ -151,7 +152,7 @@ Text zum Überarbeiten:
             ],
             config=LLMConfig(
                 temperature=0.3,
-                max_tokens=min(len(request.text) * 3, 4000),
+                max_tokens=max(min(len(request.text) * 3, 4000), 200),
             )
         )
         asyncio.create_task(log_llm_call(
@@ -235,8 +236,9 @@ async def refine_text_stream(
     # Load optional AI instructions
     custom_ai_instructions = ""
     try:
+        team_id = await get_user_primary_team_id(db, current_user.id)
         custom_ai_instructions = await get_ai_instructions(
-            db, request.country_code, request.document_type_id
+            db, request.country_code, request.document_type_id, team_id=team_id
         )
     except (ValueError, KeyError, AttributeError, TypeError):
         pass
@@ -267,7 +269,7 @@ Text zum Überarbeiten:
     ]
     config = LLMConfig(
         temperature=0.3,
-        max_tokens=min(len(request.text) * 3, 4000),
+        max_tokens=max(min(len(request.text) * 3, 4000), 200),
     )
 
     async def _stream_generator():

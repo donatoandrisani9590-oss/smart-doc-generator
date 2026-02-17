@@ -173,7 +173,7 @@ export function LLMUsagePage() {
         return (
             <div className="space-y-6">
                 <div>
-                    <h2 className="text-2xl font-bold tracking-tight">KI-Nutzung</h2>
+                    <h2 className="text-2xl font-bold text-foreground">KI-Nutzung</h2>
                     <p className="text-muted-foreground">
                         Übersicht aller KI-Aufrufe und Token-Verbrauch
                     </p>
@@ -202,7 +202,7 @@ export function LLMUsagePage() {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h2 className="text-2xl font-bold tracking-tight">KI-Nutzung</h2>
+                    <h2 className="text-2xl font-bold text-foreground">KI-Nutzung</h2>
                     <p className="text-muted-foreground">
                         Übersicht aller KI-Aufrufe und Token-Verbrauch
                     </p>
@@ -299,7 +299,7 @@ export function LLMUsagePage() {
                                                 {item.count.toLocaleString("de-DE")}
                                             </span>
                                         </div>
-                                        <div className="h-2 bg-warm-100 rounded-full overflow-hidden">
+                                        <div className="h-2.5 bg-warm-100 rounded-full overflow-hidden">
                                             <div
                                                 className="h-full bg-primary rounded-full transition-all duration-500"
                                                 style={{
@@ -336,7 +336,7 @@ export function LLMUsagePage() {
                                                 {item.count.toLocaleString("de-DE")}
                                             </span>
                                         </div>
-                                        <div className="h-2 bg-warm-100 rounded-full overflow-hidden">
+                                        <div className="h-2.5 bg-warm-100 rounded-full overflow-hidden">
                                             <div
                                                 className={`h-full rounded-full transition-all duration-500 ${getProviderColor(item.provider)}`}
                                                 style={{
@@ -369,7 +369,7 @@ export function LLMUsagePage() {
                             value={filters.feature || "all"}
                             onValueChange={(v) => handleFilterChange("feature", v === "all" ? "" : v)}
                         >
-                            <SelectTrigger className="w-[200px]">
+                            <SelectTrigger className="w-44">
                                 <SelectValue placeholder="Alle Features" />
                             </SelectTrigger>
                             <SelectContent>
@@ -386,7 +386,7 @@ export function LLMUsagePage() {
                             value={filters.provider || "all"}
                             onValueChange={(v) => handleFilterChange("provider", v === "all" ? "" : v)}
                         >
-                            <SelectTrigger className="w-[160px]">
+                            <SelectTrigger className="w-44">
                                 <SelectValue placeholder="Alle Provider" />
                             </SelectTrigger>
                             <SelectContent>
@@ -401,7 +401,7 @@ export function LLMUsagePage() {
                             value={filters.status || "all"}
                             onValueChange={(v) => handleFilterChange("status", v === "all" ? "" : v)}
                         >
-                            <SelectTrigger className="w-[160px]">
+                            <SelectTrigger className="w-44">
                                 <SelectValue placeholder="Alle Status" />
                             </SelectTrigger>
                             <SelectContent>
@@ -429,25 +429,25 @@ export function LLMUsagePage() {
                                     <table className="w-full">
                                         <thead className="bg-muted/50">
                                             <tr>
-                                                <th className="text-left p-3 text-xs font-medium text-muted-foreground whitespace-nowrap">
+                                                <th className="text-left p-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap">
                                                     Zeitpunkt
                                                 </th>
-                                                <th className="text-left p-3 text-xs font-medium text-muted-foreground whitespace-nowrap">
+                                                <th className="text-left p-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap">
                                                     Feature
                                                 </th>
-                                                <th className="text-left p-3 text-xs font-medium text-muted-foreground whitespace-nowrap">
+                                                <th className="text-left p-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap">
                                                     Provider
                                                 </th>
-                                                <th className="text-left p-3 text-xs font-medium text-muted-foreground whitespace-nowrap">
+                                                <th className="text-left p-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap">
                                                     Modell
                                                 </th>
-                                                <th className="text-right p-3 text-xs font-medium text-muted-foreground whitespace-nowrap">
+                                                <th className="text-right p-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap">
                                                     Tokens
                                                 </th>
-                                                <th className="text-right p-3 text-xs font-medium text-muted-foreground whitespace-nowrap">
+                                                <th className="text-right p-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap">
                                                     Latenz
                                                 </th>
-                                                <th className="text-center p-3 text-xs font-medium text-muted-foreground whitespace-nowrap">
+                                                <th className="text-center p-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap">
                                                     Status
                                                 </th>
                                             </tr>

@@ -24,7 +24,7 @@ from app.models.documents import DocumentType
 from app.services.llm_service import (
     LLMService, LLMMessage, LLMConfig, get_llm_service, log_llm_call
 )
-from app.services.ai_instructions import get_ai_instructions
+from app.services.ai_instructions import get_ai_instructions, get_user_primary_team_id
 
 logger = logging.getLogger(__name__)
 
@@ -104,6 +104,7 @@ async def _build_draft_prompt(
     db: AsyncSession,
     request: DraftRequest,
     non_empty_fields: Dict[str, Any],
+    user_id=None,
 ) -> tuple:
     """Build system and user prompts for draft generation. Returns (system_prompt, user_prompt)."""
     # Load document type name
@@ -116,11 +117,12 @@ async def _build_draft_prompt(
 
     doc_type_name = doc_type.name
 
-    # Load AI instructions
+    # Load AI instructions (with team context)
     custom_instructions = ""
     try:
+        team_id = await get_user_primary_team_id(db, user_id) if user_id else None
         custom_instructions = await get_ai_instructions(
-            db, request.country_code, request.document_type_id
+            db, request.country_code, request.document_type_id, team_id=team_id
         )
     except Exception:
         pass  # AI instructions are optional
@@ -176,7 +178,7 @@ async def generate_draft(
     except RuntimeError as e:
         raise HTTPException(status_code=503, detail=f"KI-Service nicht verfügbar: {str(e)}")
 
-    system_prompt, user_prompt = await _build_draft_prompt(db, request, non_empty)
+    system_prompt, user_prompt = await _build_draft_prompt(db, request, non_empty, user_id=current_user.id)
 
     try:
         _start = time.time()
@@ -185,7 +187,7 @@ async def generate_draft(
                 LLMMessage(role="system", content=system_prompt),
                 LLMMessage(role="user", content=user_prompt),
             ],
-            config=LLMConfig(temperature=0.4, max_tokens=500),
+            config=LLMConfig(temperature=0.4, max_tokens=800),
         )
         latency_ms = int((time.time() - _start) * 1000)
 
@@ -233,13 +235,13 @@ async def generate_draft_stream(
     except RuntimeError as e:
         raise HTTPException(status_code=503, detail=f"KI-Service nicht verfügbar: {str(e)}")
 
-    system_prompt, user_prompt = await _build_draft_prompt(db, request, non_empty)
+    system_prompt, user_prompt = await _build_draft_prompt(db, request, non_empty, user_id=current_user.id)
 
     messages = [
         LLMMessage(role="system", content=system_prompt),
         LLMMessage(role="user", content=user_prompt),
     ]
-    config = LLMConfig(temperature=0.4, max_tokens=500)
+    config = LLMConfig(temperature=0.4, max_tokens=800)
 
     async def _stream_generator():
         _start = time.time()

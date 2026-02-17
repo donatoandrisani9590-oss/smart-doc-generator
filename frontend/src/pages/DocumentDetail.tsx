@@ -319,8 +319,8 @@ export const DocumentDetailPage = () => {
                             <button
                                 className={`flex-1 px-4 py-2.5 text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
                                     activeTab === "details"
-                                        ? "text-primary border-b-2 border-primary"
-                                        : "text-muted-foreground hover:text-foreground"
+                                        ? "text-primary border-b-[3px] border-primary -mb-[1px]"
+                                        : "text-muted-foreground hover:text-foreground hover:bg-warm-50/50"
                                 }`}
                                 onClick={() => setActiveTab("details")}
                             >
@@ -330,8 +330,8 @@ export const DocumentDetailPage = () => {
                             <button
                                 className={`flex-1 px-4 py-2.5 text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
                                     activeTab === "verlauf"
-                                        ? "text-primary border-b-2 border-primary"
-                                        : "text-muted-foreground hover:text-foreground"
+                                        ? "text-primary border-b-[3px] border-primary -mb-[1px]"
+                                        : "text-muted-foreground hover:text-foreground hover:bg-warm-50/50"
                                 }`}
                                 onClick={() => setActiveTab("verlauf")}
                             >
@@ -341,8 +341,8 @@ export const DocumentDetailPage = () => {
                             <button
                                 className={`flex-1 px-4 py-2.5 text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
                                     activeTab === "kommentare"
-                                        ? "text-primary border-b-2 border-primary"
-                                        : "text-muted-foreground hover:text-foreground"
+                                        ? "text-primary border-b-[3px] border-primary -mb-[1px]"
+                                        : "text-muted-foreground hover:text-foreground hover:bg-warm-50/50"
                                 }`}
                                 onClick={() => setActiveTab("kommentare")}
                             >
@@ -358,7 +358,7 @@ export const DocumentDetailPage = () => {
                                 <button
                                     className={`flex-1 px-4 py-2.5 text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
                                         activeTab === "freigabe"
-                                            ? "text-primary border-b-2 border-primary"
+                                            ? "text-primary border-b-[3px] border-primary -mb-[1px]"
                                             : "text-muted-foreground hover:text-foreground"
                                     }`}
                                     onClick={() => setActiveTab("freigabe")}
@@ -376,12 +376,12 @@ export const DocumentDetailPage = () => {
                                     {/* Employee Info Card */}
                                     <div className="card-soft p-0 overflow-hidden">
                                         <div className="px-4 py-2.5 info-card-header">
-                                            <h3 className="text-xs font-medium flex items-center gap-2 uppercase tracking-wide">
+                                            <h3 className="text-xs font-semibold flex items-center gap-2 uppercase tracking-wider text-muted-foreground">
                                                 <User className="w-3.5 h-3.5 text-primary" />
                                                 Mitarbeiter
                                             </h3>
                                         </div>
-                                        <div className="p-4 grid grid-cols-2 gap-3">
+                                        <div className="p-4 grid grid-cols-2 gap-x-4 gap-y-4">
                                             <div>
                                                 <p className="text-xs text-muted-foreground mb-0.5">Name</p>
                                                 <p className="font-medium text-sm">{document.employee_name || "-"}</p>
@@ -410,12 +410,12 @@ export const DocumentDetailPage = () => {
                                     {/* Document Info Card */}
                                     <div className="card-soft p-0 overflow-hidden">
                                         <div className="px-4 py-2.5 info-card-header">
-                                            <h3 className="text-xs font-medium flex items-center gap-2 uppercase tracking-wide">
+                                            <h3 className="text-xs font-semibold flex items-center gap-2 uppercase tracking-wider text-muted-foreground">
                                                 <FileText className="w-3.5 h-3.5 text-primary" />
                                                 Dokument
                                             </h3>
                                         </div>
-                                        <div className="p-4 grid grid-cols-2 gap-3">
+                                        <div className="p-4 grid grid-cols-2 gap-x-4 gap-y-4">
                                             <div>
                                                 <p className="text-xs text-muted-foreground mb-0.5">Typ</p>
                                                 <p className="font-medium text-sm">{document.document_type_name}</p>
@@ -433,7 +433,7 @@ export const DocumentDetailPage = () => {
                                     {document.form_data && Object.keys(document.form_data).length > 0 && (
                                         <div className="card-soft p-0 overflow-hidden">
                                             <div className="px-4 py-2.5 info-card-header">
-                                                <h3 className="text-xs font-medium flex items-center gap-2 uppercase tracking-wide">
+                                                <h3 className="text-xs font-semibold flex items-center gap-2 uppercase tracking-wider text-muted-foreground">
                                                     <FileText className="w-3.5 h-3.5 text-primary" />
                                                     Formulardaten
                                                 </h3>

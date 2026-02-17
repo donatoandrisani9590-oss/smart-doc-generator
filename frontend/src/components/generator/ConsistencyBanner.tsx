@@ -234,12 +234,12 @@ export function ConsistencyBanner({
     return (
       <div
         className={cn(
-          "flex items-center gap-2 px-3 py-2 bg-green-50/60 border border-green-200/60 rounded-lg",
+          "flex items-center gap-2 px-4 py-2.5 bg-green-50 border border-green-200 rounded-lg",
           className
         )}
       >
-        <CheckCircle className="h-4 w-4 text-green-500" />
-        <span className="text-xs text-green-700">
+        <CheckCircle className="h-4 w-4 text-green-600 shrink-0" />
+        <span className="text-sm text-green-700 font-medium">
           Konsistent mit {result.documents_checked} bisherigen Dokument{result.documents_checked !== 1 ? "en" : ""}
         </span>
         {isLoading && (
@@ -272,7 +272,7 @@ export function ConsistencyBanner({
       >
         {/* Header */}
         <CollapsibleTrigger asChild>
-          <button className="w-full flex items-center gap-3 px-4 py-3 hover:bg-opacity-80 transition-colors text-left">
+          <button className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-black/5 active:bg-black/10 transition-colors text-left">
             <Icon className={cn("h-5 w-5 flex-shrink-0", config.color)} />
 
             <div className="flex-1 min-w-0">
@@ -353,12 +353,12 @@ export function ConsistencyBanner({
 
                       {/* Value comparison */}
                       {issue.previous_value && issue.current_value && (
-                        <div className="mt-2 flex items-center gap-2 px-3 py-2 bg-warm-100 rounded text-sm">
+                        <div className="mt-2 flex items-center gap-3 px-3 py-2.5 bg-warm-50 border border-warm-200 rounded-md text-sm">
                           <span className="line-through text-muted-foreground">
                             {issue.previous_value}
                           </span>
-                          <ArrowRight className="h-3 w-3 text-muted-foreground flex-shrink-0" />
-                          <span className="font-medium text-foreground">
+                          <ArrowRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                          <span className="font-semibold text-foreground">
                             {issue.current_value}
                           </span>
                         </div>

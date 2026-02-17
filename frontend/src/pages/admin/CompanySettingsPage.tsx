@@ -31,7 +31,10 @@ import {
     CheckCircle,
     AlertCircle,
     Bot,
+    Info,
+    ArrowRight,
 } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
 import { apiFetch } from "@/lib/api-client";
 
 interface CompanySettings {
@@ -50,6 +53,7 @@ interface CompanySettings {
 }
 
 export default function CompanySettingsPage() {
+    const [, setSearchParams] = useSearchParams();
     const [country, setCountry] = useState<"DE" | "IT">("DE");
     const [settings, setSettings] = useState<CompanySettings | null>(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -263,10 +267,10 @@ export default function CompanySettingsPage() {
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                             <Bot className="w-5 h-5" />
-                            KI-Anweisungen
+                            Unternehmensweite KI-Anweisungen
                         </CardTitle>
                         <CardDescription>
-                            Globale Anweisungen, die bei jeder KI-Aktion berücksichtigt werden
+                            Globale Anweisungen, die bei jeder KI-Aktion für alle Benutzer gelten
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
@@ -287,6 +291,25 @@ export default function CompanySettingsPage() {
                                 Diese Anweisungen werden bei jeder KI-Aktion berücksichtigt: Compliance-Check,
                                 Textbaustein-Auswahl, Chat-Assistent, Smart Mode und Dokument-Upload-Analyse.
                             </p>
+                        </div>
+
+                        <div className="flex items-start gap-3 rounded-lg bg-warm-50 border border-warm-200 p-3">
+                            <Info className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                            <div className="text-xs text-muted-foreground">
+                                <p>
+                                    Diese Anweisungen gelten unternehmensweit. Team-spezifische Anweisungen
+                                    können unter{" "}
+                                    <button
+                                        type="button"
+                                        onClick={() => setSearchParams({ tab: "ai-instructions" })}
+                                        className="inline-flex items-center gap-1 text-primary hover:text-primary/80 font-medium underline-offset-2 hover:underline transition-colors"
+                                    >
+                                        Einstellungen &rarr; KI-Anweisungen
+                                        <ArrowRight className="w-3 h-3" />
+                                    </button>{" "}
+                                    konfiguriert werden.
+                                </p>
+                            </div>
                         </div>
                     </CardContent>
                 </Card>

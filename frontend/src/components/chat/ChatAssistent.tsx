@@ -246,14 +246,14 @@ export const ChatAssistent = ({ context, countryCode = "DE", onInsertText, onFil
                         <Sparkles className="w-5 h-5 text-primary" />
                         Brief-Assistent
                     </CardTitle>
-                    <div className="flex gap-1 flex-wrap">
+                    <div className="flex gap-1.5 flex-wrap">
                         {(["general", "clause", "formal", "document"] as const).map((m) => (
                             <Button
                                 key={m}
                                 variant={mode === m ? "secondary" : "ghost"}
                                 size="sm"
                                 onClick={() => { setMode(m); if (m !== mode) handleReset(); }}
-                                className="text-xs"
+                                className="text-xs h-7 px-3"
                                 disabled={isLoading}
                             >
                                 {m === "general" ? "Allgemein" : m === "clause" ? "Textbausteine" : m === "formal" ? "Formell" : "Dokument erstellen"}
@@ -265,7 +265,7 @@ export const ChatAssistent = ({ context, countryCode = "DE", onInsertText, onFil
 
             <CardContent className="flex-1 flex flex-col overflow-hidden">
                 {/* Messages */}
-                <div className="flex-1 overflow-auto mb-4 space-y-3">
+                <div className="flex-1 overflow-auto mb-4 space-y-4">
                     {messages.length === 0 ? (
                         <div className="text-center text-muted-foreground py-8">
                             <Sparkles className="w-12 h-12 mx-auto mb-4 opacity-50" />
@@ -296,7 +296,7 @@ export const ChatAssistent = ({ context, countryCode = "DE", onInsertText, onFil
                                     {msg.content}
                                     {/* Streaming cursor on last assistant message */}
                                     {isStreaming && msg.role === "assistant" && i === messages.length - 1 && (
-                                        <span className="inline-block w-2 h-4 ml-0.5 bg-primary/60 animate-pulse" />
+                                        <span className="inline-block w-[2px] h-4 ml-1 bg-primary rounded-sm animate-pulse" />
                                     )}
                                 </p>
                                 {msg.role === "assistant" && !isStreaming && msg.content && onInsertText && (
@@ -317,7 +317,7 @@ export const ChatAssistent = ({ context, countryCode = "DE", onInsertText, onFil
 
                 {/* Wizard Status Bar */}
                 {mode === "document" && wizardState.suggestedDocumentTypeName && (
-                    <div className="flex items-center gap-2 flex-wrap mb-2 p-2 bg-primary/5 rounded-lg">
+                    <div className="flex items-center gap-2 flex-wrap mb-3 p-3 bg-primary/5 rounded-lg border border-primary/10">
                         <Badge variant="secondary" className="gap-1.5">
                             <FileText className="w-3 h-3" />
                             {wizardState.suggestedDocumentTypeName}

@@ -232,9 +232,10 @@ async def chat(
             detail=f"LLM nicht verfügbar: {str(e)}"
         )
 
-    # Load custom AI instructions
-    from app.services.ai_instructions import get_ai_instructions
-    custom_instructions = await get_ai_instructions(db, request.country_code)
+    # Load custom AI instructions (with team context)
+    from app.services.ai_instructions import get_ai_instructions, get_user_primary_team_id
+    team_id = await get_user_primary_team_id(db, current_user.id)
+    custom_instructions = await get_ai_instructions(db, request.country_code, team_id=team_id)
 
     # Build messages
     system_prompt = get_system_prompt(request.mode, request.country_code, request.context, custom_instructions)
@@ -247,7 +248,7 @@ async def chat(
         _llm_start = time.time()
         response = await llm.chat(
             messages,
-            LLMConfig(temperature=0.7, max_tokens=1024)
+            LLMConfig(temperature=0.5, max_tokens=1024)
         )
         asyncio.create_task(log_llm_call(
             feature="chat",
@@ -325,9 +326,10 @@ async def chat_stream(
             detail=f"LLM nicht verfügbar: {str(e)}"
         )
 
-    # Load custom AI instructions
-    from app.services.ai_instructions import get_ai_instructions
-    custom_instructions = await get_ai_instructions(db, request.country_code)
+    # Load custom AI instructions (with team context)
+    from app.services.ai_instructions import get_ai_instructions, get_user_primary_team_id
+    team_id = await get_user_primary_team_id(db, current_user.id)
+    custom_instructions = await get_ai_instructions(db, request.country_code, team_id=team_id)
 
     # Build messages (identical to blocking endpoint)
     system_prompt = get_system_prompt(request.mode, request.country_code, request.context, custom_instructions)
@@ -336,7 +338,7 @@ async def chat_stream(
     for msg in request.messages:
         messages.append(LLMMessage(role=msg.role, content=msg.content))
 
-    config = LLMConfig(temperature=0.7, max_tokens=1024)
+    config = LLMConfig(temperature=0.5, max_tokens=1024)
 
     async def _stream_generator():
         """Async generator yielding SSE frames."""
@@ -432,9 +434,10 @@ async def smart_chat(
             detail=f"LLM nicht verfügbar: {str(e)}"
         )
 
-    # Load custom AI instructions
-    from app.services.ai_instructions import get_ai_instructions
-    custom_instructions = await get_ai_instructions(db, request.country_code)
+    # Load custom AI instructions (with team context)
+    from app.services.ai_instructions import get_ai_instructions, get_user_primary_team_id
+    team_id = await get_user_primary_team_id(db, current_user.id)
+    custom_instructions = await get_ai_instructions(db, request.country_code, team_id=team_id)
 
     # Use document mode for intent extraction
     system_prompt = SYSTEM_PROMPTS["document"]
@@ -592,9 +595,10 @@ async def suggest_clause(
             detail=f"LLM nicht verfügbar: {str(e)}"
         )
 
-    # Load custom AI instructions for fallback generation
-    from app.services.ai_instructions import get_ai_instructions as get_ai_instr
-    custom_instr = await get_ai_instr(db, country_code)
+    # Load custom AI instructions for fallback generation (with team context)
+    from app.services.ai_instructions import get_ai_instructions as get_ai_instr, get_user_primary_team_id as get_team
+    t_id = await get_team(db, current_user.id)
+    custom_instr = await get_ai_instr(db, country_code, team_id=t_id)
 
     country_name = "Deutschland" if country_code.upper() == "DE" else "Italien"
 
@@ -686,9 +690,10 @@ async def improve_text(
 
     instruction = style_instructions.get(style, style_instructions["formal"])
 
-    # Load custom AI instructions
-    from app.services.ai_instructions import get_ai_instructions as get_ai_inst
-    custom_instructions = await get_ai_inst(db, "DE")
+    # Load custom AI instructions (with team context)
+    from app.services.ai_instructions import get_ai_instructions as get_ai_inst, get_user_primary_team_id as get_tid
+    t_id = await get_tid(db, current_user.id)
+    custom_instructions = await get_ai_inst(db, "DE", team_id=t_id)
 
     system_content = "Du bist ein Experte für Textoptimierung in Geschäftsdokumenten."
     if custom_instructions:

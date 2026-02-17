@@ -18,7 +18,7 @@ from app.db import get_db
 from app.api.deps import get_current_user
 from app.services.consistency_service import ConsistencyService, ConsistencyCheckResult
 from app.services.llm_service import get_llm_service
-from app.services.ai_instructions import get_ai_instructions
+from app.services.ai_instructions import get_ai_instructions, get_user_primary_team_id
 
 logger = logging.getLogger(__name__)
 
@@ -92,8 +92,9 @@ async def check_consistency(
     custom_instructions = ""
     if request.use_llm:
         try:
+            team_id = await get_user_primary_team_id(db, current_user.id)
             custom_instructions = await get_ai_instructions(
-                db, request.country_code, request.document_type_id
+                db, request.country_code, request.document_type_id, team_id=team_id
             )
         except (ValueError, KeyError, AttributeError, TypeError):
             pass

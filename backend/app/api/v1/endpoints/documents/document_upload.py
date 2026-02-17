@@ -402,10 +402,11 @@ async def upload_and_extract(
         pattern_fields, doc_type, confidence = extract_with_patterns(text)
         provider = "pattern"
 
-        # Load custom AI instructions
-        from app.services.ai_instructions import get_ai_instructions
+        # Load custom AI instructions (with team context)
+        from app.services.ai_instructions import get_ai_instructions, get_user_primary_team_id
         country_code = getattr(current_user, "country_code", "DE") or "DE"
-        custom_instructions = await get_ai_instructions(db, country_code)
+        team_id = await get_user_primary_team_id(db, current_user.id)
+        custom_instructions = await get_ai_instructions(db, country_code, team_id=team_id)
 
         # AI enhancement (optional)
         if use_ai:
@@ -462,10 +463,11 @@ async def extract_from_text(
     # Pattern extraction
     pattern_fields, doc_type, confidence = extract_with_patterns(text)
 
-    # Load custom AI instructions
-    from app.services.ai_instructions import get_ai_instructions
+    # Load custom AI instructions (with team context)
+    from app.services.ai_instructions import get_ai_instructions, get_user_primary_team_id
     country_code = getattr(current_user, "country_code", "DE") or "DE"
-    custom_instructions = await get_ai_instructions(db, country_code)
+    team_id = await get_user_primary_team_id(db, current_user.id)
+    custom_instructions = await get_ai_instructions(db, country_code, team_id=team_id)
 
     # AI enhancement
     ai_fields, ai_type, ai_confidence, provider = await extract_with_llm(text, custom_instructions=custom_instructions)

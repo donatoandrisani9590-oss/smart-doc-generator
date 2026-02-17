@@ -26,7 +26,7 @@ from app.models.core import User
 from app.services.llm_service import (
     LLMMessage, LLMConfig, get_llm_service, log_llm_call
 )
-from app.services.ai_instructions import get_ai_instructions
+from app.services.ai_instructions import get_ai_instructions, get_user_primary_team_id
 
 logger = logging.getLogger(__name__)
 
@@ -70,6 +70,7 @@ async def _build_system_prompt(
     document_types: list[dict],
     document_type_id: Optional[int] = None,
     form_data: Optional[Dict[str, Any]] = None,
+    user_id=None,
 ) -> str:
     """Build the wizard system prompt with available document types."""
     country_name = "Deutschland" if country_code == "DE" else "Italien" if country_code == "IT" else "Österreich" if country_code == "AT" else "Schweiz"
@@ -94,8 +95,9 @@ async def _build_system_prompt(
                 f"  - {k}: {v}" for k, v in non_empty.items()
             )
 
-    # Load custom AI instructions
-    custom_instructions = await get_ai_instructions(db, country_code)
+    # Load custom AI instructions (with team context)
+    team_id = await get_user_primary_team_id(db, user_id) if user_id else None
+    custom_instructions = await get_ai_instructions(db, country_code, team_id=team_id)
 
     return f"""Du bist ein erfahrener HR-Rechtsexperte und Assistent für Dokumenterstellung in {country_name}.
 Deine Aufgabe: Durch gezielte Fragen alle nötigen Informationen sammeln, um ein rechtssicheres HR-Dokument zu erstellen.
@@ -169,6 +171,7 @@ async def wizard_chat(
     system_prompt = await _build_system_prompt(
         db, request.country_code, doc_types,
         request.document_type_id, request.form_data,
+        user_id=current_user.id,
     )
 
     # Build LLM messages
@@ -245,6 +248,7 @@ async def wizard_chat_stream(
     system_prompt = await _build_system_prompt(
         db, request.country_code, doc_types,
         request.document_type_id, request.form_data,
+        user_id=current_user.id,
     )
 
     # Build LLM messages

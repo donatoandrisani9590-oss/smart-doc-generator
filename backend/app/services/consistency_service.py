@@ -397,7 +397,7 @@ ANTWORT-FORMAT (strikt JSON):
 Antworte NUR mit dem JSON-Objekt.{f" " + custom_instructions if custom_instructions else ""}"""
 
         user_prompt = f"""Aktuelle Formulardaten:
-{json.dumps(current_data, ensure_ascii=False)[:1000]}
+{json.dumps(current_data, ensure_ascii=False)[:2000]}
 
 Bisherige Dokumente:
 {chr(10).join(hist_summary)}
@@ -413,7 +413,7 @@ Finde logische Widersprüche zwischen den Dokumenten."""
                 ],
                 config=LLMConfig(
                     temperature=0.2,
-                    max_tokens=1000,
+                    max_tokens=1500,
                     json_mode=True,
                 ),
             )

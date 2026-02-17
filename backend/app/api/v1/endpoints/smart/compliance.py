@@ -14,6 +14,7 @@ from typing import Optional, List
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db import get_db
+from app.api.deps import get_current_user
 from app.services.compliance_service import (
     ComplianceService,
     ComplianceScanResult,
@@ -77,7 +78,8 @@ class ProviderInfoResponse(BaseModel):
 @router.post("/scan", response_model=ComplianceScanResult)
 async def scan_document(
     request: ComplianceScanRequest,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_user),
 ):
     """
     Scan document content for compliance risks.
@@ -94,9 +96,10 @@ async def scan_document(
     - Mistral AI API (EU-hosted, GDPR compliant)
     """
     try:
-        # Load custom AI instructions
-        from app.services.ai_instructions import get_ai_instructions
-        custom_instructions = await get_ai_instructions(db, request.country_code)
+        # Load custom AI instructions (with team context)
+        from app.services.ai_instructions import get_ai_instructions, get_user_primary_team_id
+        team_id = await get_user_primary_team_id(db, current_user.id)
+        custom_instructions = await get_ai_instructions(db, request.country_code, team_id=team_id)
 
         service = await get_compliance_service()
         result = await service.scan_content(
@@ -193,6 +196,7 @@ async def analyze_single_clause(
     clause_text: str = Query(..., min_length=10, description="Clause text to analyze"),
     country_code: str = Query(default="DE", pattern="^(DE|AT|CH|IT)$"),
     db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_user),
 ):
     """
     Analyze a single clause for compliance risks.
@@ -200,9 +204,10 @@ async def analyze_single_clause(
     Convenience endpoint for checking individual clauses
     without full document context.
     """
-    # Load custom AI instructions
-    from app.services.ai_instructions import get_ai_instructions
-    custom_instructions = await get_ai_instructions(db, country_code)
+    # Load custom AI instructions (with team context)
+    from app.services.ai_instructions import get_ai_instructions, get_user_primary_team_id
+    team_id = await get_user_primary_team_id(db, current_user.id)
+    custom_instructions = await get_ai_instructions(db, country_code, team_id=team_id)
 
     # Wrap in minimal HTML
     content_html = f"<p>{clause_text}</p>"

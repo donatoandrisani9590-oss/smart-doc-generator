@@ -84,7 +84,7 @@ export const GhostwriterCard = ({
       onClick={isCollapsed ? handleInteraction : undefined}
     >
       {/* Header */}
-      <div className="flex items-center gap-2 px-3 py-2 cursor-pointer select-none"
+      <div className="flex items-center gap-2 px-4 py-2.5 cursor-pointer select-none hover:bg-primary/5 transition-colors"
         onClick={() => {
           handleInteraction();
           if (!isStreaming) setIsCollapsed(!isCollapsed);
@@ -102,7 +102,7 @@ export const GhostwriterCard = ({
           )}
         </span>
         {!isStreaming && (
-          <button className="p-0.5 hover:bg-primary/10 rounded">
+          <button className="p-1 hover:bg-primary/10 rounded transition-colors">
             {isCollapsed ? (
               <ChevronDown className="w-4 h-4 text-primary/60" />
             ) : (
@@ -126,7 +126,7 @@ export const GhostwriterCard = ({
           {displayContent && (
             <div
               ref={contentRef}
-              className="px-3 py-2 border-t border-primary/10 max-h-[200px] overflow-y-auto"
+              className="px-4 py-3 border-t border-primary/10 max-h-[240px] overflow-y-auto"
             >
               <div
                 className="text-sm text-foreground leading-relaxed prose prose-sm max-w-none"
@@ -139,7 +139,7 @@ export const GhostwriterCard = ({
           )}
 
           {/* Actions */}
-          <div className="flex items-center gap-2 px-3 py-2 border-t border-primary/10 bg-primary/[0.02]">
+          <div className="flex items-center gap-2 px-4 py-2.5 border-t border-primary/10 bg-primary/[0.03]">
             <Button
               size="sm"
               onClick={(e) => {
@@ -147,7 +147,7 @@ export const GhostwriterCard = ({
                 onAccept();
               }}
               disabled={isStreaming || !draftHtml}
-              className="h-7 text-xs gap-1.5"
+              className="h-8 text-xs gap-1.5 font-medium"
             >
               <Check className="w-3.5 h-3.5" />
               Einfügen
@@ -160,7 +160,7 @@ export const GhostwriterCard = ({
                 onRegenerate();
               }}
               disabled={isGenerating}
-              className="h-7 text-xs gap-1.5 text-muted-foreground"
+              className="h-8 text-xs gap-1.5 text-muted-foreground"
             >
               <RefreshCw className="w-3.5 h-3.5" />
               Neu generieren
@@ -173,7 +173,7 @@ export const GhostwriterCard = ({
                 e.stopPropagation();
                 onDismiss();
               }}
-              className="h-7 text-xs gap-1.5 text-muted-foreground hover:text-red-600"
+              className="h-8 text-xs gap-1.5 text-muted-foreground hover:text-red-600 hover:bg-red-50"
             >
               <X className="w-3.5 h-3.5" />
               Verwerfen

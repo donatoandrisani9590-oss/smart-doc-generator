@@ -80,3 +80,16 @@ async def get_ai_instructions(
     await cache.set(cache_key, {_CACHE_WRAPPER_KEY: instructions}, ttl=600)  # 10min
 
     return instructions
+
+
+async def get_user_primary_team_id(db: AsyncSession, user_id) -> Optional[int]:
+    """Resolve the user's primary (first) team_id from TeamMember table."""
+    from app.models.enterprise import TeamMember
+    result = await db.execute(
+        select(TeamMember.team_id)
+        .where(TeamMember.user_id == str(user_id))
+        .order_by(TeamMember.joined_at.asc())
+        .limit(1)
+    )
+    row = result.scalar_one_or_none()
+    return row

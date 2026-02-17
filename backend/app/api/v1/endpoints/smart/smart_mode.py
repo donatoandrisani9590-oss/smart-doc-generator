@@ -379,9 +379,10 @@ async def process_smart_mode_answer(
 
             # Build extraction prompt
             field_list = ", ".join([f"{f.name} ({f.label})" for f in all_fields])
-            # Load custom AI instructions
-            from app.services.ai_instructions import get_ai_instructions
-            custom_instructions = await get_ai_instructions(db, doc_type.country_code, doc_type.id)
+            # Load custom AI instructions (with team context)
+            from app.services.ai_instructions import get_ai_instructions, get_user_primary_team_id
+            team_id = await get_user_primary_team_id(db, current_user.id)
+            custom_instructions = await get_ai_instructions(db, doc_type.country_code, doc_type.id, team_id=team_id)
 
             extraction_prompt = f"""Extrahiere Daten aus der Benutzereingabe.
 

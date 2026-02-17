@@ -305,8 +305,8 @@ export const RepositoryPage = () => {
             {/* Header */}
             <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                    <h1 className="text-2xl font-semibold text-foreground">Meine Dokumente</h1>
-                    <p className="text-muted-foreground mt-1">
+                    <h1 className="text-2xl font-semibold text-foreground leading-tight">Meine Dokumente</h1>
+                    <p className="text-sm text-muted-foreground mt-2">
                         {drafts?.length ? `${drafts.length} Entwürfe, ` : ""}
                         {stats ? `${stats.total_documents} fertige Dokumente` : "Alle Ihre Dokumente"}
                     </p>
@@ -332,8 +332,8 @@ export const RepositoryPage = () => {
                         onClick={() => setActiveFilter(card.key)}
                         className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
                             activeFilter === card.key
-                                ? 'bg-white dark:bg-warm-700 text-primary shadow-sm ring-1 ring-black/5 dark:ring-white/10'
-                                : 'text-muted-foreground hover:text-foreground'
+                                ? 'bg-white dark:bg-warm-700 text-primary shadow-md ring-1 ring-black/5 dark:ring-white/10'
+                                : 'text-muted-foreground hover:text-foreground hover:bg-warm-100/50'
                         }`}
                     >
                         {card.label}
@@ -503,7 +503,7 @@ export const RepositoryPage = () => {
 
                 {/* Sortierbare Spaltenköpfe */}
                 {filteredItems.length > 0 && (
-                    <div className="hidden md:flex items-center gap-4 px-4 py-2 border-b bg-warm-50/50 text-xs font-medium text-muted-foreground">
+                    <div className="hidden md:flex items-center gap-4 px-4 py-2.5 border-b bg-warm-50 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                         <div className="w-5" /> {/* Checkbox Spacer */}
                         <div className="w-10" /> {/* Icon Spacer */}
                         <button
@@ -592,7 +592,7 @@ export const RepositoryPage = () => {
                                     key={`${item.type}-${item.id}`}
                                     index={index}
                                     disableInteraction
-                                    className="flex items-center gap-4 px-4 py-3.5 transition-colors cursor-pointer group hover:bg-warm-50 dark:hover:bg-warm-800/40"
+                                    className="flex items-center gap-4 px-4 py-3.5 transition-colors cursor-pointer group hover:bg-warm-100/60 dark:hover:bg-warm-800/50"
                                     style={{ borderLeft: `4px solid ${typeColor.border}` }}
                                     onClick={() =>
                                         item.type === "draft"
