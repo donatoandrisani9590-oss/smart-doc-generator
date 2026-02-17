@@ -13,7 +13,10 @@ from pydantic import BaseModel, EmailStr
 
 from app.db import get_db
 from app.models.core import User, DesignSetting
-from app.models.documents import Clause, DocumentType, DocumentTypeClause
+from app.models.documents import (
+    Clause, DocumentType, DocumentTypeClause,
+    ClauseVariantGroup, ClauseVariant, DocumentTypeVariantGroup,
+)
 from app.core.security import get_password_hash
 from app.api import deps
 
@@ -1106,4 +1109,490 @@ async def seed_zeugnis_clauses(
         "clauses_updated": updated,
         "links_created": linked,
         "total_clauses": len(ARBEITSZEUGNIS_CLAUSES),
+    }
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# AT-ANGESTELLTER VARIANTEN-SYSTEM
+# 10 AT-Varianten + 4 AT-only Conditional Clauses + 10 Variant Groups
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Mapping: variant_group_name → (existing tarif clause title, display_order)
+VARIANT_GROUP_TARIF_MAPPING = {
+    "tarifhinweis": ("Hinweis auf Tarifverträge und Betriebsvereinbarungen", 2),
+    "probezeit": ("Probezeit", 3),
+    "eingruppierung": ("Eingruppierung", 5),
+    "arbeitszeit": ("Arbeitszeit", 7),
+    "verguetung": ("Vergütung", 9),
+    "zuschlaege": ("Zuschläge für Mehr-, Nacht-, Sonn- und Feiertagsarbeit", 10),
+    "urlaub": ("Urlaub", 11),
+    "sonderurlaub": ("Sonderurlaub und bezahlte Freistellung", 12),
+    "kuendigung": ("Kündigung", 16),
+    "ausschlussfristen": ("Ausschlussfristen", 22),
+}
+
+VARIANT_GROUPS = [
+    {"name": "tarifhinweis", "display_name": "Tarifvertragshinweis / Vertragsgrundlage", "description": "Tarif: Verweis auf Haustarifvertrag IG BCE. AT: Keine Tarifbindung.", "category": "Arbeitsrecht"},
+    {"name": "probezeit", "display_name": "Probezeit", "description": "Tarif: Mit Haustarifvertrag-Verweis. AT: Ohne Tarifverweis, rein gesetzlich.", "category": "Arbeitsrecht"},
+    {"name": "eingruppierung", "display_name": "Eingruppierung / Vergütungsvereinbarung", "description": "Tarif: Tarifliche Entgeltgruppe. AT: Individuelle Vergütungsvereinbarung.", "category": "Arbeitsrecht"},
+    {"name": "arbeitszeit", "display_name": "Arbeitszeit", "description": "Tarif: 37,5h mit tariflichen Zuschlägen. AT: Vertrauensarbeitszeit mit Überstundenpauschale.", "category": "Arbeitsrecht"},
+    {"name": "verguetung", "display_name": "Vergütung", "description": "Tarif: Monatl. Bruttogehalt + Sonderzahlungen. AT: Jahresgehalt pauschal.", "category": "Arbeitsrecht"},
+    {"name": "zuschlaege", "display_name": "Zuschläge / Überstundenpauschale", "description": "Tarif: Zuschläge gem. TV. AT: Überstundenpauschale.", "category": "Arbeitsrecht"},
+    {"name": "urlaub", "display_name": "Urlaub", "description": "Tarif: Urlaub gem. TV. AT: Individuell vereinbart.", "category": "Arbeitsrecht"},
+    {"name": "sonderurlaub", "display_name": "Sonderurlaub und Freistellung", "description": "Tarif: Gem. TV. AT: Ohne Tarifverweis.", "category": "Arbeitsrecht"},
+    {"name": "kuendigung", "display_name": "Kündigung", "description": "Tarif: Gem. TV + gesetzlich. AT: Individuelle Kündigungsfristen.", "category": "Arbeitsrecht"},
+    {"name": "ausschlussfristen", "display_name": "Ausschlussfristen", "description": "Tarif: Tarifliche Ausschlussfristen. AT: Individuelle Ausschlussfristen.", "category": "Arbeitsrecht"},
+]
+
+AT_ANGESTELLTER_CLAUSES = [
+    {
+        "title": "Geltungsbereich und Vertragsgrundlage",
+        "content_html": '<p><strong>&sect; 2 Geltungsbereich und Vertragsgrundlage</strong></p>'
+            '<p>Das Arbeitsverhältnis ist außertariflich. Tarifverträge finden auf dieses Arbeitsverhältnis keine Anwendung. '
+            'Das Arbeitsverhältnis wird ausschließlich durch diesen Vertrag sowie die jeweils gültigen betrieblichen Vereinbarungen und gesetzlichen Bestimmungen geregelt.</p>'
+            '<p>Der Arbeitnehmer erhält eine Gesamtvergütung, die über der höchsten tariflichen Entgeltgruppe liegt.</p>',
+        "category": "Arbeitsrecht",
+        "tags": ["at-angestellter", "außertariflich", "vertragsgrundlage"],
+        "tone": "neutral",
+        "variant_group": "tarifhinweis",
+        "variant_name": "AT-Angestellter",
+        "variant_code": "AT",
+    },
+    {
+        "title": "Probezeit",
+        "content_html": '<p><strong>&sect; 3 Probezeit</strong></p>'
+            '<p>Die ersten <strong>[probezeit]</strong> des Arbeitsverhältnisses gelten als Probezeit. '
+            'Während der Probezeit kann das Arbeitsverhältnis von beiden Seiten mit einer Frist von zwei Wochen gekündigt werden (&sect;&nbsp;622 Abs.&nbsp;3 BGB).</p>',
+        "category": "Arbeitsrecht",
+        "tags": ["probezeit", "at-angestellter"],
+        "tone": "neutral",
+        "variant_group": "probezeit",
+        "variant_name": "AT-Angestellter",
+        "variant_code": "AT",
+    },
+    {
+        "title": "Stellung und Vergütungsvereinbarung",
+        "content_html": '<p><strong>&sect; 5 Stellung und Vergütungsvereinbarung</strong></p>'
+            '<p>Der Arbeitnehmer wird als außertariflicher Angestellter eingestellt. '
+            'Die Vergütung wird individuell vereinbart und liegt über der höchsten tariflichen Entgeltgruppe.</p>'
+            '<p>Eine Änderung der Vergütung erfolgt durch individuelle Vereinbarung zwischen Arbeitgeber und Arbeitnehmer.</p>',
+        "category": "Arbeitsrecht",
+        "tags": ["eingruppierung", "at-angestellter", "individuell"],
+        "tone": "neutral",
+        "variant_group": "eingruppierung",
+        "variant_name": "AT-Angestellter",
+        "variant_code": "AT",
+    },
+    {
+        "title": "Arbeitszeit",
+        "content_html": '<p><strong>&sect; 7 Arbeitszeit</strong></p>'
+            '<p>Die regelmäßige wöchentliche Arbeitszeit beträgt <strong>[wochenstunden]</strong> Stunden. '
+            'Die Verteilung der Arbeitszeit richtet sich nach den betrieblichen Erfordernissen und wird in Abstimmung mit dem Vorgesetzten festgelegt.</p>'
+            '<p>Als außertariflicher Angestellter wird erwartet, dass der Arbeitnehmer seine Arbeitszeit eigenverantwortlich so gestaltet, '
+            'dass die übertragenen Aufgaben ordnungsgemäß erfüllt werden. '
+            'Gelegentliche Mehrarbeit ist mit der vereinbarten Vergütung abgegolten, soweit sie 10&nbsp;% der vereinbarten wöchentlichen Arbeitszeit nicht überschreitet (Überstundenpauschale).</p>',
+        "category": "Arbeitsrecht",
+        "tags": ["arbeitszeit", "vertrauensarbeitszeit", "at-angestellter", "überstundenpauschale"],
+        "tone": "neutral",
+        "variant_group": "arbeitszeit",
+        "variant_name": "AT-Angestellter",
+        "variant_code": "AT",
+    },
+    {
+        "title": "Vergütung",
+        "content_html": '<p><strong>&sect; 9 Vergütung</strong></p>'
+            '<p>Der Arbeitnehmer erhält ein jährliches Bruttofestgehalt in Höhe von <strong>[gehalt]&nbsp;&euro;</strong> (in Worten: [gehalt_wort] Euro). '
+            'Die Auszahlung erfolgt in zwölf gleichen monatlichen Raten, jeweils bargeldlos zum Ende eines Kalendermonats auf ein vom Arbeitnehmer benanntes Konto.</p>'
+            '<p>Mit der vereinbarten Vergütung sind sämtliche Leistungen des Arbeitnehmers abgegolten, einschließlich gelegentlicher Mehrarbeit im üblichen Umfang.</p>'
+            '<p>Die Vergütung wird jährlich im Rahmen eines Gesprächs zwischen Arbeitgeber und Arbeitnehmer überprüft. '
+            'Ein Rechtsanspruch auf Gehaltserhöhung besteht nicht.</p>',
+        "category": "Arbeitsrecht",
+        "tags": ["vergütung", "jahresgehalt", "at-angestellter"],
+        "tone": "neutral",
+        "variant_group": "verguetung",
+        "variant_name": "AT-Angestellter",
+        "variant_code": "AT",
+    },
+    {
+        "title": "Überstundenpauschale und Mehrarbeit",
+        "content_html": '<p><strong>&sect; 10 Überstundenpauschale und Mehrarbeit</strong></p>'
+            '<p>Mit der vereinbarten Bruttojahresvergütung ist die Leistung von Mehrarbeit im üblichen Umfang abgegolten. '
+            'Als üblicher Umfang gilt eine Mehrarbeit von bis zu 10&nbsp;% der regelmäßigen wöchentlichen Arbeitszeit pro Monat.</p>'
+            '<p>Bei darüber hinausgehender Mehrarbeit erfolgt ein Ausgleich durch Freizeit nach Abstimmung mit dem Vorgesetzten.</p>'
+            '<p>Gesonderte Zuschläge für Nacht-, Sonn- und Feiertagsarbeit werden nicht gewährt, soweit gesetzlich nicht zwingend vorgeschrieben.</p>',
+        "category": "Arbeitsrecht",
+        "tags": ["überstundenpauschale", "mehrarbeit", "at-angestellter"],
+        "tone": "neutral",
+        "variant_group": "zuschlaege",
+        "variant_name": "AT-Angestellter",
+        "variant_code": "AT",
+    },
+    {
+        "title": "Urlaub",
+        "content_html": '<p><strong>&sect; 11 Urlaub</strong></p>'
+            '<p>Der Arbeitnehmer hat Anspruch auf einen jährlichen Erholungsurlaub von <strong>[urlaubstage]</strong> Arbeitstagen, bezogen auf eine 5-Tage-Woche.</p>'
+            '<p>Der Urlaub ist grundsätzlich im laufenden Kalenderjahr zu nehmen. '
+            'Eine Übertragung auf das nächste Kalenderjahr ist nur zulässig, wenn dringende betriebliche oder in der Person des Arbeitnehmers liegende Gründe dies rechtfertigen. '
+            'Übertragener Urlaub ist bis zum 31.&nbsp;März des Folgejahres zu nehmen.</p>'
+            '<p>Die zeitliche Festlegung des Urlaubs erfolgt unter Berücksichtigung der betrieblichen Belange und der Wünsche des Arbeitnehmers.</p>',
+        "category": "Arbeitsrecht",
+        "tags": ["urlaub", "at-angestellter"],
+        "tone": "arbeitnehmerfreundlich",
+        "variant_group": "urlaub",
+        "variant_name": "AT-Angestellter",
+        "variant_code": "AT",
+    },
+    {
+        "title": "Sonderurlaub und bezahlte Freistellung",
+        "content_html": '<p><strong>&sect; 12 Sonderurlaub und bezahlte Freistellung</strong></p>'
+            '<p>Der Arbeitnehmer hat Anspruch auf bezahlte Freistellung in folgenden Fällen:</p>'
+            '<ul>'
+            '<li>Eigene Eheschließung: 2 Arbeitstage</li>'
+            '<li>Niederkunft der Ehefrau/Lebenspartnerin: 1 Arbeitstag</li>'
+            '<li>Tod des Ehegatten/Lebenspartners oder eines Kindes: 2 Arbeitstage</li>'
+            '<li>Tod eines Elternteils oder Schwiegerelternteils: 1 Arbeitstag</li>'
+            '<li>Umzug aus betrieblichen Gründen: 1 Arbeitstag</li>'
+            '<li>Schwere Erkrankung eines im Haushalt lebenden Angehörigen: bis zu 1 Arbeitstag</li>'
+            '</ul>'
+            '<p>Darüber hinaus wird der Arbeitnehmer für die Ausübung öffentlicher Ehrenämter und zur Wahrnehmung gesetzlich vorgeschriebener Pflichten freigestellt, soweit gesetzlich vorgeschrieben.</p>',
+        "category": "Arbeitsrecht",
+        "tags": ["sonderurlaub", "freistellung", "at-angestellter"],
+        "tone": "arbeitnehmerfreundlich",
+        "variant_group": "sonderurlaub",
+        "variant_name": "AT-Angestellter",
+        "variant_code": "AT",
+    },
+    {
+        "title": "Kündigung",
+        "content_html": '<p><strong>&sect; 16 Kündigung</strong></p>'
+            '<p>Nach Ablauf der Probezeit kann das Arbeitsverhältnis von beiden Seiten mit einer Frist von <strong>[kuendigungsfrist]</strong> gekündigt werden.</p>'
+            '<p>Bei einer Betriebszugehörigkeit von mehr als 10 Jahren erhöht sich die Kündigungsfrist des Arbeitgebers auf 6 Monate zum Monatsende.</p>'
+            '<p>Die Kündigung bedarf der Schriftform. Das Recht zur fristlosen Kündigung aus wichtigem Grund (&sect;&nbsp;626 BGB) bleibt unberührt.</p>',
+        "category": "Arbeitsrecht",
+        "tags": ["kündigung", "kündigungsfrist", "at-angestellter"],
+        "tone": "neutral",
+        "variant_group": "kuendigung",
+        "variant_name": "AT-Angestellter",
+        "variant_code": "AT",
+    },
+    {
+        "title": "Ausschlussfristen",
+        "content_html": '<p><strong>&sect; 22 Ausschlussfristen</strong></p>'
+            '<p>Ansprüche aus dem Arbeitsverhältnis verfallen, wenn sie nicht innerhalb von <strong>drei Monaten</strong> nach Fälligkeit schriftlich gegenüber der anderen Vertragspartei geltend gemacht werden.</p>'
+            '<p>Lehnt die andere Vertragspartei den Anspruch ab oder erklärt sie sich nicht innerhalb von einem Monat, so verfällt der Anspruch, '
+            'wenn er nicht innerhalb von drei Monaten nach der Ablehnung oder dem Fristablauf gerichtlich geltend gemacht wird.</p>'
+            '<p>Diese Ausschlussfristen gelten nicht für Ansprüche aus vorsätzlicher Vertragsverletzung, '
+            'für den gesetzlichen Mindestlohn sowie für Ansprüche, die kraft Gesetzes unabdingbar sind.</p>',
+        "category": "Arbeitsrecht",
+        "tags": ["ausschlussfrist", "verfall", "at-angestellter"],
+        "tone": "neutral",
+        "variant_group": "ausschlussfristen",
+        "variant_name": "AT-Angestellter",
+        "variant_code": "AT",
+    },
+]
+
+AT_ONLY_CLAUSES = [
+    {
+        "title": "Zielbonus / Variable Vergütung",
+        "content_html": '<p><strong>Zielbonus / Variable Vergütung</strong></p>'
+            '<p>Zusätzlich zum Festgehalt kann der Arbeitnehmer einen jährlichen Zielbonus erhalten. '
+            'Die Höhe des Zielbonus wird jährlich im Rahmen einer Zielvereinbarung zwischen Arbeitgeber und Arbeitnehmer festgelegt.</p>'
+            '<p>Der Zielbonus ist an die Erreichung der vereinbarten Ziele geknüpft und wird nach Ablauf des Geschäftsjahres berechnet. '
+            'Die Auszahlung erfolgt spätestens mit der März-Abrechnung des Folgejahres.</p>'
+            '<p>Ein Anspruch auf den Zielbonus besteht nur, wenn das Arbeitsverhältnis zum Zeitpunkt der Auszahlung ungekündigt besteht (Stichtagsregelung). '
+            'Bei unterjährigem Eintritt oder Ausscheiden wird der Zielbonus zeitanteilig berechnet.</p>',
+        "category": "Vergütung",
+        "tags": ["zielbonus", "variable vergütung", "at-angestellter"],
+        "tone": "neutral",
+        "is_mandatory": False,
+        "display_order": 91,
+        "clause_type": "conditional",
+        "condition": '{"AND": [{"field": "vertragsart", "operator": "=", "value": "at_angestellter"}, {"field": "zielbonus", "operator": "=", "value": true}]}',
+    },
+    {
+        "title": "Freistellung bei Kündigung",
+        "content_html": '<p><strong>Freistellung bei Kündigung</strong></p>'
+            '<p>Der Arbeitgeber ist berechtigt, den Arbeitnehmer nach Ausspruch einer Kündigung &mdash; gleich durch welche Partei &mdash; '
+            'unter Fortzahlung der Bezüge unwiderruflich von der Arbeitspflicht freizustellen.</p>'
+            '<p>Während der Freistellung sind noch bestehende Urlaubs- und Freizeitausgleichsansprüche anzurechnen. '
+            'Der Arbeitnehmer ist verpflichtet, während der Freistellung anderweitigen Erwerb anzurechnen lassen (&sect;&nbsp;615 Satz&nbsp;2 BGB).</p>'
+            '<p>Die Verpflichtung zur Verschwiegenheit, das Wettbewerbsverbot und die Rückgabepflichten gelten während der Freistellung unverändert fort.</p>',
+        "category": "Kündigung",
+        "tags": ["freistellung", "garden leave", "at-angestellter"],
+        "tone": "neutral",
+        "is_mandatory": False,
+        "display_order": 161,
+        "clause_type": "conditional",
+        "condition": '{"AND": [{"field": "vertragsart", "operator": "=", "value": "at_angestellter"}, {"field": "freistellung", "operator": "=", "value": true}]}',
+    },
+    {
+        "title": "Spesen und Reisekosten",
+        "content_html": '<p><strong>Spesen und Reisekosten</strong></p>'
+            '<p>Dem Arbeitnehmer werden die notwendigen Reisekosten und Spesen für dienstlich veranlasste Reisen erstattet. '
+            'Die Erstattung richtet sich nach der jeweils gültigen betrieblichen Reisekostenrichtlinie.</p>'
+            '<p>Soweit keine betriebliche Regelung besteht, werden die steuerlich anerkannten Pauschalen (Verpflegungsmehraufwendungen gemäß &sect;&nbsp;9 Abs.&nbsp;4a EStG) erstattet.</p>'
+            '<p>Reisekosten sind innerhalb von vier Wochen nach Beendigung der Dienstreise unter Beifügung der Belege abzurechnen.</p>',
+        "category": "Vergütung",
+        "tags": ["spesen", "reisekosten", "at-angestellter"],
+        "tone": "neutral",
+        "is_mandatory": False,
+        "display_order": 171,
+        "clause_type": "conditional",
+        "condition": '{"AND": [{"field": "vertragsart", "operator": "=", "value": "at_angestellter"}, {"field": "spesen", "operator": "=", "value": true}]}',
+    },
+    {
+        "title": "Renteneintrittsklausel",
+        "content_html": '<p><strong>Renteneintrittsklausel</strong></p>'
+            '<p>Das Arbeitsverhältnis endet, ohne dass es einer Kündigung bedarf, '
+            'mit Ablauf des Monats, in dem der Arbeitnehmer die Regelaltersgrenze der gesetzlichen Rentenversicherung erreicht.</p>'
+            '<p>Die Parteien können einvernehmlich eine Fortführung des Arbeitsverhältnisses über die Regelaltersgrenze hinaus vereinbaren.</p>',
+        "category": "Arbeitsrecht",
+        "tags": ["renteneintritt", "altersgrenze", "at-angestellter"],
+        "tone": "neutral",
+        "is_mandatory": False,
+        "display_order": 211,
+        "clause_type": "conditional",
+        "condition": '{"AND": [{"field": "vertragsart", "operator": "=", "value": "at_angestellter"}, {"field": "renteneintritt", "operator": "=", "value": true}]}',
+    },
+]
+
+
+import json as json_module
+
+@router.post("/seed-at-variants")
+async def seed_at_variants(
+    current_user: Annotated[User, Depends(deps.get_current_active_admin)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+):
+    """
+    Seed AT-Angestellter variant clauses and groups (admin-only).
+
+    Creates 10 AT variant clauses, 4 AT-only conditional clauses,
+    10 variant groups, and links everything to the Arbeitsvertrag document type.
+    Safe to run multiple times — skips existing entries.
+    """
+    # 1. Find Arbeitsvertrag document type
+    result = await db.execute(
+        select(DocumentType).where(
+            DocumentType.name.ilike("%arbeitsvertrag%"),
+            DocumentType.country_code == "DE",
+        )
+    )
+    doc_type = result.scalar_one_or_none()
+    if not doc_type:
+        raise HTTPException(status_code=404, detail="Dokumenttyp 'Arbeitsvertrag' nicht gefunden. Bitte zuerst /seed-clauses ausführen.")
+
+    stats = {
+        "at_clauses_created": 0,
+        "at_clauses_updated": 0,
+        "variant_groups_created": 0,
+        "variants_created": 0,
+        "dtc_updated": 0,
+        "conditional_clauses_created": 0,
+        "conditional_links_created": 0,
+    }
+
+    # 2. Create AT variant clauses
+    at_clause_map = {}  # variant_group_name → clause object
+    for clause_data in AT_ANGESTELLTER_CLAUSES:
+        existing = await db.execute(
+            select(Clause).where(
+                Clause.title == clause_data["title"],
+                Clause.country_code == "DE",
+            )
+        )
+        clause = existing.scalar_one_or_none()
+
+        if clause:
+            clause.content_html = clause_data["content_html"]
+            clause.category = clause_data.get("category", "Arbeitsrecht")
+            clause.tags = clause_data.get("tags", [])
+            clause.tone = clause_data.get("tone", "neutral")
+            clause.is_active = True
+            stats["at_clauses_updated"] += 1
+        else:
+            clause = Clause(
+                title=clause_data["title"],
+                content_html=clause_data["content_html"],
+                country_code="DE",
+                category=clause_data.get("category", "Arbeitsrecht"),
+                is_active=True,
+                tags=clause_data.get("tags", []),
+                tone=clause_data.get("tone", "neutral"),
+                approval_status="active",
+                user_id=None,
+            )
+            db.add(clause)
+            await db.flush()
+            stats["at_clauses_created"] += 1
+
+        at_clause_map[clause_data["variant_group"]] = clause
+
+    # 3. Create variant groups and link variants
+    for vg_data in VARIANT_GROUPS:
+        group_name = vg_data["name"]
+
+        # Check if group exists
+        existing_group = await db.execute(
+            select(ClauseVariantGroup).where(ClauseVariantGroup.name == group_name)
+        )
+        group = existing_group.scalar_one_or_none()
+
+        if not group:
+            group = ClauseVariantGroup(
+                name=group_name,
+                description=vg_data["description"],
+                country_code="DE",
+                category=vg_data.get("category", "Arbeitsrecht"),
+                is_active=True,
+                created_by=f"seed-at-variants (user {current_user.id})",
+            )
+            db.add(group)
+            await db.flush()
+            stats["variant_groups_created"] += 1
+
+        # 3a. Find existing tariff clause for this group
+        tarif_title, tarif_display_order = VARIANT_GROUP_TARIF_MAPPING[group_name]
+        tarif_result = await db.execute(
+            select(Clause).where(
+                Clause.title == tarif_title,
+                Clause.country_code == "DE",
+            )
+        )
+        tarif_clause = tarif_result.scalar_one_or_none()
+
+        if tarif_clause:
+            # Create Tarif variant (is_default=True)
+            existing_tarif_variant = await db.execute(
+                select(ClauseVariant).where(
+                    ClauseVariant.group_id == group.id,
+                    ClauseVariant.clause_id == tarif_clause.id,
+                )
+            )
+            if not existing_tarif_variant.scalar_one_or_none():
+                tarif_variant = ClauseVariant(
+                    group_id=group.id,
+                    clause_id=tarif_clause.id,
+                    variant_name="Tarifgebunden",
+                    variant_code="TARIF",
+                    description=f"Standardklausel mit Haustarifvertrag-Verweisen",
+                    auto_select_condition=json_module.dumps({"field": "vertragsart", "operator": "=", "value": "tarifgebunden"}),
+                    sort_order=1,
+                    is_default=True,
+                    is_active=True,
+                )
+                db.add(tarif_variant)
+                stats["variants_created"] += 1
+
+        # 3b. Create AT variant
+        at_clause = at_clause_map.get(group_name)
+        if at_clause:
+            existing_at_variant = await db.execute(
+                select(ClauseVariant).where(
+                    ClauseVariant.group_id == group.id,
+                    ClauseVariant.clause_id == at_clause.id,
+                )
+            )
+            if not existing_at_variant.scalar_one_or_none():
+                at_variant = ClauseVariant(
+                    group_id=group.id,
+                    clause_id=at_clause.id,
+                    variant_name="AT-Angestellter",
+                    variant_code="AT",
+                    description=f"Außertarifliche Variante ohne Tarifvertragsverweise",
+                    auto_select_condition=json_module.dumps({"field": "vertragsart", "operator": "=", "value": "at_angestellter"}),
+                    sort_order=2,
+                    is_default=False,
+                    is_active=True,
+                )
+                db.add(at_variant)
+                stats["variants_created"] += 1
+
+        # 3c. Link variant group to Arbeitsvertrag document type
+        existing_dtvg = await db.execute(
+            select(DocumentTypeVariantGroup).where(
+                DocumentTypeVariantGroup.document_type_id == doc_type.id,
+                DocumentTypeVariantGroup.variant_group_id == group.id,
+            )
+        )
+        if not existing_dtvg.scalar_one_or_none():
+            dtvg = DocumentTypeVariantGroup(
+                document_type_id=doc_type.id,
+                variant_group_id=group.id,
+                display_order=tarif_display_order,
+                is_mandatory=True,
+                created_by=f"seed-at-variants (user {current_user.id})",
+            )
+            db.add(dtvg)
+
+        # 3d. Update existing DocumentTypeClause to clause_type="variant"
+        if tarif_clause:
+            existing_dtc = await db.execute(
+                select(DocumentTypeClause).where(
+                    DocumentTypeClause.document_type_id == doc_type.id,
+                    DocumentTypeClause.clause_id == tarif_clause.id,
+                )
+            )
+            dtc = existing_dtc.scalar_one_or_none()
+            if dtc and dtc.clause_type != "variant":
+                dtc.clause_type = "variant"
+                dtc.variant_group = group_name
+                stats["dtc_updated"] += 1
+
+    # 4. Create AT-only conditional clauses
+    for clause_data in AT_ONLY_CLAUSES:
+        existing = await db.execute(
+            select(Clause).where(
+                Clause.title == clause_data["title"],
+                Clause.country_code == "DE",
+            )
+        )
+        clause = existing.scalar_one_or_none()
+
+        if not clause:
+            clause = Clause(
+                title=clause_data["title"],
+                content_html=clause_data["content_html"],
+                country_code="DE",
+                category=clause_data.get("category", "Arbeitsrecht"),
+                is_active=True,
+                tags=clause_data.get("tags", []),
+                tone=clause_data.get("tone", "neutral"),
+                approval_status="active",
+                user_id=None,
+            )
+            db.add(clause)
+            await db.flush()
+            stats["conditional_clauses_created"] += 1
+        else:
+            clause.content_html = clause_data["content_html"]
+            clause.tags = clause_data.get("tags", [])
+
+        # Link to document type
+        existing_link = await db.execute(
+            select(DocumentTypeClause).where(
+                DocumentTypeClause.document_type_id == doc_type.id,
+                DocumentTypeClause.clause_id == clause.id,
+            )
+        )
+        if not existing_link.scalar_one_or_none():
+            link = DocumentTypeClause(
+                document_type_id=doc_type.id,
+                clause_id=clause.id,
+                display_order=clause_data["display_order"],
+                is_mandatory=clause_data.get("is_mandatory", False),
+                clause_type=clause_data.get("clause_type", "conditional"),
+                is_default_selected=True,
+                condition=clause_data.get("condition"),
+            )
+            db.add(link)
+            stats["conditional_links_created"] += 1
+
+    await db.commit()
+
+    return {
+        "status": "success",
+        "document_type_id": doc_type.id,
+        **stats,
     }
