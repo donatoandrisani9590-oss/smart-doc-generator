@@ -385,14 +385,18 @@ def _in_list(actual: Any, expected: Any) -> bool:
     return any(_compare_equal(actual, item) for item in expected)
 
 
-def _renumber_clause_sections(clauses: list[dict]) -> list[dict]:
+def _renumber_clause_sections(clauses: list[dict], is_contract: bool = True) -> list[dict]:
     """
-    Inject § (section) headings for clauses that have paragraph numbering enabled.
+    Inject § (section) headings for clauses — but ONLY for contracts.
 
-    Clauses with has_paragraph_number=True (default) get a sequential § number
-    (§ 1, § 2, etc.) injected as a <strong> prefix in their content.
-    Clauses with has_paragraph_number=False (letters like Abmahnungen) are
-    rendered without any § prefix.
+    German document conventions:
+    - Arbeitsverträge (contracts): Use § 1, § 2, etc. for clause headings
+    - Kündigungen (terminations): Formal letter — no §, just flowing paragraphs
+    - Abmahnungen (warnings): Formal letter — no §, just flowing paragraphs
+    - Arbeitszeugnisse (references): Continuous prose — no §, no numbering at all
+
+    Only when is_contract=True AND has_paragraph_number=True (default) will
+    clauses get a sequential § number (§ 1, § 2, etc.) injected.
     """
     existing_heading = re.compile(
         r'(<(?:strong|h[1-6])[^>]*>\s*)'
@@ -407,7 +411,9 @@ def _renumber_clause_sections(clauses: list[dict]) -> list[dict]:
         content = clause.get("content", "")
         has_para = clause.get("has_paragraph_number", True)
 
-        if not content or not has_para:
+        # Skip § numbering entirely for non-contract documents
+        # (Zeugnisse, Kündigungen, Abmahnungen use flowing text)
+        if not content or not has_para or not is_contract:
             result.append(clause)
             continue
 
@@ -438,6 +444,7 @@ def assemble_html_preview(
     country_code: str = "DE",
     custom_clause: Optional[dict] = None,
     document_type_name: Optional[str] = None,
+    document_type_category: Optional[str] = None,
 ) -> str:
     """
     Assemble full HTML preview document.
@@ -455,9 +462,13 @@ def assemble_html_preview(
         if evaluate_condition(condition, form_data):
             active_clauses.append(clause)
 
-    # Renumber § sections sequentially after conditional filtering
-    # to eliminate gaps when conditional clauses are excluded
-    active_clauses = _renumber_clause_sections(active_clauses)
+    # Renumber § sections sequentially after conditional filtering.
+    # Only contracts (category="contract") get § numbering.
+    # Zeugnisse, Kündigungen, Abmahnungen use flowing text without §.
+    # When category is None (e.g. test/composer preview), default to True
+    # for backward compatibility — the clause content itself may contain §.
+    is_contract = document_type_category is None or (document_type_category or "").lower() == "contract"
+    active_clauses = _renumber_clause_sections(active_clauses, is_contract=is_contract)
 
     # Inject computed fields into form_data before rendering placeholders
     # _firmenname: company name from design_settings for [firmenname] placeholder

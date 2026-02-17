@@ -169,8 +169,9 @@ async def generate_preview(
         country_code=country_code,
         custom_clause=request.custom_clause,
         document_type_name=doc_type.name,
+        document_type_category=doc_type.category,
     )
-    
+
     return html
 
 
