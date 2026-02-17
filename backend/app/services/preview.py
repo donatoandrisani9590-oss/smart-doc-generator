@@ -385,6 +385,87 @@ def _in_list(actual: Any, expected: Any) -> bool:
     return any(_compare_equal(actual, item) for item in expected)
 
 
+def resolve_variant_clause(
+    clause: dict,
+    variant_groups: list[dict],
+    form_data: dict,
+    selected_variants: dict[int, int] | None = None,
+) -> dict | None:
+    """
+    Resolve a variant clause to its correct variant based on:
+    1. Explicit selection (selected_variants)
+    2. auto_select_condition matching form_data
+    3. is_default=True fallback
+    4. First active variant fallback
+
+    Returns the resolved clause dict, or None if no variant found.
+    """
+    variant_group_name = clause.get("variant_group")
+    if not variant_group_name:
+        return clause
+
+    # Find matching variant group
+    group = None
+    for vg in variant_groups:
+        if vg["name"] == variant_group_name:
+            group = vg
+            break
+
+    if not group or not group.get("variants"):
+        return clause  # No group found, return original
+
+    variants = group["variants"]
+
+    # 1. Check explicit selection
+    group_id = group["id"]
+    if selected_variants and group_id in selected_variants:
+        for v in variants:
+            if v["id"] == selected_variants[group_id]:
+                return {
+                    **clause,
+                    "title": v.get("clause_title", clause.get("title", "")),
+                    "content": v.get("clause_content", clause.get("content", "")),
+                    "variant_name": v.get("variant_name"),
+                    "variant_code": v.get("variant_code"),
+                }
+
+    # 2. Check auto_select_condition
+    for v in variants:
+        condition = v.get("auto_select_condition")
+        if condition and evaluate_condition(condition, form_data):
+            return {
+                **clause,
+                "title": v.get("clause_title", clause.get("title", "")),
+                "content": v.get("clause_content", clause.get("content", "")),
+                "variant_name": v.get("variant_name"),
+                "variant_code": v.get("variant_code"),
+            }
+
+    # 3. Fallback to default variant
+    for v in variants:
+        if v.get("is_default"):
+            return {
+                **clause,
+                "title": v.get("clause_title", clause.get("title", "")),
+                "content": v.get("clause_content", clause.get("content", "")),
+                "variant_name": v.get("variant_name"),
+                "variant_code": v.get("variant_code"),
+            }
+
+    # 4. Fallback to first variant
+    if variants:
+        v = variants[0]
+        return {
+            **clause,
+            "title": v.get("clause_title", clause.get("title", "")),
+            "content": v.get("clause_content", clause.get("content", "")),
+            "variant_name": v.get("variant_name"),
+            "variant_code": v.get("variant_code"),
+        }
+
+    return clause
+
+
 def _renumber_clause_sections(clauses: list[dict], is_contract: bool = True) -> list[dict]:
     """
     Inject § (section) headings for clauses — but ONLY for contracts.
@@ -445,6 +526,8 @@ def assemble_html_preview(
     custom_clause: Optional[dict] = None,
     document_type_name: Optional[str] = None,
     document_type_category: Optional[str] = None,
+    variant_groups: list[dict] | None = None,
+    selected_variants: dict[int, int] | None = None,
 ) -> str:
     """
     Assemble full HTML preview document.
@@ -461,6 +544,18 @@ def assemble_html_preview(
         condition = clause.get("condition")
         if evaluate_condition(condition, form_data):
             active_clauses.append(clause)
+
+    # Resolve variant clauses (replace base clause with selected variant)
+    if variant_groups:
+        resolved_clauses = []
+        for clause in active_clauses:
+            if clause.get("clause_type") == "variant" and clause.get("variant_group"):
+                resolved = resolve_variant_clause(clause, variant_groups, form_data, selected_variants)
+                if resolved:
+                    resolved_clauses.append(resolved)
+            else:
+                resolved_clauses.append(clause)
+        active_clauses = resolved_clauses
 
     # Renumber § sections sequentially after conditional filtering.
     # Only contracts (category="contract") get § numbering.
