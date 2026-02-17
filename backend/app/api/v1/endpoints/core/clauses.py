@@ -62,6 +62,74 @@ async def read_clauses(
 
 
 # ══════════════════════════════════════════════════════════════════════════════
+# DOKUMENTTYP-MAPPING (Textbausteine nach Dokumenttyp filtern)
+# Kompakte Zuordnung: Welche Textbausteine gehören zu welchem Dokumenttyp?
+# ══════════════════════════════════════════════════════════════════════════════
+class DocumentTypeClauseMap(BaseModel):
+    """Kompakte Zuordnung: Dokumenttyp → Textbaustein-IDs."""
+    document_type_id: int
+    document_type_name: str
+    clause_ids: List[int]
+
+
+@router.get("/document-type-map", response_model=List[DocumentTypeClauseMap])
+async def get_clause_document_type_map(
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[models.Base, Depends(deps.get_current_user)],
+    country_code: Optional[str] = None,
+) -> Any:
+    """
+    Gibt eine kompakte Zuordnung von Dokumenttypen zu ihren Textbaustein-IDs zurück.
+
+    Wird auf der Textbausteine-Verwaltungsseite für die Filter-Chips genutzt.
+    Berücksichtigt Tenant Isolation: Nur eigene + globale Textbausteine.
+    """
+    # Query: DocumentType → DocumentTypeClause → Clause (mit Tenant-Filter)
+    query = (
+        select(
+            models.DocumentType.id,
+            models.DocumentType.name,
+            models.DocumentTypeClause.clause_id,
+        )
+        .join(
+            models.DocumentTypeClause,
+            models.DocumentType.id == models.DocumentTypeClause.document_type_id,
+        )
+        .join(
+            models.Clause,
+            models.DocumentTypeClause.clause_id == models.Clause.id,
+        )
+        .where(models.DocumentType.is_active == True)
+        .where(
+            or_(
+                models.Clause.user_id == current_user.id,
+                models.Clause.user_id.is_(None),
+            )
+        )
+    )
+    if country_code:
+        query = query.where(models.DocumentType.country_code == country_code)
+
+    query = query.order_by(models.DocumentType.name)
+    result = await db.execute(query)
+    rows = result.all()
+
+    # Gruppiere nach Dokumenttyp
+    doc_type_map: dict[int, DocumentTypeClauseMap] = {}
+    for dt_id, dt_name, clause_id in rows:
+        if dt_id not in doc_type_map:
+            doc_type_map[dt_id] = DocumentTypeClauseMap(
+                document_type_id=dt_id,
+                document_type_name=dt_name,
+                clause_ids=[],
+            )
+        if clause_id not in doc_type_map[dt_id].clause_ids:
+            doc_type_map[dt_id].clause_ids.append(clause_id)
+
+    return list(doc_type_map.values())
+
+
+# ══════════════════════════════════════════════════════════════════════════════
 # IMPACT ANALYSIS ENDPOINT (v4.2 Feature: Kapitel 15.2.5)
 # Zeigt alle Dokumenttypen, die einen Textbaustein verwenden
 # ══════════════════════════════════════════════════════════════════════════════

@@ -8,6 +8,7 @@ from datetime import date, datetime
 from jinja2 import Template
 import re
 import bleach
+from num2words import num2words
 
 # Erlaubte HTML-Tags für Klausel-Inhalte (XSS Prevention)
 ALLOWED_TAGS = [
@@ -136,6 +137,7 @@ def render_placeholders(content: str, form_data: dict, country_code: str = "DE")
         "anrede_dativ": "_anrede_dativ",  # Special: computed field (Dativ: Frau/Herrn)
         "anrede_brief": "_anrede_brief",  # Special: "Sehr geehrte Frau" / "Sehr geehrter Herr"
         "firmenname": "_firmenname",  # Special: from company settings
+        "gehalt_wort": "_gehalt_wort",  # Special: salary as German words
         # IGBCE Haustarifvertrag Felder
         "entgeltgruppe": "entgeltgruppe",
         "lohngruppe": "entgeltgruppe",
@@ -194,6 +196,17 @@ def render_placeholders(content: str, form_data: dict, country_code: str = "DE")
                     return "Sehr geehrte(r) Frau/Herr" if country_code == "DE" else "Gentile Sig./Sig.ra"
                 elif alias == "_firmenname":
                     return form_data.get("_firmenname", form_data.get("company_name", "[firmenname]"))
+                elif alias == "_gehalt_wort":
+                    gehalt_raw = form_data.get("gehalt")
+                    if gehalt_raw is not None:
+                        try:
+                            val_str = str(gehalt_raw).replace(",", ".")
+                            gehalt_num = int(float(val_str))
+                            lang = "de" if country_code == "DE" else "it" if country_code == "IT" else "de"
+                            return num2words(gehalt_num, lang=lang)
+                        except (ValueError, TypeError):
+                            return "[gehalt_wort]"
+                    return "[gehalt_wort]"
                 else:
                     value = form_data.get(alias)
 

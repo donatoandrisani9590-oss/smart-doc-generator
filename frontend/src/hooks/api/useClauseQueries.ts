@@ -23,6 +23,15 @@ export interface Clause {
     version: string;
     is_active: boolean;
     placeholders: string[];
+    tags?: string[];
+    description?: string;
+    tone?: string;
+}
+
+export interface DocumentTypeClauseMap {
+    document_type_id: number;
+    document_type_name: string;
+    clause_ids: number[];
 }
 
 export const useClauses = (countryCode?: string) => {
@@ -34,6 +43,19 @@ export const useClauses = (countryCode?: string) => {
             if (!res.ok) throw new Error("Failed to fetch clauses");
             return res.json();
         },
+    });
+};
+
+export const useClauseDocTypeMap = (countryCode?: string) => {
+    return useQuery({
+        queryKey: ["clause-doc-type-map", countryCode],
+        queryFn: async () => {
+            const params = countryCode ? `?country_code=${countryCode}` : "";
+            const res = await fetch(`${API_BASE}/clauses/document-type-map${params}`);
+            if (!res.ok) throw new Error("Failed to fetch clause document type mapping");
+            return res.json() as Promise<DocumentTypeClauseMap[]>;
+        },
+        staleTime: 5 * 60 * 1000, // 5 Minuten — Zuordnung ändert sich selten
     });
 };
 

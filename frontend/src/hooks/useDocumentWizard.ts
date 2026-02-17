@@ -198,6 +198,11 @@ export function useDocumentWizard(initialDraftId?: number): WizardContextValue {
         setHasLocalEdits(false);
     }, [form.documentTypeId]);
 
+    // Reset hasLocalEdits when vertragsart changes (variant switch is not a user edit)
+    useEffect(() => {
+        setHasLocalEdits(false);
+    }, [form.formData.vertragsart]);
+
     // Sync previewHtml -> editorContent when no manual edits
     useEffect(() => {
         if (preview.previewHtml && !hasLocalEdits) {

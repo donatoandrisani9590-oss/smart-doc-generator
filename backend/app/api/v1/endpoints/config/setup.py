@@ -1201,7 +1201,7 @@ AT_ANGESTELLTER_CLAUSES = [
     {
         "title": "Vergütung",
         "content_html": '<p><strong>&sect; 9 Vergütung</strong></p>'
-            '<p>Der Arbeitnehmer erhält ein jährliches Bruttofestgehalt in Höhe von <strong>[gehalt]&nbsp;&euro;</strong> (in Worten: [gehalt_wort] Euro). '
+            '<p>Der Arbeitnehmer erhält ein jährliches Bruttofestgehalt in Höhe von <strong>[gehalt]</strong> (in Worten: [gehalt_wort] Euro). '
             'Die Auszahlung erfolgt in zwölf gleichen monatlichen Raten, jeweils bargeldlos zum Ende eines Kalendermonats auf ein vom Arbeitnehmer benanntes Konto.</p>'
             '<p>Mit der vereinbarten Vergütung sind sämtliche Leistungen des Arbeitnehmers abgegolten, einschließlich gelegentlicher Mehrarbeit im üblichen Umfang.</p>'
             '<p>Die Vergütung wird jährlich im Rahmen eines Gesprächs zwischen Arbeitgeber und Arbeitnehmer überprüft. '

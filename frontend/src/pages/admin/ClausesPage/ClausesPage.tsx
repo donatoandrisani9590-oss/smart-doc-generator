@@ -66,10 +66,12 @@ import {
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import {
     useClauses,
+    useClauseDocTypeMap,
     useDeleteClause,
     useCreateClause,
     type Clause,
 } from "@/hooks/useApi";
+import { DocumentTypeChips, UNASSIGNED_FILTER } from "./DocumentTypeChips";
 import { WordImportWizard } from "@/components/admin/WordImportWizard";
 import { BulkClauseImportDialog } from "@/components/admin/BulkClauseImportDialog";
 import { ClauseFormDialog } from "@/components/clauses/ClauseFormDialog";
@@ -133,6 +135,13 @@ export const ClausesPage = () => {
         }
         return 'all';
     });
+    const [docTypeFilter, setDocTypeFilter] = useState<number | null>(() => {
+        if (typeof window !== 'undefined') {
+            const stored = localStorage.getItem('clauses-doctype-filter');
+            return stored ? parseInt(stored, 10) : null;
+        }
+        return null;
+    });
 
     // Persist filters to localStorage
     useEffect(() => {
@@ -146,6 +155,14 @@ export const ClausesPage = () => {
     useEffect(() => {
         localStorage.setItem('clauses-status-filter', statusFilter);
     }, [statusFilter]);
+
+    useEffect(() => {
+        if (docTypeFilter !== null) {
+            localStorage.setItem('clauses-doctype-filter', String(docTypeFilter));
+        } else {
+            localStorage.removeItem('clauses-doctype-filter');
+        }
+    }, [docTypeFilter]);
 
     // Dialog State
     const [showImportWizard, setShowImportWizard] = useState(false);
@@ -163,15 +180,38 @@ export const ClausesPage = () => {
     const toast = useToast();
 
     // API Hooks
-    const { data: clauses, isLoading, refetch } = useClauses(
-        countryFilter !== "all" ? countryFilter : undefined
-    );
+    const countryParam = countryFilter !== "all" ? countryFilter : undefined;
+    const { data: clauses, isLoading, refetch } = useClauses(countryParam);
+    const { data: docTypeMap, isLoading: isMapLoading } = useClauseDocTypeMap(countryParam);
     const deleteMutation = useDeleteClause();
     const createMutation = useCreateClause();
 
+    // Reset docTypeFilter wenn er nach Länderwechsel ungültig wird
+    useEffect(() => {
+        if (!docTypeMap || docTypeFilter === null || docTypeFilter === UNASSIGNED_FILTER) return;
+        const exists = docTypeMap.some((dt) => dt.document_type_id === docTypeFilter);
+        if (!exists) setDocTypeFilter(null);
+    }, [docTypeMap, docTypeFilter]);
+
     // Filter clauses
     const filteredClauses = useMemo(() => {
+        // Dokumenttyp-Filter vorbereiten
+        let docTypeClauseIds: Set<number> | null = null;
+        if (docTypeFilter !== null && docTypeMap) {
+            if (docTypeFilter === UNASSIGNED_FILTER) {
+                const allAssigned = new Set(docTypeMap.flatMap((dt) => dt.clause_ids));
+                docTypeClauseIds = new Set(
+                    (clauses ?? []).map((c: Clause) => c.id).filter((id: number) => !allAssigned.has(id))
+                );
+            } else {
+                const match = docTypeMap.find((dt) => dt.document_type_id === docTypeFilter);
+                docTypeClauseIds = match ? new Set(match.clause_ids) : new Set();
+            }
+        }
+
         return clauses?.filter((clause: Clause) => {
+            const matchesDocType = docTypeClauseIds === null || docTypeClauseIds.has(clause.id);
+
             const matchesSearch =
                 searchQuery === "" ||
                 clause.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -185,8 +225,26 @@ export const ClausesPage = () => {
                 (statusFilter === "active" && clause.is_active) ||
                 (statusFilter === "inactive" && !clause.is_active);
 
-            return matchesSearch && matchesCategory && matchesStatus;
+            return matchesDocType && matchesSearch && matchesCategory && matchesStatus;
         }) ?? [];
+    }, [clauses, docTypeMap, docTypeFilter, searchQuery, categoryFilter, statusFilter]);
+
+    // Clause-IDs gefiltert OHNE DocType-Filter — für kontextuelle Chip-Counts
+    // (Vermeidet Zirkularität: Chips zeigen die Schnittmenge mit Suche/Kategorie/Status)
+    const clausesWithoutDocTypeFilter = useMemo(() => {
+        return clauses?.filter((clause: Clause) => {
+            const matchesSearch =
+                searchQuery === "" ||
+                clause.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                clause.content?.toLowerCase().includes(searchQuery.toLowerCase());
+            const matchesCategory =
+                categoryFilter === "all" || clause.category === categoryFilter;
+            const matchesStatus =
+                statusFilter === "all" ||
+                (statusFilter === "active" && clause.is_active) ||
+                (statusFilter === "inactive" && !clause.is_active);
+            return matchesSearch && matchesCategory && matchesStatus;
+        }).map((c: Clause) => c.id) ?? [];
     }, [clauses, searchQuery, categoryFilter, statusFilter]);
 
     // Get unique categories from clauses
@@ -303,7 +361,7 @@ export const ClausesPage = () => {
     // Reset page on filter change
     useEffect(() => {
         setClausePage(1);
-    }, [searchQuery, categoryFilter, statusFilter, countryFilter]);
+    }, [searchQuery, categoryFilter, statusFilter, countryFilter, docTypeFilter]);
 
     const totalClausePages = Math.ceil(filteredClauses.length / ITEMS_PER_PAGE);
     const paginatedClauses = useMemo(() => {
@@ -318,8 +376,9 @@ export const ClausesPage = () => {
         if (categoryFilter !== "all") count++;
         if (statusFilter !== "all") count++;
         if (searchQuery) count++;
+        if (docTypeFilter !== null) count++;
         return count;
-    }, [countryFilter, categoryFilter, statusFilter, searchQuery]);
+    }, [countryFilter, categoryFilter, statusFilter, searchQuery, docTypeFilter]);
 
     return (
         <div className="space-y-6">
@@ -451,6 +510,16 @@ export const ClausesPage = () => {
                 </Card>
             </div>
 
+            {/* Dokumenttyp-Filter-Chips */}
+            <DocumentTypeChips
+                docTypeMap={docTypeMap ?? []}
+                allClauseIds={(clauses ?? []).map((c: Clause) => c.id)}
+                filteredClauseIds={clausesWithoutDocTypeFilter}
+                selectedDocTypeId={docTypeFilter}
+                onSelect={setDocTypeFilter}
+                isLoading={isMapLoading}
+            />
+
             {/* Filters */}
             <Card>
                 <CardContent className="pt-6">
@@ -506,6 +575,23 @@ export const ClausesPage = () => {
                                 <SelectItem value="inactive">Inaktiv</SelectItem>
                             </SelectContent>
                         </Select>
+                        {activeFilterCount > 0 && (
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-muted-foreground hover:text-foreground shrink-0"
+                                onClick={() => {
+                                    setSearchQuery("");
+                                    setCountryFilter("all");
+                                    setCategoryFilter("all");
+                                    setStatusFilter("all");
+                                    setDocTypeFilter(null);
+                                }}
+                            >
+                                <XCircle className="w-3.5 h-3.5 mr-1" />
+                                Filter zurücksetzen
+                            </Button>
+                        )}
                     </div>
                 </CardContent>
             </Card>
@@ -543,7 +629,7 @@ export const ClausesPage = () => {
                             <FileText className="w-10 h-10 text-primary/40" />
                         </div>
 
-                        {searchQuery || categoryFilter !== "all" || statusFilter !== "all" ? (
+                        {searchQuery || categoryFilter !== "all" || statusFilter !== "all" || docTypeFilter !== null ? (
                             // Filter aktiv - keine Ergebnisse
                             <>
                                 <p className="text-lg font-medium text-foreground mb-2">
@@ -631,6 +717,28 @@ export const ClausesPage = () => {
                                         >
                                             {clause.title}
                                         </button>
+                                        {clause.tags && clause.tags.length > 0 && (
+                                            <div className="mt-1 flex flex-wrap gap-1">
+                                                {clause.tags.slice(0, 3).map((tag: string) => (
+                                                    <span
+                                                        key={tag}
+                                                        className="text-[10px] text-muted-foreground cursor-pointer hover:text-primary"
+                                                        onClick={() => {
+                                                            setSearchQuery(tag);
+                                                            searchInputRef.current?.focus();
+                                                            searchInputRef.current?.select();
+                                                        }}
+                                                    >
+                                                        #{tag}
+                                                    </span>
+                                                ))}
+                                                {clause.tags.length > 3 && (
+                                                    <span className="text-[10px] text-muted-foreground">
+                                                        +{clause.tags.length - 3}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        )}
                                     </TableCell>
                                     <TableCell>
                                         <Badge className="bg-primary/10 text-primary">
@@ -830,6 +938,30 @@ export const ClausesPage = () => {
                                         {clause.placeholders.length > 5 && (
                                             <span className="text-xs text-muted-foreground px-2 py-0.5">
                                                 +{clause.placeholders.length - 5} weitere
+                                            </span>
+                                        )}
+                                    </div>
+                                )}
+                                {clause.tags && clause.tags.length > 0 && (
+                                    <div className="mt-2 flex flex-wrap gap-1">
+                                        {clause.tags.slice(0, 5).map((tag: string) => (
+                                            <Badge
+                                                key={tag}
+                                                variant="outline"
+                                                className="text-xs cursor-pointer hover:bg-primary/10"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setSearchQuery(tag);
+                                                    searchInputRef.current?.focus();
+                                                    searchInputRef.current?.select();
+                                                }}
+                                            >
+                                                #{tag}
+                                            </Badge>
+                                        ))}
+                                        {clause.tags.length > 5 && (
+                                            <span className="text-xs text-muted-foreground px-1 py-0.5">
+                                                +{clause.tags.length - 5}
                                             </span>
                                         )}
                                     </div>
