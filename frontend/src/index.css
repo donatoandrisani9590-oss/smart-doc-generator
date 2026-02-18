@@ -403,7 +403,7 @@
   }
 
   .dark .glass-sidebar {
-    background: hsl(225 20% 11%);
+    background: hsl(225 18% 13%);
     border-right-color: hsl(225 12% 20%);
   }
 
@@ -528,6 +528,21 @@
     background: hsl(var(--card));
     color: hsl(var(--foreground));
     box-shadow: var(--shadow-elevated);
+  }
+
+  /* Dark mode: pill tabs need higher contrast against the dark canvas */
+  .dark .ive-pill-tabs {
+    background: hsl(225 14% 22% / 0.6);
+  }
+  .dark .ive-pill-tab {
+    color: hsl(var(--foreground) / 0.5);
+  }
+  .dark .ive-pill-tab:hover {
+    color: hsl(var(--foreground) / 0.75);
+  }
+  .dark .ive-pill-tab-active {
+    background: hsl(225 16% 26%);
+    color: hsl(var(--foreground));
   }
 }
 
@@ -949,9 +964,10 @@
    The document editor "paper" container and surrounding canvas
    ═══════════════════════════════════════════════════════════════════════════ */
 
-/* Editor canvas (the area behind the "paper") */
+/* Editor canvas (the area behind the "paper") — 16% lightness gives depth
+   without the "black void" feel. Apple HIG uses ~18% for secondary backgrounds. */
 .dark .bg-\[hsl\(33_15\%_97\%\)\] {
-  background-color: hsl(225 14% 11%) !important;
+  background-color: hsl(225 14% 16%) !important;
 }
 
 /* Editor paper container — keep the paper slightly lighter than background
