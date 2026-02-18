@@ -782,6 +782,22 @@ class LLMCallLog(Base):
 # TEAM PATTERNS (Agentic Engine — aggregierte Muster)
 # ═══════════════════════════════════════════════════════════════════════════
 
+class OnboardingJob(Base):
+    """Tracks a document package creation job (Onboarding, Kündigung, etc.)."""
+    __tablename__ = "onboarding_jobs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    package_key = Column(String(50), nullable=False)  # "onboarding", "kuendigung", "befoerderung"
+    employee_name = Column(String(255), nullable=True)
+    country_code = Column(String(2), nullable=False, default="DE")
+    status = Column(String(20), default="pending", nullable=False, index=True)  # pending, processing, completed, failed, partial
+    input_data = Column(Text, nullable=True)  # JSON: LLM-extracted fields
+    draft_ids = Column(Text, nullable=True)  # JSON: [draft_id_1, draft_id_2, ...]
+    error_message = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
 class TeamPattern(Base):
     """Aggregierte Muster pro Team+Dokumenttyp, periodisch berechnet."""
     __tablename__ = "team_patterns"
