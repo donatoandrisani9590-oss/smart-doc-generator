@@ -8,7 +8,7 @@
  */
 
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { PlusCircle, Sparkles, Bell, Menu, X } from "lucide-react";
+import { PlusCircle, Sparkles, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { NotificationDropdown } from "@/components/notifications/NotificationDropdown";
