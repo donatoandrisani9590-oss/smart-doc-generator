@@ -238,7 +238,7 @@ export function StationeryGalleryPage() {
             {/* Header */}
             <div className="flex items-start justify-between">
                 <div>
-                    <h2 className="text-xl font-semibold text-foreground">Briefpapier</h2>
+                    <h2 className="text-xl font-semibold tracking-tight text-foreground">Briefpapier</h2>
                     <p className="text-sm text-muted-foreground mt-1">
                         Blanko-Briefpapiere mit Firmen-Branding als Basis für Dokumente.
                     </p>

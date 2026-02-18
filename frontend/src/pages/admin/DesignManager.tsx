@@ -140,7 +140,7 @@ export const DesignManager = () => {
         }
 
         if (file.size > 2 * 1024 * 1024) {
-            setError("Datei zu gross. Maximum: 2MB");
+            setError("Datei zu groß. Maximum: 2MB");
             return;
         }
 
@@ -284,12 +284,12 @@ export const DesignManager = () => {
                 {/* Settings Tabs (2/3 width) */}
                 <div className="lg:col-span-2">
                     <Tabs defaultValue="branding" className="space-y-6">
-                        <TabsList className="bg-background">
-                            <TabsTrigger value="branding" className="gap-2">
+                        <TabsList className="bg-warm-100/60">
+                            <TabsTrigger value="branding" className="gap-2 data-[state=active]:bg-white data-[state=active]:shadow-sm">
                                 <Image className="w-4 h-4" />
                                 Branding
                             </TabsTrigger>
-                            <TabsTrigger value="documents" className="gap-2">
+                            <TabsTrigger value="documents" className="gap-2 data-[state=active]:bg-white data-[state=active]:shadow-sm">
                                 <FileText className="w-4 h-4" />
                                 Dokumenten-Layout
                             </TabsTrigger>
@@ -557,8 +557,9 @@ export const DesignManager = () => {
 
                         {/* Header Content */}
                         <Card>
-                            <CardHeader>
+                            <CardHeader className="pb-3">
                                 <CardTitle>Kopfzeile</CardTitle>
+                                <p className="text-sm text-muted-foreground">Wird oben rechts im Dokument angezeigt</p>
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div className="space-y-2">
@@ -599,8 +600,9 @@ export const DesignManager = () => {
 
                         {/* Footer Content */}
                         <Card>
-                            <CardHeader>
-                                <CardTitle>Fusszeile</CardTitle>
+                            <CardHeader className="pb-3">
+                                <CardTitle>Fußzeile</CardTitle>
+                                <p className="text-sm text-muted-foreground">Erscheint am unteren Seitenrand</p>
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div className="space-y-2">
@@ -611,7 +613,7 @@ export const DesignManager = () => {
                                             ...prev,
                                             footer_line1: e.target.value
                                         }))}
-                                        placeholder="Geschaeftsfuehrer: ..."
+                                        placeholder="Geschäftsführer: ..."
                                     />
                                 </div>
                                 <div className="space-y-2">
@@ -644,27 +646,26 @@ export const DesignManager = () => {
                     </Tabs>
                 </div>
 
-                {/* Live Preview (1/3 width) - E2E-010 Fix */}
+                {/* Live Preview (1/3 width) */}
                 <div className="lg:col-span-1">
                     <Card className="sticky top-4">
-                        <CardHeader>
-                            <CardTitle className="text-sm">Live-Vorschau</CardTitle>
+                        <CardHeader className="pb-3">
+                            <CardTitle className="text-sm font-medium text-muted-foreground">Live-Vorschau</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <div
-                                className="bg-white border rounded-lg shadow-sm overflow-hidden"
+                                className="bg-white border rounded-lg shadow-sm overflow-hidden aspect-[210/297]"
                                 style={{
                                     fontFamily: designSettings.font_family || "Arial",
-                                    fontSize: `${(designSettings.font_size_pt || 11) * 0.6}pt`,
                                     lineHeight: designSettings.line_spacing || "1.15",
                                 }}
                             >
                                 {/* Mini Document Preview */}
                                 <div
-                                    className="p-3"
+                                    className="p-4 h-full flex flex-col"
                                     style={{
-                                        paddingLeft: `${parseFloat(designSettings.margin_left_cm || "2.5") * 4}px`,
-                                        paddingRight: `${parseFloat(designSettings.margin_right_cm || "2.0") * 4}px`,
+                                        paddingLeft: `${parseFloat(designSettings.margin_left_cm || "2.5") * 5}px`,
+                                        paddingRight: `${parseFloat(designSettings.margin_right_cm || "2.0") * 5}px`,
                                     }}
                                 >
                                     {/* Header */}
@@ -680,38 +681,38 @@ export const DesignManager = () => {
                                                     style={{ width: `${parseFloat(designSettings.logo_width_cm || "5.0") * 8}px`, maxHeight: "30px", objectFit: "contain" }}
                                                 />
                                             ) : (
-                                                <div className="bg-warm-200 rounded px-2 py-1 text-[8px] text-muted-foreground">
+                                                <div className="bg-warm-100 rounded px-2 py-1 text-[9px] text-muted-foreground">
                                                     Logo
                                                 </div>
                                             )}
                                         </div>
-                                        <div className="text-right text-[7px] text-muted-foreground">
-                                            <div className="font-semibold">{designSettings.company_name || "Firmenname"}</div>
+                                        <div className="text-right text-[9px] leading-snug text-muted-foreground">
+                                            <div className="font-semibold text-foreground">{designSettings.company_name || "Firmenname"}</div>
                                             <div>{designSettings.header_line1 || "Adresszeile 1"}</div>
                                             <div>{designSettings.header_line2 || "Adresszeile 2"}</div>
                                         </div>
                                     </div>
 
                                     {/* Sample Content */}
-                                    <div className="space-y-2">
-                                        <h3 style={{ color: designSettings.primary_color || "#243186", fontSize: "9pt", fontWeight: "bold" }}>
+                                    <div className="space-y-2 flex-1">
+                                        <h3 style={{ color: designSettings.primary_color || "#243186", fontSize: "10px", fontWeight: 600 }}>
                                             Arbeitsvertrag
                                         </h3>
-                                        <div className="text-[7px] text-foreground space-y-1">
+                                        <div className="text-[9px] text-foreground/80 space-y-1.5 leading-relaxed">
                                             <p>Zwischen der Firma und Max Mustermann wird folgender Vertrag geschlossen...</p>
-                                            <p className="font-semibold">§ 1 Vertragsgegenstand</p>
+                                            <p className="font-semibold text-foreground">§ 1 Vertragsgegenstand</p>
                                             <p>Der Arbeitnehmer wird ab dem 01.01.2025 als Software-Entwickler eingestellt.</p>
                                         </div>
                                     </div>
 
                                     {/* Footer */}
-                                    <div className="mt-4 pt-2 border-t text-[6px] text-muted-foreground">
+                                    <div className="pt-2 border-t text-[8px] text-muted-foreground">
                                         {designSettings.footer_line1 || "Fußzeile 1"} | {designSettings.footer_line2 || "Fußzeile 2"}
                                     </div>
                                 </div>
                             </div>
-                            <p className="text-xs text-muted-foreground mt-3 text-center">
-                                Änderungen werden in Echtzeit angezeigt
+                            <p className="text-[11px] text-muted-foreground mt-3 text-center">
+                                Echtzeit-Vorschau Ihrer Einstellungen
                             </p>
                         </CardContent>
                     </Card>

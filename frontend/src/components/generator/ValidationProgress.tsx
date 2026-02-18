@@ -10,8 +10,6 @@
 
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
     Popover,
     PopoverContent,
@@ -73,31 +71,34 @@ const getTrafficLightStatus = (validation: ValidationState): TrafficLightStatus 
 
 const statusConfig = {
     red: {
-        color: "bg-red-500",
-        pulseColor: "bg-red-400",
-        borderColor: "border-red-200",
-        bgColor: "bg-red-50",
-        textColor: "text-red-700",
+        color: "bg-warm-300",
+        pulseColor: "bg-warm-200",
+        borderColor: "border-border/40",
+        bgColor: "bg-card",
+        textColor: "text-foreground/70",
+        progressColor: "bg-primary/30",
         icon: AlertCircle,
         label: "Noch nicht vollständig",
     },
     yellow: {
-        color: "bg-amber-500",
-        pulseColor: "bg-amber-400",
-        borderColor: "border-amber-200",
-        bgColor: "bg-amber-50",
+        color: "bg-amber-400",
+        pulseColor: "bg-amber-300",
+        borderColor: "border-amber-200/50",
+        bgColor: "bg-amber-50/50",
         textColor: "text-amber-700",
+        progressColor: "bg-amber-400",
         icon: AlertTriangle,
         label: "Warnungen",
     },
     green: {
         color: "bg-green-500",
         pulseColor: "bg-green-400",
-        borderColor: "border-green-200",
-        bgColor: "bg-green-50",
+        borderColor: "border-green-200/50",
+        bgColor: "bg-green-50/50",
         textColor: "text-green-700",
+        progressColor: "bg-green-500",
         icon: CheckCircle2,
-        label: "Bereit",
+        label: "Exportbereit",
     },
 };
 
@@ -145,88 +146,37 @@ export const ValidationProgress = ({
         <div className={cn("relative", className)}>
             <Popover open={isOpen} onOpenChange={setIsOpen}>
                 <PopoverTrigger asChild>
-                    <Button
-                        variant="outline"
+                    <button
+                        type="button"
                         className={cn(
-                            "relative h-auto py-2 px-3 gap-3 transition-all",
+                            "relative w-full flex items-center gap-2.5 py-2 px-3 rounded-lg transition-all duration-200",
+                            "border",
                             config.borderColor,
                             config.bgColor,
-                            "hover:shadow-md"
+                            "hover:border-primary/20 cursor-pointer",
+                            "focus:outline-none focus:ring-2 focus:ring-primary/20"
                         )}
                     >
-                        {/* Ampel-Indikator */}
-                        <div className="relative">
-                            <div
-                                className={cn(
-                                    "w-3 h-3 rounded-full",
-                                    config.color
-                                )}
-                            />
-                            {status === "yellow" && (
-                                <div
-                                    className={cn(
-                                        "absolute inset-0 w-3 h-3 rounded-full animate-ping",
-                                        config.pulseColor,
-                                        "opacity-75"
-                                    )}
+                        {/* Fortschrittsbalken — full width, subtle */}
+                        <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between mb-1.5">
+                                <span className={cn("text-[11px] font-medium", config.textColor)}>
+                                    {validation.completedFields} von {validation.totalRequiredFields} Pflichtfeldern
+                                </span>
+                                <span className="text-[10px] text-muted-foreground/60">
+                                    {status === "green" ? "✓" : `${progress}%`}
+                                </span>
+                            </div>
+                            <div className="w-full h-1 bg-warm-100 rounded-full overflow-hidden">
+                                <motion.div
+                                    className={cn("h-full rounded-full", config.progressColor)}
+                                    initial={{ width: 0 }}
+                                    animate={{ width: `${progress}%` }}
+                                    transition={{ duration: 0.4, ease: "easeOut" }}
                                 />
-                            )}
+                            </div>
                         </div>
-
-                        {/* Status Text */}
-                        <div className="flex flex-col items-start">
-                            <span className={cn("text-sm font-medium", config.textColor)}>
-                                {config.label}
-                            </span>
-                            <span className="text-xs text-muted-foreground">
-                                {status === "green" ? (
-                                    "Dokument kann generiert werden"
-                                ) : status === "yellow" ? (
-                                    // Zeige die erste Warnung direkt an für bessere UX
-                                    validation.warnings.length === 1 ? (
-                                        <span title={validation.warnings[0].message}>
-                                            {validation.warnings[0].label}: {validation.warnings[0].message}
-                                        </span>
-                                    ) : (
-                                        `${validation.warnings.length} Warnungen - klicken für Details`
-                                    )
-                                ) : (
-                                    <>
-                                        {validation.missingFields.length > 0 && (
-                                            <span>Bitte {validation.missingFields.length} Pflichtfeld{validation.missingFields.length !== 1 ? "er" : ""} ausfüllen - klicken für Details</span>
-                                        )}
-                                        {validation.errors.length > 0 && validation.missingFields.length > 0 && " · "}
-                                        {validation.errors.length > 0 && (
-                                            <span>{validation.errors.length} Fehler</span>
-                                        )}
-                                        {(validation.errors.length > 0 || validation.missingFields.length > 0) && (
-                                            <span className="ml-1 opacity-70">- klicken für Details</span>
-                                        )}
-                                    </>
-                                )}
-                            </span>
-                        </div>
-
-                        {/* Fortschrittsbalken */}
-                        <div className="w-16 h-1.5 bg-warm-200 rounded-full overflow-hidden">
-                            <motion.div
-                                className={cn("h-full rounded-full", config.color)}
-                                initial={{ width: 0 }}
-                                animate={{ width: `${progress}%` }}
-                                transition={{ duration: 0.3 }}
-                            />
-                        </div>
-
-                        {/* Badge mit Anzahl */}
-                        {totalIssues > 0 && (
-                            <Badge
-                                variant="destructive"
-                                className="absolute -top-2 -right-2 h-5 min-w-5 p-0 flex items-center justify-center text-xs"
-                            >
-                                {totalIssues}
-                            </Badge>
-                        )}
-                    </Button>
+                    </button>
                 </PopoverTrigger>
 
                 <PopoverContent
@@ -235,14 +185,14 @@ export const ValidationProgress = ({
                     sideOffset={8}
                 >
                     {/* Header */}
-                    <div className={cn("p-3 border-b", config.bgColor)}>
+                    <div className="p-3 border-b bg-muted/30">
                         <div className="flex items-center gap-2">
-                            <StatusIcon className={cn("w-5 h-5", config.textColor)} />
+                            <StatusIcon className={cn("w-4 h-4", config.textColor)} />
                             <div>
-                                <h4 className={cn("font-medium", config.textColor)}>
+                                <h4 className="text-sm font-medium text-foreground">
                                     {config.label}
                                 </h4>
-                                <p className="text-xs text-muted-foreground">
+                                <p className="text-[11px] text-muted-foreground">
                                     {validation.completedFields} von {validation.totalRequiredFields} Pflichtfeldern ausgefüllt
                                 </p>
                             </div>

@@ -342,7 +342,7 @@ export function TeamInstructionsPage() {
 
       {/* Header */}
       <div>
-        <h2 className="text-xl font-semibold text-foreground">KI-Anweisungen</h2>
+        <h2 className="text-xl font-semibold tracking-tight text-foreground">KI-Anweisungen</h2>
         <p className="text-sm text-muted-foreground mt-1">
           Definieren Sie Regeln, die der KI-Assistent bei der Dokumenterstellung befolgen soll.
         </p>

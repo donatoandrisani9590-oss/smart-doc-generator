@@ -654,7 +654,7 @@ export function UserTemplatesPage() {
             {/* Header */}
             <div className="flex items-start justify-between">
                 <div>
-                    <h2 className="text-xl font-semibold text-foreground">Vorlagen</h2>
+                    <h2 className="text-xl font-semibold tracking-tight text-foreground">Vorlagen</h2>
                     <p className="text-sm text-muted-foreground mt-1">
                         DOCX-Vorlagen mit Firmen-Branding für die Dokumentenerstellung. Geteilte Vorlagen anderer Nutzer sind ebenfalls sichtbar.
                     </p>
