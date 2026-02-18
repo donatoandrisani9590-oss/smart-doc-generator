@@ -114,6 +114,7 @@ export default function DeadlinesCalendar() {
     useEffect(() => {
         fetchSummary();
         fetchDeadlines();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- fetch functions are stable; re-fetch when filters change
     }, [statusFilter, typeFilter]);
 
     const fetchSummary = async () => {

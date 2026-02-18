@@ -99,7 +99,7 @@ export const FormFieldEditor = ({ documentTypeId, documentTypeName }: FormFieldE
             });
             setEditDialogOpen(false);
             setSelectedField(null);
-        } catch (error) {
+        } catch {
             // Error handled by mutation
         }
     };

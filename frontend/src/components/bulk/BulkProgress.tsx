@@ -16,6 +16,7 @@ export const BulkProgress = ({ jobId, onComplete }: BulkProgressProps) => {
 
     useEffect(() => {
         if (job?.status === "completed" || job?.status === "failed") {
+            // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: stop polling when job completes or fails
             setIsPolling(false);
             if (job.status === "completed" && onComplete) {
                 onComplete();

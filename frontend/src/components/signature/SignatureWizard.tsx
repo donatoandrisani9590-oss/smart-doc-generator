@@ -655,6 +655,7 @@ export function SignatureWizard({
     });
 
     setFieldConfigs(updatedConfigs);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- fieldConfigs excluded to prevent infinite loop; effect syncs configs from signers
   }, [signers]);
 
   // Wizard steps configuration

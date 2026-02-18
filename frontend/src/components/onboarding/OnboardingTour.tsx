@@ -155,6 +155,7 @@ export function OnboardingTour({
         } else {
             handleComplete();
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- handleComplete is defined below but called lazily on user interaction
     }, [currentStep, steps.length]);
 
     const handlePrevious = useCallback(() => {
@@ -328,6 +329,7 @@ export function OnboardingTour({
 /**
  * Hook zum Starten der Tour programmatisch
  */
+// eslint-disable-next-line react-refresh/only-export-components
 export function useOnboardingTour() {
     const [isOpen, setIsOpen] = useState(false);
 

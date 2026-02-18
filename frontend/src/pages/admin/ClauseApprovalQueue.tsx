@@ -104,6 +104,7 @@ export const ClauseApprovalQueue = () => {
             }
         };
         loadClauses();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- toast is stable; only re-fetch when filter changes
     }, [filter]);
 
     const handleApprove = async (clauseId: number) => {

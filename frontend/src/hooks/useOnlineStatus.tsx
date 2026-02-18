@@ -20,6 +20,7 @@ interface OnlineStatusContextType {
 
 const OnlineStatusContext = createContext<OnlineStatusContextType | null>(null);
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useOnlineStatus(): OnlineStatusContextType {
     const context = useContext(OnlineStatusContext);
     if (!context) {
@@ -112,6 +113,7 @@ export function OnlineStatusProvider({
         }, 10000); // Check every 10 seconds
 
         return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- checkConnection is stable; only start/stop interval based on online state
     }, [isOnline]);
 
     return (
@@ -180,6 +182,7 @@ function OfflineBanner({ offlineSince, onRetry }: OfflineBannerProps) {
                         <p className="font-medium">Keine Internetverbindung</p>
                         {offlineSince && (
                             <p className="text-sm text-white/80">
+                                {/* eslint-disable-next-line react-hooks/purity -- Date.now() needed for live offline duration display */}
                                 Offline seit {formatDuration(Date.now() - offlineSince)}
                             </p>
                         )}
@@ -225,6 +228,7 @@ function ReconnectedToast() {
 /**
  * Hook to check if a specific feature should be disabled when offline
  */
+// eslint-disable-next-line react-refresh/only-export-components
 export function useOfflineDisabled(featureRequiresNetwork: boolean = true): boolean {
     const { isOnline } = useOnlineStatus();
     return featureRequiresNetwork && !isOnline;

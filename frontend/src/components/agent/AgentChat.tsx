@@ -208,7 +208,7 @@ export function AgentChat({
           if (sid) { setSessionId(sid); onSessionCreated?.(sid); }
         }
         if (event.type === "error") {
-          setError(event.content || (event as any).message || "Unbekannter Fehler");
+          setError(event.content || "Unbekannter Fehler");
         }
       }
       updateLastMessage();

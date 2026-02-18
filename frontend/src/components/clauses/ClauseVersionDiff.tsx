@@ -147,6 +147,7 @@ export function ClauseVersionDiff({
     // Fetch versions when dialog opens
     useEffect(() => {
         if (open && clauseId && !propVersions?.length) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: initialize loading state when fetching versions
             setIsLoading(true);
             apiFetch(`/api/v1/clauses/${clauseId}/versions`)
                 .then((res) => res.json())
@@ -167,6 +168,7 @@ export function ClauseVersionDiff({
     // Auto-select latest two versions
     useEffect(() => {
         if (versions.length >= 2) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: auto-select latest two versions when version list changes
             setLeftVersion(versions[versions.length - 2].version);
             setRightVersion(versions[versions.length - 1].version);
         } else if (versions.length === 1) {

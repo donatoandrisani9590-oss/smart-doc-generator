@@ -325,6 +325,7 @@ interface FieldDefinition {
     validate?: (value: unknown) => string | null; // Returns error message or null
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useValidationProgress = (
     formValues: Record<string, unknown>,
     fieldDefinitions: FieldDefinition[]

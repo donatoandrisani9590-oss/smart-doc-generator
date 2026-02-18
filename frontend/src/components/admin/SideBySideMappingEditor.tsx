@@ -365,6 +365,7 @@ export function SideBySideMappingEditor({
 
         window.addEventListener("keydown", handleKeyDown);
         return () => window.removeEventListener("keydown", handleKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- handler functions are stable; only re-bind when currentValue changes
     }, [currentValue]);
 
     // Scroll sync - when a value is selected, scroll to it in the preview

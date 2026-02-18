@@ -147,6 +147,7 @@ export const DocumentApprovalPanel = ({ documentId }: DocumentApprovalPanelProps
             });
             toast.success("Freigabe angefordert");
             setShowRequestDialog(false);
+            // eslint-disable-next-line react-hooks/immutability -- variable referenced in callback, not during render
             resetDialogState();
         } catch {
             toast.error("Freigabe-Anfrage fehlgeschlagen");

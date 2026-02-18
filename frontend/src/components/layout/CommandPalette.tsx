@@ -50,6 +50,7 @@ export const CommandPalette = ({ open, onOpenChange }: CommandPaletteProps) => {
 
     // Reset query when dialog opens
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: reset search query when command palette opens
         if (open) setQuery("");
     }, [open]);
 

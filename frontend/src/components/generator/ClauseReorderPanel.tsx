@@ -167,6 +167,7 @@ export interface DocumentClause {
  * Computes §-numbers for enabled clauses that have paragraph numbering.
  * Returns a Map from uniqueId → paragraph number (1-based).
  */
+// eslint-disable-next-line react-refresh/only-export-components
 export function computeParagraphNumbers(clauses: DocumentClause[]): Map<string, number> {
     const result = new Map<string, number>();
     let paraNum = 0;

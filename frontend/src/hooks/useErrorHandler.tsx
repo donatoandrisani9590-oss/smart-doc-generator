@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 /**
  * useErrorHandler - Globaler Error-State Handler
  *
@@ -96,6 +97,7 @@ export function ErrorHandlerProvider({
 
             return id;
         },
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- removeError is stable (empty deps) and called asynchronously via setTimeout
         [maxErrors, autoDismissAfter]
     );
 

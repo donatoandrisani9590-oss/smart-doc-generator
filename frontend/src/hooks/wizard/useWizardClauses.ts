@@ -173,6 +173,7 @@ export function useWizardClauses({ documentTypeId, formData, markUnsaved }: UseW
         }
 
         // Only update if selections actually differ
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: sync variant selections when contract type changes
         setSelectedVariants((prev) => {
             const hasChanges = Object.keys(newSelections).some(
                 (k) =>

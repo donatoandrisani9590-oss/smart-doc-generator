@@ -11,7 +11,7 @@
  * Privacy: Uses Groq (free), Mistral (EU) or Ollama (local)
  */
 
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import {
   Sparkles,
   Send,
@@ -132,9 +132,10 @@ export function SmartModeWizard({
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Get current field
-  const allFields = config
-    ? [...config.priority_fields, ...config.optional_fields]
-    : [];
+  const allFields = useMemo(
+    () => config ? [...config.priority_fields, ...config.optional_fields] : [],
+    [config]
+  );
   const currentField = allFields[currentFieldIndex];
   const isComplete = currentFieldIndex >= allFields.length;
   const progress = allFields.length > 0
@@ -213,6 +214,7 @@ export function SmartModeWizard({
     initSmartMode();
 
     return () => { cancelled = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- one-time initialization; addQuestion is stable
   }, [documentTypeId]);
 
   // Scroll to bottom when conversation changes

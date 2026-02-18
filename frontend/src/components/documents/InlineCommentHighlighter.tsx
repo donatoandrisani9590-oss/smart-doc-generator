@@ -196,12 +196,15 @@ export const InlineCommentHighlighter = ({
 
     // Button-Position berechnen relativ zum Scroll-Container
     const scrollContainer = scrollContainerRef.current;
+    // eslint-disable-next-line react-hooks/refs -- ref access needed for DOM measurement in render
     if (!scrollContainer) return null;
 
+    // eslint-disable-next-line react-hooks/refs -- ref access needed for DOM measurement in render
     const containerRect = scrollContainer.getBoundingClientRect();
     const top =
         selection.rect.top -
         containerRect.top +
+        // eslint-disable-next-line react-hooks/refs -- ref access needed for DOM measurement in render
         scrollContainer.scrollTop -
         36;
     const left =

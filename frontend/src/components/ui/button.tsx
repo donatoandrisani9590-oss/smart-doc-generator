@@ -82,10 +82,9 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
         if (shouldAnimate) {
             // Exclude conflicting HTML event handlers when using framer-motion
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const {
-                onDrag, onDragStart, onDragEnd,
-                onAnimationStart, onAnimationEnd,
+                onDrag: _onDrag, onDragStart: _onDragStart, onDragEnd: _onDragEnd,
+                onAnimationStart: _onAnimationStart, onAnimationEnd: _onAnimationEnd,
                 ...motionSafeProps
             } = props;
             return (
@@ -114,4 +113,5 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 )
 Button.displayName = "Button"
 
+// eslint-disable-next-line react-refresh/only-export-components
 export { Button, buttonVariants }

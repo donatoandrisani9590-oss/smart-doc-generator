@@ -108,6 +108,7 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
         try {
             const stored = localStorage.getItem(RECENT_TYPES_KEY);
             if (stored) {
+                // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: initialize state from localStorage on mount
                 setRecentTypeIds(JSON.parse(stored));
             }
         } catch {

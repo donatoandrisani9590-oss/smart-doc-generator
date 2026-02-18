@@ -64,6 +64,7 @@ export function useDocumentTypeEditor({
     // Reset form when opening/closing
     useEffect(() => {
         if (open) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: reset form state when dialog opens/closes
             setStep(1);
             setErrors({});
             if (!editId) {
@@ -86,6 +87,7 @@ export function useDocumentTypeEditor({
     // Load existing document type data
     useEffect(() => {
         if (existingDocType && editId) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: sync form state from loaded document type data
             setName(existingDocType.name || "");
             setDescription(existingDocType.description || "");
             setCategory(existingDocType.category || "");

@@ -76,6 +76,7 @@ export default function CompanySettingsPage() {
     // Fetch settings on country change
     useEffect(() => {
         fetchSettings();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- fetch only on mount and when country changes
     }, [country]);
 
     const fetchSettings = async () => {

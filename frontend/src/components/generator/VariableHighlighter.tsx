@@ -50,6 +50,7 @@ const DEFAULT_LABELS: Record<string, string> = {
  * 2. Wrap them in <mark> tags with appropriate styling
  * 3. Unfilled {{placeholders}} get a warning highlight
  */
+// eslint-disable-next-line react-refresh/only-export-components
 export function highlightVariables(
   html: string,
   formData: Record<string, string | number | undefined>,

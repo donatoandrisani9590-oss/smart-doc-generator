@@ -73,6 +73,7 @@ export function ClauseImpactDialog({
         if (open && clauseId) {
             fetchImpactAnalysis();
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- fetch only when dialog opens or clauseId changes
     }, [open, clauseId]);
 
     const fetchImpactAnalysis = async () => {

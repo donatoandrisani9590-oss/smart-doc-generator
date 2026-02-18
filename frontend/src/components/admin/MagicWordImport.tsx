@@ -40,13 +40,44 @@ import { apiFetch } from "@/lib/api-client";
 import { SideBySideMappingEditor } from "./SideBySideMappingEditor";
 
 // Types
+interface TextPosition {
+    paragraph_index: number;
+    run_index: number;
+    char_start: number;
+    char_end: number;
+    table_info?: { table_idx: number; row_idx: number; cell_idx: number } | null;
+}
+
+interface DetectedValue {
+    id: string;
+    text: string;
+    value_type: string;
+    position: TextPosition;
+    confidence: number;
+    suggested_placeholder: string | null;
+    suggested_label: string | null;
+    alternatives: string[];
+    is_confirmed: boolean;
+    user_override?: string | null;
+}
+
+interface DocumentSection {
+    id: string;
+    section_type: string;
+    content: string;
+    html_content: string;
+    position_start: number;
+    position_end: number;
+    detected_values: DetectedValue[];
+}
+
 interface MagicAnalysisResult {
     document_id: string;
     original_filename: string;
     preview_html: string;
     preview_pdf_path: string | null;
-    sections: any[];
-    detected_values: any[];
+    sections: DocumentSection[];
+    detected_values: DetectedValue[];
     statistics: {
         total_sections: number;
         total_detected_values: number;

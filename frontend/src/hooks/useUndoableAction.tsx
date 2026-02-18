@@ -51,6 +51,7 @@ interface UndoContextType {
 
 const UndoContext = createContext<UndoContextType | null>(null);
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useUndoableAction(): UndoContextType {
     const context = useContext(UndoContext);
     if (!context) {
@@ -60,6 +61,7 @@ export function useUndoableAction(): UndoContextType {
 }
 
 /** @deprecated Use `useUndoableAction` instead */
+// eslint-disable-next-line react-refresh/only-export-components
 export const useUndo = useUndoableAction;
 
 interface UndoProviderProps {
@@ -72,8 +74,9 @@ export function UndoProvider({ children }: UndoProviderProps) {
 
     // Cleanup timers on unmount
     useEffect(() => {
+        const timers = timersRef.current;
         return () => {
-            timersRef.current.forEach((timer) => clearTimeout(timer));
+            timers.forEach((timer) => clearTimeout(timer));
         };
     }, []);
 
@@ -193,6 +196,7 @@ function UndoToast({ action, onUndo, onDismiss }: UndoToastProps) {
         const remaining = action.timeoutMs - elapsed;
         const startProgress = (remaining / action.timeoutMs) * 100;
 
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: initialize progress bar from elapsed time on mount
         setProgress(startProgress);
 
         const interval = setInterval(() => {

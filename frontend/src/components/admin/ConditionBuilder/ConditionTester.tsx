@@ -44,6 +44,7 @@ export const ConditionTester = ({ condition, fields, onClose }: ConditionTesterP
                 else initial[fieldName] = "";
             }
         });
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: reset test values when used fields change
         setTestValues(initial);
     }, [usedFields, fields]);
 

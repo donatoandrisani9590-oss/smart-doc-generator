@@ -17,6 +17,7 @@ interface ActivityChartProps {
 export const ActivityChart = ({ countryCode }: ActivityChartProps) => {
     const { data: stats, isLoading } = useRepositoryStats(countryCode);
 
+    // eslint-disable-next-line react-hooks/preserve-manual-memoization -- manual memoization intentional
     const chartData = useMemo(() => {
         if (!stats?.documents_by_month) return [];
 

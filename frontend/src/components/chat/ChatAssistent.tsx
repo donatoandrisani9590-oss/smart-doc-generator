@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiFetch } from "@/lib/api-client";
-import { apiStreamSSE } from "@/lib/api-stream";
+import { apiStreamSSE, type SSEEvent } from "@/lib/api-stream";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -120,7 +120,7 @@ export const ChatAssistent = ({ context, countryCode = "DE", onInsertText, onFil
                 if (event.done) {
                     // Handle wizard structured data from done event
                     if (isWizardMode) {
-                        const doneEvent = event as any;
+                        const doneEvent = event as SSEEvent & { message?: string; extracted_data?: Record<string, unknown>; suggested_document_type_id?: number; suggested_document_type_name?: string; is_complete?: boolean };
                         const displayMessage = doneEvent.message || fullText;
                         setMessages((prev) => {
                             const updated = [...prev];

@@ -43,6 +43,7 @@ export const ExportSuccessModal = ({
 
     useEffect(() => {
         if (isOpen) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: trigger confetti animation when modal opens
             setShowConfetti(true);
             const timer = setTimeout(() => setShowConfetti(false), 2000);
             return () => clearTimeout(timer);

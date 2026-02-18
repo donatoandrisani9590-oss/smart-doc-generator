@@ -107,6 +107,7 @@ export const VariantSelector = ({
         };
 
         loadGroup();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- fetch only when groupId changes; onSelect/selectedVariantId would cause infinite loops
     }, [groupId]);
 
     // Loading State
@@ -250,6 +251,7 @@ export const VariantDropdown = ({
             setIsLoading(false);
         };
         loadGroup();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- fetch only when groupId changes; onSelect/selectedVariantId would cause infinite loops
     }, [groupId]);
 
     if (isLoading) {

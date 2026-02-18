@@ -48,6 +48,7 @@ const routeLabels: Record<string, string> = {
 /**
  * Generiert automatisch Breadcrumb-Items basierend auf dem aktuellen Pfad
  */
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAutoBreadcrumbs = (): BreadcrumbItem[] => {
     const location = useLocation();
     const pathSegments = location.pathname.split("/").filter(Boolean);

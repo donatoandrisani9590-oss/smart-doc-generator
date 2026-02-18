@@ -15,7 +15,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { useDocumentTypes } from "@/hooks/useApi";
+import { useDocumentTypes, type DocumentType } from "@/hooks/useApi";
 import { BulkUploadValidator } from "@/components/bulk/BulkUploadValidator";
 import { Upload, FileSpreadsheet, ArrowRight, ArrowLeft, Sparkles } from "lucide-react";
 
@@ -23,7 +23,7 @@ export const BulkUploadPage = () => {
     const [selectedDocTypeId, setSelectedDocTypeId] = useState<number | null>(null);
     const { data: documentTypes, isLoading } = useDocumentTypes();
 
-    const selectedDocType = documentTypes?.find((dt: any) => dt.id === selectedDocTypeId);
+    const selectedDocType = documentTypes?.find((dt: DocumentType) => dt.id === selectedDocTypeId);
 
     return (
         <div className="space-y-6 max-w-4xl mx-auto">
@@ -67,7 +67,7 @@ export const BulkUploadPage = () => {
                             <SelectValue placeholder="Dokumenttyp auswählen..." />
                         </SelectTrigger>
                         <SelectContent>
-                            {documentTypes?.map((dt: any) => (
+                            {documentTypes?.map((dt: DocumentType) => (
                                 <SelectItem key={dt.id} value={String(dt.id)}>
                                     {dt.name}
                                 </SelectItem>

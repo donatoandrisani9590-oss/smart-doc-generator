@@ -38,6 +38,7 @@ export const ToolboxClauseItem = ({ clause }: ToolboxClauseItemProps) => {
             )}
         >
             <div className="p-1.5 bg-green-100 rounded shrink-0">
+                {/* eslint-disable-next-line react-hooks/static-components -- dynamic component from lookup, not a nested component definition */}
                 <IconComponent className="w-3.5 h-3.5 text-green-600" />
             </div>
             <div className="flex-1 min-w-0">

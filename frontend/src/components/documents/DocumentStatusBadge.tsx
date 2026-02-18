@@ -79,6 +79,7 @@ export const DocumentStatusBadge = ({
 /**
  * Hook um den Dokumentstatus zu berechnen
  */
+// eslint-disable-next-line react-refresh/only-export-components
 export function useDocumentStatus(state: {
     documentTypeId: number | null;
     formData: {

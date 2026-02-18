@@ -287,8 +287,8 @@ export const Dashboard = () => {
                         <div className="p-2">
                             {hasDrafts ? (
                                 <MotionContainer className="space-y-1">
-                                    {activity!.recent_drafts.slice(0, 3).map((draft: any, index: number) => {
-                                        const daysRemaining = draft.days_remaining ?? 30;
+                                    {activity!.recent_drafts.slice(0, 3).map((draft, index) => {
+                                        const daysRemaining = (draft as typeof draft & { days_remaining?: number }).days_remaining ?? 30;
                                         const isExpiringSoon = daysRemaining <= 7;
 
                                         return (

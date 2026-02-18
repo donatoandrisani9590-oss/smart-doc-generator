@@ -49,6 +49,7 @@ export const DocumentLockBanner: React.FC<DocumentLockBannerProps> = ({
         }
       };
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- heartbeat mutation object recreated each render; only re-run on lock state change
   }, [lockStatus?.is_locked, lockStatus?.is_own_lock, documentId]);
 
   // Notify parent about lock status changes
@@ -56,6 +57,7 @@ export const DocumentLockBanner: React.FC<DocumentLockBannerProps> = ({
     if (lockStatus && onLockStatusChange) {
       onLockStatusChange(lockStatus.is_locked, lockStatus.is_own_lock);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- only react to specific lock status fields, not entire lockStatus object
   }, [lockStatus?.is_locked, lockStatus?.is_own_lock, onLockStatusChange]);
 
   if (isLoading || !lockStatus || !lockStatus.is_locked) {

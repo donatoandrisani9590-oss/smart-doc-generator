@@ -50,7 +50,7 @@ export const VersionHistoryDialog = ({
                         </div>
                     ) : versions && versions.length > 0 ? (
                         <div className="space-y-2 max-h-[400px] overflow-y-auto">
-                            {versions.map((version: any, index: number) => (
+                            {versions.map((version: { id: number; version: number; created_at: string }, index: number) => (
                                 <div
                                     key={version.id}
                                     className={cn(

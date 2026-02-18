@@ -25,6 +25,7 @@ import { cn } from "@/lib/utils";
 import type { ClauseVariant } from "./types";
 
 // Hilfsfunktion zum Kürzen und Bereinigen von HTML-Inhalten
+// eslint-disable-next-line react-refresh/only-export-components
 export const truncateContent = (html: string | undefined, maxLength: number = 300): string => {
     if (!html) return "Kein Inhalt verfügbar";
     const text = html.replace(/<[^>]*>/g, "").trim();

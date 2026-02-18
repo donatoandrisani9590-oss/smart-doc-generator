@@ -29,7 +29,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useGlobalSearch, useDocumentTypes, type SearchResult } from "@/hooks/useApi";
+import { useGlobalSearch, useDocumentTypes, type SearchResult, type DocumentType } from "@/hooks/useApi";
 import { formatDistanceToNow } from "@/lib/dateUtils";
 
 export const SearchPage = () => {
@@ -59,7 +59,7 @@ export const SearchPage = () => {
     // Filter results locally for additional filters
     const filteredResults = searchResponse?.results?.filter((result) => {
         // Document type filter
-        if (documentTypeId && result.document_type_name !== documentTypes?.find((dt: any) => dt.id === parseInt(documentTypeId))?.name) {
+        if (documentTypeId && result.document_type_name !== documentTypes?.find((dt: DocumentType) => dt.id === parseInt(documentTypeId))?.name) {
             return false;
         }
 
@@ -208,7 +208,7 @@ export const SearchPage = () => {
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="all">Alle Typen</SelectItem>
-                                        {documentTypes?.map((dt: any) => (
+                                        {documentTypes?.map((dt: DocumentType) => (
                                             <SelectItem key={dt.id} value={String(dt.id)}>
                                                 {dt.name}
                                             </SelectItem>

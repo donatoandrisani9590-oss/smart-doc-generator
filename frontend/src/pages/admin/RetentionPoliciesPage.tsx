@@ -152,7 +152,7 @@ export default function RetentionPoliciesPage() {
                     },
                 ]);
             }
-        } catch (err) {
+        } catch {
             setError("Richtlinien konnten nicht geladen werden");
         } finally {
             setIsLoading(false);
@@ -209,7 +209,7 @@ export default function RetentionPoliciesPage() {
                 setShowDialog(false);
                 await fetchPolicies();
             }
-        } catch (err) {
+        } catch {
             setError("Speichern fehlgeschlagen");
         } finally {
             setIsSubmitting(false);

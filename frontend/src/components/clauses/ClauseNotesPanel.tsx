@@ -71,6 +71,7 @@ export function ClauseNotesPanel({ clauseId, onNotesCountChange }: ClauseNotesPa
     // Fetch notes on mount
     useEffect(() => {
         fetchNotes();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- fetch only on mount and when clauseId changes
     }, [clauseId]);
 
     // Notify parent of notes count

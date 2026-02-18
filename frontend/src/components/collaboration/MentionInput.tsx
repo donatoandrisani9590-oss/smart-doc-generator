@@ -121,6 +121,7 @@ export const MentionInput = ({
     // Suggestions anzeigen wenn Query vorhanden und Ergebnisse da
     useEffect(() => {
         if (mentionQuery && (suggestions.length > 0 || isLoading)) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: show suggestions when mention query yields results
             setShowSuggestions(true);
             setSelectedIndex(0);
         } else {

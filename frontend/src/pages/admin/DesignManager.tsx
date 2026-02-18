@@ -200,7 +200,7 @@ export const DesignManager = () => {
             } else {
                 toast.error("Fehler", "Logo konnte nicht gelöscht werden");
             }
-        } catch (err) {
+        } catch {
             setError("Fehler beim Löschen");
             toast.error("Fehler", "Logo konnte nicht gelöscht werden");
         } finally {

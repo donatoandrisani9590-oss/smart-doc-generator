@@ -70,6 +70,7 @@ function Cursor({ user, containerRect }: CursorProps) {
         setIsVisible(false);
       }, 5000);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- only react to cursor position changes, not entire user object
   }, [user.cursor?.x, user.cursor?.y]);
 
   if (!user.cursor || !containerRect) {

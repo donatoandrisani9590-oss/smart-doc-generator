@@ -8,6 +8,7 @@
  */
 
 import { Extension } from '@tiptap/core'
+import type { Node as ProseMirrorNode } from '@tiptap/pm/model'
 import { Plugin, PluginKey } from '@tiptap/pm/state'
 import { Decoration, DecorationSet } from '@tiptap/pm/view'
 
@@ -76,13 +77,13 @@ export const PlaceholderHighlight = Extension.create<PlaceholderHighlightOptions
  * Durchsucht das Dokument nach Platzhaltern und erstellt Dekorationen
  */
 function findPlaceholders(
-  doc: any,
+  doc: ProseMirrorNode,
   className: string,
   knownPlaceholders: string[]
 ): DecorationSet {
   const decorations: Decoration[] = []
 
-  doc.descendants((node: any, pos: number) => {
+  doc.descendants((node: ProseMirrorNode, pos: number) => {
     if (!node.isText) return
 
     const text = node.text || ''

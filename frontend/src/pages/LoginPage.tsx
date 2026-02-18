@@ -72,10 +72,11 @@ export const LoginPage: React.FC = () => {
     try {
       await login({ email, password });
       navigate(from, { replace: true });
-    } catch (err: any) {
-      if (err?.message === "2FA_REQUIRED" && err?.preAuthToken) {
+    } catch (err: unknown) {
+      const error = err as Error & { preAuthToken?: string };
+      if (error?.message === "2FA_REQUIRED" && error?.preAuthToken) {
         navigate("/2fa-verify", {
-          state: { preAuthToken: err.preAuthToken, from },
+          state: { preAuthToken: error.preAuthToken, from },
           replace: true,
         });
         return;

@@ -218,6 +218,7 @@ export const EmptyState = ({
 /**
  * Vordefinierte EmptyState-Presets für häufige Anwendungsfälle
  */
+// eslint-disable-next-line react-refresh/only-export-components
 export const EmptyStatePresets = {
     /** Keine Dokumente vorhanden */
     noDocuments: {

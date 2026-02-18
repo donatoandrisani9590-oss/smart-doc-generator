@@ -236,6 +236,7 @@ export default function SettingsHub() {
         if (rawTab) {
             const tab = resolveTab(rawTab);
             if (tab !== activeTab && visibleItems.some(i => i.id === tab)) {
+                // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: sync active tab from URL search params
                 setActiveTab(tab);
             }
         }
@@ -255,6 +256,7 @@ export default function SettingsHub() {
             const segment = path.replace("/admin/", "").split("/")[0];
             const mapping = LEGACY_ROUTE_MAP[segment];
             if (mapping) {
+                // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: redirect legacy admin routes to settings tab
                 setActiveTab(mapping);
                 navigate(`/settings?tab=${mapping}`, { replace: true });
             }

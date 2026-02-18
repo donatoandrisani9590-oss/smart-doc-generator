@@ -187,7 +187,7 @@ export const AttachmentSelector = ({
 }: AttachmentSelectorProps) => {
     const { data, isLoading, error } = useAttachmentsForDocumentType(documentTypeId);
 
-    const attachments: AttachmentForDocumentType[] = data || [];
+    const attachments: AttachmentForDocumentType[] = useMemo(() => data || [], [data]);
 
     // Auto-select preselected and mandatory attachments on initial load
     useEffect(() => {

@@ -65,6 +65,11 @@ import { BasicsStep } from "./BasicsStep";
 import { ContentStep } from "./ContentStep";
 import { PreviewStep, ImpactTab, NotesTab } from "./PreviewStep";
 
+/** Extended Clause fields returned by the API but not on the base Clause interface */
+interface ClauseExtendedFields {
+    has_paragraph_number?: boolean;
+}
+
 export const ClauseFormDialog = ({
     open,
     onOpenChange,
@@ -151,15 +156,17 @@ export const ClauseFormDialog = ({
     // Initialize form when editing
     useEffect(() => {
         if (editClause) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: sync form state from existing clause data when editing
             setTitle(editClause.title || "");
             setCategory(editClause.category || "");
             setCountryCode(editClause.country_code || "DE");
             setContent(editClause.content || "");
             setIsActive(editClause.is_active);
-            setHasParagraphNumber((editClause as any).has_paragraph_number ?? true);
-            setTags((editClause as any).tags || []);
-            setDescription((editClause as any).description || "");
-            setTone((editClause as any).tone || "neutral");
+            const extended = editClause as typeof editClause & ClauseExtendedFields;
+            setHasParagraphNumber(extended.has_paragraph_number ?? true);
+            setTags(editClause.tags || []);
+            setDescription(editClause.description || "");
+            setTone(editClause.tone || "neutral");
             setCurrentStep("content"); // Skip to content in edit mode
             // Store initial values for change detection
             initialValuesRef.current = {

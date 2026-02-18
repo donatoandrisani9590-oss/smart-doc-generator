@@ -151,7 +151,7 @@ test.describe("Sync Flow Tests", () => {
     test("SYNC-002: Backend comments load after page refresh", async ({
         page,
     }) => {
-        const draftId = await createDraft(page);
+        await createDraft(page);
         await openCommentSidebar(page);
 
         // Add comment via backend
@@ -169,7 +169,7 @@ test.describe("Sync Flow Tests", () => {
     test("SYNC-003: Sync error shows error state and allows retry", async ({
         page,
     }) => {
-        const draftId = await createDraft(page);
+        await createDraft(page);
         await openCommentSidebar(page);
 
         // Simulate network failure
@@ -459,7 +459,7 @@ test.describe("Error Handling Tests", () => {
     test("ERR-001: Network timeout shows appropriate error", async ({
         page,
     }) => {
-        const draftId = await createDraft(page);
+        await createDraft(page);
         await openCommentSidebar(page);
 
         // Simulate slow network
@@ -478,7 +478,7 @@ test.describe("Error Handling Tests", () => {
     });
 
     test("ERR-002: Invalid date handling in comments", async ({ page }) => {
-        const draftId = await createDraft(page);
+        await createDraft(page);
 
         // Mock API to return invalid date
         await page.route(`${API_URL}/comments/**`, async (route) => {
@@ -503,7 +503,7 @@ test.describe("Error Handling Tests", () => {
     });
 
     test("ERR-003: Empty author name shows fallback", async ({ page }) => {
-        const draftId = await createDraft(page);
+        await createDraft(page);
 
         // Mock API to return empty author
         await page.route(`${API_URL}/comments/**`, async (route) => {
@@ -527,7 +527,7 @@ test.describe("Error Handling Tests", () => {
     });
 
     test("ERR-004: Reply input preserves text on error", async ({ page }) => {
-        const draftId = await createDraft(page);
+        await createDraft(page);
         await openCommentSidebar(page);
         await addComment(page, "Parent comment");
 
@@ -639,7 +639,7 @@ test.describe("Mention Tests", () => {
     test("MENTION-001: @mention autocomplete shows suggestions", async ({
         page,
     }) => {
-        const draftId = await createDraft(page);
+        await createDraft(page);
         await openCommentSidebar(page);
 
         await page.click('button:has(svg.lucide-plus)');
@@ -659,7 +659,7 @@ test.describe("Mention Tests", () => {
     });
 
     test("MENTION-002: Selected mention is highlighted", async ({ page }) => {
-        const draftId = await createDraft(page);
+        await createDraft(page);
         await openCommentSidebar(page);
 
         await addComment(page, "Hey @test-user-2 please review this");
@@ -681,7 +681,7 @@ test.describe("Mention Tests", () => {
         await login(page2, TEST_USERS.user2);
 
         // User 1 creates comment mentioning User 2
-        const draftId = await createDraft(page1);
+        await createDraft(page1);
         await openCommentSidebar(page1);
         await addComment(page1, `Please review @${TEST_USERS.user2.email}`);
 
@@ -708,7 +708,7 @@ test.describe("Delete Confirmation Tests", () => {
     });
 
     test("DELETE-001: Delete requires confirmation dialog", async ({ page }) => {
-        const draftId = await createDraft(page);
+        await createDraft(page);
         await openCommentSidebar(page);
         await addComment(page, "Comment to delete");
 
@@ -724,7 +724,7 @@ test.describe("Delete Confirmation Tests", () => {
     });
 
     test("DELETE-002: Cancel preserves comment", async ({ page }) => {
-        const draftId = await createDraft(page);
+        await createDraft(page);
         await openCommentSidebar(page);
         await addComment(page, "Comment to keep");
 
@@ -742,7 +742,7 @@ test.describe("Delete Confirmation Tests", () => {
     test("DELETE-003: Confirm removes comment with animation", async ({
         page,
     }) => {
-        const draftId = await createDraft(page);
+        await createDraft(page);
         await openCommentSidebar(page);
         await addComment(page, "Comment to remove");
 
@@ -769,7 +769,7 @@ test.describe("Resolve/Reopen Workflow Tests", () => {
     });
 
     test("RESOLVE-001: Comment can be marked as resolved", async ({ page }) => {
-        const draftId = await createDraft(page);
+        await createDraft(page);
         await openCommentSidebar(page);
         await addComment(page, "Task to complete");
 
@@ -784,7 +784,7 @@ test.describe("Resolve/Reopen Workflow Tests", () => {
     test("RESOLVE-002: Resolved comments hidden by default filter", async ({
         page,
     }) => {
-        const draftId = await createDraft(page);
+        await createDraft(page);
         await openCommentSidebar(page);
         await addComment(page, "Resolved comment");
 
@@ -800,7 +800,7 @@ test.describe("Resolve/Reopen Workflow Tests", () => {
     });
 
     test("RESOLVE-003: Resolved comment can be reopened", async ({ page }) => {
-        const draftId = await createDraft(page);
+        await createDraft(page);
         await openCommentSidebar(page);
         await addComment(page, "Reopenable comment");
 

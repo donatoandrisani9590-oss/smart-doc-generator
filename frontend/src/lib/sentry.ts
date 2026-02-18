@@ -48,7 +48,7 @@ export async function initSentry(): Promise<void> {
 
         _sentryEnabled = true;
         console.info("[Sentry] Initialized successfully");
-    } catch (err) {
+    } catch {
         console.warn("[Sentry] Not available – install @sentry/react to enable");
     }
 }

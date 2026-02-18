@@ -80,7 +80,8 @@ export const BulkUploadValidator = ({
         } catch (error) {
             console.error("Validation failed:", error);
         }
-    }, [documentTypeId, validateMutation]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- validateMutation reference changes on every render but mutateAsync is stable
+    }, [documentTypeId]);
 
     // Handle drag events
     const handleDrag = (e: React.DragEvent) => {

@@ -54,6 +54,7 @@ export const ExportDialog = ({ documentIds, onClose }: ExportDialogProps) => {
                 onSuccess: (data) => setPreview(data),
             });
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- load preview once on mount; exportPreview mutation is stable
     }, [documentIds]);
 
     const handleExport = async () => {

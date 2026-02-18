@@ -102,6 +102,7 @@ export const HelpTooltip = ({
 /**
  * Vordefinierte Hilfetexte für häufige Formularfelder
  */
+// eslint-disable-next-line react-refresh/only-export-components
 export const HELP_TEXTS = {
     vorname: {
         content: "Der Vorname des Mitarbeiters, wie er im Vertrag erscheinen soll.",

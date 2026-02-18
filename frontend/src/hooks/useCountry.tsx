@@ -19,6 +19,7 @@ interface CountryInfo {
     locale: string;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const COUNTRIES: Record<CountryCode, CountryInfo> = {
     DE: {
         code: "DE",
@@ -77,6 +78,7 @@ export const CountryProvider = ({ children }: { children: ReactNode }) => {
     );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useCountry = (): CountryContextType => {
     const context = useContext(CountryContext);
     if (!context) {

@@ -8,7 +8,7 @@
  * - Ctrl+?: Hilfe anzeigen
  */
 
-import { useEffect, useCallback, useState } from "react";
+import { useEffect, useCallback, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 interface Shortcut {
@@ -35,7 +35,7 @@ export function useKeyboardShortcuts(options: UseKeyboardShortcutsOptions = {}) 
     const { enabled = true } = options;
 
     // Define all shortcuts
-    const shortcuts: Shortcut[] = [
+    const shortcuts: Shortcut[] = useMemo(() => [
         // Navigation
         {
             key: "k",
@@ -107,7 +107,8 @@ export function useKeyboardShortcuts(options: UseKeyboardShortcutsOptions = {}) 
             category: "Hilfe",
             action: () => setShowShortcutsHelp(false),
         },
-    ];
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- options callbacks are not memoized by callers; navigate is stable
+    ], [navigate, options.onSave, options.onSearch, options.onNewDocument, options.onHelp]);
 
     // Handle keydown
     const handleKeyDown = useCallback(

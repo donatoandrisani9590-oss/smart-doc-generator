@@ -56,7 +56,7 @@ export function useWizardComments({ markUnsaved, currentUserName, currentUserId 
         };
         setComments(prev => [newComment, ...prev]);
         markUnsaved();
-    }, [markUnsaved]);
+    }, [markUnsaved, currentUserName, currentUserId]);
 
     const deleteComment = useCallback((commentId: string) => {
         setComments(prev => prev.filter(c => c.id !== commentId));
@@ -92,7 +92,7 @@ export function useWizardComments({ markUnsaved, currentUserName, currentUserId 
                 : c
         ));
         markUnsaved();
-    }, [markUnsaved]);
+    }, [markUnsaved, currentUserName, currentUserId]);
 
     return {
         comments,

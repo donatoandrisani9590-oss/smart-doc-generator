@@ -139,6 +139,7 @@ export const UsersPage = () => {
     useEffect(() => {
         fetchUsers();
         fetchStats();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- fetch functions are stable; re-fetch when filters change
     }, [searchQuery, roleFilter, statusFilter]);
 
     // Create user

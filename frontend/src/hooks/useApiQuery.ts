@@ -178,7 +178,7 @@ export function useApiMutation<TData, TVariables>({
 // Convenience Hooks for Common Operations
 // ============================================================================
 
-interface UseFetchOptions<T> extends Omit<UseApiQueryOptions<T>, "endpoint"> {}
+type UseFetchOptions<T> = Omit<UseApiQueryOptions<T>, "endpoint">;
 
 /**
  * Simple fetch hook for a single endpoint

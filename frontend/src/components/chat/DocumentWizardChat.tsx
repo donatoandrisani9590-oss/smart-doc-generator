@@ -19,7 +19,7 @@ import {
     MessageSquare,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { apiStreamSSE } from "@/lib/api-stream";
+import { apiStreamSSE, type SSEEvent } from "@/lib/api-stream";
 import { useCountry } from "@/hooks/useCountry";
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -145,9 +145,9 @@ export function DocumentWizardChat({ compact, onCreateDocument }: DocumentWizard
                     });
                 }
                 if (event.error) throw new Error(event.error);
-                if ((event as any).done) {
+                if (event.done) {
                     // Extract structured data from done event
-                    const doneEvent = event as any;
+                    const doneEvent = event as SSEEvent & { message?: string; extracted_data?: Record<string, unknown>; suggested_document_type_id?: number; suggested_document_type_name?: string; is_complete?: boolean };
                     const displayMessage = doneEvent.message || fullText;
 
                     // Update the final message with parsed content

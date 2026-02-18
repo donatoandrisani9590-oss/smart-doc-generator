@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 /**
  * Accessibility Hooks and Utilities
  *
@@ -213,6 +214,7 @@ export function usePrefersReducedMotion() {
 
     useEffect(() => {
         const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: sync state from media query on mount
         setPrefersReducedMotion(mediaQuery.matches);
 
         const handler = (e: MediaQueryListEvent) => {
@@ -234,6 +236,7 @@ export function usePrefersHighContrast() {
 
     useEffect(() => {
         const mediaQuery = window.matchMedia("(prefers-contrast: more)");
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: sync state from media query on mount
         setPrefersHighContrast(mediaQuery.matches);
 
         const handler = (e: MediaQueryListEvent) => {

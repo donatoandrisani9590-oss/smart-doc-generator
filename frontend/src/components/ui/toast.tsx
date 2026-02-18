@@ -266,6 +266,7 @@ function ToastItem({ toast, onClose }: { toast: Toast; onClose: () => void }) {
  *   await saveData();
  * });
  */
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAutoSave() {
     const toast = useToast();
 
@@ -307,6 +308,7 @@ export function useAutoSave() {
  * reactive toast list updates (e.g., rendering toasts), use the ToastContainer
  * which subscribes to ToastStateContext directly.
  */
+// eslint-disable-next-line react-refresh/only-export-components
 export function useToast(): ToastContextType {
     const actions = useContext(ToastActionsContext);
     const state = useContext(ToastStateContext);

@@ -171,7 +171,7 @@ export const CopilotStudioSettings = () => {
       // Load Webhooks
       const webhooksRes = await api.get<WebhookSubscription[]>("/api/v1/webhooks/subscriptions");
       setWebhooks(webhooksRes.data);
-    } catch (error) {
+    } catch {
       // Config might not exist yet - that's OK
       setConfig({
         is_enabled: false,
@@ -373,7 +373,7 @@ export const CopilotStudioSettings = () => {
         response_time_ms?: number;
       }>(`/api/v1/webhooks/subscriptions/${id}/test`);
       setTestResult(res.data);
-    } catch (error) {
+    } catch {
       setTestResult({
         success: false,
         message: "Test konnte nicht durchgeführt werden",

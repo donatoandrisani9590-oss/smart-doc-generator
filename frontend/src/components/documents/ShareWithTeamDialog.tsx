@@ -94,7 +94,7 @@ export const ShareWithTeamDialog = ({
             } else {
                 setError("Fehler beim Laden der Teams");
             }
-        } catch (err) {
+        } catch {
             setError("Netzwerkfehler");
         } finally {
             setLoading(false);

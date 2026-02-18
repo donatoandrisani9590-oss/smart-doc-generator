@@ -195,6 +195,7 @@ export function WordImportWizard({
         if (file) {
             handleFileSelect(file);
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- handleFileSelect is stable; only re-create on country change
     }, [countryCode]);
 
     const handleDragOver = (e: React.DragEvent) => {

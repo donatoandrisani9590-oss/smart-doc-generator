@@ -190,6 +190,7 @@ export const ClausesPage = () => {
     useEffect(() => {
         if (!docTypeMap || docTypeFilter === null || docTypeFilter === UNASSIGNED_FILTER) return;
         const exists = docTypeMap.some((dt) => dt.document_type_id === docTypeFilter);
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: reset invalid filter after country change
         if (!exists) setDocTypeFilter(null);
     }, [docTypeMap, docTypeFilter]);
 
@@ -360,6 +361,7 @@ export const ClausesPage = () => {
 
     // Reset page on filter change
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: reset pagination when filters change
         setClausePage(1);
     }, [searchQuery, categoryFilter, statusFilter, countryFilter, docTypeFilter]);
 

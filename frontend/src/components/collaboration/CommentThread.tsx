@@ -442,6 +442,7 @@ export const CommentThread = ({
         if (data && onCommentCountChange) {
             onCommentCountChange(data.total);
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- data object reference changes on every fetch; only react to data.total
     }, [data?.total, onCommentCountChange]);
 
     // Wenn eine Inline-Selection ansteht, automatisch Input öffnen

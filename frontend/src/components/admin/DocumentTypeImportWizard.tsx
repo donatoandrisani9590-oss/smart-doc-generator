@@ -140,7 +140,14 @@ export function DocumentTypeImportWizard({
     const [sections, setSections] = useState<ExtractedSection[]>([]);
 
     // Import result
-    const [importResult, setImportResult] = useState<any>(null);
+    const [importResult, setImportResult] = useState<{
+        document_type_id: number;
+        document_type_name: string;
+        clauses_created: number;
+        clauses_linked: number;
+        variants_added: number;
+        form_fields_created: number;
+    } | null>(null);
 
     const resetWizard = () => {
         setStep("upload");
@@ -210,6 +217,7 @@ export function DocumentTypeImportWizard({
         setIsDragging(false);
         const file = e.dataTransfer.files[0];
         if (file) handleFileSelect(file);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- handleFileSelect is stable; only re-create on country change
     }, [selectedCountry]);
 
     // Section actions
@@ -525,7 +533,7 @@ export function DocumentTypeImportWizard({
                                                 {/* Action Selection */}
                                                 <RadioGroup
                                                     value={section.action}
-                                                    onValueChange={(v) => updateSection(section.index, { action: v as any })}
+                                                    onValueChange={(v) => updateSection(section.index, { action: v as ExtractedSection["action"] })}
                                                 >
                                                     <div className="flex items-center space-x-2">
                                                         <RadioGroupItem value="create_new" id={`new-${section.index}`} />

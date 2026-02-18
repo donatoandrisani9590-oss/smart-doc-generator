@@ -35,7 +35,7 @@ export const RegisterPage: React.FC = () => {
   const passwordHasUpper = /[A-Z]/.test(password);
   const passwordHasLower = /[a-z]/.test(password);
   const passwordHasDigit = /\d/.test(password);
-  const passwordHasSpecial = /[!@#$%^&*()_+\-=\[\]{}|;:,.<>?/~`]/.test(password);
+  const passwordHasSpecial = /[!@#$%^&*()_+\-=[\]{}|;:,.<>?/~`]/.test(password);
   const passwordValid = passwordMinLength && passwordHasUpper && passwordHasLower && passwordHasDigit && passwordHasSpecial;
   const passwordsMatch = password === confirmPassword && confirmPassword.length > 0;
 
@@ -62,7 +62,7 @@ export const RegisterPage: React.FC = () => {
     if (!/[A-Z]/.test(password)) pwErrors.push("einen Großbuchstaben");
     if (!/[a-z]/.test(password)) pwErrors.push("einen Kleinbuchstaben");
     if (!/\d/.test(password)) pwErrors.push("eine Ziffer");
-    if (!/[!@#$%^&*()_+\-=\[\]{}|;:,.<>?/~`]/.test(password)) pwErrors.push("ein Sonderzeichen");
+    if (!/[!@#$%^&*()_+\-=[\]{}|;:,.<>?/~`]/.test(password)) pwErrors.push("ein Sonderzeichen");
     if (pwErrors.length > 0) {
       setError(`Passwort benötigt: ${pwErrors.join(", ")}`);
       return;

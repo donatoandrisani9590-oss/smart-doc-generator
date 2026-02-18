@@ -79,7 +79,7 @@ export const DuplicateDocumentTypeDialog = ({
 
             setResult(response);
             onSuccess?.(response);
-        } catch (error) {
+        } catch {
             // Error handled by mutation
         }
     };

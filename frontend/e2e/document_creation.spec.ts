@@ -171,7 +171,7 @@ async function createTemplate(
     await page.waitForSelector(`text="${name}"`, { timeout: 5000 });
 }
 
-async function assignClauseToTemplate(page: Page, templateName: string, clauseTitle: string) {
+async function _assignClauseToTemplate(page: Page, templateName: string, clauseTitle: string) {
     // Navigate to template editor
     await page.click(`text="${templateName}"`);
     await page.waitForSelector('[data-testid="template-editor"], [data-testid="clause-assignment"]');

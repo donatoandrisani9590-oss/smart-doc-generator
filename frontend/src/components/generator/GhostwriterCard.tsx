@@ -42,6 +42,7 @@ export const GhostwriterCard = ({
     if (isStreaming || isGenerating) {
       // Clear timer while active
       if (collapseTimerRef.current) clearTimeout(collapseTimerRef.current);
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: expand card while streaming/generating is active
       setIsCollapsed(false);
       return;
     }

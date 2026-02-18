@@ -282,8 +282,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Check if 2FA is required
       if (loginData.requires_2fa) {
         setState((prev) => ({ ...prev, isLoading: false }));
-        const err = new Error("2FA_REQUIRED");
-        (err as any).preAuthToken = loginData.access_token;
+        const err = new Error("2FA_REQUIRED") as Error & { preAuthToken: string };
+        err.preAuthToken = loginData.access_token;
         throw err;
       }
 
@@ -459,6 +459,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 };
 
 // Hook
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (!context) {
@@ -468,11 +469,13 @@ export const useAuth = (): AuthContextType => {
 };
 
 // Helper to get token (for API calls outside of React)
+// eslint-disable-next-line react-refresh/only-export-components
 export const getAuthToken = (): string | null => {
   return localStorage.getItem(TOKEN_KEY);
 };
 
 // Helper to get refresh token (for API client token renewal)
+// eslint-disable-next-line react-refresh/only-export-components
 export const getRefreshToken = (): string | null => {
   return localStorage.getItem(REFRESH_TOKEN_KEY);
 };

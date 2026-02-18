@@ -65,6 +65,7 @@ export type FeatureKey =
   | "compact_sidebar";
 
 // Default settings (all enabled except compact_sidebar)
+// eslint-disable-next-line react-refresh/only-export-components
 export const DEFAULT_SETTINGS: Record<FeatureKey, boolean> = {
   show_documents_overview: true,
   show_deadlines_widget: true,
@@ -257,6 +258,7 @@ export function FeatureSettingsProvider({ children }: FeatureSettingsProviderPro
 /**
  * Full feature settings hook with all actions
  */
+// eslint-disable-next-line react-refresh/only-export-components
 export function useFeatureSettings(): FeatureSettingsContextValue {
   const context = useContext(FeatureSettingsContext);
 
@@ -271,6 +273,7 @@ export function useFeatureSettings(): FeatureSettingsContextValue {
  * Simple hook for checking a single feature
  * Returns default (true) if context not available or loading
  */
+// eslint-disable-next-line react-refresh/only-export-components
 export function useFeatureEnabled(feature: FeatureKey): boolean {
   const context = useContext(FeatureSettingsContext);
 

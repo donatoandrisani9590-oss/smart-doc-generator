@@ -101,6 +101,7 @@ export const TemplatePreview = ({ documentTypeId }: TemplatePreviewProps) => {
             formFields.forEach((field: FormField) => {
                 initial[field.field_name] = generateSampleValue(field);
             });
+            // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: initialize sample data when form fields load
             setSampleData(initial);
             setPreviewEnabled(true);
         }

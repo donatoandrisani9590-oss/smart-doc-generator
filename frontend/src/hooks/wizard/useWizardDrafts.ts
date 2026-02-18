@@ -300,7 +300,6 @@ export function useWizardDrafts(params: UseWizardDraftsParams): UseWizardDraftsR
         if (initialDraftId) {
             loadDraftRef.current(initialDraftId);
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [initialDraftId]);
 
     // ── Manual Save Draft ───────────────────────────────────────────────────

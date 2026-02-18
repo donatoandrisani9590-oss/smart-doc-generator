@@ -112,7 +112,7 @@ export const RepositoryPage = () => {
     const bulkAction = useBulkAction();
 
     const isLoading = loadingDocs || loadingDrafts;
-    const documents = repository?.documents || [];
+    const documents = useMemo(() => repository?.documents || [], [repository?.documents]);
 
     // Unified View: Entwürfe + fertige Dokumente kombinieren
     type UnifiedItem = {
@@ -135,7 +135,7 @@ export const RepositoryPage = () => {
 
         // Entwürfe hinzufügen (oben, da wichtiger)
         if (drafts && Array.isArray(drafts)) {
-            drafts.forEach((draft: any) => {
+            (drafts as Array<{ id: number; name?: string; document_type_name?: string; updated_at?: string; days_remaining?: number }>).forEach((draft) => {
                 items.push({
                     id: draft.id,
                     type: "draft",
@@ -264,7 +264,7 @@ export const RepositoryPage = () => {
                             });
                             refetch();
                             toast.success("Rückgängig gemacht", `${count} Dokument(e) wiederhergestellt`);
-                        } catch (err) {
+                        } catch {
                             toast.error("Fehler", "Rückgängig machen fehlgeschlagen");
                         }
                     },

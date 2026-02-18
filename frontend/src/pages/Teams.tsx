@@ -113,7 +113,7 @@ export const TeamsPage = () => {
             setNewTeamName("");
             setNewTeamDescription("");
             toast.success("Team erstellt", `"${newTeamName}" wurde erfolgreich angelegt`);
-        } catch (error) {
+        } catch {
             toast.error("Fehler", "Das Team konnte nicht erstellt werden");
         }
     };
@@ -133,7 +133,7 @@ export const TeamsPage = () => {
             setNewMemberId("");
             setNewMemberRole("member");
             toast.success("Mitglied hinzugefügt", `${newMemberId} wurde zum Team hinzugefügt`);
-        } catch (error) {
+        } catch {
             toast.error("Fehler", "Das Mitglied konnte nicht hinzugefügt werden");
         }
     };
@@ -147,7 +147,7 @@ export const TeamsPage = () => {
             setDeleteDialogOpen(false);
             setSelectedTeam(null);
             toast.success("Team gelöscht", `"${teamName}" wurde entfernt`);
-        } catch (error) {
+        } catch {
             toast.error("Fehler", "Das Team konnte nicht gelöscht werden");
         }
     };
@@ -168,7 +168,7 @@ export const TeamsPage = () => {
             setNewTemplateName("");
             setNewTemplateDescription("");
             toast.success("Vorlage erstellt", `"${newTemplateName}" wurde für das Team erstellt`);
-        } catch (error) {
+        } catch {
             toast.error("Fehler", "Die Vorlage konnte nicht erstellt werden");
         }
     };
@@ -182,7 +182,7 @@ export const TeamsPage = () => {
                 userId: member.user_id,
             });
             toast.success("Mitglied entfernt", `${member.user_id} wurde aus dem Team entfernt`);
-        } catch (error) {
+        } catch {
             toast.error("Fehler", "Das Mitglied konnte nicht entfernt werden");
         }
     };
@@ -200,7 +200,7 @@ export const TeamsPage = () => {
             setLeaveDialogOpen(false);
             setSelectedTeam(null);
             toast.info("Team verlassen", `Sie haben "${teamName}" verlassen`);
-        } catch (error) {
+        } catch {
             toast.error("Fehler", "Sie konnten das Team nicht verlassen");
         }
     };

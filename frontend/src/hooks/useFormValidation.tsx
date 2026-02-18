@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 /**
  * useFormValidation - Form-Validierung mit Zod
  *

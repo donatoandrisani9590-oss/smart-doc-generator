@@ -47,6 +47,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // Apply dark class to <html>
   useEffect(() => {
     const resolved = resolveTheme(theme);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: sync resolved theme when theme preference changes
     setResolvedTheme(resolved);
 
     const root = document.documentElement;
@@ -97,6 +98,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useTheme = (): ThemeContextType => {
   const context = useContext(ThemeContext);
   if (!context) {

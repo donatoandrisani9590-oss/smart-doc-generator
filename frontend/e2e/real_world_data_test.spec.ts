@@ -13,7 +13,7 @@
  * @version 1.0.0
  */
 
-import { test, expect, APIRequestContext } from "@playwright/test";
+import { test, expect } from "@playwright/test";
 
 const API_URL = process.env.TEST_API_URL || "http://localhost:8000/api/v1";
 
@@ -246,7 +246,7 @@ test.describe("Clause Creation & Placeholder Extraction", () => {
 
         // Check if any clause has extracted placeholders
         const clausesWithPlaceholders = clauses.filter(
-            (c: any) => c.placeholders && c.placeholders.length > 0
+            (c: Record<string, unknown>) => c.placeholders && (c.placeholders as unknown[]).length > 0
         );
         console.log(`[CL-001] Clauses with placeholders: ${clausesWithPlaceholders.length}`);
     });
@@ -286,7 +286,7 @@ test.describe("Clause Creation & Placeholder Extraction", () => {
         console.log(`[CL-003] Total placeholders in system: ${placeholders.length}`);
 
         // Check for common placeholder types
-        const types = new Set(placeholders.map((p: any) => p.field_type || "text"));
+        const types = new Set(placeholders.map((p: Record<string, unknown>) => (p.field_type as string) || "text"));
         console.log(`[CL-003] Placeholder types available: ${Array.from(types).join(", ")}`);
 
         // We need at least text type
@@ -344,8 +344,8 @@ test.describe("Feature Gap Analysis", () => {
 
         // Look for condition-related fields in the schema
         const hasConditionalSupport = types.length > 0 && (
-            types[0].hasOwnProperty("conditions") ||
-            types[0].hasOwnProperty("clause_conditions")
+            Object.prototype.hasOwnProperty.call(types[0], "conditions") ||
+            Object.prototype.hasOwnProperty.call(types[0], "clause_conditions")
         );
 
         console.log(`[GAP-001] Conditional clause support: ${hasConditionalSupport ? "YES" : "CHECK MANUALLY"}`);
@@ -359,8 +359,8 @@ test.describe("Feature Gap Analysis", () => {
 
         // Look for variant-related fields
         const hasVariantSupport = clauses.length > 0 && (
-            clauses[0].hasOwnProperty("variant_group_id") ||
-            clauses[0].hasOwnProperty("variants")
+            Object.prototype.hasOwnProperty.call(clauses[0], "variant_group_id") ||
+            Object.prototype.hasOwnProperty.call(clauses[0], "variants")
         );
 
         console.log(`[GAP-002] Clause variant support: ${hasVariantSupport ? "YES" : "CHECK MANUALLY"}`);
@@ -459,7 +459,7 @@ test.describe("Complexity Score Calculation", () => {
         expect(complexityScore).toBeLessThanOrEqual(10);
     });
 
-    test("SCORE-002: Calculate migration complexity for DIRIGENTE", async ({ request }) => {
+    test("SCORE-002: Calculate migration complexity for DIRIGENTE", async ({ request: _request }) => {
         const doc = REAL_WORLD_DOCUMENTS.dirigente;
 
         const migrationSteps = {
@@ -491,7 +491,7 @@ test.describe("Complexity Score Calculation", () => {
         expect(complexityScore).toBeLessThanOrEqual(10);
     });
 
-    test("SCORE-003: Calculate migration complexity for Vertragsentwurf", async ({ request }) => {
+    test("SCORE-003: Calculate migration complexity for Vertragsentwurf", async ({ request: _request }) => {
         const doc = REAL_WORLD_DOCUMENTS.vertragsentwurf;
 
         const migrationSteps = {

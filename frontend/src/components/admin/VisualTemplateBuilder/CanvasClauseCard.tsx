@@ -62,6 +62,7 @@ export const CanvasClauseCard = ({ clause, onRemove, inSection = false }: Canvas
 
                     {/* Icon */}
                     <div className="p-2 bg-green-100 rounded shrink-0">
+                        {/* eslint-disable-next-line react-hooks/static-components -- dynamic component from lookup, not a nested component definition */}
                         <IconComponent className="w-4 h-4 text-green-600" />
                     </div>
 

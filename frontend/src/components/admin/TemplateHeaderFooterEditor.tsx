@@ -144,6 +144,7 @@ export const TemplateHeaderFooterEditor = ({
   useEffect(() => {
     loadSettings();
     loadAvailableTemplates();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- fetch on mount and when documentTypeId changes
   }, [documentTypeId]);
 
   const loadSettings = async () => {
@@ -154,7 +155,7 @@ export const TemplateHeaderFooterEditor = ({
       );
       setSettings(res.data);
       setHasChanges(false);
-    } catch (error) {
+    } catch {
       // Settings might not exist yet - use defaults
       console.info("Using default header/footer settings");
     } finally {
@@ -182,7 +183,7 @@ export const TemplateHeaderFooterEditor = ({
       toast.success("Gespeichert", "Kopf-/Fußzeilen-Einstellungen wurden gespeichert");
       setHasChanges(false);
       onSave?.();
-    } catch (error) {
+    } catch {
       toast.error("Fehler", "Einstellungen konnten nicht gespeichert werden");
     } finally {
       setIsSaving(false);
@@ -202,7 +203,7 @@ export const TemplateHeaderFooterEditor = ({
       await api.delete(`/api/v1/document-types/${documentTypeId}/header-footer`);
       toast.success("Zurückgesetzt", "Globale Design-Einstellungen werden verwendet");
       await loadSettings();
-    } catch (error) {
+    } catch {
       toast.error("Fehler", "Zurücksetzen fehlgeschlagen");
     }
   };
@@ -229,7 +230,7 @@ export const TemplateHeaderFooterEditor = ({
       toast.success("Übernommen", responseData.message);
       setShowCopyDialog(false);
       await loadSettings();
-    } catch (error) {
+    } catch {
       toast.error("Fehler", "Einstellungen konnten nicht übernommen werden");
     } finally {
       setIsCopying(false);

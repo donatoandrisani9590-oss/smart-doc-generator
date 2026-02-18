@@ -79,19 +79,17 @@ const DataValue = ({ value, format }: { value: string | boolean; format?: "curre
     }
 
     if (format === "date" && value) {
+        let formattedDate = value;
         try {
-            return (
-                <span>
-                    {new Intl.DateTimeFormat("de-DE", {
-                        day: "2-digit",
-                        month: "2-digit",
-                        year: "numeric",
-                    }).format(new Date(value))}
-                </span>
-            );
+            formattedDate = new Intl.DateTimeFormat("de-DE", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+            }).format(new Date(value));
         } catch {
-            return <span>{value}</span>;
+            // Fall back to raw value if date parsing fails
         }
+        return <span>{formattedDate}</span>;
     }
 
     return <span>{value}</span>;

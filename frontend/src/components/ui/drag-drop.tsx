@@ -175,6 +175,7 @@ export function SortableList<T extends SortableItem>({
 /**
  * Hook to access sortable list context
  */
+// eslint-disable-next-line react-refresh/only-export-components
 export function useSortableListContext() {
     return useContext(SortableListContext);
 }
@@ -257,6 +258,7 @@ const SortableItemContext = createContext<SortableItemContextValue>({
 /**
  * Hook to access sortable item context (for drag handle)
  */
+// eslint-disable-next-line react-refresh/only-export-components
 export function useSortableItemContext() {
     return useContext(SortableItemContext);
 }

@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 /**
  * WizardContext - Geteilter State für den Document Generator Wizard
  *
