@@ -306,19 +306,31 @@ async def lifespan(app: FastAPI):
         async with engine.begin() as conn:
             migrations_run = 0
 
-            # Helper: get existing columns for a table
-            async def get_columns(table_name: str) -> set:
-                result = await conn.execute(text(
-                    "SELECT column_name FROM information_schema.columns WHERE table_name = :t"
-                ).bindparams(t=table_name))
-                return {row[0] for row in result.fetchall()}
+            # Helper: get existing columns for a table (PostgreSQL + SQLite)
+            is_sqlite = "sqlite" in str(engine.url)
 
-            # Helper: check if table exists
+            async def get_columns(table_name: str) -> set:
+                if is_sqlite:
+                    result = await conn.execute(text(f'PRAGMA table_info("{table_name}")'))
+                    return {row[1] for row in result.fetchall()}
+                else:
+                    result = await conn.execute(text(
+                        "SELECT column_name FROM information_schema.columns WHERE table_name = :t"
+                    ).bindparams(t=table_name))
+                    return {row[0] for row in result.fetchall()}
+
+            # Helper: check if table exists (PostgreSQL + SQLite)
             async def table_exists(table_name: str) -> bool:
-                result = await conn.execute(text(
-                    "SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = :t)"
-                ).bindparams(t=table_name))
-                return result.scalar()
+                if is_sqlite:
+                    result = await conn.execute(text(
+                        "SELECT name FROM sqlite_master WHERE type='table' AND name = :t"
+                    ).bindparams(t=table_name))
+                    return result.fetchone() is not None
+                else:
+                    result = await conn.execute(text(
+                        "SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = :t)"
+                    ).bindparams(t=table_name))
+                    return result.scalar()
 
             # --- users table ---
             users_cols = await get_columns("users")
@@ -346,7 +358,7 @@ async def lifespan(app: FastAPI):
             # --- document_types table ---
             dt_cols = await get_columns("document_types")
             dt_migrations = [
-                ("updated_at", "ALTER TABLE document_types ADD COLUMN updated_at TIMESTAMPTZ DEFAULT NOW()"),
+                ("updated_at", "ALTER TABLE document_types ADD COLUMN updated_at TEXT"),
             ]
             for col_name, sql in dt_migrations:
                 if col_name not in dt_cols:
@@ -387,7 +399,7 @@ async def lifespan(app: FastAPI):
             # --- clauses table ---
             cl_cols = await get_columns("clauses")
             cl_migrations = [
-                ("updated_at", "ALTER TABLE clauses ADD COLUMN updated_at TIMESTAMPTZ DEFAULT NOW()"),
+                ("updated_at", "ALTER TABLE clauses ADD COLUMN updated_at TEXT"),
             ]
             for col_name, sql in cl_migrations:
                 if col_name not in cl_cols:
@@ -427,7 +439,7 @@ async def lifespan(app: FastAPI):
                         field_defaults TEXT,
                         common_clause_ids TEXT,
                         sample_size INTEGER DEFAULT 0,
-                        calculated_at TIMESTAMPTZ DEFAULT NOW(),
+                        calculated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
                         UNIQUE (team_id, document_type_id)
                     )
                 """))
