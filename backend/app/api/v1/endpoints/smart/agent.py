@@ -256,6 +256,8 @@ _INT_PARAMS = {
     "search_clauses": {"document_type_id"},
     "select_clauses": {"enable", "disable"},  # arrays of int
     "generate_text": {"max_sentences"},
+    "update_package_draft": {"draft_id"},
+    "apply_to_all_drafts": {"job_id"},
 }
 
 

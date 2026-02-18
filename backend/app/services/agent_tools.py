@@ -17,7 +17,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.documents import (
     Clause, DocumentType, DocumentTypeClause, CompanySettings,
 )
-from app.models.enterprise import GeneratedDocument, FormField
+from app.models.enterprise import GeneratedDocument, FormField, DocumentDraft, OnboardingJob
 from app.services.pii_sanitizer import sanitize_employee_history
 
 logger = logging.getLogger(__name__)
@@ -234,6 +234,56 @@ AGENT_TOOLS = [
             },
         },
     },
+    {
+        "type": "function",
+        "function": {
+            "name": "update_package_draft",
+            "description": (
+                "Aktualisiere einen einzelnen Entwurf aus einem Onboarding-Paket. "
+                "Kann Formularfelder ändern. Verwende die Draft-ID aus dem Paket-Ergebnis."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "draft_id": {
+                        "type": "integer",
+                        "description": "ID des zu aktualisierenden Entwurfs",
+                    },
+                    "field_updates": {
+                        "type": "object",
+                        "description": "Key-Value-Paare der zu ändernden Felder",
+                        "additionalProperties": {"type": "string"},
+                    },
+                },
+                "required": ["draft_id", "field_updates"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "apply_to_all_drafts",
+            "description": (
+                "Wende Feldänderungen auf ALLE Entwürfe eines Onboarding-Pakets an. "
+                "Nützlich für gemeinsame Felder wie Adresse, Name, Eintrittsdatum."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "job_id": {
+                        "type": "integer",
+                        "description": "ID des Onboarding-Jobs",
+                    },
+                    "field_updates": {
+                        "type": "object",
+                        "description": "Key-Value-Paare der zu ändernden Felder",
+                        "additionalProperties": {"type": "string"},
+                    },
+                },
+                "required": ["job_id", "field_updates"],
+            },
+        },
+    },
 ]
 
 
@@ -263,6 +313,8 @@ async def execute_tool(
         "run_compliance_check": _exec_run_compliance_check,
         "generate_text": _exec_generate_text,
         "get_form_field_definitions": _exec_get_form_field_definitions,
+        "update_package_draft": _exec_update_package_draft,
+        "apply_to_all_drafts": _exec_apply_to_all_drafts,
     }
 
     executor = executors.get(tool_name)
@@ -589,4 +641,77 @@ async def _exec_get_form_field_definitions(
         "document_type": doc_type.name,
         "field_count": len(field_defs),
         "fields": field_defs,
+    }
+
+
+async def _exec_update_package_draft(
+    args: dict, db: AsyncSession, user_id: int, country_code: str
+) -> dict:
+    """Update a single draft's form_data."""
+    draft_id = args.get("draft_id")
+    field_updates = args.get("field_updates", {})
+
+    if not draft_id or not field_updates:
+        return {"error": "draft_id und field_updates sind erforderlich"}
+
+    draft = await db.get(DocumentDraft, draft_id)
+    if not draft or draft.user_id != str(user_id):
+        return {"error": f"Entwurf {draft_id} nicht gefunden"}
+
+    # Merge updates into existing form_data
+    try:
+        form_data = json.loads(draft.form_data) if draft.form_data else {}
+    except (json.JSONDecodeError, TypeError):
+        form_data = {}
+
+    form_data.update(field_updates)
+    draft.form_data = json.dumps(form_data, ensure_ascii=False)
+    await db.commit()
+
+    return {
+        "status": "ok",
+        "draft_id": draft_id,
+        "fields_updated": len(field_updates),
+        "draft_name": draft.name or "",
+    }
+
+
+async def _exec_apply_to_all_drafts(
+    args: dict, db: AsyncSession, user_id: int, country_code: str
+) -> dict:
+    """Update all drafts in an onboarding job."""
+    job_id = args.get("job_id")
+    field_updates = args.get("field_updates", {})
+
+    if not job_id or not field_updates:
+        return {"error": "job_id und field_updates sind erforderlich"}
+
+    job = await db.get(OnboardingJob, job_id)
+    if not job or job.user_id != user_id:
+        return {"error": f"Job {job_id} nicht gefunden"}
+
+    draft_ids = json.loads(job.draft_ids) if job.draft_ids else []
+    updated_count = 0
+
+    for did in draft_ids:
+        draft = await db.get(DocumentDraft, did)
+        if not draft or draft.user_id != str(user_id):
+            continue
+
+        try:
+            form_data = json.loads(draft.form_data) if draft.form_data else {}
+        except (json.JSONDecodeError, TypeError):
+            form_data = {}
+
+        form_data.update(field_updates)
+        draft.form_data = json.dumps(form_data, ensure_ascii=False)
+        updated_count += 1
+
+    await db.commit()
+
+    return {
+        "status": "ok",
+        "job_id": job_id,
+        "drafts_updated": updated_count,
+        "fields_updated": len(field_updates),
     }
