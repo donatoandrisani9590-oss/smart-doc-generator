@@ -185,6 +185,7 @@ async def _call_llm_with_tools(
 
     Returns the raw JSON response dict.
     Includes retry logic for Groq rate limits (429).
+    On tool validation errors (400), retries without tools as fallback.
     """
     payload = {
         "model": model,
@@ -222,6 +223,21 @@ async def _call_llm_with_tools(
                     continue
                 raise Exception("LLM Rate-Limit nach Retries erreicht. Bitte kurz warten.")
 
+            if response.status_code == 400:
+                error_text = response.text[:500]
+                # Groq sometimes returns 400 when the model generates invalid
+                # tool arguments (e.g. string instead of int). Retry without
+                # tools so the model can still produce a text response.
+                if "tool" in error_text.lower() and attempt < max_retries - 1:
+                    logger.warning(
+                        f"Tool validation error (Versuch {attempt + 1}), "
+                        f"retrying without tools: {error_text[:200]}"
+                    )
+                    payload.pop("tools", None)
+                    payload.pop("tool_choice", None)
+                    continue
+                raise Exception(f"LLM API Fehler (400): {error_text}")
+
             if response.status_code != 200:
                 error_text = response.text[:500]
                 raise Exception(f"LLM API Fehler ({response.status_code}): {error_text}")
@@ -229,6 +245,48 @@ async def _call_llm_with_tools(
             return response.json()
 
     raise Exception("LLM API: Max Retries erreicht")
+
+
+# ── Tool argument coercion ────────────────────────────────────────────
+
+# Maps tool_name → {param_name: expected_type} for integer fields
+# that Groq/Llama sometimes sends as strings
+_INT_PARAMS = {
+    "get_form_field_definitions": {"document_type_id"},
+    "search_clauses": {"document_type_id"},
+    "select_clauses": {"enable", "disable"},  # arrays of int
+    "generate_text": {"max_sentences"},
+}
+
+
+def _coerce_tool_args(tool_name: str, args: dict) -> dict:
+    """
+    Fix type mismatches from Groq/Llama tool calls.
+
+    Llama models sometimes generate string values where integers
+    are expected (e.g. "1" instead of 1). This coerces them.
+    """
+    int_params = _INT_PARAMS.get(tool_name, set())
+    if not int_params:
+        return args
+
+    fixed = dict(args)
+    for param in int_params:
+        if param not in fixed:
+            continue
+        val = fixed[param]
+        if isinstance(val, str):
+            try:
+                fixed[param] = int(val)
+            except (ValueError, TypeError):
+                pass
+        elif isinstance(val, list):
+            # Coerce list items (e.g. enable: ["1", "2"] → [1, 2])
+            fixed[param] = [
+                int(item) if isinstance(item, str) else item
+                for item in val
+            ]
+    return fixed
 
 
 # ── Conversation deletion (DSGVO Art. 17 — Recht auf Löschung) ────────
@@ -370,6 +428,9 @@ async def agent_chat_stream(
                         tool_input = json.loads(func.get("arguments", "{}"))
                     except json.JSONDecodeError:
                         tool_input = {}
+
+                    # Coerce types (Llama sometimes sends "1" instead of 1)
+                    tool_input = _coerce_tool_args(tool_name, tool_input)
 
                     # Emit tool_start event
                     yield _sse({
