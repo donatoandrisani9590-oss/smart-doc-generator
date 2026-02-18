@@ -65,6 +65,15 @@ postgres_data/
 # Docker volumes
 redis_data/
 
+# Test screenshots & temp assets
+*.png
+*.docx
+!frontend/public/**/*.png
+!backend/storage/**/*.png
+
+# Playwright MCP
+.playwright-mcp/
+
 # Other projects (not part of this repo)
 ai-coding-starter-kit/
 ai-agent-system-smart-doc-generator/
