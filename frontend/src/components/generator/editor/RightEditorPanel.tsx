@@ -324,7 +324,7 @@ export const RightEditorPanel = () => {
                                 isLoading={isPreviewLoading}
                             />
                         ) : (
-                            <div className="bg-white rounded-sm shadow-[0_1px_3px_rgba(0,0,0,0.06),0_4px_16px_rgba(0,0,0,0.04),0_12px_40px_rgba(0,0,0,0.03)]">
+                            <div className="bg-white dark:bg-card rounded-sm shadow-[0_1px_3px_rgba(0,0,0,0.06),0_4px_16px_rgba(0,0,0,0.04),0_12px_40px_rgba(0,0,0,0.03)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.2),0_4px_16px_rgba(0,0,0,0.15)]">
                                 <DocumentEditor
                                     value={displayContent}
                                     onChange={handleEditorChange}

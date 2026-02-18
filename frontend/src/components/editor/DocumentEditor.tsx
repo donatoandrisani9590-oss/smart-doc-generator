@@ -13,6 +13,7 @@ import { Editor } from "@tinymce/tinymce-react";
 import { useDebouncedCallback } from "use-debounce";
 import { Loader2 } from "lucide-react";
 import type { Editor as TinyMCEEditor } from "tinymce";
+import { useTheme } from "@/contexts/ThemeContext";
 
 // Import TinyMCE core (required for self-hosted)
 import "tinymce/tinymce";
@@ -80,6 +81,9 @@ export const DocumentEditor = ({
   onUserEdit,
   onEditorInit,
 }: DocumentEditorProps) => {
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
+
   const editorRef = useRef<TinyMCEEditor | null>(null);
   const [isEditorReady, setIsEditorReady] = useState(false);
   const lastValueRef = useRef(value);
@@ -160,6 +164,7 @@ export const DocumentEditor = ({
       className={`document-editor-container ${className || ""}`}
     >
       <Editor
+        key={`editor-${resolvedTheme}`}
         onInit={(_evt, editor) => {
           editorRef.current = editor;
           setIsEditorReady(true);
@@ -237,10 +242,16 @@ export const DocumentEditor = ({
 
           // === Content Styling (A4 Document) ===
           content_css: "/tinymce-document.css",
+          content_style: isDark
+            ? "body { background: #1a1d2e !important; color: #dde1e8 !important; } .document-title { color: #7b8bcc !important; } table td, table th { border-color: #2a2f42 !important; } table th { background: #1e2236 !important; } .custom-clause { background: #1e2236 !important; border-left-color: #5566aa !important; } .party-role { color: #8890a4 !important; }"
+            : undefined,
           body_class: "mce-content-body",
 
-          // === Self-Hosted Asset Paths ===
-          skin_url: "/tinymce/skins/ui/oxide",
+          // === Self-Hosted Asset Paths (dark skin when dark mode) ===
+          skin_url: isDark
+            ? "/tinymce/skins/ui/oxide-dark"
+            : "/tinymce/skins/ui/oxide",
+          content_css_cors: true,
 
           // === Editor Behavior ===
           paste_data_images: true,
@@ -259,9 +270,9 @@ export const DocumentEditor = ({
               body.style.fontFamily = "'Arial', 'Inter', sans-serif";
               body.style.fontSize = "11pt";
               body.style.lineHeight = "1.15";
-              body.style.color = "#1D1D1F";
+              body.style.color = isDark ? "#dde1e8" : "#1D1D1F";
               body.style.margin = "0";
-              body.style.background = "#ffffff";
+              body.style.background = isDark ? "#1a1d2e" : "#ffffff";
               body.style.boxSizing = "border-box";
               body.style.width = "100%";
               body.style.maxWidth = "100%";
