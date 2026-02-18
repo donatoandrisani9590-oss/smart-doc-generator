@@ -506,22 +506,23 @@
   .ive-pill-tabs {
     display: inline-flex;
     align-items: center;
-    background: hsl(var(--muted) / 0.3);
+    background: hsl(var(--muted) / 0.4);
     border-radius: 9999px;
     padding: 2px;
-    gap: 2px;
+    gap: 1px;
   }
   .ive-pill-tab {
-    padding: 6px 16px;
+    padding: 5px 14px;
     border-radius: 9999px;
     font-size: 12px;
     font-weight: 500;
-    color: hsl(var(--muted-foreground) / 0.5);
+    color: hsl(var(--foreground) / 0.35);
     transition: all 0.2s ease;
     cursor: pointer;
+    white-space: nowrap;
   }
   .ive-pill-tab:hover {
-    color: hsl(var(--foreground) / 0.7);
+    color: hsl(var(--foreground) / 0.6);
   }
   .ive-pill-tab-active {
     background: hsl(var(--card));

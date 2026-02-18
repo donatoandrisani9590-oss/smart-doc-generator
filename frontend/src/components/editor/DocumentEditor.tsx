@@ -242,9 +242,12 @@ export const DocumentEditor = ({
 
           // === Content Styling (A4 Document) ===
           content_css: "/tinymce-document.css",
-          content_style: isDark
-            ? "body { background: #1a1d2e !important; color: #dde1e8 !important; } .document-title { color: #7b8bcc !important; } table td, table th { border-color: #2a2f42 !important; } table th { background: #1e2236 !important; } .custom-clause { background: #1e2236 !important; border-left-color: #5566aa !important; } .party-role { color: #8890a4 !important; }"
-            : undefined,
+          content_style: [
+            "hr { border: none !important; border-top: 1px solid #d1d1d6 !important; margin: 10mm 0 !important; } .document-header { border-bottom-width: 1px !important; }",
+            isDark
+              ? "body { background: #1a1d2e !important; color: #dde1e8 !important; } .document-title { color: #7b8bcc !important; } table td, table th { border-color: #2a2f42 !important; } table th { background: #1e2236 !important; } .custom-clause { background: #1e2236 !important; border-left-color: #5566aa !important; } .party-role { color: #8890a4 !important; } hr { border-top-color: #3a3f52 !important; }"
+              : "",
+          ].join(" "),
           body_class: "mce-content-body",
 
           // === Self-Hosted Asset Paths (dark skin when dark mode) ===
