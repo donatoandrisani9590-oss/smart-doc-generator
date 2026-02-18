@@ -81,9 +81,9 @@ export const Dashboard = () => {
     const showDocumentSection = !isLoading && (hasDrafts || hasRecentDocs);
 
     return (
-        <div className="space-y-6 animate-enter">
+        <div className="space-y-8 animate-enter">
             {/* ── Hero Banner ── */}
-            <div className="bg-hero-gradient rounded-2xl p-8 text-white relative overflow-hidden shadow-hero">
+            <div className="bg-hero-gradient rounded-2xl px-8 py-6 text-white relative overflow-hidden shadow-hero">
                 {/* Decorative overlay */}
                 <div
                     className="absolute inset-0 opacity-10 pointer-events-none"
@@ -111,7 +111,7 @@ export const Dashboard = () => {
                                     {isLoading ? (
                                         <Skeleton className="h-8 w-10 bg-white/20 rounded" />
                                     ) : (
-                                        <p className="text-2xl font-bold">
+                                        <p className="text-4xl font-light tracking-tight">
                                             {stats?.documents_this_month ?? 0}
                                         </p>
                                     )}
@@ -123,7 +123,7 @@ export const Dashboard = () => {
                                     {isLoading ? (
                                         <Skeleton className="h-8 w-10 bg-white/20 rounded" />
                                     ) : (
-                                        <p className="text-2xl font-bold">
+                                        <p className="text-4xl font-light tracking-tight">
                                             {stats?.open_drafts ?? 0}
                                         </p>
                                     )}
@@ -135,7 +135,7 @@ export const Dashboard = () => {
                                     {isLoading ? (
                                         <Skeleton className="h-8 w-10 bg-white/20 rounded" />
                                     ) : (
-                                        <p className="text-2xl font-bold">
+                                        <p className="text-4xl font-light tracking-tight">
                                             {stats?.documents_total ?? 0}
                                         </p>
                                     )}
@@ -210,7 +210,7 @@ export const Dashboard = () => {
             )}
 
             {/* ── Main Content (single column) ── */}
-            <div className="space-y-6">
+            <div className="space-y-8">
                 {/* Quick Templates - nur anzeigen wenn Dokumenttypen vorhanden */}
                 {!hasNoDocumentTypes && <QuickTemplates />}
 
@@ -225,7 +225,7 @@ export const Dashboard = () => {
                             <Sparkles className="w-6 h-6 text-primary" />
                         </div>
                         <div className="flex-1">
-                            <h2 className="text-lg font-semibold text-foreground">KI-Dokumentassistent</h2>
+                            <h2 className="text-xl font-semibold tracking-tight text-foreground">KI-Dokumentassistent</h2>
                             <p className="text-sm text-muted-foreground">
                                 Beschreiben Sie, welches Dokument Sie benötigen — die KI führt Sie durch den Prozess.
                             </p>
