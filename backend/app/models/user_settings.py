@@ -40,6 +40,7 @@ class UserFeatureSettings(Base):
     enable_ai_streaming = Column(Boolean, default=True, nullable=False)
     enable_ghostwriter = Column(Boolean, default=True, nullable=False)
     enable_ai_agent = Column(Boolean, default=True, nullable=False)
+    enable_onboarding_agent = Column(Boolean, default=True, nullable=False)
 
     # UI Preferences
     show_quick_templates = Column(Boolean, default=True, nullable=False)
@@ -124,6 +125,12 @@ FEATURE_DEFINITIONS = {
         "description": "Aktiviert den KI-gestützten Dokumentenassistenten mit Chat-First-Workflow",
         "category": "ai",
         "icon": "Bot"
+    },
+    "enable_onboarding_agent": {
+        "label": "Onboarding-Agent",
+        "description": "Erstellt komplette Dokumentpakete (Onboarding, Kündigung, Beförderung) per Chat",
+        "category": "ai",
+        "icon": "Package"
     },
     "show_quick_templates": {
         "label": "Schnellstart-Templates",
