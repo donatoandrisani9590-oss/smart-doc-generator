@@ -258,11 +258,10 @@ export default function WorksCouncilTemplatesPage() {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold flex items-center gap-2">
-                        <Users className="w-6 h-6" />
+                    <h1 className="text-xl font-semibold tracking-tight text-foreground">
                         Betriebsrat-Vorlagen
                     </h1>
-                    <p className="text-muted-foreground">
+                    <p className="text-sm text-muted-foreground">
                         Verwalten Sie Vorlagen für §99 BetrVG Mitteilungen
                     </p>
                 </div>

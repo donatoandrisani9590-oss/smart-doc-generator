@@ -142,8 +142,8 @@ export default function CompanySettingsPage() {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold">Stammdaten</h1>
-                    <p className="text-muted-foreground">
+                    <h1 className="text-xl font-semibold tracking-tight text-foreground">Stammdaten</h1>
+                    <p className="text-sm text-muted-foreground">
                         Zentrale Firmendaten für automatisches Ausfüllen
                     </p>
                 </div>

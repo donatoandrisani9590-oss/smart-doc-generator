@@ -156,7 +156,7 @@ export function FeatureSettingsPanel() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-semibold">Funktionen</h2>
+            <h2 className="text-xl font-semibold tracking-tight text-foreground">Funktionen</h2>
             <p className="text-sm text-muted-foreground">
               Aktivieren oder deaktivieren Sie Funktionen nach Bedarf
             </p>

@@ -47,6 +47,13 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 import { DuplicateDocumentTypeDialog } from "@/components/documents/DuplicateDocumentTypeDialog";
 import { DocumentTypeEditor } from "@/components/admin/DocumentTypeEditor";
 import { DocumentTypeImportWizard } from "@/components/admin/DocumentTypeImportWizard";
@@ -108,8 +115,8 @@ export const DocumentTypesManager = () => {
             {/* Header */}
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-2xl font-bold text-foreground">Dokumenttypen verwalten</h1>
-                    <p className="text-muted-foreground">
+                    <h1 className="text-xl font-semibold tracking-tight text-foreground">Dokumenttypen verwalten</h1>
+                    <p className="text-sm text-muted-foreground">
                         Erstellen, bearbeiten und duplizieren Sie Dokumenttypen
                     </p>
                 </div>
@@ -137,16 +144,15 @@ export const DocumentTypesManager = () => {
                 <CardContent className="pt-6">
                     <div className="flex gap-4">
                         {/* Country Filter */}
-                        <div className="w-48">
-                            <select
-                                value={countryCode}
-                                onChange={(e) => setCountryCode(e.target.value)}
-                                className="w-full h-10 px-3 border border-border/50 rounded-md bg-white text-sm"
-                            >
-                                <option value="DE">🇩🇪 Deutschland (DE)</option>
-                                <option value="IT">🇮🇹 Italien (IT)</option>
-                            </select>
-                        </div>
+                        <Select value={countryCode} onValueChange={setCountryCode}>
+                            <SelectTrigger className="w-[200px]">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="DE">🇩🇪 Deutschland (DE)</SelectItem>
+                                <SelectItem value="IT">🇮🇹 Italien (IT)</SelectItem>
+                            </SelectContent>
+                        </Select>
 
                         {/* Search */}
                         <div className="flex-1 relative">
@@ -200,20 +206,6 @@ export const DocumentTypesManager = () => {
                                     Manuell erstellen
                                 </Button>
                             </div>
-                        </div>
-                    ) : filteredTypes.length === -999 ? (
-                        /* This condition is never true - placeholder for old empty state */
-                        <div className="hidden">
-                            <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                            <p>Keine Dokumenttypen gefunden</p>
-                            <Button
-                                variant="outline"
-                                className="mt-4"
-                                onClick={handleNewDocumentType}
-                            >
-                                <Plus className="w-4 h-4 mr-2" />
-                                Ersten Dokumenttyp erstellen
-                            </Button>
                         </div>
                     ) : (
                         <div className="space-y-2">

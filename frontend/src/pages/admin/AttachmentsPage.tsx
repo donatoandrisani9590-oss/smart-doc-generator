@@ -481,10 +481,10 @@ export const AttachmentsPage = () => {
                 animate={{ opacity: 1, y: 0 }}
             >
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight text-foreground">
+                    <h1 className="text-xl font-semibold tracking-tight text-foreground">
                         Anlagen-Verwaltung
                     </h1>
-                    <p className="text-muted-foreground mt-1">
+                    <p className="text-sm text-muted-foreground mt-1">
                         Verwalten Sie Dokumente, die als Anlagen zu generierten Verträgen hinzugefügt werden können
                     </p>
                 </div>

@@ -12,7 +12,6 @@
 
 import { useState, useEffect } from "react";
 import {
-  Bot,
   Key,
   Webhook,
   Copy,
@@ -400,11 +399,8 @@ export const CopilotStudioSettings = () => {
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-primary/10">
-            <Bot className="w-6 h-6 text-primary" />
-          </div>
           <div>
-            <h2 className="text-lg font-semibold">Copilot Studio Integration</h2>
+            <h2 className="text-xl font-semibold tracking-tight text-foreground">Copilot Studio Integration</h2>
             <p className="text-sm text-muted-foreground">
               Verbinden Sie Ihren HR Document Generator mit Microsoft Copilot Studio und Power Automate
             </p>

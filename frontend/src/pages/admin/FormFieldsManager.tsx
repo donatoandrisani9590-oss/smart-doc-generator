@@ -21,8 +21,8 @@ export const FormFieldsManager = () => {
         <div className="space-y-6">
             {/* Header */}
             <div>
-                <h1 className="text-2xl font-bold">Formularfelder verwalten</h1>
-                <p className="text-muted-foreground">
+                <h1 className="text-xl font-semibold tracking-tight text-foreground">Formularfelder verwalten</h1>
+                <p className="text-sm text-muted-foreground">
                     Passen Sie Labels, Validierung und Hilfetexte für Formularfelder an
                 </p>
             </div>

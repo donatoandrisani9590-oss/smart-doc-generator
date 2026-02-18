@@ -398,9 +398,9 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
 
     return (
         <TooltipProvider>
-        <div className="space-y-4 p-3 bg-background rounded-lg border">
+        <div className="space-y-5 p-4 bg-card rounded-xl border border-border/50 shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
             {/* Fortschrittsanzeige für Pflichtfelder */}
-            <div className="space-y-1.5 pb-3 border-b">
+            <div className="space-y-2 pb-4 border-b border-border/40">
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                     {requiredFieldsProgress.percentage === 100 && (
                         <CheckCircle2 className="w-3.5 h-3.5 text-green-600 flex-shrink-0" />
@@ -411,26 +411,26 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
                         </span>{" "}
                         {labels.progress_filled} {requiredFieldsProgress.total} {labels.progress_suffix}
                     </span>
-                    <span className="ml-auto text-muted-foreground/50 flex-shrink-0">
-                        <span className="text-destructive">*</span> = {labels.required}
+                    <span className="ml-auto text-muted-foreground/40 flex-shrink-0">
+                        <span className="text-destructive/70">*</span> = {labels.required}
                     </span>
                 </div>
                 <Progress
                     value={requiredFieldsProgress.percentage}
-                    className="h-1.5"
+                    className="h-1"
                 />
             </div>
 
             {/* Mitarbeiterdaten */}
             <div className="space-y-3">
-                <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                <h4 className="text-[10px] font-semibold text-muted-foreground/70 tracking-widest uppercase">
                     {labels.section_employee}
                 </h4>
 
-                <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-2.5">
                     <div className="space-y-1">
                         <Label htmlFor="vorname" className="text-xs">
-                            {labels.vorname} <span className="text-destructive">*</span>
+                            {labels.vorname} <span className="text-destructive/70">*</span>
                         </Label>
                         <Input
                             id="vorname"
@@ -445,7 +445,7 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
                     </div>
                     <div className="space-y-1">
                         <Label htmlFor="nachname" className="text-xs">
-                            {labels.nachname} <span className="text-destructive">*</span>
+                            {labels.nachname} <span className="text-destructive/70">*</span>
                         </Label>
                         <Input
                             id="nachname"
@@ -471,7 +471,7 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
                     />
                 </div>
 
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-2.5">
                     <div className="space-y-1">
                         <Label htmlFor="plz" className="text-xs">{labels.plz}</Label>
                         <Input
@@ -509,8 +509,8 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
             </div>
 
             {/* Vertragsdaten */}
-            <div className="space-y-3 pt-3 border-t">
-                <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            <div className="space-y-3 pt-6 border-t border-border/30">
+                <h4 className="text-[10px] font-semibold text-muted-foreground/70 tracking-widest uppercase">
                     {labels.section_contract}
                 </h4>
 
@@ -535,7 +535,7 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
 
                 <div className="space-y-1">
                     <Label htmlFor="position" className="text-xs">
-                        {labels.position} <span className="text-destructive">*</span>
+                        {labels.position} <span className="text-destructive/70">*</span>
                     </Label>
                     <Input
                         id="position"
@@ -550,10 +550,10 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
                     )}
                 </div>
 
-                <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-2.5">
                     <div className="space-y-1">
                         <Label htmlFor="gehalt" className="text-xs flex items-center">
-                            {formData.vertragsart === "at_angestellter" ? labels.gehalt_at : labels.gehalt} <span className="text-destructive">*</span>
+                            {formData.vertragsart === "at_angestellter" ? labels.gehalt_at : labels.gehalt} <span className="text-destructive/70">*</span>
                             <FieldHint fieldKey="gehalt" lang={lang} />
                         </Label>
                         <Input
@@ -571,7 +571,7 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
                     </div>
                     <div className="space-y-1">
                         <Label htmlFor="eintrittsdatum" className="text-xs">
-                            {labels.eintrittsdatum} <span className="text-destructive">*</span>
+                            {labels.eintrittsdatum} <span className="text-destructive/70">*</span>
                         </Label>
                         <Input
                             id="eintrittsdatum"
@@ -587,7 +587,7 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
                     </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-2.5">
                     <div className="space-y-1">
                         <Label htmlFor="wochenstunden" className="text-xs flex items-center">
                             {labels.wochenstunden}
@@ -701,8 +701,8 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
             </div>
 
             {/* Zusatzleistungen */}
-            <div className="space-y-3 pt-3 border-t">
-                <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            <div className="space-y-3 pt-6 border-t border-border/30">
+                <h4 className="text-[10px] font-semibold text-muted-foreground/70 tracking-widest uppercase">
                     {labels.section_benefits}
                 </h4>
 
@@ -720,7 +720,7 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
                         </Label>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-2 gap-2.5">
                         <div className="space-y-1">
                             <Label htmlFor="urlaubsgeld_pro_tag" className="text-xs">{labels.urlaubsgeld_pro_tag}</Label>
                             <Input
@@ -815,8 +815,8 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
 
             {/* AT-Optionen (nur bei AT-Angestellter) */}
             {formData.vertragsart === "at_angestellter" && (
-                <div className="space-y-3 pt-3 border-t">
-                    <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                <div className="space-y-3 pt-6 border-t border-border/30">
+                    <h4 className="text-[10px] font-semibold text-muted-foreground/70 tracking-widest uppercase">
                         {labels.section_at}
                     </h4>
                     <div className="space-y-2">
@@ -857,14 +857,14 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
             )}
 
             {/* Unterzeichner */}
-            <div className="space-y-3 pt-3 border-t">
-                <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            <div className="space-y-3 pt-6 border-t border-border/30">
+                <h4 className="text-[10px] font-semibold text-muted-foreground/70 tracking-widest uppercase">
                     {labels.section_signatory}
                 </h4>
 
                 <div className="space-y-1">
                     <Label htmlFor="signatory_name" className="text-xs flex items-center">
-                        {labels.signatory_name} <span className="text-destructive">*</span>
+                        {labels.signatory_name} <span className="text-destructive/70">*</span>
                         <FieldHint fieldKey="signatory_name" lang={lang} />
                     </Label>
                     <Input

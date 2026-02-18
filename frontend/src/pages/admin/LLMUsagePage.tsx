@@ -173,8 +173,8 @@ export function LLMUsagePage() {
         return (
             <div className="space-y-6">
                 <div>
-                    <h2 className="text-2xl font-bold text-foreground">KI-Nutzung</h2>
-                    <p className="text-muted-foreground">
+                    <h2 className="text-xl font-semibold tracking-tight text-foreground">KI-Nutzung</h2>
+                    <p className="text-sm text-muted-foreground">
                         Übersicht aller KI-Aufrufe und Token-Verbrauch
                     </p>
                 </div>
@@ -202,8 +202,8 @@ export function LLMUsagePage() {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h2 className="text-2xl font-bold text-foreground">KI-Nutzung</h2>
-                    <p className="text-muted-foreground">
+                    <h2 className="text-xl font-semibold tracking-tight text-foreground">KI-Nutzung</h2>
+                    <p className="text-sm text-muted-foreground">
                         Übersicht aller KI-Aufrufe und Token-Verbrauch
                     </p>
                 </div>

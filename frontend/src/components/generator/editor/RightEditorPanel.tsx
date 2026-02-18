@@ -44,6 +44,14 @@ export const RightEditorPanel = () => {
         stationeryZones,
     } = state;
 
+    // Only show compliance/consistency banners after user has meaningfully started
+    const hasFilledFields = useMemo(() => {
+        const { vorname, nachname, position, gehalt, eintrittsdatum } = state.formData || {};
+        const filled = [vorname, nachname, position, gehalt, eintrittsdatum]
+            .filter(v => v !== undefined && v !== null && v !== "");
+        return filled.length >= 2;
+    }, [state.formData]);
+
     // Employee name for consistency check
     const employeeName = useMemo(() => {
         const { vorname, nachname } = state.formData || {};
@@ -144,14 +152,13 @@ export const RightEditorPanel = () => {
 
     return (
         <div className="h-full flex flex-col">
-            {/* Workflow Stepper - zeigt Dokumenten-Lifecycle */}
-            <WorkflowStepper />
-
-            {/* Toolbar */}
-            <div className="flex items-center justify-between p-2 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            {/* Unified Toolbar — Workflow Stepper (left) + AI Tools (right) on one line */}
+            <div className="flex items-center justify-between px-3 py-2 border-b border-border/30 bg-background/80 backdrop-blur-sm">
                 <div className="flex items-center gap-2">
+                    {/* Workflow Stepper — integrated inline */}
+                    <WorkflowStepper compact />
+
                     {/* Local edits warning - NUR anzeigen wenn User wirklich manuell editiert hat */}
-                    {/* hasLocalEdits wird nur noch bei echten manuellen Änderungen gesetzt */}
                     {hasLocalEdits && (
                         <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-md">
                             <AlertTriangle className="w-4 h-4 text-amber-600" />
@@ -192,7 +199,7 @@ export const RightEditorPanel = () => {
                     </Button>
 
                     {/* Separator */}
-                    <div className="w-px h-5 bg-warm-200 mx-1" />
+                    <div className="w-px h-4 bg-border/30 mx-1.5" />
 
                     {/* Add comment button with popover */}
                     <Popover open={isAddCommentOpen} onOpenChange={setIsAddCommentOpen}>
@@ -252,8 +259,8 @@ export const RightEditorPanel = () => {
                 </div>
             </div>
 
-            {/* Editor Container - A4 Paper in gray background */}
-            <div className="flex-1 overflow-auto bg-warm-200/60 p-3 md:p-4 lg:p-6 pb-8 md:pb-10 lg:pb-12">
+            {/* Editor Container - A4 Paper on subtle canvas */}
+            <div className="flex-1 overflow-auto bg-muted/40 p-4 md:p-6 lg:p-8 pb-10 md:pb-12 lg:pb-16">
                 {isPreviewLoading && !displayContent ? (
                     <div className="flex items-center justify-center h-full">
                         <div className="text-center space-y-3">
@@ -263,15 +270,18 @@ export const RightEditorPanel = () => {
                     </div>
                 ) : (
                     <div className="mx-auto w-full" style={{ maxWidth: "min(210mm, 100%)" }}>
-                        {/* Compliance Risk Banner - proaktive Risikoerkennung */}
-                        <ComplianceRiskBanner
-                            contentHtml={displayContent}
-                            countryCode={country}
-                            className="mb-4"
-                        />
+                        {/* Compliance Risk Banner — only show after user has started filling form
+                            (at least 3 fields filled) to avoid "screaming at an empty room" */}
+                        {hasFilledFields && (
+                            <ComplianceRiskBanner
+                                contentHtml={displayContent}
+                                countryCode={country}
+                                className="mb-4"
+                            />
+                        )}
 
-                        {/* Consistency Banner - Widersprüche zu bisherigen Dokumenten */}
-                        {employeeName && displayContent && (
+                        {/* Consistency Banner — only after user has started filling */}
+                        {hasFilledFields && employeeName && displayContent && (
                             <ConsistencyBanner
                                 employeeName={employeeName}
                                 currentFormData={state.formData as unknown as Record<string, unknown>}
@@ -314,7 +324,7 @@ export const RightEditorPanel = () => {
                                 isLoading={isPreviewLoading}
                             />
                         ) : (
-                            <div className="bg-white rounded shadow-[0_2px_10px_rgba(0,0,0,0.15)]">
+                            <div className="bg-white rounded-sm shadow-[0_1px_3px_rgba(0,0,0,0.06),0_4px_16px_rgba(0,0,0,0.04),0_12px_40px_rgba(0,0,0,0.03)]">
                                 <DocumentEditor
                                     value={displayContent}
                                     onChange={handleEditorChange}

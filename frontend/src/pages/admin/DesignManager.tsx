@@ -229,10 +229,10 @@ export const DesignManager = () => {
             {/* Header */}
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight text-foreground">
+                    <h1 className="text-xl font-semibold tracking-tight text-foreground">
                         Design Einstellungen
                     </h1>
-                    <p className="text-muted-foreground">
+                    <p className="text-sm text-muted-foreground">
                         Gestalten Sie das Erscheinungsbild Ihrer Dokumente
                     </p>
                 </div>
@@ -263,9 +263,9 @@ export const DesignManager = () => {
 
             {/* Alerts */}
             {error && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3">
-                    <AlertCircle className="w-5 h-5 text-red-500" />
-                    <p className="text-red-700">{error}</p>
+                <div className="bg-destructive/10 text-destructive rounded-lg p-4 flex items-center gap-3">
+                    <AlertCircle className="w-5 h-5" />
+                    <p>{error}</p>
                     <Button variant="ghost" size="sm" onClick={() => setError(null)} className="ml-auto">
                         Schließen
                     </Button>
@@ -273,9 +273,9 @@ export const DesignManager = () => {
             )}
 
             {success && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
-                    <CheckCircle className="w-5 h-5 text-green-500" />
-                    <p className="text-green-700">{success}</p>
+                <div className="bg-secondary/10 text-secondary rounded-lg p-4 flex items-center gap-3">
+                    <CheckCircle className="w-5 h-5" />
+                    <p>{success}</p>
                 </div>
             )}
 

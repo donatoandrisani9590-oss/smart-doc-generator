@@ -276,10 +276,10 @@ export default function SettingsHub() {
             />
 
             {/* Header */}
-            <div className="flex items-start justify-between mb-8">
+            <div className="flex items-start justify-between mb-6">
                 <div>
-                    <h1 className="text-3xl font-semibold tracking-tight text-foreground">Einstellungen</h1>
-                    <p className="text-muted-foreground mt-1">
+                    <h1 className="text-2xl font-semibold tracking-tight text-foreground">Einstellungen</h1>
+                    <p className="text-sm text-muted-foreground mt-1">
                         Firmendaten, Design, Vorlagen und Verwaltung
                     </p>
                 </div>
@@ -322,26 +322,26 @@ export default function SettingsHub() {
                 </div>
 
                 {/* Desktop: Sidebar Navigation */}
-                <nav className="hidden md:block w-[240px] shrink-0 border-r border-warm-200 dark:border-warm-200 overflow-y-auto scrollbar-hide py-4 bg-warm-50/30 dark:bg-warm-50/50">
-                    {filteredNav.map((group) => (
-                        <div key={group.id} className="mb-4">
-                            <h3 className="settings-nav-header px-4 py-1.5 text-[11px] font-semibold uppercase tracking-widest">
+                <nav className="hidden md:block w-[240px] shrink-0 border-r border-warm-200 dark:border-warm-200 overflow-y-auto scrollbar-hide py-3 bg-warm-50/30 dark:bg-warm-50/50">
+                    {filteredNav.map((group, groupIndex) => (
+                        <div key={group.id} className={cn("pb-3", groupIndex > 0 && "pt-3 border-t border-warm-200/50 dark:border-warm-200/30 mx-3")}>
+                            <h3 className="settings-nav-header px-4 py-1 text-[10px] font-medium uppercase tracking-wider">
                                 {group.label}
                             </h3>
-                            <div className="space-y-0.5 mt-1">
+                            <div className="space-y-0.5 mt-0.5">
                                 {group.items.map((item) => (
                                     <button
                                         key={item.id}
                                         onClick={() => setActiveTab(item.id)}
                                         className={cn(
-                                            "w-full flex items-center gap-3 px-3 py-2 text-sm rounded-lg mx-1 transition-all",
+                                            "w-full flex items-center gap-2.5 px-3 py-1.5 text-[13px] rounded-md mx-1 transition-all",
                                             activeTab === item.id
                                                 ? "settings-nav-item-active nav-pill-active font-medium"
                                                 : "settings-nav-item hover:bg-warm-50 dark:hover:bg-muted/50"
                                         )}
                                     >
                                         <item.icon className={cn(
-                                            "w-4 h-4 shrink-0 transition-colors",
+                                            "w-3.5 h-3.5 shrink-0 transition-colors",
                                             activeTab === item.id
                                                 ? "settings-nav-icon-active"
                                                 : "settings-nav-icon"
@@ -355,7 +355,7 @@ export default function SettingsHub() {
                 </nav>
 
                 {/* Content Area */}
-                <div className="flex-1 min-w-0 p-8 overflow-y-auto">
+                <div className="flex-1 min-w-0 p-6 lg:p-8 overflow-y-auto">
                     {ActiveComponent ? (
                         <Suspense fallback={<TabSkeleton />}>
                             <ActiveComponent />

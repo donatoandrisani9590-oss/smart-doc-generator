@@ -244,11 +244,10 @@ export default function RetentionPoliciesPage() {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold flex items-center gap-2">
-                        <Archive className="w-6 h-6" />
+                    <h1 className="text-xl font-semibold tracking-tight text-foreground">
                         Aufbewahrungsrichtlinien
                     </h1>
-                    <p className="text-muted-foreground">
+                    <p className="text-sm text-muted-foreground">
                         Definieren Sie, wie lange Dokumente aufbewahrt werden
                     </p>
                 </div>
@@ -259,11 +258,11 @@ export default function RetentionPoliciesPage() {
             </div>
 
             {/* Info Banner */}
-            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 flex items-start gap-3">
-                <Info className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
+            <div className="bg-warm-50 dark:bg-muted/50 border border-warm-200 dark:border-warm-200/50 rounded-lg p-4 flex items-start gap-3">
+                <Info className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
                 <div className="text-sm">
-                    <p className="font-medium text-blue-800 dark:text-blue-200">Gesetzliche Aufbewahrungsfristen</p>
-                    <p className="text-blue-700 dark:text-blue-300 mt-1">
+                    <p className="font-medium text-foreground">Gesetzliche Aufbewahrungsfristen</p>
+                    <p className="text-muted-foreground mt-1">
                         Nach § 257 HGB und § 147 AO müssen Geschäftsunterlagen mindestens 6-10 Jahre aufbewahrt werden.
                         Arbeitsrechtliche Unterlagen unterliegen der 3-jährigen Verjährungsfrist (§ 195 BGB).
                     </p>

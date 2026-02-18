@@ -8,7 +8,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useDocumentTypes, type DocumentType } from "@/hooks/useApi";
 import { TemplatePreview } from "@/components/admin/TemplatePreview";
-import { FileText, Eye, Loader2, ChevronRight } from "lucide-react";
+import { FileText, Loader2, ChevronRight } from "lucide-react";
 
 export const TemplatePreviewPage = () => {
     const [countryCode, setCountryCode] = useState<string>("DE");
@@ -31,11 +31,10 @@ export const TemplatePreviewPage = () => {
         <div className="space-y-6">
             {/* Header */}
             <div>
-                <h1 className="text-2xl font-bold flex items-center gap-2">
-                    <Eye className="w-6 h-6" />
+                <h1 className="text-xl font-semibold tracking-tight text-foreground">
                     Template-Vorschau
                 </h1>
-                <p className="text-muted-foreground">
+                <p className="text-sm text-muted-foreground">
                     Vorschau von Dokumenten mit Beispieldaten
                 </p>
             </div>

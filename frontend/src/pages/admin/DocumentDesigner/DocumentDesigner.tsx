@@ -395,10 +395,10 @@ export const DocumentDesigner = () => {
                         <ArrowLeft className="w-5 h-5" />
                     </Button>
                     <div>
-                        <h1 className="text-2xl font-bold">
+                        <h1 className="text-xl font-semibold tracking-tight text-foreground">
                             {isNewDocument ? "Neuer Dokumenttyp" : "Dokumenten-Designer"}
                         </h1>
-                        <p className="text-muted-foreground">
+                        <p className="text-sm text-muted-foreground">
                             Textbausteine per Drag & Drop zusammenstellen
                         </p>
                     </div>

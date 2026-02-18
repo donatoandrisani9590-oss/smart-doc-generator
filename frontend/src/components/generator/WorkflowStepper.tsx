@@ -67,7 +67,12 @@ function calculateCurrentStep(state: {
     return 3; // Export-bereit
 }
 
-export const WorkflowStepper = () => {
+interface WorkflowStepperProps {
+    /** Compact mode: inline, no border/background — for embedding in toolbar */
+    compact?: boolean;
+}
+
+export const WorkflowStepper = ({ compact = false }: WorkflowStepperProps) => {
     const { state } = useWizardContext();
 
     const currentStep = calculateCurrentStep({
@@ -79,7 +84,12 @@ export const WorkflowStepper = () => {
     });
 
     return (
-        <div className="flex items-center justify-center gap-1 px-4 py-2 bg-background/80 backdrop-blur border-b">
+        <div className={cn(
+            "flex items-center gap-1",
+            compact
+                ? "" // No background/border when inline in toolbar
+                : "justify-center px-4 py-2 bg-background/80 backdrop-blur border-b"
+        )}>
             {WORKFLOW_STEPS.map((step, index) => {
                 const Icon = step.icon;
                 const isCompleted = index < currentStep;
@@ -91,16 +101,16 @@ export const WorkflowStepper = () => {
                         {/* Step */}
                         <div
                             className={cn(
-                                "flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium transition-all",
-                                isCompleted && "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-                                isCurrent && "bg-primary/10 text-primary ring-1 ring-primary/20",
-                                isPending && "bg-muted/50 text-muted-foreground"
+                                "flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-medium transition-all duration-300",
+                                isCompleted && "text-green-600/80 dark:text-green-400/80",
+                                isCurrent && "bg-primary/8 text-primary",
+                                isPending && "text-muted-foreground/40"
                             )}
                         >
                             {isCompleted ? (
-                                <Check className="w-3.5 h-3.5" />
+                                <Check className="w-3 h-3" />
                             ) : (
-                                <Icon className="w-3.5 h-3.5" />
+                                <Icon className="w-3 h-3" />
                             )}
                             <span className="hidden sm:inline">{step.label}</span>
                         </div>
@@ -109,8 +119,8 @@ export const WorkflowStepper = () => {
                         {index < WORKFLOW_STEPS.length - 1 && (
                             <div
                                 className={cn(
-                                    "w-6 h-0.5 mx-1 transition-colors",
-                                    index < currentStep ? "bg-green-400" : "bg-muted"
+                                    "w-5 h-px mx-0.5 transition-colors duration-500",
+                                    index < currentStep ? "bg-green-400/50" : "bg-border/30"
                                 )}
                             />
                         )}

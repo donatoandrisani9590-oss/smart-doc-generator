@@ -174,8 +174,8 @@ export const ClauseApprovalQueue = () => {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold">Textbaustein-Freigaben</h1>
-                    <p className="text-muted-foreground">
+                    <h1 className="text-xl font-semibold tracking-tight text-foreground">Textbaustein-Freigaben</h1>
+                    <p className="text-sm text-muted-foreground">
                         Prüfen und genehmigen Sie eingereichte Textbausteine für die Bibliothek
                     </p>
                 </div>

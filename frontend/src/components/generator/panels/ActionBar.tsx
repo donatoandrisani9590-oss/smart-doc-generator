@@ -14,7 +14,7 @@
 
 import { useState, useMemo, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Save, FileText, FileType2, Loader2, AlertCircle, CheckCircle2, Cloud, CloudOff, Download, ChevronDown } from "lucide-react";
+import { Save, FileText, FileType2, Loader2, CheckCircle2, Cloud, CloudOff, Download, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
     DropdownMenu,
@@ -119,31 +119,6 @@ export const ActionBar = () => {
     // Drafts only need a document type - partial data is explicitly allowed
     const canSaveDraft = !!documentTypeId;
 
-    // Handler für Klick auf deaktivierte Export-Buttons (zeigt Toast mit fehlenden Feldern)
-    const handleDisabledExportClick = useCallback(() => {
-        if (!validationState.isValid && validationState.missingFields.length > 0) {
-            const fieldNames = validationState.missingFields
-                .slice(0, 3)
-                .map(f => f.label)
-                .join(", ");
-            const moreCount = validationState.missingFields.length - 3;
-            const message = moreCount > 0
-                ? `${fieldNames} und ${moreCount} weitere`
-                : fieldNames;
-
-            toast.error(
-                "Pflichtfelder fehlen",
-                `Bitte füllen Sie aus: ${message}`
-            );
-        } else if (!documentTypeId) {
-            toast.error(
-                "Dokumenttyp fehlt",
-                "Bitte wählen Sie zuerst einen Dokumenttyp aus."
-            );
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [validationState, documentTypeId]);
-
     // Entwurf speichern (erlaubt partielle Daten)
     const handleSaveDraft = async () => {
         if (!canSaveDraft) return;
@@ -237,16 +212,16 @@ export const ActionBar = () => {
     }, [autoSaveStatus, lastSavedText]);
 
     return (
-        <div className="p-4 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 space-y-3">
-            {/* Auto-Save Status */}
+        <div className="p-3 border-t border-border/40 bg-background space-y-2.5">
+            {/* Auto-Save Status — compact inline */}
             {autoSaveIndicator && (
-                <div className={`flex items-center justify-center gap-1.5 text-xs ${autoSaveIndicator.color}`}>
+                <div className={`flex items-center justify-center gap-1.5 text-[10px] ${autoSaveIndicator.color}`}>
                     {autoSaveIndicator.icon}
                     <span>{autoSaveIndicator.text}</span>
                 </div>
             )}
 
-            {/* ValidationProgress Ampel */}
+            {/* ValidationProgress — the single source of truth for status */}
             <ValidationProgress
                 validation={validationState}
                 onScrollToField={handleScrollToField}
@@ -268,8 +243,8 @@ export const ActionBar = () => {
                 Als Entwurf speichern
             </Button>
 
-            {/* Export Button mit Format-Auswahl */}
-            {canExport ? (
+            {/* Export Button — only visible when ready (reduces visual noise) */}
+            {canExport && (
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <Button
@@ -297,25 +272,6 @@ export const ActionBar = () => {
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
-            ) : (
-                <Button
-                    variant="default"
-                    className="w-full gap-2"
-                    onClick={handleDisabledExportClick}
-                    disabled={isAnyLoading}
-                >
-                    <AlertCircle className="w-4 h-4" />
-                    Exportieren
-                </Button>
-            )}
-
-            {/* Hinweis wenn nicht exportierbar */}
-            {!canExport && (
-                <p className="text-xs text-muted-foreground text-center">
-                    {!documentTypeId
-                        ? "Bitte wählen Sie einen Dokumenttyp."
-                        : "Bitte füllen Sie alle Pflichtfelder aus."}
-                </p>
             )}
 
             {/* Export Review Modal (Zusammenfassung vor Export) */}

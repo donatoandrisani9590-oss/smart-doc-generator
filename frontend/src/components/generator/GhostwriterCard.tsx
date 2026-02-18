@@ -33,7 +33,7 @@ export const GhostwriterCard = ({
   onRegenerate,
   className,
 }: GhostwriterCardProps) => {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(true);
   const collapseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
@@ -79,13 +79,13 @@ export const GhostwriterCard = ({
   return (
     <div
       className={cn(
-        "bg-primary/5 border border-primary/20 rounded-lg overflow-hidden transition-all duration-300",
+        "bg-primary/[0.03] border border-primary/10 rounded-xl overflow-hidden transition-all duration-300",
         className
       )}
       onClick={isCollapsed ? handleInteraction : undefined}
     >
       {/* Header */}
-      <div className="flex items-center gap-2 px-4 py-2.5 cursor-pointer select-none hover:bg-primary/5 transition-colors"
+      <div className="flex items-center gap-2 px-4 py-2.5 cursor-pointer select-none hover:bg-primary/[0.05] transition-colors"
         onClick={() => {
           handleInteraction();
           if (!isStreaming) setIsCollapsed(!isCollapsed);

@@ -67,11 +67,11 @@ export const LeftControlPanel = ({ documentTypes }: LeftControlPanelProps) => {
     return (
         <div className="h-full flex flex-col overflow-hidden">
             {/* Header mit Dokumenttitel */}
-            <div className="p-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shrink-0">
-                <div className="flex items-center justify-between gap-2 mb-3">
+            <div className="p-4 pb-3 border-b border-border/40 bg-background shrink-0">
+                <div className="flex items-center justify-between gap-2 mb-2.5">
                     <div className="flex items-center gap-2 min-w-0">
-                        <FileText className="w-4 h-4 text-primary shrink-0" />
-                        <span className="text-xs font-medium text-muted-foreground truncate">{documentTypeName}</span>
+                        <FileText className="w-3.5 h-3.5 text-primary/70 shrink-0" />
+                        <span className="text-[11px] font-medium text-muted-foreground/80 truncate">{documentTypeName}</span>
                     </div>
                     <DocumentStatusBadge status={documentStatus} size="sm" />
                 </div>
@@ -79,12 +79,12 @@ export const LeftControlPanel = ({ documentTypes }: LeftControlPanelProps) => {
                     value={documentTitle}
                     onChange={(e) => actions.setDocumentTitle(e.target.value)}
                     placeholder="Dokumenttitel eingeben..."
-                    className="font-medium text-sm h-10"
+                    className="font-medium text-sm"
                 />
             </div>
 
             {/* Briefpapier-Auswahl */}
-            <div className="px-4 py-3 border-b border-warm-100">
+            <div className="px-4 py-3 border-b border-border/30">
                 <StationeryPicker
                     value={state.userTemplateId}
                     onChange={(id) => {
@@ -102,9 +102,9 @@ export const LeftControlPanel = ({ documentTypes }: LeftControlPanelProps) => {
                 <div className="p-4 space-y-4">
                     {/* Formularfelder - IMMER sichtbar (nicht collapsible) */}
                     <div>
-                        <div className="flex items-center gap-2 py-2 mb-3">
-                            <Users className="w-4 h-4 text-primary shrink-0" />
-                            <span className="font-semibold text-sm">Formularfelder</span>
+                        <div className="flex items-center gap-2 py-1.5 mb-2">
+                            <Users className="w-3.5 h-3.5 text-primary/60 shrink-0" />
+                            <span className="text-[10px] font-semibold text-muted-foreground/70 tracking-widest uppercase">Formularfelder</span>
                         </div>
                         <FormFieldsSection countryCode={documentCountryCode} />
                     </div>
@@ -113,18 +113,18 @@ export const LeftControlPanel = ({ documentTypes }: LeftControlPanelProps) => {
                     {totalClausesCount > 0 && (
                         <Button
                             variant="ghost"
-                            className="w-full justify-between h-auto py-3 px-4 bg-warm-50 hover:bg-warm-100 border border-warm-200 hover:border-warm-300 transition-all"
+                            className="w-full justify-between h-auto py-3 px-4 bg-card hover:bg-muted/50 border border-border/40 hover:border-border/60 rounded-xl transition-all"
                             onClick={() => setShowClausesModal(true)}
                         >
                             <div className="flex items-center gap-2">
-                                <Layers className="w-4 h-4 text-primary" />
+                                <Layers className="w-3.5 h-3.5 text-primary/60" />
                                 <span className="font-medium text-sm">Textbausteine</span>
                             </div>
                             <div className="flex items-center gap-2">
-                                <Badge variant="secondary" className="text-xs">
+                                <Badge variant="secondary" className="text-[10px] font-normal">
                                     {enabledClausesCount}/{totalClausesCount}
                                 </Badge>
-                                <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                                <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/50" />
                             </div>
                         </Button>
                     )}
@@ -133,20 +133,20 @@ export const LeftControlPanel = ({ documentTypes }: LeftControlPanelProps) => {
                     {documentTypeId && (
                         <Button
                             variant="ghost"
-                            className="w-full justify-between h-auto py-3 px-4 bg-warm-50 hover:bg-warm-100 border border-warm-200 hover:border-warm-300 transition-all"
+                            className="w-full justify-between h-auto py-3 px-4 bg-card hover:bg-muted/50 border border-border/40 hover:border-border/60 rounded-xl transition-all"
                             onClick={() => setShowAttachmentsModal(true)}
                         >
                             <div className="flex items-center gap-2">
-                                <Paperclip className="w-4 h-4 text-primary" />
+                                <Paperclip className="w-3.5 h-3.5 text-primary/60" />
                                 <span className="font-medium text-sm">Anlagen</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 {selectedAttachmentIds.length > 0 && (
-                                    <Badge variant="secondary" className="text-xs">
+                                    <Badge variant="secondary" className="text-[10px] font-normal">
                                         {selectedAttachmentIds.length}
                                     </Badge>
                                 )}
-                                <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                                <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/50" />
                             </div>
                         </Button>
                     )}

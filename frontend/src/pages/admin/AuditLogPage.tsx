@@ -10,6 +10,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
+import {
     useAuditLogs,
     useAuditLogStats,
     useAuditLogActions,
@@ -99,12 +112,11 @@ export const AuditLogPage = () => {
             {/* Header */}
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-2xl font-bold flex items-center gap-2">
-                        <Shield className="w-6 h-6" />
+                    <h1 className="text-xl font-semibold tracking-tight text-foreground">
                         Audit-Log
                     </h1>
-                    <p className="text-muted-foreground">
-                        Vollstandige Protokollierung aller System-Aktivitaten
+                    <p className="text-sm text-muted-foreground">
+                        Vollständige Protokollierung aller System-Aktivitäten
                     </p>
                 </div>
                 <div className="flex gap-2">
@@ -209,29 +221,37 @@ export const AuditLogPage = () => {
                         </div>
 
                         {/* Quick Filters */}
-                        <select
-                            value={filters.action_category || ""}
-                            onChange={(e) => handleFilterChange("action_category", e.target.value)}
-                            className="h-10 px-3 border border-input rounded-md bg-background text-sm"
+                        <Select
+                            value={filters.action_category || "all"}
+                            onValueChange={(v) => handleFilterChange("action_category", v === "all" ? "" : v)}
                         >
-                            <option value="">Alle Kategorien</option>
-                            <option value="document">Dokumente</option>
-                            <option value="clause">Textbausteine</option>
-                            <option value="form_field">Formularfelder</option>
-                            <option value="user">Benutzer</option>
-                            <option value="bulk">Bulk-Operationen</option>
-                            <option value="system">System</option>
-                        </select>
+                            <SelectTrigger className="w-[180px]">
+                                <SelectValue placeholder="Alle Kategorien" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">Alle Kategorien</SelectItem>
+                                <SelectItem value="document">Dokumente</SelectItem>
+                                <SelectItem value="clause">Textbausteine</SelectItem>
+                                <SelectItem value="form_field">Formularfelder</SelectItem>
+                                <SelectItem value="user">Benutzer</SelectItem>
+                                <SelectItem value="bulk">Bulk-Operationen</SelectItem>
+                                <SelectItem value="system">System</SelectItem>
+                            </SelectContent>
+                        </Select>
 
-                        <select
-                            value={filters.status || ""}
-                            onChange={(e) => handleFilterChange("status", e.target.value)}
-                            className="h-10 px-3 border border-input rounded-md bg-background text-sm"
+                        <Select
+                            value={filters.status || "all"}
+                            onValueChange={(v) => handleFilterChange("status", v === "all" ? "" : v)}
                         >
-                            <option value="">Alle Status</option>
-                            <option value="success">Erfolgreich</option>
-                            <option value="failure">Fehlgeschlagen</option>
-                        </select>
+                            <SelectTrigger className="w-[160px]">
+                                <SelectValue placeholder="Alle Status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">Alle Status</SelectItem>
+                                <SelectItem value="success">Erfolgreich</SelectItem>
+                                <SelectItem value="failure">Fehlgeschlagen</SelectItem>
+                            </SelectContent>
+                        </Select>
 
                         <Button
                             variant="outline"
@@ -470,22 +490,13 @@ export const AuditLogPage = () => {
             </Card>
 
             {/* Detail Modal */}
-            {selectedEntry && (
-                <div
-                    className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-                    onClick={() => setSelectedEntry(null)}
-                >
-                    <div
-                        className="bg-background rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[80vh] overflow-auto"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <div className="p-6 border-b flex justify-between items-center">
-                            <h2 className="text-lg font-semibold">Audit-Log Details</h2>
-                            <Button variant="ghost" size="sm" onClick={() => setSelectedEntry(null)}>
-                                <X className="w-4 h-4" />
-                            </Button>
-                        </div>
-                        <div className="p-6 space-y-4">
+            <Dialog open={!!selectedEntry} onOpenChange={(open) => !open && setSelectedEntry(null)}>
+                <DialogContent className="max-w-2xl max-h-[80vh] overflow-auto">
+                    <DialogHeader>
+                        <DialogTitle>Audit-Log Details</DialogTitle>
+                    </DialogHeader>
+                    {selectedEntry && (
+                        <div className="space-y-4">
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="text-xs font-medium text-foreground">
@@ -590,9 +601,9 @@ export const AuditLogPage = () => {
                                 </div>
                             )}
                         </div>
-                    </div>
-                </div>
-            )}
+                    )}
+                </DialogContent>
+            </Dialog>
         </div>
     );
 };

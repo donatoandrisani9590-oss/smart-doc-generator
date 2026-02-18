@@ -387,10 +387,10 @@ export const ClausesPage = () => {
             {/* Header */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight text-foreground">
+                    <h1 className="text-xl font-semibold tracking-tight text-foreground">
                         Textbausteine
                     </h1>
-                    <p className="text-muted-foreground">
+                    <p className="text-sm text-muted-foreground">
                         Verwalten Sie wiederverwendbare Textblöcke für Ihre Dokumente
                     </p>
                 </div>
