@@ -64,9 +64,10 @@ export default {
                 ring: "hsl(var(--ring))",
             },
             borderRadius: {
-                lg: "var(--radius)",
-                md: "calc(var(--radius) - 2px)",
-                sm: "calc(var(--radius) - 4px)",
+                xl: "calc(var(--radius) + 8px)",   // 20px — modals, dialogs
+                lg: "var(--radius)",                // 12px base (from CSS var)
+                md: "calc(var(--radius) - 2px)",    // 10px — nav pills
+                sm: "calc(var(--radius) - 4px)",    // 8px → now maps to 8px
             },
             fontFamily: {
                 sans: [
@@ -91,6 +92,9 @@ export default {
                 'glow': '0 0 15px rgba(36, 49, 134, 0.15)',
                 'soft-warm': '0 4px 12px -2px rgba(180, 160, 140, 0.08), 0 2px 4px -2px rgba(180, 160, 140, 0.06)',
                 'hero': '0 8px 30px rgba(36, 49, 134, 0.12), 0 2px 8px rgba(36, 49, 134, 0.06)',
+                // Ive elevation system
+                'elevated': '0 0 0 0.5px rgba(0,0,0,0.04), 0 2px 8px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.02)',
+                'elevated-hover': '0 0 0 0.5px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.06), 0 12px 32px rgba(0,0,0,0.04)',
             },
             keyframes: {
                 "accordion-down": {
