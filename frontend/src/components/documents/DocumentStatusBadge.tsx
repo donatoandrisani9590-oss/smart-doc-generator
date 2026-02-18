@@ -34,17 +34,17 @@ const STATUS_CONFIG: Record<
     draft: {
         label: "Entwurf",
         icon: FileEdit,
-        className: "bg-amber-100 text-amber-800 border-amber-200 hover:bg-amber-100 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800",
+        className: "bg-muted/40 text-muted-foreground/60 border-border/30 hover:bg-muted/50 dark:bg-muted/30 dark:text-muted-foreground/50 dark:border-border/20",
     },
     ready: {
         label: "Bereit",
         icon: CheckCircle,
-        className: "bg-green-100 text-green-800 border-green-200 hover:bg-green-100 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800",
+        className: "bg-green-50/60 text-green-700/70 border-green-200/40 hover:bg-green-50/80 dark:bg-green-900/20 dark:text-green-400/60 dark:border-green-800/30",
     },
     exported: {
         label: "Exportiert",
         icon: Download,
-        className: "bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800",
+        className: "bg-blue-50/60 text-blue-700/70 border-blue-200/40 hover:bg-blue-50/80 dark:bg-blue-900/20 dark:text-blue-400/60 dark:border-blue-800/30",
     },
 };
 

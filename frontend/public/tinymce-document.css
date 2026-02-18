@@ -173,6 +173,13 @@ img {
   height: auto;
 }
 
+/* Horizontal Rules — subtle divider instead of browser default */
+hr {
+  border: none;
+  border-top: 1px solid #d1d1d6;
+  margin: 10mm 0;
+}
+
 /* Page Break */
 .page-break {
   page-break-after: always;

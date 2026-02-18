@@ -100,7 +100,7 @@ export const WorkflowStepper = ({ compact = false }: WorkflowStepperProps) => {
                         )}
                     >
                         {isCompleted && <Check className="w-3 h-3" />}
-                        <span className="hidden sm:inline">{step.label}</span>
+                        <span>{step.label}</span>
                     </div>
                 );
             })}
