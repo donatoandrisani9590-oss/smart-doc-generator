@@ -33,7 +33,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme, type Theme } from "@/contexts/ThemeContext";
-import { useCountry, COUNTRIES, type CountryCode } from "@/hooks/useCountry";
+import { useCountry, COUNTRIES } from "@/hooks/useCountry";
 
 const roleLabels: Record<string, string> = {
     admin: "Administrator",
