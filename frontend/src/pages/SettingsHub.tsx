@@ -276,9 +276,9 @@ export default function SettingsHub() {
             />
 
             {/* Header */}
-            <div className="flex items-start justify-between mb-6">
+            <div className="flex items-start justify-between mb-8">
                 <div>
-                    <h1 className="text-2xl font-semibold text-foreground">Einstellungen</h1>
+                    <h1 className="text-3xl font-semibold tracking-tight text-foreground">Einstellungen</h1>
                     <p className="text-muted-foreground mt-1">
                         Firmendaten, Design, Vorlagen und Verwaltung
                     </p>
@@ -336,7 +336,7 @@ export default function SettingsHub() {
                                         className={cn(
                                             "w-full flex items-center gap-3 px-3 py-2 text-sm rounded-lg mx-1 transition-all",
                                             activeTab === item.id
-                                                ? "settings-nav-item-active bg-warm-100 dark:bg-primary/20 font-medium border-l-2 border-primary"
+                                                ? "settings-nav-item-active nav-pill-active font-medium"
                                                 : "settings-nav-item hover:bg-warm-50 dark:hover:bg-muted/50"
                                         )}
                                     >
@@ -355,7 +355,7 @@ export default function SettingsHub() {
                 </nav>
 
                 {/* Content Area */}
-                <div className="flex-1 min-w-0 p-6 overflow-y-auto">
+                <div className="flex-1 min-w-0 p-8 overflow-y-auto">
                     {ActiveComponent ? (
                         <Suspense fallback={<TabSkeleton />}>
                             <ActiveComponent />
