@@ -191,7 +191,7 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         placeholder="Dokumenttyp suchen..."
-                        className="h-11 pl-11 pr-10 border-warm-200 focus:border-primary focus:ring-2 focus:ring-primary/10"
+                        className="h-11 pl-11 pr-10 border-border focus:border-primary focus:ring-2 focus:ring-primary/10"
                         disabled={isLoading}
                     />
                     {searchQuery && (
@@ -246,7 +246,7 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
                 })()}
 
                 {/* Dokumenttyp-Liste - Saubere Gruppierung */}
-                {showTypeList && <div className="border border-warm-200 rounded-lg overflow-hidden bg-white">
+                {showTypeList && <div className="border border-border rounded-lg overflow-hidden bg-white">
                     <ScrollArea className="h-[300px]">
                         <div className="divide-y divide-warm-100">
                             {/* Zuletzt verwendet */}
@@ -355,7 +355,7 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
                         value={state.documentTitle}
                         onChange={(e) => actions.setDocumentTitle(e.target.value)}
                         placeholder="z.B. Arbeitsvertrag Max Müller"
-                        className="h-11 border-warm-200 focus:border-primary focus:ring-2 focus:ring-primary/10"
+                        className="h-11 border-border focus:border-primary focus:ring-2 focus:ring-primary/10"
                     />
                     <p className="text-xs text-muted-foreground">
                         Dieser Name erscheint in Ihrer Dokumentübersicht.
@@ -386,7 +386,7 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
                                         "w-full text-left px-3 py-2.5 rounded-lg border transition-all text-sm",
                                         !state.userTemplateId
                                             ? "border-primary bg-primary/5 text-foreground font-medium"
-                                            : "border-warm-200 hover:border-warm-300 text-muted-foreground"
+                                            : "border-border hover:border-border/80 text-muted-foreground"
                                     )}
                                 >
                                     Standard-Layout (ohne Vorlage)
@@ -406,7 +406,7 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
                                             "w-full text-left px-3 py-2.5 rounded-lg border transition-all",
                                             state.userTemplateId === template.id
                                                 ? "border-primary bg-primary/5"
-                                                : "border-warm-200 hover:border-warm-300"
+                                                : "border-border hover:border-border/80"
                                         )}
                                     >
                                         <div className="flex items-center gap-2">
@@ -452,7 +452,7 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
                                             "w-full text-left px-3 py-2.5 rounded-lg border transition-all",
                                             state.userTemplateId === template.id
                                                 ? "border-primary bg-primary/5"
-                                                : "border-warm-200 hover:border-warm-300"
+                                                : "border-border hover:border-border/80"
                                         )}
                                     >
                                         <div className="flex items-center gap-2">
@@ -490,14 +490,14 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
             </div>
 
             {/* Action Buttons - Klare visuelle Hierarchie */}
-            <div className="pt-6 border-t border-warm-100">
+            <div className="pt-6 border-t border-border/40">
                 <div className="flex items-center justify-center gap-4">
                     {/* Sekundärer Button: Manuell */}
                     <Button
                         variant="outline"
                         onClick={() => actions.enterSplitScreenMode()}
                         disabled={!canProceed}
-                        className="h-11 px-6 border-warm-200 text-foreground hover:border-primary hover:text-primary disabled:opacity-50"
+                        className="h-11 px-6 disabled:opacity-50"
                     >
                         Manuell erstellen
                         <ArrowRight className="w-4 h-4 ml-2" />
