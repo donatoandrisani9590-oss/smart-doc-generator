@@ -34,8 +34,8 @@ interface OnboardingResultCardProps {
 export const OnboardingResultCard = ({
   packageName,
   drafts,
-  jobId,
-  summary,
+  jobId: _jobId,
+  summary: _summary,
 }: OnboardingResultCardProps) => {
   const navigate = useNavigate();
 

@@ -21,7 +21,10 @@ export interface SSEEvent {
   // Agent events (Phase 0 prep, used in Phase 1+2)
   type?: "text_delta" | "thinking" | "tool_start" | "tool_result"
        | "form_update" | "clause_update" | "clause_draft"
-       | "preview_ready" | "done" | "error";
+       | "preview_ready" | "done" | "error"
+       // Onboarding pipeline events
+       | "status" | "employee_history" | "draft_created" | "draft_error";
+  message?: string;
   content?: string;
   tool?: string;
   args?: Record<string, unknown>;
@@ -34,6 +37,17 @@ export interface SSEEvent {
   summary?: string;
   latency_ms?: number;
   requires_confirmation?: boolean;
+
+  // Onboarding pipeline fields
+  draft?: Record<string, unknown>;
+  drafts?: Array<Record<string, unknown>>;
+  package_name?: string;
+  job_id?: number;
+  status_text?: string;
+  field_count?: number;
+  step?: string;
+  extracted_fields?: string[];
+  package_key?: string;
 }
 
 /**

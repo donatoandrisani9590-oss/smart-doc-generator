@@ -4,7 +4,7 @@ Onboarding Package Definitions — predefined document bundles.
 Each package maps to a set of DocumentType names and shared fields
 that are auto-populated across all documents in the package.
 """
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional
 
 # Package key → definition
 ONBOARDING_PACKAGES: Dict[str, Dict[str, Any]] = {
@@ -44,7 +44,7 @@ PACKAGE_KEYWORDS: Dict[str, List[str]] = {
 }
 
 
-def detect_package_from_text(text: str) -> str | None:
+def detect_package_from_text(text: str) -> Optional[str]:
     """Detect package key from user message text. Returns None if no match."""
     text_lower = text.lower()
     for key, keywords in PACKAGE_KEYWORDS.items():
@@ -53,6 +53,6 @@ def detect_package_from_text(text: str) -> str | None:
     return None
 
 
-def get_package(key: str) -> Dict[str, Any] | None:
+def get_package(key: str) -> Optional[Dict[str, Any]]:
     """Get package definition by key."""
     return ONBOARDING_PACKAGES.get(key)

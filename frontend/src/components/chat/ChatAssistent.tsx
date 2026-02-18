@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Loader2, Send, Sparkles, RefreshCw, Square, FileText, ArrowRight, Package } from "lucide-react";
+import { Loader2, Send, Sparkles, RefreshCw, Square, FileText, ArrowRight } from "lucide-react";
 import { OnboardingResultCard } from "./OnboardingResultCard";
 
 interface Message {
@@ -261,33 +261,28 @@ export const ChatAssistent = ({ context, countryCode = "DE", onInsertText, onFil
                     });
                 }
                 if (event.type === "done") {
-                    const doneEvent = event as SSEEvent & {
-                        job_id: number;
-                        summary: string;
-                        drafts: Array<{
-                            id: number | null;
-                            title: string;
-                            document_type: string;
-                            document_type_id: number;
-                            missing_fields?: string[];
-                            error?: string;
-                        }>;
-                    };
-
-                    const packageName = event.package_name as string || "Onboarding";
+                    const packageName = event.package_name || "Onboarding";
+                    const doneDrafts = (event.drafts || []) as Array<{
+                        id: number | null;
+                        title: string;
+                        document_type: string;
+                        document_type_id: number;
+                        missing_fields?: string[];
+                        error?: string;
+                    }>;
 
                     setOnboardingResult({
-                        jobId: doneEvent.job_id,
+                        jobId: event.job_id || 0,
                         packageName,
-                        drafts: doneEvent.drafts || [],
-                        summary: doneEvent.summary || "",
+                        drafts: doneDrafts,
+                        summary: event.summary || "",
                     });
 
                     setMessages((prev) => {
                         const updated = [...prev];
                         updated[updated.length - 1] = {
                             role: "assistant",
-                            content: `${doneEvent.summary}\n\nDu kannst die Dokumente jetzt öffnen und bearbeiten. Oder schreib mir, was ich anpassen soll — z.B. "Adresse ist Musterstraße 5, 80333 München".`,
+                            content: `${event.summary || ""}\n\nDu kannst die Dokumente jetzt öffnen und bearbeiten. Oder schreib mir, was ich anpassen soll — z.B. "Adresse ist Musterstraße 5, 80333 München".`,
                         };
                         return updated;
                     });
