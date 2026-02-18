@@ -12,7 +12,6 @@ import { useMemo, useState, useCallback } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Progress } from "@/components/ui/progress";
 import {
     Tooltip,
     TooltipContent,
@@ -26,7 +25,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { CheckCircle2, Info, AlertCircle } from "lucide-react";
+import { Info, AlertCircle } from "lucide-react";
 import { useWizardContext } from "../WizardContext";
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -398,32 +397,20 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
 
     return (
         <TooltipProvider>
-        <div className="space-y-5 p-4 bg-card rounded-xl border border-border/50 shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
+        <div className="space-y-5 px-1">
             {/* Fortschrittsanzeige für Pflichtfelder */}
-            <div className="space-y-2 pb-4 border-b border-border/40">
-                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    {requiredFieldsProgress.percentage === 100 && (
-                        <CheckCircle2 className="w-3.5 h-3.5 text-green-600 flex-shrink-0" />
-                    )}
-                    <span>
-                        <span className="font-medium text-foreground">
-                            {requiredFieldsProgress.filled}
-                        </span>{" "}
-                        {labels.progress_filled} {requiredFieldsProgress.total} {labels.progress_suffix}
-                    </span>
-                    <span className="ml-auto text-muted-foreground/40 flex-shrink-0">
-                        <span className="text-destructive/70">*</span> = {labels.required}
-                    </span>
-                </div>
-                <Progress
-                    value={requiredFieldsProgress.percentage}
-                    className="h-1"
-                />
+            <div className="flex items-center justify-between text-[11px] text-muted-foreground/60 pb-3">
+                <span>
+                    {requiredFieldsProgress.filled} {labels.progress_filled} {requiredFieldsProgress.total} {labels.progress_suffix}
+                </span>
+                <span>
+                    <span className="text-foreground/30">*</span> = {labels.required}
+                </span>
             </div>
 
             {/* Mitarbeiterdaten */}
             <div className="space-y-3">
-                <h4 className="text-[10px] font-semibold text-muted-foreground/70 tracking-widest uppercase">
+                <h4 className="text-[11px] font-medium text-foreground/40 tracking-wide">
                     {labels.section_employee}
                 </h4>
 
@@ -509,8 +496,8 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
             </div>
 
             {/* Vertragsdaten */}
-            <div className="space-y-3 pt-6 border-t border-border/30">
-                <h4 className="text-[10px] font-semibold text-muted-foreground/70 tracking-widest uppercase">
+            <div className="space-y-3 pt-5">
+                <h4 className="text-[11px] font-medium text-foreground/40 tracking-wide">
                     {labels.section_contract}
                 </h4>
 
@@ -701,8 +688,8 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
             </div>
 
             {/* Zusatzleistungen */}
-            <div className="space-y-3 pt-6 border-t border-border/30">
-                <h4 className="text-[10px] font-semibold text-muted-foreground/70 tracking-widest uppercase">
+            <div className="space-y-3 pt-5">
+                <h4 className="text-[11px] font-medium text-foreground/40 tracking-wide">
                     {labels.section_benefits}
                 </h4>
 
@@ -815,8 +802,8 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
 
             {/* AT-Optionen (nur bei AT-Angestellter) */}
             {formData.vertragsart === "at_angestellter" && (
-                <div className="space-y-3 pt-6 border-t border-border/30">
-                    <h4 className="text-[10px] font-semibold text-muted-foreground/70 tracking-widest uppercase">
+                <div className="space-y-3 pt-5">
+                    <h4 className="text-[11px] font-medium text-foreground/40 tracking-wide">
                         {labels.section_at}
                     </h4>
                     <div className="space-y-2">
@@ -857,8 +844,8 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
             )}
 
             {/* Unterzeichner */}
-            <div className="space-y-3 pt-6 border-t border-border/30">
-                <h4 className="text-[10px] font-semibold text-muted-foreground/70 tracking-widest uppercase">
+            <div className="space-y-3 pt-5">
+                <h4 className="text-[11px] font-medium text-foreground/40 tracking-wide">
                     {labels.section_signatory}
                 </h4>
 

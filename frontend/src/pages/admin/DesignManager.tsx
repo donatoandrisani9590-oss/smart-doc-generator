@@ -280,9 +280,9 @@ export const DesignManager = () => {
             )}
 
             {/* Main Content: Settings + Live Preview */}
-            <div className="grid gap-6 lg:grid-cols-3">
-                {/* Settings Tabs (2/3 width) */}
-                <div className="lg:col-span-2">
+            <div className="grid gap-6 lg:grid-cols-5">
+                {/* Settings Tabs (3/5 width) */}
+                <div className="lg:col-span-3">
                     <Tabs defaultValue="branding" className="space-y-6">
                         <TabsList className="bg-warm-100/60">
                             <TabsTrigger value="branding" className="gap-2 data-[state=active]:bg-white data-[state=active]:shadow-sm">
@@ -646,15 +646,15 @@ export const DesignManager = () => {
                     </Tabs>
                 </div>
 
-                {/* Live Preview (1/3 width) */}
-                <div className="lg:col-span-1">
+                {/* Live Preview (2/5 width) */}
+                <div className="lg:col-span-2">
                     <Card className="sticky top-4">
                         <CardHeader className="pb-3">
                             <CardTitle className="text-sm font-medium text-muted-foreground">Live-Vorschau</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <div
-                                className="bg-white border rounded-lg shadow-sm overflow-hidden aspect-[210/297]"
+                                className="bg-white border rounded-lg shadow-md overflow-hidden aspect-[210/297]"
                                 style={{
                                     fontFamily: designSettings.font_family || "Arial",
                                     lineHeight: designSettings.line_spacing || "1.15",
@@ -662,15 +662,15 @@ export const DesignManager = () => {
                             >
                                 {/* Mini Document Preview */}
                                 <div
-                                    className="p-4 h-full flex flex-col"
+                                    className="p-5 h-full flex flex-col"
                                     style={{
-                                        paddingLeft: `${parseFloat(designSettings.margin_left_cm || "2.5") * 5}px`,
-                                        paddingRight: `${parseFloat(designSettings.margin_right_cm || "2.0") * 5}px`,
+                                        paddingLeft: `${parseFloat(designSettings.margin_left_cm || "2.5") * 6}px`,
+                                        paddingRight: `${parseFloat(designSettings.margin_right_cm || "2.0") * 6}px`,
                                     }}
                                 >
                                     {/* Header */}
                                     <div
-                                        className="flex justify-between items-start pb-2 mb-3"
+                                        className="flex justify-between items-start pb-3 mb-4"
                                         style={{ borderBottom: `2px solid ${designSettings.primary_color || "#243186"}` }}
                                     >
                                         <div>
@@ -678,36 +678,52 @@ export const DesignManager = () => {
                                                 <img
                                                     src={`/api/v1/admin/logo/${designSettings.logo_path}`}
                                                     alt="Logo"
-                                                    style={{ width: `${parseFloat(designSettings.logo_width_cm || "5.0") * 8}px`, maxHeight: "30px", objectFit: "contain" }}
+                                                    style={{ width: `${parseFloat(designSettings.logo_width_cm || "5.0") * 10}px`, maxHeight: "40px", objectFit: "contain" }}
                                                 />
                                             ) : (
-                                                <div className="bg-warm-100 rounded px-2 py-1 text-[9px] text-muted-foreground">
+                                                <div className="bg-warm-100 rounded px-3 py-1.5 text-[10px] text-muted-foreground font-medium">
                                                     Logo
                                                 </div>
                                             )}
                                         </div>
-                                        <div className="text-right text-[9px] leading-snug text-muted-foreground">
-                                            <div className="font-semibold text-foreground">{designSettings.company_name || "Firmenname"}</div>
+                                        <div className="text-right text-[10px] leading-snug text-muted-foreground">
+                                            <div className="font-semibold text-foreground text-[11px]">{designSettings.company_name || "Firmenname"}</div>
                                             <div>{designSettings.header_line1 || "Adresszeile 1"}</div>
                                             <div>{designSettings.header_line2 || "Adresszeile 2"}</div>
+                                            <div>{designSettings.header_line3 || "PLZ Ort"}</div>
                                         </div>
                                     </div>
 
+                                    {/* Recipient */}
+                                    <div className="mb-4 text-[10px] text-foreground/70 leading-snug">
+                                        <div>Max Mustermann</div>
+                                        <div>Musterstraße 42</div>
+                                        <div>80333 München</div>
+                                    </div>
+
+                                    {/* Date */}
+                                    <div className="text-right text-[10px] text-muted-foreground mb-4">
+                                        München, den 18.02.2026
+                                    </div>
+
                                     {/* Sample Content */}
-                                    <div className="space-y-2 flex-1">
-                                        <h3 style={{ color: designSettings.primary_color || "#243186", fontSize: "10px", fontWeight: 600 }}>
+                                    <div className="space-y-2.5 flex-1">
+                                        <h3 style={{ color: designSettings.primary_color || "#243186", fontSize: "12px", fontWeight: 600 }}>
                                             Arbeitsvertrag
                                         </h3>
-                                        <div className="text-[9px] text-foreground/80 space-y-1.5 leading-relaxed">
-                                            <p>Zwischen der Firma und Max Mustermann wird folgender Vertrag geschlossen...</p>
+                                        <div className="text-[10px] text-foreground/80 space-y-2 leading-relaxed">
+                                            <p>Zwischen der {designSettings.company_name || "Firma"} und Herrn Max Mustermann wird folgender Arbeitsvertrag geschlossen:</p>
                                             <p className="font-semibold text-foreground">§ 1 Vertragsgegenstand</p>
-                                            <p>Der Arbeitnehmer wird ab dem 01.01.2025 als Software-Entwickler eingestellt.</p>
+                                            <p>Der Arbeitnehmer wird ab dem 01.04.2026 als Software-Entwickler in Vollzeit eingestellt. Der Arbeitsort ist München.</p>
+                                            <p className="font-semibold text-foreground">§ 2 Vergütung</p>
+                                            <p>Das monatliche Bruttogehalt beträgt 5.500,00 EUR und wird jeweils zum Monatsende überwiesen.</p>
                                         </div>
                                     </div>
 
                                     {/* Footer */}
-                                    <div className="pt-2 border-t text-[8px] text-muted-foreground">
-                                        {designSettings.footer_line1 || "Fußzeile 1"} | {designSettings.footer_line2 || "Fußzeile 2"}
+                                    <div className="pt-2 border-t text-[9px] text-muted-foreground leading-snug space-y-0.5">
+                                        <div>{designSettings.footer_line1 || "Geschäftsführer: Hans Niederwieser"}</div>
+                                        <div>{designSettings.footer_line2 || "HRB 12345 · Amtsgericht München"} | {designSettings.footer_line3 || "USt-IdNr: DE123456789"}</div>
                                     </div>
                                 </div>
                             </div>

@@ -149,30 +149,29 @@ export const ValidationProgress = ({
                     <button
                         type="button"
                         className={cn(
-                            "relative w-full flex items-center gap-2.5 py-2 px-3 rounded-lg transition-all duration-200",
-                            "border",
-                            config.borderColor,
-                            config.bgColor,
-                            "hover:border-primary/20 cursor-pointer",
-                            "focus:outline-none focus:ring-2 focus:ring-primary/20"
+                            "relative w-full flex items-center gap-2 py-1.5 px-0.5 rounded-md transition-all duration-200",
+                            "hover:opacity-80 cursor-pointer",
+                            "focus:outline-none"
                         )}
                     >
-                        {/* Fortschrittsbalken — full width, subtle */}
                         <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between mb-1.5">
-                                <span className={cn("text-[11px] font-medium", config.textColor)}>
+                            <div className="flex items-center justify-between mb-1">
+                                <span className="text-[11px] text-muted-foreground/50">
                                     {validation.completedFields} von {validation.totalRequiredFields} Pflichtfeldern
                                 </span>
-                                <span className="text-[10px] text-muted-foreground/60">
-                                    {status === "green" ? "✓" : `${progress}%`}
+                                <span className="text-[10px] text-muted-foreground/40">
+                                    {status === "green" ? "✓ bereit" : `${progress}%`}
                                 </span>
                             </div>
-                            <div className="w-full h-1 bg-warm-100 rounded-full overflow-hidden">
+                            <div className="w-full h-[3px] bg-muted/60 rounded-full overflow-hidden">
                                 <motion.div
-                                    className={cn("h-full rounded-full", config.progressColor)}
+                                    className={cn(
+                                        "h-full rounded-full",
+                                        status === "green" ? "bg-green-400/60" : "bg-primary/20"
+                                    )}
                                     initial={{ width: 0 }}
                                     animate={{ width: `${progress}%` }}
-                                    transition={{ duration: 0.4, ease: "easeOut" }}
+                                    transition={{ duration: 0.5, ease: "easeOut" }}
                                 />
                             </div>
                         </div>

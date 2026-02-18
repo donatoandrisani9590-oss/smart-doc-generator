@@ -102,9 +102,9 @@ export const LeftControlPanel = ({ documentTypes }: LeftControlPanelProps) => {
                 <div className="p-4 space-y-4">
                     {/* Formularfelder - IMMER sichtbar (nicht collapsible) */}
                     <div>
-                        <div className="flex items-center gap-2 py-1.5 mb-2">
-                            <Users className="w-3.5 h-3.5 text-primary/60 shrink-0" />
-                            <span className="text-[10px] font-semibold text-muted-foreground/70 tracking-widest uppercase">Formularfelder</span>
+                        <div className="flex items-center gap-2 py-1 mb-1">
+                            <Users className="w-3.5 h-3.5 text-foreground/25 shrink-0" />
+                            <span className="text-[11px] font-medium text-foreground/40 tracking-wide">Formularfelder</span>
                         </div>
                         <FormFieldsSection countryCode={documentCountryCode} />
                     </div>

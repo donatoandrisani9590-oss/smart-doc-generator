@@ -489,14 +489,14 @@ export function LLMUsagePage() {
                                                         {entry.status === "success" ? (
                                                             <Badge
                                                                 variant="outline"
-                                                                className="bg-green-50 text-green-700 border-green-200"
+                                                                className="bg-secondary/10 text-secondary border-secondary/30"
                                                             >
                                                                 OK
                                                             </Badge>
                                                         ) : (
                                                             <Badge
                                                                 variant="outline"
-                                                                className="bg-red-50 text-red-700 border-red-200"
+                                                                className="bg-destructive/10 text-destructive border-destructive/30"
                                                             >
                                                                 Fehler
                                                             </Badge>

@@ -328,13 +328,13 @@ export default function SettingsHub() {
                             <h3 className="settings-nav-header px-4 py-1 text-[10px] font-medium uppercase tracking-wider">
                                 {group.label}
                             </h3>
-                            <div className="space-y-0.5 mt-0.5">
+                            <div className="space-y-0.5 mt-0.5 px-1.5">
                                 {group.items.map((item) => (
                                     <button
                                         key={item.id}
                                         onClick={() => setActiveTab(item.id)}
                                         className={cn(
-                                            "w-full flex items-center gap-2.5 px-3 py-1.5 text-[13px] rounded-md mx-1 transition-all",
+                                            "w-full flex items-center gap-2.5 px-2.5 py-1.5 text-[13px] rounded-md transition-all",
                                             activeTab === item.id
                                                 ? "settings-nav-item-active nav-pill-active font-medium"
                                                 : "settings-nav-item hover:bg-warm-50 dark:hover:bg-muted/50"

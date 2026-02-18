@@ -16,7 +16,7 @@
       Matches tailwind.config.js
       Premium warm-white system based on niederwiesergroup.com
     */
-    --background: 220 20% 98%;
+    --background: 36 25% 99%;
     --foreground: 228 30% 11%;
 
     --card: 0 0% 100%;
@@ -31,17 +31,17 @@
     --secondary: 137 40% 58%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 220 16% 95%;
+    --muted: 33 12% 96%;
     --muted-foreground: 220 9% 46%;
 
-    --accent: 220 16% 95%;
+    --accent: 33 12% 96%;
     --accent-foreground: 228 58% 33%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 220 13% 90%;
-    --input: 220 13% 90%;
+    --border: 33 10% 91%;
+    --input: 33 8% 92%;
     --ring: 228 58% 33%;
 
     --radius: 1rem;

@@ -398,13 +398,11 @@ export const CopilotStudioSettings = () => {
     <TooltipProvider>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center gap-3">
-          <div>
-            <h2 className="text-xl font-semibold tracking-tight text-foreground">Copilot Studio Integration</h2>
-            <p className="text-sm text-muted-foreground">
-              Verbinden Sie Ihren HR Document Generator mit Microsoft Copilot Studio und Power Automate
-            </p>
-          </div>
+        <div>
+          <h2 className="text-xl font-semibold tracking-tight text-foreground">Copilot Studio Integration</h2>
+          <p className="text-sm text-muted-foreground">
+            Verbinden Sie Ihren HR Document Generator mit Microsoft Copilot Studio und Power Automate
+          </p>
         </div>
 
         {/* Info Alert */}
