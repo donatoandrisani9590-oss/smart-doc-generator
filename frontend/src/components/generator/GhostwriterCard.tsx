@@ -79,14 +79,14 @@ export const GhostwriterCard = ({
   return (
     <div
       className={cn(
-        "bg-primary/[0.03] dark:bg-[hsl(225_16%_22%)] border-0 dark:border dark:border-border/30 overflow-hidden transition-all duration-300",
+        "bg-primary/[0.06] border border-primary/[0.12] dark:bg-[hsl(225_16%_22%)] dark:border-border/30 overflow-hidden transition-all duration-300",
         isCollapsed ? "rounded-2xl" : "rounded-t-2xl",
         className
       )}
       onClick={isCollapsed ? handleInteraction : undefined}
     >
       {/* Header — collapsed: single-line hint */}
-      <div className="flex items-center gap-2 px-3.5 py-2 cursor-pointer select-none hover:bg-primary/[0.06] dark:hover:bg-white/[0.04] transition-colors"
+      <div className="flex items-center gap-2 px-3.5 py-2 cursor-pointer select-none hover:bg-primary/[0.10] dark:hover:bg-white/[0.04] transition-colors"
         onClick={() => {
           handleInteraction();
           if (!isStreaming) setIsCollapsed(!isCollapsed);
@@ -95,16 +95,16 @@ export const GhostwriterCard = ({
         {isGenerating ? (
           <Loader2 className="w-3.5 h-3.5 text-primary/60 animate-spin shrink-0" />
         ) : (
-          <Sparkles className="w-3.5 h-3.5 text-primary/50 dark:text-primary/70 shrink-0" />
+          <Sparkles className="w-3.5 h-3.5 text-primary/70 dark:text-primary/70 shrink-0" />
         )}
-        <span className="text-[12px] font-medium text-foreground/50 dark:text-foreground/70 flex-1">
+        <span className="text-[12px] font-medium text-foreground/70 dark:text-foreground/70 flex-1">
           {isCollapsed ? "KI-Entwurf verfügbar" : "KI-Entwurf"}
           {isStreaming && (
-            <span className="text-xs text-primary/60 dark:text-primary/80 ml-2 font-normal">wird generiert...</span>
+            <span className="text-xs text-primary/70 dark:text-primary/80 ml-2 font-normal">wird generiert...</span>
           )}
         </span>
         {!isStreaming && isCollapsed && (
-          <span className="text-[11px] text-primary/50 dark:text-primary/70 hover:text-primary/70 dark:hover:text-primary/90 transition-colors">
+          <span className="text-[11px] text-primary/70 dark:text-primary/70 hover:text-primary dark:hover:text-primary/90 transition-colors">
             Anzeigen
           </span>
         )}

@@ -153,7 +153,7 @@ export const RightEditorPanel = () => {
     return (
         <div className="h-full flex flex-col">
             {/* Unified Toolbar — Workflow Stepper (left) + AI Tools (right) on one line */}
-            <div className="flex items-center justify-between px-3 py-2 bg-card/80 dark:bg-[hsl(225_14%_22%)] backdrop-blur-sm border-b border-transparent dark:border-border/40">
+            <div className="flex items-center justify-between px-3 py-2 bg-white/90 dark:bg-[hsl(225_14%_22%)] backdrop-blur-sm border-b border-border/40 dark:border-border/40">
                 <div className="flex items-center gap-2">
                     {/* Workflow Stepper — integrated inline */}
                     <WorkflowStepper compact />
@@ -260,7 +260,7 @@ export const RightEditorPanel = () => {
             </div>
 
             {/* Editor Container - A4 Paper on subtle canvas */}
-            <div className="flex-1 overflow-auto bg-muted/40 dark:bg-transparent p-4 md:p-6 lg:p-8 pb-10 md:pb-12 lg:pb-16">
+            <div className="flex-1 overflow-auto bg-transparent p-4 md:p-6 lg:p-8 pb-10 md:pb-12 lg:pb-16">
                 {isPreviewLoading && !displayContent ? (
                     <div className="flex items-center justify-center h-full">
                         <div className="text-center space-y-3">
