@@ -11,6 +11,7 @@ from app.api.v1.endpoints.smart import (
     agent,
     autocomplete,
     patterns,
+    onboarding,
 )
 
 __all__ = [
@@ -25,4 +26,5 @@ __all__ = [
     "agent",
     "autocomplete",
     "patterns",
+    "onboarding",
 ]

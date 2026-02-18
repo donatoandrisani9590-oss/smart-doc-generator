@@ -59,7 +59,7 @@ from app.api.v1.endpoints.admin import (
 from app.api.v1.endpoints import user_templates
 
 # Smart UX
-from app.api.v1.endpoints.smart import composer, smart_mode, compliance, clause_ai_selection, refine, consistency, draft as smart_draft, wizard as smart_wizard, agent as smart_agent, autocomplete as smart_autocomplete, patterns as smart_patterns
+from app.api.v1.endpoints.smart import composer, smart_mode, compliance, clause_ai_selection, refine, consistency, draft as smart_draft, wizard as smart_wizard, agent as smart_agent, autocomplete as smart_autocomplete, patterns as smart_patterns, onboarding as smart_onboarding
 
 # Integration (Copilot Studio, Power Platform)
 from app.api.v1.endpoints.integration import actions, webhooks, copilot_studio
@@ -684,6 +684,9 @@ app.include_router(smart_wizard.router, prefix=f"{settings.API_V1_STR}", tags=["
 
 # Agent Orchestrator - Claude-powered document creation with tool-use
 app.include_router(smart_agent.router, tags=["agent"])
+
+# Onboarding Package Agent — document bundle creation
+app.include_router(smart_onboarding.router, tags=["smart-onboarding"])
 
 # Employee Autocomplete - search employees and auto-fill form data
 app.include_router(smart_autocomplete.router, tags=["smart-autocomplete"])
