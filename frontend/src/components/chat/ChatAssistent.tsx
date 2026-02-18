@@ -6,7 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Loader2, Send, Sparkles, RefreshCw, Square, FileText, ArrowRight } from "lucide-react";
+import { Loader2, Send, Sparkles, RefreshCw, Square, FileText, ArrowRight, Package } from "lucide-react";
+import { OnboardingResultCard } from "./OnboardingResultCard";
 
 interface Message {
     role: "user" | "assistant";
@@ -34,7 +35,20 @@ export const ChatAssistent = ({ context, countryCode = "DE", onInsertText, onFil
     const [input, setInput] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [isStreaming, setIsStreaming] = useState(false);
-    const [mode, setMode] = useState<"general" | "clause" | "formal" | "document">("general");
+    const [mode, setMode] = useState<"general" | "clause" | "formal" | "document" | "onboarding">("general");
+    const [onboardingResult, setOnboardingResult] = useState<{
+        jobId: number;
+        packageName: string;
+        drafts: Array<{
+            id: number | null;
+            title: string;
+            document_type: string;
+            document_type_id: number;
+            missing_fields?: string[];
+            error?: string;
+        }>;
+        summary: string;
+    } | null>(null);
     const [wizardState, setWizardState] = useState<WizardState>({
         extractedData: {},
         suggestedDocumentTypeId: null,
@@ -71,6 +85,17 @@ export const ChatAssistent = ({ context, countryCode = "DE", onInsertText, onFil
         setMessages(allMessages);
         setInput("");
         setIsLoading(true);
+
+        // Detect onboarding intent
+        const isOnboardingMode = mode === "onboarding";
+        const onboardingKeywords = ["onboarding", "einstellen", "kündigung", "kündigen", "beförderung", "befördern"];
+        const isOnboardingIntent = isOnboardingMode ||
+            onboardingKeywords.some(kw => input.toLowerCase().includes(kw));
+
+        if (isOnboardingIntent && !onboardingResult) {
+            await handleOnboardingPipeline(input, allMessages);
+            return;
+        }
 
         const isWizardMode = mode === "document";
         const streamEndpoint = isWizardMode ? "/api/v1/smart/wizard/stream" : "/api/v1/chat/stream";
@@ -194,6 +219,102 @@ export const ChatAssistent = ({ context, countryCode = "DE", onInsertText, onFil
         }
     };
 
+    const handleOnboardingPipeline = async (message: string, _allMessages: Message[]) => {
+        try {
+            const controller = new AbortController();
+            abortControllerRef.current = controller;
+
+            setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
+            setIsStreaming(true);
+            setMode("onboarding");
+
+            let statusText = "";
+
+            for await (const event of apiStreamSSE(
+                "/api/v1/smart/onboarding",
+                { message, country_code: countryCode },
+                controller.signal,
+            )) {
+                if (event.type === "status") {
+                    statusText = event.message as string;
+                    setMessages((prev) => {
+                        const updated = [...prev];
+                        updated[updated.length - 1] = { role: "assistant", content: statusText };
+                        return updated;
+                    });
+                }
+                if (event.type === "employee_history") {
+                    statusText += `\n${event.message}`;
+                    setMessages((prev) => {
+                        const updated = [...prev];
+                        updated[updated.length - 1] = { role: "assistant", content: statusText };
+                        return updated;
+                    });
+                }
+                if (event.type === "draft_created") {
+                    const draft = event.draft as { title: string };
+                    statusText += `\n${draft.title}`;
+                    setMessages((prev) => {
+                        const updated = [...prev];
+                        updated[updated.length - 1] = { role: "assistant", content: statusText };
+                        return updated;
+                    });
+                }
+                if (event.type === "done") {
+                    const doneEvent = event as SSEEvent & {
+                        job_id: number;
+                        summary: string;
+                        drafts: Array<{
+                            id: number | null;
+                            title: string;
+                            document_type: string;
+                            document_type_id: number;
+                            missing_fields?: string[];
+                            error?: string;
+                        }>;
+                    };
+
+                    const packageName = event.package_name as string || "Onboarding";
+
+                    setOnboardingResult({
+                        jobId: doneEvent.job_id,
+                        packageName,
+                        drafts: doneEvent.drafts || [],
+                        summary: doneEvent.summary || "",
+                    });
+
+                    setMessages((prev) => {
+                        const updated = [...prev];
+                        updated[updated.length - 1] = {
+                            role: "assistant",
+                            content: `${doneEvent.summary}\n\nDu kannst die Dokumente jetzt öffnen und bearbeiten. Oder schreib mir, was ich anpassen soll — z.B. "Adresse ist Musterstraße 5, 80333 München".`,
+                        };
+                        return updated;
+                    });
+                    break;
+                }
+                if (event.type === "error") {
+                    throw new Error(event.message as string);
+                }
+            }
+        } catch (error) {
+            if (error instanceof DOMException && error.name === "AbortError") return;
+            console.error("Onboarding pipeline error:", error);
+            setMessages((prev) => {
+                const updated = [...prev];
+                updated[updated.length - 1] = {
+                    role: "assistant",
+                    content: `Fehler beim Erstellen des Pakets: ${error instanceof Error ? error.message : "Unbekannter Fehler"}`,
+                };
+                return updated;
+            });
+        } finally {
+            abortControllerRef.current = null;
+            setIsStreaming(false);
+            setIsLoading(false);
+        }
+    };
+
     const handleKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
@@ -206,6 +327,7 @@ export const ChatAssistent = ({ context, countryCode = "DE", onInsertText, onFil
             stopStreaming();
         }
         setMessages([]);
+        setOnboardingResult(null);
         setWizardState({
             extractedData: {},
             suggestedDocumentTypeId: null,
@@ -247,7 +369,7 @@ export const ChatAssistent = ({ context, countryCode = "DE", onInsertText, onFil
                         Brief-Assistent
                     </CardTitle>
                     <div className="flex gap-1.5 flex-wrap">
-                        {(["general", "clause", "formal", "document"] as const).map((m) => (
+                        {(["general", "clause", "formal", "document", "onboarding"] as const).map((m) => (
                             <Button
                                 key={m}
                                 variant={mode === m ? "secondary" : "ghost"}
@@ -256,7 +378,7 @@ export const ChatAssistent = ({ context, countryCode = "DE", onInsertText, onFil
                                 className="text-xs h-7 px-3"
                                 disabled={isLoading}
                             >
-                                {m === "general" ? "Allgemein" : m === "clause" ? "Textbausteine" : m === "formal" ? "Formell" : "Dokument erstellen"}
+                                {m === "general" ? "Allgemein" : m === "clause" ? "Textbausteine" : m === "formal" ? "Formell" : m === "document" ? "Dokument erstellen" : "Onboarding"}
                             </Button>
                         ))}
                     </div>
@@ -311,6 +433,14 @@ export const ChatAssistent = ({ context, countryCode = "DE", onInsertText, onFil
                                 )}
                             </div>
                         ))
+                    )}
+                    {onboardingResult && (
+                        <OnboardingResultCard
+                            packageName={onboardingResult.packageName}
+                            drafts={onboardingResult.drafts}
+                            jobId={onboardingResult.jobId}
+                            summary={onboardingResult.summary}
+                        />
                     )}
                     <div ref={messagesEndRef} />
                 </div>
