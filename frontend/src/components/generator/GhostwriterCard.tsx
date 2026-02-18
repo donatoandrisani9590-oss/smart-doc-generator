@@ -79,14 +79,14 @@ export const GhostwriterCard = ({
   return (
     <div
       className={cn(
-        "bg-primary/[0.03] border-0 overflow-hidden transition-all duration-300",
+        "bg-primary/[0.03] dark:bg-[hsl(225_16%_22%)] border-0 dark:border dark:border-border/30 overflow-hidden transition-all duration-300",
         isCollapsed ? "rounded-2xl" : "rounded-t-2xl",
         className
       )}
       onClick={isCollapsed ? handleInteraction : undefined}
     >
       {/* Header — collapsed: single-line hint */}
-      <div className="flex items-center gap-2 px-3.5 py-2 cursor-pointer select-none hover:bg-primary/[0.06] transition-colors"
+      <div className="flex items-center gap-2 px-3.5 py-2 cursor-pointer select-none hover:bg-primary/[0.06] dark:hover:bg-white/[0.04] transition-colors"
         onClick={() => {
           handleInteraction();
           if (!isStreaming) setIsCollapsed(!isCollapsed);
@@ -120,7 +120,7 @@ export const GhostwriterCard = ({
         <>
           {/* Error state */}
           {error && (
-            <div className="px-3 py-2 text-xs text-red-600 bg-red-50 border-t border-red-100">
+            <div className="px-3 py-2 text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border-t border-red-100 dark:border-red-800/30">
               {error}
             </div>
           )}
@@ -176,7 +176,7 @@ export const GhostwriterCard = ({
                 e.stopPropagation();
                 onDismiss();
               }}
-              className="h-8 text-xs gap-1.5 text-muted-foreground hover:text-red-600 hover:bg-red-50"
+              className="h-8 text-xs gap-1.5 text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:text-red-400 dark:hover:bg-red-900/20"
             >
               <X className="w-3.5 h-3.5" />
               Verwerfen
