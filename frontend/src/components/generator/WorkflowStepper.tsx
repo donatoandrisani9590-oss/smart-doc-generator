@@ -11,21 +11,20 @@
  * v1.0: Initial implementation
  */
 
-import { Check, FileEdit, Layers, Eye, Download } from "lucide-react";
+import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useWizardContext, type FormData as WizardFormData, type DocumentClause } from "./WizardContext";
 
 interface WorkflowStep {
     id: string;
     label: string;
-    icon: React.ElementType;
 }
 
 const WORKFLOW_STEPS: WorkflowStep[] = [
-    { id: "draft", label: "Entwurf", icon: FileEdit },
-    { id: "content", label: "Inhalte", icon: Layers },
-    { id: "review", label: "Prüfung", icon: Eye },
-    { id: "export", label: "Export", icon: Download },
+    { id: "draft", label: "Entwurf" },
+    { id: "content", label: "Inhalte" },
+    { id: "review", label: "Prüfung" },
+    { id: "export", label: "Export" },
 ];
 
 /**
@@ -85,45 +84,23 @@ export const WorkflowStepper = ({ compact = false }: WorkflowStepperProps) => {
 
     return (
         <div className={cn(
-            "flex items-center gap-1",
-            compact
-                ? "" // No background/border when inline in toolbar
-                : "justify-center px-4 py-2 bg-background/80 backdrop-blur border-b"
+            compact ? "ive-pill-tabs" : "ive-pill-tabs mx-auto"
         )}>
             {WORKFLOW_STEPS.map((step, index) => {
-                const Icon = step.icon;
                 const isCompleted = index < currentStep;
                 const isCurrent = index === currentStep;
-                const isPending = index > currentStep;
 
                 return (
-                    <div key={step.id} className="flex items-center">
-                        {/* Step */}
-                        <div
-                            className={cn(
-                                "flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-medium transition-all duration-300",
-                                isCompleted && "text-green-600/80 dark:text-green-400/80",
-                                isCurrent && "bg-primary/8 text-primary",
-                                isPending && "text-muted-foreground/40"
-                            )}
-                        >
-                            {isCompleted ? (
-                                <Check className="w-3 h-3" />
-                            ) : (
-                                <Icon className="w-3 h-3" />
-                            )}
-                            <span className="hidden sm:inline">{step.label}</span>
-                        </div>
-
-                        {/* Connector */}
-                        {index < WORKFLOW_STEPS.length - 1 && (
-                            <div
-                                className={cn(
-                                    "w-5 h-px mx-0.5 transition-colors duration-500",
-                                    index < currentStep ? "bg-green-400/50" : "bg-border/30"
-                                )}
-                            />
+                    <div
+                        key={step.id}
+                        className={cn(
+                            "ive-pill-tab flex items-center gap-1",
+                            isCurrent && "ive-pill-tab-active",
+                            isCompleted && "text-green-600/70 dark:text-green-400/70"
                         )}
+                    >
+                        {isCompleted && <Check className="w-3 h-3" />}
+                        <span className="hidden sm:inline">{step.label}</span>
                     </div>
                 );
             })}

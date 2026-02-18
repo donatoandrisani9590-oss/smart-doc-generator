@@ -11,7 +11,6 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { PlusCircle, Sparkles, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { NotificationDropdown } from "@/components/notifications/NotificationDropdown";
 import { UserMenu } from "./UserMenu";
 import { useFeatureEnabled } from "@/hooks/useFeatureSettings";
 import { useState } from "react";
@@ -65,7 +64,7 @@ export const HeaderNav = () => {
                             className="h-6 w-auto hidden dark:block"
                         />
                         <div className="h-5 w-px bg-border/40 hidden lg:block" />
-                        <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-[0.15em] hidden lg:block">
+                        <span className="text-[11px] font-semibold text-foreground/30 uppercase tracking-[0.15em] hidden lg:block">
                             Docs
                         </span>
                     </Link>
@@ -78,10 +77,10 @@ export const HeaderNav = () => {
                             key={item.href}
                             to={item.href}
                             className={cn(
-                                "px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200",
+                                "px-4 py-2 text-[13px] font-medium rounded-lg transition-all duration-200",
                                 isActive(item)
-                                    ? "nav-pill-active"
-                                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                                    ? "text-foreground font-semibold bg-muted/40"
+                                    : "text-foreground/50 hover:text-foreground hover:bg-muted/30"
                             )}
                             aria-current={isActive(item) ? "page" : undefined}
                         >
@@ -95,10 +94,10 @@ export const HeaderNav = () => {
                     {/* New Document CTA */}
                     <Button
                         size="sm"
-                        className="hidden sm:flex gap-2 rounded-full px-4 h-9"
+                        className="hidden sm:flex gap-2 rounded-full px-4 h-8 text-[12px] shadow-[var(--shadow-elevated)]"
                         onClick={() => navigate("/generate")}
                     >
-                        <PlusCircle className="w-4 h-4" />
+                        <PlusCircle className="w-3.5 h-3.5" />
                         <span className="hidden md:inline">Neues Dokument</span>
                     </Button>
 
@@ -106,16 +105,13 @@ export const HeaderNav = () => {
                     <Button
                         variant="ghost"
                         size="icon"
-                        className="h-9 w-9"
+                        className="h-9 w-9 text-foreground/30 hover:text-foreground/60"
                         onClick={() => navigate("/agent")}
                         aria-label="KI-Assistent"
                         title="KI-Assistent"
                     >
                         <Sparkles className="w-4 h-4" />
                     </Button>
-
-                    {/* Notifications */}
-                    <NotificationDropdown />
 
                     {/* User Menu (includes theme + country) */}
                     <UserMenu />
@@ -149,10 +145,10 @@ export const HeaderNav = () => {
                                 to={item.href}
                                 onClick={() => setMobileMenuOpen(false)}
                                 className={cn(
-                                    "block px-4 py-3 text-sm font-medium rounded-lg transition-colors",
+                                    "block px-4 py-3 text-[13px] font-medium rounded-lg transition-colors",
                                     isActive(item)
-                                        ? "nav-pill-active"
-                                        : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                                        ? "text-foreground font-semibold bg-muted/40"
+                                        : "text-foreground/50 hover:text-foreground hover:bg-muted/30"
                                 )}
                             >
                                 {item.label}

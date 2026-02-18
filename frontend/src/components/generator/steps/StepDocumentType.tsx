@@ -171,12 +171,12 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
 
     return (
         <div className="max-w-xl mx-auto space-y-6">
-            {/* Header - Kompakt und clean */}
-            <div className="pb-4 border-b">
-                <h1 className="text-2xl font-semibold text-foreground">
+            {/* Header */}
+            <div className="pb-4">
+                <h1 className="text-2xl font-semibold text-foreground tracking-tight">
                     Neues Dokument erstellen
                 </h1>
-                <p className="text-sm text-muted-foreground mt-1">
+                <p className="text-[13px] text-muted-foreground/60 mt-1">
                     Wählen Sie eine Vorlage und geben Sie dem Dokument einen Namen.
                 </p>
             </div>
@@ -185,13 +185,13 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
             <div className="space-y-4">
                 {/* Suchfeld - Clean und prominent */}
                 <div className="relative">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-warm-400" />
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/30" />
                     <Input
                         id="document-type-search"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         placeholder="Dokumenttyp suchen..."
-                        className="h-11 pl-11 pr-10 border-border focus:border-primary focus:ring-2 focus:ring-primary/10"
+                        className="h-11 pl-11 pr-10 border-0 shadow-[var(--shadow-elevated)] rounded-2xl bg-card focus:ring-0 focus:shadow-[var(--shadow-elevated-hover)]"
                         disabled={isLoading}
                     />
                     {searchQuery && (
@@ -246,14 +246,14 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
                 })()}
 
                 {/* Dokumenttyp-Liste - Saubere Gruppierung */}
-                {showTypeList && <div className="border border-border rounded-lg overflow-hidden bg-white">
+                {showTypeList && <div className="ive-card overflow-hidden">
                     <ScrollArea className="h-[300px]">
                         <div className="divide-y divide-warm-100">
                             {/* Zuletzt verwendet */}
                             {!searchQuery && recentTypes.length > 0 && (
                                 <div>
-                                    <div className="px-4 py-2.5 bg-warm-50/80 border-b border-warm-100">
-                                        <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                                    <div className="px-4 py-2.5">
+                                        <span className="ive-section-header flex items-center gap-1.5">
                                             <Clock className="w-3 h-3" />
                                             Zuletzt verwendet
                                         </span>
@@ -294,8 +294,8 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
                             {/* Kategorisierte Liste */}
                             {Object.entries(groupedTypes).map(([category, types]) => (
                                 <div key={category}>
-                                    <div className="px-4 py-2.5 bg-warm-50/80 border-b border-warm-100">
-                                        <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                                    <div className="px-4 py-2.5">
+                                        <span className="ive-section-header">
                                             {translateCategory(category)}
                                         </span>
                                     </div>
@@ -368,7 +368,6 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
                         <CollapsibleTrigger className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors pt-2 group">
                             <LayoutTemplate className="w-4 h-4" />
                             <span>Vorlage verwenden</span>
-                            <Badge variant="outline" className="text-[10px] py-0">Optional</Badge>
                             <ChevronDown className={cn(
                                 "w-3.5 h-3.5 transition-transform ml-auto",
                                 (templateSectionOpen || !!state.userTemplateId) && "rotate-180"
@@ -489,40 +488,27 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
                 )}
             </div>
 
-            {/* Action Buttons - Klare visuelle Hierarchie */}
-            <div className="pt-6 border-t border-border/40">
-                <div className="flex items-center justify-center gap-4">
-                    {/* Sekundärer Button: Manuell */}
+            {/* Action Buttons */}
+            <div className="pt-6">
+                <div className="flex items-center justify-center gap-3">
                     <Button
-                        variant="outline"
                         onClick={() => actions.enterSplitScreenMode()}
                         disabled={!canProceed}
-                        className="h-11 px-6 disabled:opacity-50"
+                        className="h-11 px-6 rounded-xl shadow-[var(--shadow-elevated)] disabled:opacity-50"
                     >
                         Manuell erstellen
                         <ArrowRight className="w-4 h-4 ml-2" />
                     </Button>
 
-                    <span className="text-sm text-warm-400">oder</span>
-
-                    {/* Primärer Button: Mit KI - Klar hervorgehoben */}
-                    <TooltipProvider>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button
-                                    onClick={() => setIsSmartModeOpen(true)}
-                                    disabled={!canProceed}
-                                    className="h-11 px-7 bg-primary hover:bg-primary/90 text-white font-semibold shadow-md hover:shadow-lg transition-all disabled:opacity-50"
-                                >
-                                    <Sparkles className="w-4 h-4 mr-2" />
-                                    Mit KI erstellen
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent side="bottom">
-                                <p>Beschreiben Sie einfach, was Sie brauchen</p>
-                            </TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
+                    <Button
+                        variant="ghost"
+                        onClick={() => setIsSmartModeOpen(true)}
+                        disabled={!canProceed}
+                        className="h-11 px-6 text-primary/70 hover:bg-primary/5 rounded-xl disabled:opacity-50"
+                    >
+                        <Sparkles className="w-4 h-4 mr-2" />
+                        Mit KI erstellen
+                    </Button>
                 </div>
 
                 {/* Hinweis wenn kein Dokumenttyp ausgewählt */}
@@ -580,7 +566,7 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
             <div className="text-center">
                 <a
                     href="/settings?tab=templates"
-                    className="text-xs text-muted-foreground hover:text-primary transition-colors inline-flex items-center gap-1"
+                    className="text-xs text-muted-foreground/50 hover:text-muted-foreground transition-colors inline-flex items-center gap-1"
                 >
                     Eigene Word-Vorlage importieren
                     <ArrowRight className="w-3 h-3" />

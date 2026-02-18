@@ -96,7 +96,7 @@ const BreadcrumbItemComponent = ({
     if (isLast || !item.href) {
         return (
             <span
-                className="text-sm font-medium text-foreground"
+                className="text-[12px] font-medium text-foreground/60"
                 aria-current="page"
             >
                 {content}
@@ -107,7 +107,7 @@ const BreadcrumbItemComponent = ({
     return (
         <Link
             to={item.href}
-            className="text-sm text-muted-foreground hover:text-primary transition-colors"
+            className="text-[12px] text-muted-foreground/35 hover:text-foreground/60 transition-colors"
         >
             {content}
         </Link>
@@ -132,7 +132,7 @@ export const Breadcrumb = ({
     }
 
     const separatorElement = separator || (
-        <ChevronRight className="w-4 h-4 text-muted-foreground/50" aria-hidden="true" />
+        <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/20" aria-hidden="true" />
     );
 
     return (
@@ -144,10 +144,10 @@ export const Breadcrumb = ({
                 <>
                     <Link
                         to="/"
-                        className="text-muted-foreground hover:text-primary transition-colors"
+                        className="text-muted-foreground/30 hover:text-foreground/60 transition-colors"
                         aria-label="Zur Startseite"
                     >
-                        <Home className="w-4 h-4" aria-hidden="true" />
+                        <Home className="w-3.5 h-3.5" aria-hidden="true" />
                     </Link>
                     {displayItems.length > 0 && separatorElement}
                 </>
@@ -201,11 +201,11 @@ export const PageHeader = ({
 
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight text-foreground">
+                    <h1 className="text-2xl font-semibold tracking-tight text-foreground">
                         {title}
                     </h1>
                     {description && (
-                        <p className="text-muted-foreground mt-1">{description}</p>
+                        <p className="text-[13px] text-muted-foreground/60 mt-1">{description}</p>
                     )}
                 </div>
 

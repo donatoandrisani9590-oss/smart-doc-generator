@@ -67,11 +67,11 @@ export const LeftControlPanel = ({ documentTypes }: LeftControlPanelProps) => {
     return (
         <div className="h-full flex flex-col overflow-hidden">
             {/* Header mit Dokumenttitel */}
-            <div className="p-4 pb-3 border-b border-border/40 bg-background shrink-0">
+            <div className="p-4 pb-3 bg-background shrink-0">
                 <div className="flex items-center justify-between gap-2 mb-2.5">
                     <div className="flex items-center gap-2 min-w-0">
-                        <FileText className="w-3.5 h-3.5 text-primary/70 shrink-0" />
-                        <span className="text-[11px] font-medium text-muted-foreground/80 truncate">{documentTypeName}</span>
+                        <FileText className="w-3.5 h-3.5 text-muted-foreground/40 shrink-0" />
+                        <span className="text-[13px] text-muted-foreground/50 truncate">{documentTypeName}</span>
                     </div>
                     <DocumentStatusBadge status={documentStatus} size="sm" />
                 </div>
@@ -79,12 +79,12 @@ export const LeftControlPanel = ({ documentTypes }: LeftControlPanelProps) => {
                     value={documentTitle}
                     onChange={(e) => actions.setDocumentTitle(e.target.value)}
                     placeholder="Dokumenttitel eingeben..."
-                    className="font-medium text-sm"
+                    className="ive-input text-lg font-semibold"
                 />
             </div>
 
             {/* Briefpapier-Auswahl */}
-            <div className="px-4 py-3 border-b border-border/30">
+            <div className="px-4 py-3">
                 <StationeryPicker
                     value={state.userTemplateId}
                     onChange={(id) => {
@@ -103,8 +103,8 @@ export const LeftControlPanel = ({ documentTypes }: LeftControlPanelProps) => {
                     {/* Formularfelder - IMMER sichtbar (nicht collapsible) */}
                     <div>
                         <div className="flex items-center gap-2 py-1 mb-1">
-                            <Users className="w-3.5 h-3.5 text-foreground/25 shrink-0" />
-                            <span className="text-[11px] font-medium text-foreground/40 tracking-wide">Formularfelder</span>
+                            <Users className="w-3 h-3 text-muted-foreground/30 shrink-0" />
+                            <span className="ive-section-header">Formularfelder</span>
                         </div>
                         <FormFieldsSection countryCode={documentCountryCode} />
                     </div>
@@ -113,15 +113,15 @@ export const LeftControlPanel = ({ documentTypes }: LeftControlPanelProps) => {
                     {totalClausesCount > 0 && (
                         <Button
                             variant="ghost"
-                            className="w-full justify-between h-auto py-3 px-4 bg-card hover:bg-muted/50 border border-border/40 hover:border-border/60 rounded-xl transition-all"
+                            className="w-full justify-between h-auto py-3 px-4 bg-muted/20 hover:bg-muted/40 border-0 rounded-xl transition-all"
                             onClick={() => setShowClausesModal(true)}
                         >
                             <div className="flex items-center gap-2">
-                                <Layers className="w-3.5 h-3.5 text-primary/60" />
+                                <Layers className="w-3.5 h-3.5 text-muted-foreground/40" />
                                 <span className="font-medium text-sm">Textbausteine</span>
                             </div>
                             <div className="flex items-center gap-2">
-                                <Badge variant="secondary" className="text-[10px] font-normal">
+                                <Badge variant="secondary" className="text-[10px] font-normal bg-primary/8 text-primary/70 rounded-full">
                                     {enabledClausesCount}/{totalClausesCount}
                                 </Badge>
                                 <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/50" />
@@ -133,11 +133,11 @@ export const LeftControlPanel = ({ documentTypes }: LeftControlPanelProps) => {
                     {documentTypeId && (
                         <Button
                             variant="ghost"
-                            className="w-full justify-between h-auto py-3 px-4 bg-card hover:bg-muted/50 border border-border/40 hover:border-border/60 rounded-xl transition-all"
+                            className="w-full justify-between h-auto py-3 px-4 bg-muted/20 hover:bg-muted/40 border-0 rounded-xl transition-all"
                             onClick={() => setShowAttachmentsModal(true)}
                         >
                             <div className="flex items-center gap-2">
-                                <Paperclip className="w-3.5 h-3.5 text-primary/60" />
+                                <Paperclip className="w-3.5 h-3.5 text-muted-foreground/40" />
                                 <span className="font-medium text-sm">Anlagen</span>
                             </div>
                             <div className="flex items-center gap-2">

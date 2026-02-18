@@ -212,10 +212,10 @@ export const ActionBar = () => {
     }, [autoSaveStatus, lastSavedText]);
 
     return (
-        <div className="p-3 border-t border-border/40 bg-background space-y-2.5">
-            {/* Auto-Save Status — compact inline */}
+        <div className="p-3 shadow-[var(--shadow-up-subtle)] bg-background space-y-2.5">
+            {/* Auto-Save Status */}
             {autoSaveIndicator && (
-                <div className={`flex items-center justify-center gap-1.5 text-[10px] ${autoSaveIndicator.color}`}>
+                <div className={`flex items-center justify-center gap-1.5 text-[11px] ${autoSaveIndicator.color}`}>
                     {autoSaveIndicator.icon}
                     <span>{autoSaveIndicator.text}</span>
                 </div>

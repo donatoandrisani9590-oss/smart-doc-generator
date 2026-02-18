@@ -7,19 +7,13 @@
  */
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-    PlusCircle,
-    FileCheck,
-    Clock,
-    FileText,
     Sparkles,
     AlertTriangle,
     Search,
     ChevronRight,
-    Upload,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useDashboardStats, useMyActivity, useClauses, useDocumentTypes } from "@/hooks/useApi";
@@ -29,9 +23,9 @@ import { QuickTemplates } from "@/components/dashboard/QuickTemplates";
 import { DocumentWizardChat } from "@/components/chat/DocumentWizardChat";
 import { DeadlinesWidget } from "@/components/dashboard/DeadlinesWidget";
 import { ApprovalRequestsWidget } from "@/components/dashboard/ApprovalRequestsWidget";
-import { DocumentUploadDialog } from "@/components/documents/DocumentUploadDialog";
+
 import { OnboardingBanner } from "@/components/dashboard/OnboardingBanner";
-import { useFeatureEnabled } from "@/hooks/useFeatureSettings";
+
 import { MotionContainer, MotionListItem } from "@/components/ui/motion";
 
 // Greeting based on time
@@ -49,12 +43,12 @@ export const Dashboard = () => {
     const { data: documentTypes } = useDocumentTypes();
     const [searchQuery, setSearchQuery] = useState("");
     const [wizardOpen, setWizardOpen] = useState(false);
-    const [uploadOpen, setUploadOpen] = useState(false);
+
     const [onboardingDismissed, setOnboardingDismissed] = useState(() =>
         localStorage.getItem("onboarding-dismissed") === "true"
     );
     const navigate = useNavigate();
-    const isUploadEnabled = useFeatureEnabled("enable_document_upload");
+
 
     const isLoading = statsLoading || activityLoading;
     const hasOpenDrafts = (stats?.open_drafts ?? 0) > 0;
@@ -93,86 +87,55 @@ export const Dashboard = () => {
                     }}
                 />
                 <div className="relative z-10">
-                    <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6">
-                        <div>
-                            <h1 className="text-3xl font-bold tracking-tight text-white">
-                                {getGreeting()}
-                            </h1>
-                            <p className="text-white/80 mt-2 text-lg font-light">
-                                {hasNoDocumentTypes
-                                    ? "Richten Sie Ihre erste Dokumentvorlage ein"
-                                    : hasPendingTasks
-                                    ? "Sie haben offene Aufgaben"
-                                    : "Bereit für neue Dokumente"}
-                            </p>
-                            {/* Quick inline stats */}
-                            <div className="flex gap-8 mt-5">
-                                <div>
-                                    {isLoading ? (
-                                        <Skeleton className="h-8 w-10 bg-white/20 rounded" />
-                                    ) : (
-                                        <p className="text-4xl font-light tracking-tight">
-                                            {stats?.documents_this_month ?? 0}
-                                        </p>
-                                    )}
-                                    <p className="text-[11px] text-white/70 uppercase tracking-wider mt-1">
-                                        Diesen Monat
+                    <div>
+                        <h1 className="text-3xl font-semibold tracking-tight text-white">
+                            {getGreeting()}
+                        </h1>
+                        <p className="text-white/70 mt-2 text-lg font-light">
+                            {hasNoDocumentTypes
+                                ? "Richten Sie Ihre erste Dokumentvorlage ein"
+                                : hasPendingTasks
+                                ? "Sie haben offene Aufgaben"
+                                : "Bereit für neue Dokumente"}
+                        </p>
+                        {/* Quick inline stats */}
+                        <div className="flex gap-8 mt-5">
+                            <div>
+                                {isLoading ? (
+                                    <Skeleton className="h-8 w-10 bg-white/20 rounded" />
+                                ) : (
+                                    <p className="text-3xl font-light tracking-tight">
+                                        {stats?.documents_this_month ?? 0}
                                     </p>
-                                </div>
-                                <div>
-                                    {isLoading ? (
-                                        <Skeleton className="h-8 w-10 bg-white/20 rounded" />
-                                    ) : (
-                                        <p className="text-4xl font-light tracking-tight">
-                                            {stats?.open_drafts ?? 0}
-                                        </p>
-                                    )}
-                                    <p className="text-[11px] text-white/70 uppercase tracking-wider mt-1">
-                                        Offen
-                                    </p>
-                                </div>
-                                <div>
-                                    {isLoading ? (
-                                        <Skeleton className="h-8 w-10 bg-white/20 rounded" />
-                                    ) : (
-                                        <p className="text-4xl font-light tracking-tight">
-                                            {stats?.documents_total ?? 0}
-                                        </p>
-                                    )}
-                                    <p className="text-[11px] text-white/70 uppercase tracking-wider mt-1">
-                                        Gesamt
-                                    </p>
-                                </div>
+                                )}
+                                <p className="text-[11px] text-white/50 uppercase tracking-wider mt-1">
+                                    Diesen Monat
+                                </p>
                             </div>
-                        </div>
-                        <div className="flex items-center gap-3 lg:mt-1">
-                            {isUploadEnabled && (
-                                <Button
-                                    variant="outline"
-                                    className="h-10 px-5 border-2 border-white/40 bg-transparent text-white hover:bg-white/15 hover:border-white/60 hover:shadow-[0_4px_14px_rgba(255,255,255,0.2)] transition-all duration-300 ease-out rounded-full"
-                                    onClick={() => setUploadOpen(true)}
-                                >
-                                    <Upload className="w-4 h-4 mr-2" />
-                                    Hochladen
-                                </Button>
-                            )}
-                            {!hasNoDocumentTypes && (
-                                <Button
-                                    variant="outline"
-                                    className="h-10 px-5 border-2 border-white/40 bg-transparent text-white hover:bg-white/15 hover:border-white/60 hover:shadow-[0_4px_14px_rgba(255,255,255,0.2)] transition-all duration-300 ease-out rounded-full gap-2"
-                                    onClick={() => navigate("/agent")}
-                                >
-                                    <Sparkles className="w-4 h-4" />
-                                    KI-Assistent
-                                </Button>
-                            )}
-                            <Button
-                                className="h-10 px-5 gap-2 bg-white text-[#243186] hover:bg-white/90 hover:shadow-[0_4px_14px_rgba(255,255,255,0.3)] transition-all duration-300 ease-out font-medium rounded-full border-2 border-white"
-                                onClick={() => hasNoDocumentTypes ? navigate("/settings?tab=templates") : setWizardOpen(true)}
-                            >
-                                <PlusCircle className="w-4 h-4" />
-                                {hasNoDocumentTypes ? "Einrichtung starten" : "Neues Dokument"}
-                            </Button>
+                            <div>
+                                {isLoading ? (
+                                    <Skeleton className="h-8 w-10 bg-white/20 rounded" />
+                                ) : (
+                                    <p className="text-3xl font-light tracking-tight">
+                                        {stats?.open_drafts ?? 0}
+                                    </p>
+                                )}
+                                <p className="text-[11px] text-white/50 uppercase tracking-wider mt-1">
+                                    Offen
+                                </p>
+                            </div>
+                            <div>
+                                {isLoading ? (
+                                    <Skeleton className="h-8 w-10 bg-white/20 rounded" />
+                                ) : (
+                                    <p className="text-3xl font-light tracking-tight">
+                                        {stats?.documents_total ?? 0}
+                                    </p>
+                                )}
+                                <p className="text-[11px] text-white/50 uppercase tracking-wider mt-1">
+                                    Gesamt
+                                </p>
+                            </div>
                         </div>
                     </div>
 
@@ -216,7 +179,7 @@ export const Dashboard = () => {
 
                 {/* AI Document Creation - nur anzeigen wenn Dokumenttypen vorhanden */}
                 {!hasNoDocumentTypes && (
-                <div className="glass-card p-6 border-none relative overflow-hidden group">
+                <div className="ive-card p-6 relative overflow-hidden group">
                     <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none group-hover:opacity-10 transition-opacity">
                         <Sparkles className="w-32 h-32" />
                     </div>
@@ -262,22 +225,20 @@ export const Dashboard = () => {
 
                 {/* Combined Document Section */}
                 {showDocumentSection && (
-                    <div className="card-soft p-0 overflow-hidden">
-                        <div className="flex items-center justify-between px-6 py-4 border-b info-card-header">
-                            <div className="flex items-center gap-2">
+                    <div className="ive-card p-0 overflow-hidden">
+                        <div className="flex items-center justify-between px-6 py-4">
+                            <div className="flex items-center gap-3">
                                 {hasDrafts ? (
                                     <>
-                                        <Clock className="w-4 h-4 text-amber-500" />
                                         <h3 className="font-medium text-foreground">Offene Entwürfe</h3>
-                                        <span className="text-xs bg-amber-50 dark:bg-amber-950/30 text-amber-800 px-2.5 py-0.5 rounded-full font-medium border border-amber-100">
-                                            {stats?.open_drafts}
-                                        </span>
+                                        {(stats?.open_drafts ?? 0) > 0 && (
+                                            <span className="text-[11px] text-muted-foreground font-normal tabular-nums">
+                                                {stats?.open_drafts}
+                                            </span>
+                                        )}
                                     </>
                                 ) : (
-                                    <>
-                                        <FileCheck className="w-4 h-4 text-green-500" />
-                                        <h3 className="font-medium text-foreground">Zuletzt erstellt</h3>
-                                    </>
+                                    <h3 className="font-medium text-foreground">Zuletzt erstellt</h3>
                                 )}
                             </div>
                             <Link to="/documents" className="text-xs font-medium text-primary hover:underline">
@@ -286,68 +247,78 @@ export const Dashboard = () => {
                         </div>
                         <div className="p-2">
                             {hasDrafts ? (
-                                <MotionContainer className="space-y-1">
+                                <MotionContainer className="divide-y divide-border/10">
                                     {activity!.recent_drafts.slice(0, 3).map((draft, index) => {
                                         const daysRemaining = (draft as typeof draft & { days_remaining?: number }).days_remaining ?? 30;
                                         const isExpiringSoon = daysRemaining <= 7;
+                                        // Employee name from form_data extraction (backend sends it as `name`)
+                                        const employeeName = draft.name && draft.name !== "Unbekannt" ? draft.name : null;
 
                                         return (
                                             <MotionListItem key={draft.id} index={index} disableInteraction>
                                             <Link
                                                 to={`/generate?draft=${draft.id}`}
-                                                className="flex items-center justify-between px-4 py-3 rounded-lg hover:bg-warm-50 hover:shadow-sm transition-all group mx-2 bg-white dark:bg-card border border-transparent hover:border-warm-200"
+                                                className="flex items-center gap-4 px-5 py-3.5 hover:bg-warm-50/60 dark:hover:bg-white/[0.03] transition-colors group"
                                             >
-                                                <div className="flex items-center gap-4 min-w-0">
-                                                    <div className="p-2 bg-amber-50 dark:bg-amber-950/30 rounded-md text-amber-600 dark:text-amber-400 group-hover:bg-amber-100 transition-colors">
-                                                        <FileText className="w-4 h-4" />
-                                                    </div>
-                                                    <div className="min-w-0">
+                                                {/* Left accent — subtle vertical bar instead of loud icon box */}
+                                                <div className={`w-0.5 self-stretch rounded-full ${
+                                                    isExpiringSoon
+                                                        ? "bg-amber-400"
+                                                        : "bg-primary/20 group-hover:bg-primary/40"
+                                                } transition-colors`} />
+
+                                                {/* Content */}
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-baseline gap-2">
                                                         <p className="text-sm font-medium text-foreground truncate group-hover:text-primary transition-colors">
-                                                            {draft.document_type_name || draft.name || "Entwurf"}
+                                                            {draft.document_type_name || "Entwurf"}
                                                         </p>
-                                                        <div className="flex items-center gap-2 mt-0.5">
-                                                            {draft.updated_at && (
-                                                                <span className="text-xs text-muted-foreground">
-                                                                    {formatDistanceToNow(draft.updated_at)}
-                                                                </span>
-                                                            )}
-                                                            {isExpiringSoon && (
-                                                                <span className="text-[10px] bg-amber-50 dark:bg-amber-950/30 text-amber-800 px-1.5 py-0 rounded flex items-center gap-1">
-                                                                    <AlertTriangle className="w-3 h-3" />
-                                                                    {daysRemaining === 0 ? "Heute" : `${daysRemaining}d`}
-                                                                </span>
-                                                            )}
-                                                        </div>
+                                                        {isExpiringSoon && (
+                                                            <span className="text-[10px] text-amber-600 dark:text-amber-400 font-medium whitespace-nowrap flex items-center gap-0.5">
+                                                                <AlertTriangle className="w-3 h-3" />
+                                                                {daysRemaining === 0 ? "Läuft heute ab" : `${daysRemaining} Tage`}
+                                                            </span>
+                                                        )}
                                                     </div>
+                                                    <p className="text-xs text-muted-foreground/40 mt-0.5 truncate">
+                                                        {employeeName && <span className="text-foreground/70">{employeeName}</span>}
+                                                        {employeeName && draft.updated_at && <span className="mx-1.5 text-border">·</span>}
+                                                        {draft.updated_at && formatDistanceToNow(draft.updated_at)}
+                                                    </p>
                                                 </div>
-                                                <ChevronRight className="w-4 h-4 text-warm-400 group-hover:text-primary transition-colors" />
+
+                                                {/* Subtle arrow — only visible on hover */}
+                                                <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/0 group-hover:text-muted-foreground/60 transition-all -translate-x-1 group-hover:translate-x-0" />
                                             </Link>
                                             </MotionListItem>
                                         );
                                     })}
                                 </MotionContainer>
                             ) : hasRecentDocs ? (
-                                <MotionContainer className="space-y-1">
+                                <MotionContainer className="divide-y divide-border/10">
                                     {activity!.recent_documents.slice(0, 3).map((doc, index) => (
                                         <MotionListItem key={doc.id} index={index} disableInteraction>
                                         <Link
                                             to={`/documents/${doc.id}`}
-                                            className="flex items-center justify-between px-4 py-3 rounded-lg hover:bg-warm-50 hover:shadow-sm transition-all group mx-2 bg-white dark:bg-card border border-transparent hover:border-warm-200"
+                                            className="flex items-center gap-4 px-5 py-3.5 hover:bg-warm-50/60 dark:hover:bg-white/[0.03] transition-colors group"
                                         >
-                                            <div className="flex items-center gap-4 min-w-0">
-                                                <div className="p-2 bg-green-50 dark:bg-green-950/30 rounded-md text-green-600 dark:text-green-400 group-hover:bg-green-100 transition-colors">
-                                                    <FileCheck className="w-4 h-4" />
-                                                </div>
-                                                <div className="min-w-0">
-                                                    <p className="text-sm font-medium text-foreground truncate group-hover:text-primary transition-colors">
-                                                        {doc.document_type_name}
-                                                    </p>
-                                                    <p className="text-xs text-muted-foreground truncate mt-0.5">
-                                                        {doc.employee_name || (doc.created_at && formatDistanceToNow(doc.created_at))}
-                                                    </p>
-                                                </div>
+                                            {/* Left accent — green for completed docs */}
+                                            <div className="w-0.5 self-stretch rounded-full bg-green-400/40 group-hover:bg-green-400/70 transition-colors" />
+
+                                            {/* Content */}
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm font-medium text-foreground truncate group-hover:text-primary transition-colors">
+                                                    {doc.document_type_name}
+                                                </p>
+                                                <p className="text-xs text-muted-foreground/40 mt-0.5 truncate">
+                                                    {doc.employee_name && <span className="text-foreground/70">{doc.employee_name}</span>}
+                                                    {doc.employee_name && doc.created_at && <span className="mx-1.5 text-border">·</span>}
+                                                    {doc.created_at && formatDistanceToNow(doc.created_at)}
+                                                </p>
                                             </div>
-                                            <ChevronRight className="w-4 h-4 text-warm-400 group-hover:text-primary transition-colors" />
+
+                                            {/* Subtle arrow — only visible on hover */}
+                                            <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/0 group-hover:text-muted-foreground/60 transition-all -translate-x-1 group-hover:translate-x-0" />
                                         </Link>
                                         </MotionListItem>
                                     ))}
@@ -359,7 +330,7 @@ export const Dashboard = () => {
             </div>
 
             <DocumentWizardDialog open={wizardOpen} onOpenChange={setWizardOpen} />
-            <DocumentUploadDialog open={uploadOpen} onOpenChange={setUploadOpen} />
+
         </div>
     );
 };

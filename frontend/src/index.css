@@ -63,6 +63,13 @@
     --shadow-soft-lg: 0 10px 15px -3px rgba(36, 49, 134, 0.07), 0 4px 6px -4px rgba(36, 49, 134, 0.03);
     --shadow-soft-xl: 0 20px 25px -5px rgba(36, 49, 134, 0.08), 0 8px 10px -6px rgba(36, 49, 134, 0.03);
 
+    /* Ive Surface & Depth shadows */
+    --shadow-elevated: 0 1px 3px rgba(36,49,134,0.04), 0 4px 12px rgba(36,49,134,0.03);
+    --shadow-elevated-hover: 0 2px 8px rgba(36,49,134,0.06), 0 8px 24px rgba(36,49,134,0.04);
+    --shadow-inset-field: inset 0 -1px 0 0 hsl(33 15% 85%);
+    --shadow-inset-focus: inset 0 -2px 0 0 hsl(228 58% 33%);
+    --shadow-up-subtle: 0 -1px 3px rgba(36,49,134,0.03);
+
     /* Animation Durations */
     --duration-fast: 0.15s;
     --duration-normal: 0.25s;
@@ -112,6 +119,12 @@
     --shadow-soft-md: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -2px rgba(0, 0, 0, 0.15);
     --shadow-soft-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
     --shadow-soft-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+
+    --shadow-elevated: 0 1px 3px rgba(0,0,0,0.2), 0 4px 12px rgba(0,0,0,0.15);
+    --shadow-elevated-hover: 0 2px 8px rgba(0,0,0,0.25), 0 8px 24px rgba(0,0,0,0.2);
+    --shadow-inset-field: inset 0 -1px 0 0 hsl(225 14% 25%);
+    --shadow-inset-focus: inset 0 -2px 0 0 hsl(228 58% 60%);
+    --shadow-up-subtle: 0 -1px 3px rgba(0,0,0,0.15);
 
     color-scheme: dark;
   }
@@ -441,6 +454,79 @@
   .dark .info-card-header {
     background: hsl(225 14% 15% / 0.7);
     border-bottom-color: hsl(225 12% 22% / 0.5);
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════════
+     IVE SURFACE & DEPTH — Apple HIG 2024+ Utility Classes
+     Shadows replace borders. Borderless inputs. Quiet typography.
+     ═══════════════════════════════════════════════════════════════════════ */
+
+  /* Ive borderless input — bottom line only */
+  .ive-input {
+    border: none !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    box-shadow: var(--shadow-inset-field) !important;
+    transition: box-shadow 0.2s ease;
+  }
+  .ive-input:focus,
+  .ive-input:focus-visible {
+    box-shadow: var(--shadow-inset-focus) !important;
+    outline: none !important;
+  }
+  .ive-input::placeholder {
+    color: hsl(var(--muted-foreground) / 0.3);
+  }
+
+  /* Ive section header — quiet uppercase label */
+  .ive-section-header {
+    font-size: 11px;
+    font-weight: 500;
+    color: hsl(var(--muted-foreground) / 0.45);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  /* Ive elevated card — no border, shadow-based depth */
+  .ive-card {
+    background: hsl(var(--card));
+    border: none;
+    border-radius: 1rem;
+    box-shadow: var(--shadow-elevated);
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+  }
+  .ive-card-interactive:hover {
+    box-shadow: var(--shadow-elevated-hover);
+    transform: translateY(-1px);
+  }
+
+  /* Ive pill-based segmented control */
+  .ive-pill-tabs {
+    display: inline-flex;
+    align-items: center;
+    background: hsl(var(--muted) / 0.3);
+    border-radius: 9999px;
+    padding: 2px;
+    gap: 2px;
+  }
+  .ive-pill-tab {
+    padding: 6px 16px;
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: 500;
+    color: hsl(var(--muted-foreground) / 0.5);
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+  .ive-pill-tab:hover {
+    color: hsl(var(--foreground) / 0.7);
+  }
+  .ive-pill-tab-active {
+    background: hsl(var(--card));
+    color: hsl(var(--foreground));
+    box-shadow: var(--shadow-elevated);
   }
 }
 

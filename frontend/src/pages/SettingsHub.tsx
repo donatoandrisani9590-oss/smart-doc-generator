@@ -279,29 +279,29 @@ export default function SettingsHub() {
             <div className="flex items-start justify-between mb-6">
                 <div>
                     <h1 className="text-2xl font-semibold tracking-tight text-foreground">Einstellungen</h1>
-                    <p className="text-sm text-muted-foreground mt-1">
+                    <p className="text-[13px] text-muted-foreground/60 mt-1">
                         Firmendaten, Design, Vorlagen und Verwaltung
                     </p>
                 </div>
                 <Button
-                    variant="outline"
+                    variant="ghost"
                     size="sm"
                     onClick={() => setCommandPaletteOpen(true)}
-                    className="gap-2 h-9"
+                    className="gap-2 h-9 bg-muted/20 hover:bg-muted/40 rounded-full px-4"
                 >
-                    <Search className="h-4 w-4" />
-                    <span className="hidden sm:inline">Suchen</span>
-                    <kbd className="pointer-events-none hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border bg-warm-100 px-1.5 font-mono text-[10px] font-medium text-muted-foreground ml-2">
+                    <Search className="h-3.5 w-3.5 text-muted-foreground/40" />
+                    <span className="hidden sm:inline text-muted-foreground/50 text-[12px]">Suchen</span>
+                    <kbd className="pointer-events-none hidden sm:inline-flex h-5 select-none items-center gap-1 rounded-full bg-muted/30 px-1.5 font-mono text-[10px] font-medium text-muted-foreground/40 ml-2">
                         {navigator.platform.includes("Mac") ? "Cmd" : "Ctrl"}+K
                     </kbd>
                 </Button>
             </div>
 
             {/* Main Layout: Sidebar + Content */}
-            <div className="flex flex-col md:flex-row border border-warm-200 dark:border-warm-200 rounded-lg bg-white dark:bg-card overflow-hidden min-h-[600px] md:h-[calc(100vh-10rem)]">
+            <div className="flex flex-col md:flex-row ive-card overflow-hidden min-h-[600px] md:h-[calc(100vh-10rem)]">
 
                 {/* Mobile: Horizontal Scroll Nav */}
-                <div className="md:hidden overflow-x-auto border-b border-warm-200 dark:border-warm-200 bg-warm-50/50 dark:bg-muted/30 px-2 py-2">
+                <div className="md:hidden overflow-x-auto px-2 py-2">
                     <div className="flex gap-1 min-w-max">
                         {visibleItems.map((item) => (
                             <button
@@ -310,8 +310,8 @@ export default function SettingsHub() {
                                 className={cn(
                                     "flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-full whitespace-nowrap transition-colors",
                                     activeTab === item.id
-                                        ? "bg-primary/15 text-primary font-medium dark:bg-primary/20"
-                                        : "text-muted-foreground hover:bg-warm-100 dark:hover:bg-muted hover:text-foreground"
+                                        ? "bg-muted/40 text-foreground font-medium"
+                                        : "text-muted-foreground/60 hover:bg-muted/20 hover:text-foreground"
                                 )}
                             >
                                 <item.icon className="w-3.5 h-3.5" />
@@ -322,10 +322,10 @@ export default function SettingsHub() {
                 </div>
 
                 {/* Desktop: Sidebar Navigation */}
-                <nav className="hidden md:block w-[240px] shrink-0 border-r border-warm-200 dark:border-warm-200 overflow-y-auto scrollbar-hide py-3 bg-warm-50/30 dark:bg-warm-50/50">
+                <nav className="hidden md:block w-[240px] shrink-0 overflow-y-auto scrollbar-hide py-3">
                     {filteredNav.map((group, groupIndex) => (
-                        <div key={group.id} className={cn("pb-3", groupIndex > 0 && "pt-3 border-t border-warm-200/50 dark:border-warm-200/30 mx-3")}>
-                            <h3 className="settings-nav-header px-4 py-1 text-[10px] font-medium uppercase tracking-wider">
+                        <div key={group.id} className={cn("pb-3", groupIndex > 0 && "pt-3 mx-3")}>
+                            <h3 className="px-4 py-1 text-[10px] font-medium text-muted-foreground/30 uppercase tracking-[0.12em]">
                                 {group.label}
                             </h3>
                             <div className="space-y-0.5 mt-0.5 px-1.5">
@@ -336,15 +336,15 @@ export default function SettingsHub() {
                                         className={cn(
                                             "w-full flex items-center gap-2.5 px-2.5 py-1.5 text-[13px] rounded-md transition-all",
                                             activeTab === item.id
-                                                ? "settings-nav-item-active nav-pill-active font-medium"
-                                                : "settings-nav-item hover:bg-warm-50 dark:hover:bg-muted/50"
+                                                ? "bg-muted/40 text-foreground font-medium"
+                                                : "text-muted-foreground/70 hover:bg-muted/20 hover:text-foreground"
                                         )}
                                     >
                                         <item.icon className={cn(
                                             "w-3.5 h-3.5 shrink-0 transition-colors",
                                             activeTab === item.id
-                                                ? "settings-nav-icon-active"
-                                                : "settings-nav-icon"
+                                                ? "text-foreground/70"
+                                                : "text-muted-foreground/40"
                                         )} />
                                         <span>{item.label}</span>
                                     </button>

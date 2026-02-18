@@ -354,7 +354,7 @@ export const DynamicFormFields = ({
                         >
                             <SelectTrigger
                                 id={fieldId}
-                                className={errorClass}
+                                className={cn("ive-input", errorClass)}
                                 onBlur={() => handleFieldBlur(field)}
                             >
                                 <SelectValue placeholder={field.placeholder_text || "Bitte wählen..."} />
@@ -413,6 +413,7 @@ export const DynamicFormFields = ({
                                 aria-invalid={hasError}
                                 aria-describedby={hasError ? `${fieldId}-error` : undefined}
                                 className={cn(
+                                    "ive-input",
                                     field.prefix && "pl-8",
                                     field.suffix && "pr-12",
                                     errorClass
@@ -437,7 +438,7 @@ export const DynamicFormFields = ({
                             disabled={disabled}
                             aria-invalid={hasError}
                             aria-describedby={hasError ? `${fieldId}-error` : undefined}
-                            className={errorClass}
+                            className={cn("ive-input", errorClass)}
                         />
                     );
 
@@ -453,7 +454,7 @@ export const DynamicFormFields = ({
                             disabled={disabled}
                             aria-invalid={hasError}
                             aria-describedby={hasError ? `${fieldId}-error` : undefined}
-                            className={errorClass}
+                            className={cn("ive-input", errorClass)}
                         />
                     );
 
@@ -479,6 +480,7 @@ export const DynamicFormFields = ({
                                 aria-invalid={hasError}
                                 aria-describedby={hasError ? `${fieldId}-error` : undefined}
                                 className={cn(
+                                    "ive-input",
                                     field.prefix && "pl-8",
                                     field.suffix && "pr-12",
                                     errorClass

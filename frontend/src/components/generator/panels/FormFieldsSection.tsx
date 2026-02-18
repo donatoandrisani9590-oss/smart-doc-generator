@@ -377,7 +377,7 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
     /** CSS-Klasse für ein validiertes Input-Feld */
     const fieldClass = useCallback((field: string, value: string, extra?: string): string => {
         const error = getInlineError(field, value);
-        const baseClass = "h-8 text-sm";
+        const baseClass = "h-8 text-sm ive-input";
         const errorClass = error ? "border-red-500 focus-visible:ring-red-500/30" : "";
         return [baseClass, errorClass, extra].filter(Boolean).join(" ");
     }, [getInlineError]);
@@ -410,7 +410,7 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
 
             {/* Mitarbeiterdaten */}
             <div className="space-y-3">
-                <h4 className="text-[11px] font-medium text-foreground/40 tracking-wide">
+                <h4 className="ive-section-header">
                     {labels.section_employee}
                 </h4>
 
@@ -454,7 +454,7 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
                         value={formData.strasse}
                         onChange={(e) => actions.updateFormField("strasse", e.target.value)}
                         placeholder={labels.strasse_placeholder}
-                        className="h-8 text-sm"
+                        className="h-8 text-sm ive-input"
                     />
                 </div>
 
@@ -478,7 +478,7 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
                             id="ort"
                             value={formData.ort}
                             onChange={(e) => actions.updateFormField("ort", e.target.value)}
-                            className="h-8 text-sm"
+                            className="h-8 text-sm ive-input"
                         />
                     </div>
                 </div>
@@ -490,14 +490,14 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
                         type="date"
                         value={formData.geburtsdatum}
                         onChange={(e) => actions.updateFormField("geburtsdatum", e.target.value)}
-                        className="h-8 text-sm"
+                        className="h-8 text-sm ive-input"
                     />
                 </div>
             </div>
 
             {/* Vertragsdaten */}
-            <div className="space-y-3 pt-5 border-t border-border/30">
-                <h4 className="text-[11px] font-medium text-foreground/40 tracking-wide">
+            <div className="space-y-3 pt-5 border-t border-border/15">
+                <h4 className="ive-section-header">
                     {labels.section_contract}
                 </h4>
 
@@ -509,7 +509,7 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
                         value={formData.vertragsart}
                         onValueChange={(v) => actions.updateFormField("vertragsart", v)}
                     >
-                        <SelectTrigger className="h-8 text-sm">
+                        <SelectTrigger className="h-8 text-sm ive-input">
                             <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -620,7 +620,7 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
                         value={formData.probezeit}
                         onValueChange={(v) => actions.updateFormField("probezeit", v)}
                     >
-                        <SelectTrigger className="h-8 text-sm">
+                        <SelectTrigger className="h-8 text-sm ive-input">
                             <SelectValue placeholder={labels.probezeit_placeholder} />
                         </SelectTrigger>
                         <SelectContent>
@@ -642,7 +642,7 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
                             value={formData.entgeltgruppe}
                             onChange={(e) => actions.updateFormField("entgeltgruppe", e.target.value)}
                             placeholder={labels.entgeltgruppe_placeholder}
-                            className="h-8 text-sm"
+                            className="h-8 text-sm ive-input"
                         />
                     </div>
                 )}
@@ -656,7 +656,7 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
                         value={formData.kuendigungsfrist}
                         onValueChange={(v) => actions.updateFormField("kuendigungsfrist", v)}
                     >
-                        <SelectTrigger className="h-8 text-sm">
+                        <SelectTrigger className="h-8 text-sm ive-input">
                             <SelectValue placeholder={labels.kuendigungsfrist_placeholder} />
                         </SelectTrigger>
                         <SelectContent>
@@ -676,7 +676,7 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
                         value={formData.au_frist}
                         onValueChange={(v) => actions.updateFormField("au_frist", v)}
                     >
-                        <SelectTrigger className="h-8 text-sm">
+                        <SelectTrigger className="h-8 text-sm ive-input">
                             <SelectValue placeholder={labels.au_frist_placeholder} />
                         </SelectTrigger>
                         <SelectContent>
@@ -688,8 +688,8 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
             </div>
 
             {/* Zusatzleistungen */}
-            <div className="space-y-3 pt-5 border-t border-border/30">
-                <h4 className="text-[11px] font-medium text-foreground/40 tracking-wide">
+            <div className="space-y-3 pt-5 border-t border-border/15">
+                <h4 className="ive-section-header">
                     {labels.section_benefits}
                 </h4>
 
@@ -716,7 +716,7 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
                                 value={formData.urlaubsgeld_pro_tag}
                                 onChange={(e) => actions.updateFormField("urlaubsgeld_pro_tag", e.target.value)}
                                 placeholder={labels.urlaubsgeld_placeholder}
-                                className="h-8 text-sm"
+                                className="h-8 text-sm ive-input"
                             />
                         </div>
                         <div className="space-y-1">
@@ -729,7 +729,7 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
                                 value={formData.vwl_betrag}
                                 onChange={(e) => actions.updateFormField("vwl_betrag", e.target.value)}
                                 placeholder={labels.vwl_placeholder}
-                                className="h-8 text-sm"
+                                className="h-8 text-sm ive-input"
                             />
                         </div>
                     </div>
@@ -802,8 +802,8 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
 
             {/* AT-Optionen (nur bei AT-Angestellter) */}
             {formData.vertragsart === "at_angestellter" && (
-                <div className="space-y-3 pt-5 border-t border-border/30">
-                    <h4 className="text-[11px] font-medium text-foreground/40 tracking-wide">
+                <div className="space-y-3 pt-5 border-t border-border/15">
+                    <h4 className="ive-section-header">
                         {labels.section_at}
                     </h4>
                     <div className="space-y-2">
@@ -844,8 +844,8 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
             )}
 
             {/* Unterzeichner */}
-            <div className="space-y-3 pt-5 border-t border-border/30">
-                <h4 className="text-[11px] font-medium text-foreground/40 tracking-wide">
+            <div className="space-y-3 pt-5 border-t border-border/15">
+                <h4 className="ive-section-header">
                     {labels.section_signatory}
                 </h4>
 
