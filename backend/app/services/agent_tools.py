@@ -1,10 +1,11 @@
 """
-Agent Tool Registry — 8 tool definitions + executors for Claude tool-use.
+Agent Tool Registry — 8 tool definitions + executors for LLM tool-use.
 
 Each tool has:
-1. A Claude-compatible JSON Schema definition (for the `tools` parameter)
+1. An OpenAI-compatible JSON Schema definition (for the `tools` parameter)
 2. An async executor function that runs the tool against the DB/services
 
+Supports Groq, Mistral, and any OpenAI-compatible API.
 Tools are team-isolated: queries are scoped to the user's team and country.
 """
 import json
@@ -26,189 +27,211 @@ MAX_TOOL_ITERATIONS = 10
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# TOOL DEFINITIONS (Claude JSON Schema format)
+# TOOL DEFINITIONS (OpenAI-compatible format for Groq/Mistral/OpenAI)
 # ═══════════════════════════════════════════════════════════════════════════
 
 AGENT_TOOLS = [
     {
-        "name": "fill_form_fields",
-        "description": (
-            "Setze Formularfelder für das Dokument. Verwende Feldnamen aus dem "
-            "Dokumenttyp (z.B. 'mitarbeiter_name', 'gehalt_brutto', 'eintrittsdatum'). "
-            "Setze nur Felder, die du sicher kennst."
-        ),
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "fields": {
-                    "type": "object",
-                    "description": "Key-Value-Paare der Formularfelder (Feldname → Wert)",
-                    "additionalProperties": {"type": "string"},
+        "type": "function",
+        "function": {
+            "name": "fill_form_fields",
+            "description": (
+                "Setze Formularfelder für das Dokument. Verwende Feldnamen aus dem "
+                "Dokumenttyp (z.B. 'mitarbeiter_name', 'gehalt_brutto', 'eintrittsdatum'). "
+                "Setze nur Felder, die du sicher kennst."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "fields": {
+                        "type": "object",
+                        "description": "Key-Value-Paare der Formularfelder (Feldname → Wert)",
+                        "additionalProperties": {"type": "string"},
+                    },
                 },
+                "required": ["fields"],
             },
-            "required": ["fields"],
         },
     },
     {
-        "name": "select_clauses",
-        "description": (
-            "Aktiviere oder deaktiviere Textbausteine (Klauseln) für das Dokument. "
-            "Gib die IDs der zu aktivierenden und zu deaktivierenden Klauseln an."
-        ),
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "enable": {
-                    "type": "array",
-                    "items": {"type": "integer"},
-                    "description": "Klausel-IDs zum Aktivieren",
+        "type": "function",
+        "function": {
+            "name": "select_clauses",
+            "description": (
+                "Aktiviere oder deaktiviere Textbausteine (Klauseln) für das Dokument. "
+                "Gib die IDs der zu aktivierenden und zu deaktivierenden Klauseln an."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "enable": {
+                        "type": "array",
+                        "items": {"type": "integer"},
+                        "description": "Klausel-IDs zum Aktivieren",
+                    },
+                    "disable": {
+                        "type": "array",
+                        "items": {"type": "integer"},
+                        "description": "Klausel-IDs zum Deaktivieren",
+                    },
+                    "reason": {
+                        "type": "string",
+                        "description": "Begründung für die Auswahl",
+                    },
                 },
-                "disable": {
-                    "type": "array",
-                    "items": {"type": "integer"},
-                    "description": "Klausel-IDs zum Deaktivieren",
-                },
-                "reason": {
-                    "type": "string",
-                    "description": "Begründung für die Auswahl",
-                },
+                "required": ["enable"],
             },
-            "required": ["enable"],
         },
     },
     {
-        "name": "search_clauses",
-        "description": (
-            "Durchsuche die Klausel-Bibliothek nach passenden Textbausteinen. "
-            "Suche nach Titel, Inhalt oder Kategorie."
-        ),
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "query": {
-                    "type": "string",
-                    "description": "Suchbegriff (Titel, Inhalt oder Kategorie)",
+        "type": "function",
+        "function": {
+            "name": "search_clauses",
+            "description": (
+                "Durchsuche die Klausel-Bibliothek nach passenden Textbausteinen. "
+                "Suche nach Titel, Inhalt oder Kategorie."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query": {
+                        "type": "string",
+                        "description": "Suchbegriff (Titel, Inhalt oder Kategorie)",
+                    },
+                    "document_type_id": {
+                        "type": "integer",
+                        "description": "Optional: Nur Klauseln für diesen Dokumenttyp",
+                    },
                 },
-                "document_type_id": {
-                    "type": "integer",
-                    "description": "Optional: Nur Klauseln für diesen Dokumenttyp",
-                },
+                "required": ["query"],
             },
-            "required": ["query"],
         },
     },
     {
-        "name": "create_clause_draft",
-        "description": (
-            "Erstelle einen KI-generierten Klausel-Entwurf. Der Anwender muss den "
-            "Entwurf bestätigen, bevor er ins Dokument eingefügt wird. "
-            "Verwende dies nur, wenn keine passende Klausel in der Bibliothek existiert."
-        ),
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "title": {
-                    "type": "string",
-                    "description": "Titel der neuen Klausel",
+        "type": "function",
+        "function": {
+            "name": "create_clause_draft",
+            "description": (
+                "Erstelle einen KI-generierten Klausel-Entwurf. Der Anwender muss den "
+                "Entwurf bestätigen, bevor er ins Dokument eingefügt wird. "
+                "Verwende dies nur, wenn keine passende Klausel in der Bibliothek existiert."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "title": {
+                        "type": "string",
+                        "description": "Titel der neuen Klausel",
+                    },
+                    "content": {
+                        "type": "string",
+                        "description": "HTML-Inhalt der Klausel (kann {{ Platzhalter }} enthalten)",
+                    },
+                    "category": {
+                        "type": "string",
+                        "description": "Kategorie (z.B. 'Vergütung', 'Arbeitszeit', 'Urlaub')",
+                    },
                 },
-                "content": {
-                    "type": "string",
-                    "description": "HTML-Inhalt der Klausel (kann {{ Platzhalter }} enthalten)",
-                },
-                "category": {
-                    "type": "string",
-                    "description": "Kategorie (z.B. 'Vergütung', 'Arbeitszeit', 'Urlaub')",
-                },
+                "required": ["title", "content"],
             },
-            "required": ["title", "content"],
         },
     },
     {
-        "name": "search_employee_history",
-        "description": (
-            "Suche nach früheren Dokumenten eines Mitarbeiters. Gibt Formulardaten "
-            "und Dokumenttypen zurück, um konsistente Daten zu übernehmen."
-        ),
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "employee_name": {
-                    "type": "string",
-                    "description": "Name des Mitarbeiters (Teilname möglich)",
+        "type": "function",
+        "function": {
+            "name": "search_employee_history",
+            "description": (
+                "Suche nach früheren Dokumenten eines Mitarbeiters. Gibt Formulardaten "
+                "und Dokumenttypen zurück, um konsistente Daten zu übernehmen."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "employee_name": {
+                        "type": "string",
+                        "description": "Name des Mitarbeiters (Teilname möglich)",
+                    },
+                    "employee_id": {
+                        "type": "string",
+                        "description": "Personalnummer (optional, exakte Suche)",
+                    },
                 },
-                "employee_id": {
-                    "type": "string",
-                    "description": "Personalnummer (optional, exakte Suche)",
-                },
+                "required": ["employee_name"],
             },
-            "required": ["employee_name"],
         },
     },
     {
-        "name": "run_compliance_check",
-        "description": (
-            "Führe einen Compliance-Check auf dem aktuellen Dokumentinhalt durch. "
-            "Prüft auf rechtliche Risiken und gibt Verbesserungsvorschläge."
-        ),
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "content_html": {
-                    "type": "string",
-                    "description": "HTML-Inhalt des Dokuments zum Prüfen",
+        "type": "function",
+        "function": {
+            "name": "run_compliance_check",
+            "description": (
+                "Führe einen Compliance-Check auf dem aktuellen Dokumentinhalt durch. "
+                "Prüft auf rechtliche Risiken und gibt Verbesserungsvorschläge."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "content_html": {
+                        "type": "string",
+                        "description": "HTML-Inhalt des Dokuments zum Prüfen",
+                    },
+                    "country_code": {
+                        "type": "string",
+                        "description": "Ländercode (DE, IT, AT, CH)",
+                    },
                 },
-                "country_code": {
-                    "type": "string",
-                    "description": "Ländercode (DE, IT, AT, CH)",
-                    "default": "DE",
-                },
+                "required": ["content_html"],
             },
-            "required": ["content_html"],
         },
     },
     {
-        "name": "generate_text",
-        "description": (
-            "Generiere einen kurzen Textabschnitt für das Dokument. "
-            "Der Text wird als 'KI-generiert' markiert. Verwende dies für "
-            "Einleitungen, Überleitungen oder individuelle Absätze."
-        ),
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "purpose": {
-                    "type": "string",
-                    "description": "Zweck des Textes (z.B. 'Einleitung', 'Überleitung', 'Schluss')",
+        "type": "function",
+        "function": {
+            "name": "generate_text",
+            "description": (
+                "Generiere einen kurzen Textabschnitt für das Dokument. "
+                "Der Text wird als 'KI-generiert' markiert. Verwende dies für "
+                "Einleitungen, Überleitungen oder individuelle Absätze."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "purpose": {
+                        "type": "string",
+                        "description": "Zweck des Textes (z.B. 'Einleitung', 'Überleitung', 'Schluss')",
+                    },
+                    "context": {
+                        "type": "string",
+                        "description": "Kontext für die Textgenerierung",
+                    },
+                    "max_sentences": {
+                        "type": "integer",
+                        "description": "Maximale Anzahl Sätze",
+                    },
                 },
-                "context": {
-                    "type": "string",
-                    "description": "Kontext für die Textgenerierung",
-                },
-                "max_sentences": {
-                    "type": "integer",
-                    "description": "Maximale Anzahl Sätze",
-                    "default": 3,
-                },
+                "required": ["purpose", "context"],
             },
-            "required": ["purpose", "context"],
         },
     },
     {
-        "name": "get_form_field_definitions",
-        "description": (
-            "Hole die Formularfeld-Definitionen für einen Dokumenttyp. "
-            "Zeigt welche Felder verfügbar sind, welche Pflicht sind und welche "
-            "Standardwerte sie haben."
-        ),
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "document_type_id": {
-                    "type": "integer",
-                    "description": "ID des Dokumenttyps",
+        "type": "function",
+        "function": {
+            "name": "get_form_field_definitions",
+            "description": (
+                "Hole die Formularfeld-Definitionen für einen Dokumenttyp. "
+                "Zeigt welche Felder verfügbar sind, welche Pflicht sind und welche "
+                "Standardwerte sie haben."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "document_type_id": {
+                        "type": "integer",
+                        "description": "ID des Dokumenttyps",
+                    },
                 },
+                "required": ["document_type_id"],
             },
-            "required": ["document_type_id"],
         },
     },
 ]

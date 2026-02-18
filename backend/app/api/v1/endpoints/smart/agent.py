@@ -1,13 +1,16 @@
 """
-Agent Orchestrator endpoint — Claude-powered document creation with tool-use.
+Agent Orchestrator endpoint — LLM-powered document creation with tool-use.
+
+Uses Groq/Mistral/Ollama (OpenAI-compatible API) for tool-calling.
+Falls back through available providers automatically via LLMService.
 
 SSE streaming endpoint that:
 1. Loads team context (instructions, clauses, templates)
-2. Calls Claude API with tool definitions
+2. Calls LLM API with OpenAI-compatible tool definitions
 3. Executes tools and loops until complete
-4. Streams events (thinking, tool_start, tool_result, text_delta, done) to frontend
+4. Streams events (tool_start, tool_result, text_delta, done) to frontend
 
-Conversation memory is stored in Redis (24h TTL) keyed by user_id + session_id.
+Conversation memory is stored in Redis (1h TTL) keyed by user_id + session_id.
 """
 import asyncio
 import json
@@ -17,6 +20,7 @@ import time
 import uuid
 from typing import Optional
 
+import httpx
 from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
@@ -36,6 +40,10 @@ router = APIRouter(prefix="/api/v1/agent")
 # ── Conversation memory constants ──────────────────────────────────────
 CONV_TTL = 3600  # 1h (DSGVO: minimale Speicherdauer für PII-haltige Konversationen)
 MAX_CONV_MESSAGES = 50
+
+# ── LLM Provider config for agent ─────────────────────────────────────
+# Use a larger model for tool-calling quality (70B preferred, 8B fallback)
+AGENT_MODEL = os.getenv("AGENT_MODEL", "llama-3.3-70b-versatile")
 
 
 # ── Request / Response models ─────────────────────────────────────────
@@ -117,6 +125,112 @@ def _build_system_prompt(instructions: str, form_data: Optional[dict] = None) ->
     return base
 
 
+# ── LLM API caller (OpenAI-compatible: Groq, Mistral, Ollama) ────────
+
+async def _get_llm_config() -> tuple[str, str, dict]:
+    """
+    Detect available LLM provider and return (base_url, model, headers).
+
+    Priority: Groq → Mistral → Ollama (matching LLMService but for tool-calling).
+    """
+    # Groq (fast, supports tool-calling with Llama 3.x models)
+    groq_key = os.getenv("GROQ_API_KEY")
+    if groq_key:
+        return (
+            "https://api.groq.com/openai/v1",
+            AGENT_MODEL,
+            {"Authorization": f"Bearer {groq_key}", "Content-Type": "application/json"},
+        )
+
+    # Mistral (EU-hosted, DSGVO-konform)
+    mistral_key = os.getenv("MISTRAL_API_KEY")
+    if mistral_key:
+        return (
+            "https://api.mistral.ai/v1",
+            os.getenv("MISTRAL_MODEL", "mistral-small-latest"),
+            {"Authorization": f"Bearer {mistral_key}", "Content-Type": "application/json"},
+        )
+
+    # Ollama (local)
+    ollama_host = os.getenv("OLLAMA_HOST", "http://localhost:11434")
+    try:
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(f"{ollama_host}/api/tags", timeout=2.0)
+            if resp.status_code == 200:
+                return (
+                    f"{ollama_host}/v1",  # Ollama's OpenAI-compat endpoint
+                    os.getenv("OLLAMA_MODEL", "mistral:7b-instruct"),
+                    {"Content-Type": "application/json"},
+                )
+    except Exception:
+        pass
+
+    raise RuntimeError(
+        "Kein LLM-Provider für den KI-Assistenten verfügbar. "
+        "Bitte GROQ_API_KEY, MISTRAL_API_KEY setzen oder Ollama starten."
+    )
+
+
+async def _call_llm_with_tools(
+    base_url: str,
+    model: str,
+    headers: dict,
+    messages: list[dict],
+    tools: list[dict],
+    temperature: float = 0.4,
+    max_tokens: int = 4096,
+) -> dict:
+    """
+    Call LLM with OpenAI-compatible chat completions + tools.
+
+    Returns the raw JSON response dict.
+    Includes retry logic for Groq rate limits (429).
+    """
+    payload = {
+        "model": model,
+        "messages": messages,
+        "tools": tools,
+        "tool_choice": "auto",
+        "temperature": temperature,
+        "max_tokens": max_tokens,
+    }
+
+    max_retries = 3
+    for attempt in range(max_retries):
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                f"{base_url}/chat/completions",
+                headers=headers,
+                json=payload,
+                timeout=60.0,
+            )
+
+            if response.status_code == 429:
+                if attempt < max_retries - 1:
+                    wait_time = 2 ** (attempt + 1)
+                    retry_after = response.headers.get("retry-after")
+                    if retry_after:
+                        try:
+                            wait_time = min(float(retry_after), 10.0)
+                        except ValueError:
+                            pass
+                    logger.warning(
+                        f"LLM rate limit (Versuch {attempt + 1}/{max_retries}), "
+                        f"Retry in {wait_time}s..."
+                    )
+                    await asyncio.sleep(wait_time)
+                    continue
+                raise Exception("LLM Rate-Limit nach Retries erreicht. Bitte kurz warten.")
+
+            if response.status_code != 200:
+                error_text = response.text[:500]
+                raise Exception(f"LLM API Fehler ({response.status_code}): {error_text}")
+
+            return response.json()
+
+    raise Exception("LLM API: Max Retries erreicht")
+
+
 # ── Conversation deletion (DSGVO Art. 17 — Recht auf Löschung) ────────
 
 @router.delete("/conversation/{session_id}")
@@ -139,11 +253,12 @@ async def agent_chat_stream(
     current_user=Depends(get_current_user),
 ):
     """
-    Streaming agent endpoint with Claude tool-use loop.
+    Streaming agent endpoint with OpenAI-compatible tool-use loop.
+
+    Uses Groq/Mistral/Ollama (auto-detected) instead of Claude.
 
     Returns SSE events:
     - {"type": "text_delta", "content": "..."}
-    - {"type": "thinking", "content": "..."}
     - {"type": "tool_start", "tool": "...", "args": {...}}
     - {"type": "tool_result", "tool": "...", "result": {...}}
     - {"type": "form_update", "fields": {...}}
@@ -179,140 +294,150 @@ async def agent_chat_stream(
         full_text = ""
         total_input_tokens = 0
         total_output_tokens = 0
-        provider_name = "claude"
-        model_name = os.getenv("CLAUDE_MODEL", "claude-sonnet-4-5-20250929")
+        provider_name = "unknown"
+        model_name = "unknown"
 
         try:
-            import anthropic
+            # Auto-detect LLM provider
+            base_url, model_name, headers = await _get_llm_config()
 
-            api_key = os.getenv("ANTHROPIC_API_KEY")
-            if not api_key:
-                yield _sse({"type": "error", "message": "ANTHROPIC_API_KEY nicht konfiguriert"})
-                return
+            # Detect provider from URL for logging
+            if "groq.com" in base_url:
+                provider_name = "groq"
+            elif "mistral.ai" in base_url:
+                provider_name = "mistral"
+            else:
+                provider_name = "ollama"
 
-            client = anthropic.AsyncAnthropic(api_key=api_key)
+            logger.info(f"Agent using {provider_name} ({model_name})")
 
-            # Build API messages (conversation history, no system messages)
+            # Build API messages: system + conversation history
             api_messages = [
-                {"role": m["role"], "content": m["content"]}
-                for m in conversation
-                if m["role"] in ("user", "assistant")
+                {"role": "system", "content": system_prompt},
             ]
+            for m in conversation:
+                if m["role"] in ("user", "assistant"):
+                    api_messages.append({"role": m["role"], "content": m["content"]})
 
             iteration = 0
 
             while iteration < MAX_TOOL_ITERATIONS:
                 iteration += 1
 
-                # Call Claude with tools
-                response = await client.messages.create(
+                # Call LLM with tools (OpenAI-compatible format)
+                data = await _call_llm_with_tools(
+                    base_url=base_url,
                     model=model_name,
-                    max_tokens=4096,
-                    temperature=0.4,
-                    system=system_prompt,
-                    tools=AGENT_TOOLS,
+                    headers=headers,
                     messages=api_messages,
+                    tools=AGENT_TOOLS,
+                    temperature=0.4,
+                    max_tokens=4096,
                 )
 
                 # Track usage
-                total_input_tokens += response.usage.input_tokens
-                total_output_tokens += response.usage.output_tokens
+                usage = data.get("usage", {})
+                total_input_tokens += usage.get("prompt_tokens", 0)
+                total_output_tokens += usage.get("completion_tokens", 0)
 
-                # Process content blocks
-                tool_results = []
+                # Extract the assistant message
+                choice = data.get("choices", [{}])[0]
+                message = choice.get("message", {})
+                finish_reason = choice.get("finish_reason", "stop")
 
-                for block in response.content:
-                    if block.type == "text":
-                        text = block.text
-                        full_text += text
+                # Process text content
+                text_content = message.get("content") or ""
+                if text_content:
+                    full_text += text_content
 
-                        # Stream text in chunks for smoother display
-                        chunk_size = 20
-                        for i in range(0, len(text), chunk_size):
-                            chunk = text[i:i + chunk_size]
-                            yield _sse({"type": "text_delta", "content": chunk})
+                    # Stream text in chunks for smoother display
+                    chunk_size = 20
+                    for i in range(0, len(text_content), chunk_size):
+                        chunk = text_content[i:i + chunk_size]
+                        yield _sse({"type": "text_delta", "content": chunk})
 
-                    elif block.type == "tool_use":
-                        tool_name = block.name
-                        tool_input = block.input
-                        tool_id = block.id
+                # Process tool calls
+                tool_calls = message.get("tool_calls") or []
+                tool_result_messages = []
 
-                        # Emit tool_start event
+                for tc in tool_calls:
+                    func = tc.get("function", {})
+                    tool_name = func.get("name", "")
+                    tool_call_id = tc.get("id", "")
+
+                    # Parse arguments (Groq returns JSON string)
+                    try:
+                        tool_input = json.loads(func.get("arguments", "{}"))
+                    except json.JSONDecodeError:
+                        tool_input = {}
+
+                    # Emit tool_start event
+                    yield _sse({
+                        "type": "tool_start",
+                        "tool": tool_name,
+                        "args": tool_input,
+                    })
+
+                    # Execute tool
+                    result = await execute_tool(
+                        tool_name=tool_name,
+                        tool_input=tool_input,
+                        db=db,
+                        user_id=user_id,
+                        country_code=request.country_code,
+                    )
+
+                    # Emit tool_result event
+                    yield _sse({
+                        "type": "tool_result",
+                        "tool": tool_name,
+                        "result": result,
+                    })
+
+                    # Emit semantic events based on tool type
+                    if tool_name == "fill_form_fields" and result.get("status") == "ok":
                         yield _sse({
-                            "type": "tool_start",
-                            "tool": tool_name,
-                            "args": tool_input,
+                            "type": "form_update",
+                            "fields": result.get("fields", {}),
                         })
 
-                        # Execute tool
-                        result = await execute_tool(
-                            tool_name=tool_name,
-                            tool_input=tool_input,
-                            db=db,
-                            user_id=user_id,
-                            country_code=request.country_code,
-                        )
-
-                        # Emit tool_result event
+                    elif tool_name == "select_clauses" and result.get("status") == "ok":
                         yield _sse({
-                            "type": "tool_result",
-                            "tool": tool_name,
-                            "result": result,
+                            "type": "clause_update",
+                            "enable": result.get("enable", []),
+                            "disable": result.get("disable", []),
                         })
 
-                        # Emit semantic events based on tool type
-                        if tool_name == "fill_form_fields" and result.get("status") == "ok":
-                            yield _sse({
-                                "type": "form_update",
-                                "fields": result.get("fields", {}),
-                            })
-
-                        elif tool_name == "select_clauses" and result.get("status") == "ok":
-                            yield _sse({
-                                "type": "clause_update",
-                                "enable": result.get("enable", []),
-                                "disable": result.get("disable", []),
-                            })
-
-                        elif tool_name == "create_clause_draft" and result.get("status") == "requires_confirmation":
-                            draft = result.get("draft", {})
-                            yield _sse({
-                                "type": "clause_draft",
-                                "title": draft.get("title", ""),
-                                "html": draft.get("content", ""),
-                                "requires_confirmation": True,
-                            })
-
-                        # Collect tool result for next API call
-                        tool_results.append({
-                            "type": "tool_result",
-                            "tool_use_id": tool_id,
-                            "content": json.dumps(result, ensure_ascii=False),
+                    elif tool_name == "create_clause_draft" and result.get("status") == "requires_confirmation":
+                        draft = result.get("draft", {})
+                        yield _sse({
+                            "type": "clause_draft",
+                            "title": draft.get("title", ""),
+                            "html": draft.get("content", ""),
+                            "requires_confirmation": True,
                         })
 
-                # If Claude is done (no more tool calls), exit loop
-                if response.stop_reason != "tool_use":
+                    # Collect tool result for next API call (OpenAI format)
+                    tool_result_messages.append({
+                        "role": "tool",
+                        "tool_call_id": tool_call_id,
+                        "content": json.dumps(result, ensure_ascii=False),
+                    })
+
+                # If LLM is done (no tool calls or finish_reason != tool_calls), exit loop
+                if not tool_calls or finish_reason != "tool_calls":
                     break
 
-                # Otherwise, append assistant response + tool results and continue
-                # Build assistant content for the conversation
-                assistant_content = []
-                for block in response.content:
-                    if block.type == "text":
-                        assistant_content.append({
-                            "type": "text",
-                            "text": block.text,
-                        })
-                    elif block.type == "tool_use":
-                        assistant_content.append({
-                            "type": "tool_use",
-                            "id": block.id,
-                            "name": block.name,
-                            "input": block.input,
-                        })
+                # Otherwise, append assistant message + tool results and continue
+                # Build assistant message for next turn
+                assistant_msg = {"role": "assistant", "content": text_content or None}
+                if tool_calls:
+                    assistant_msg["tool_calls"] = tool_calls
+                api_messages.append(assistant_msg)
 
-                api_messages.append({"role": "assistant", "content": assistant_content})
-                api_messages.append({"role": "user", "content": tool_results})
+                # Append all tool results
+                for tr_msg in tool_result_messages:
+                    api_messages.append(tr_msg)
 
             # Save conversation (only text messages, not tool-use details)
             conversation.append({"role": "assistant", "content": full_text})
