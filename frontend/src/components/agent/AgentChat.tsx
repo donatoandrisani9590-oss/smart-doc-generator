@@ -29,6 +29,7 @@ import {
   FileText,
   Briefcase,
   AlertTriangle,
+  ChevronDown,
 } from "lucide-react";
 
 // Types
@@ -252,8 +253,8 @@ export function AgentChat({
               Wie kann ich helfen?
             </h2>
             <p className="text-sm text-muted-foreground max-w-md mb-8 text-center">
-              Beschreiben Sie, welches Dokument Sie benötigen. Ich fülle Formulare aus,
-              wähle passende Textbausteine und erstelle Ihr Dokument.
+              Beschreibe, welches Dokument du benötigst. Ich fülle Formulare aus,
+              wähle passende Textbausteine und erstelle dein Dokument.
             </p>
 
             {/* Suggestion Cards */}
@@ -281,7 +282,7 @@ export function AgentChat({
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  placeholder="Beschreiben Sie Ihr Dokument..."
+                  placeholder="Beschreibe dein Dokument..."
                   disabled={isStreaming}
                   rows={1}
                   className="flex-1 resize-none bg-transparent text-sm placeholder:text-muted-foreground focus:outline-none disabled:opacity-50 max-h-[120px] py-1"
@@ -315,13 +316,12 @@ export function AgentChat({
                     </div>
                   ) : (
                     <div className="space-y-2">
-                      {/* Tool Actions */}
+                      {/* Tool Actions — collapsed into a single summary bar */}
                       {msg.toolActions && msg.toolActions.length > 0 && (
-                        <div className="space-y-1.5 pl-1">
-                          {msg.toolActions.map((action, j) => (
-                            <ToolActionCard key={j} action={action} />
-                          ))}
-                        </div>
+                        <CollapsedToolActions
+                          actions={msg.toolActions}
+                          isActive={isStreaming && i === messages.length - 1}
+                        />
                       )}
 
                       {/* Text Content — no bubble, just text (ChatGPT style) */}
@@ -366,7 +366,7 @@ export function AgentChat({
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  placeholder="Beschreiben Sie Ihr Dokument..."
+                  placeholder="Beschreibe dein Dokument..."
                   disabled={isStreaming}
                   rows={1}
                   className="flex-1 resize-none bg-transparent text-sm placeholder:text-muted-foreground focus:outline-none disabled:opacity-50 max-h-[120px] py-1"
@@ -413,6 +413,115 @@ export function AgentChat({
     </div>
   );
 }
+
+/**
+ * CollapsedToolActions — Shows tool calls as a single compact,
+ * expandable summary line instead of individual cards.
+ * This prevents visual clutter when the agent makes many tool calls.
+ */
+function CollapsedToolActions({
+  actions,
+  isActive,
+}: {
+  actions: ToolAction[];
+  isActive: boolean;
+}) {
+  const [expanded, setExpanded] = useState(false);
+
+  // Extract completed tool results (paired start+result)
+  const completedTools = actions.filter(a => a.type === "tool_result");
+  const activeTools = actions.filter(
+    a => a.type === "tool_start" && !completedTools.some(r => r.tool === a.tool)
+  );
+  const semanticActions = actions.filter(
+    a => a.type === "form_update" || a.type === "clause_update" || a.type === "clause_draft"
+  );
+
+  // Nothing to show
+  if (completedTools.length === 0 && activeTools.length === 0 && semanticActions.length === 0) {
+    return null;
+  }
+
+  // If still processing, show active tool indicator
+  if (isActive && activeTools.length > 0) {
+    const lastActive = activeTools[activeTools.length - 1];
+    const label = TOOL_LABELS[lastActive.tool ?? ""] ?? lastActive.tool;
+    const Icon = TOOL_ICONS[lastActive.tool ?? ""] ?? Settings2;
+    return (
+      <div className="pl-1">
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-warm-50 border border-warm-200 text-xs text-muted-foreground">
+          <Icon className="w-3.5 h-3.5" />
+          <span>{label}…</span>
+          <Loader2 className="w-3 h-3 animate-spin ml-1" />
+          {completedTools.length > 0 && (
+            <span className="text-[10px] text-muted-foreground/60 ml-1">
+              +{completedTools.length} erledigt
+            </span>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // All done: show compact summary
+  const toolCount = completedTools.length;
+
+  // Build summary of what happened
+  const summaryParts: string[] = [];
+  const formUpdate = semanticActions.find(a => a.type === "form_update");
+  const clauseUpdate = semanticActions.find(a => a.type === "clause_update");
+  const clauseDrafts = semanticActions.filter(a => a.type === "clause_draft");
+
+  if (formUpdate?.fields) {
+    summaryParts.push(`${Object.keys(formUpdate.fields).length} Felder gesetzt`);
+  }
+  if (clauseUpdate) {
+    const en = clauseUpdate.enable?.length ?? 0;
+    if (en > 0) summaryParts.push(`${en} Textbausteine`);
+  }
+  if (clauseDrafts.length > 0) {
+    summaryParts.push(`${clauseDrafts.length} Entwurf${clauseDrafts.length > 1 ? "e" : ""}`);
+  }
+
+  const allOk = completedTools.every(
+    t => t.result?.status === "ok" || t.result?.status === "requires_confirmation"
+  );
+
+  return (
+    <div className="pl-1">
+      {/* Compact summary line */}
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-colors ${
+          allOk
+            ? "bg-warm-50 border border-warm-200 text-muted-foreground hover:bg-warm-100"
+            : "bg-red-50 border border-red-200 text-red-600 hover:bg-red-100"
+        }`}
+      >
+        {allOk ? (
+          <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
+        ) : (
+          <AlertCircle className="w-3.5 h-3.5" />
+        )}
+        <span>
+          {toolCount} {toolCount === 1 ? "Aktion" : "Aktionen"} ausgeführt
+          {summaryParts.length > 0 && ` · ${summaryParts.join(", ")}`}
+        </span>
+        <ChevronDown className={`w-3 h-3 transition-transform ${expanded ? "rotate-180" : ""}`} />
+      </button>
+
+      {/* Expanded details */}
+      {expanded && (
+        <div className="mt-1.5 space-y-1 pl-2 border-l-2 border-warm-200 ml-2">
+          {actions.map((action, j) => (
+            <ToolActionCard key={j} action={action} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 
 // Tool Action Card — sanitizeHtml() ensures all HTML content is safe before rendering
 function ToolActionCard({ action }: { action: ToolAction }) {

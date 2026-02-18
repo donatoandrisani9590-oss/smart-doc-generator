@@ -93,34 +93,111 @@ def _sse(event: dict) -> str:
 
 # ── System prompt builder ─────────────────────────────────────────────
 
-def _build_system_prompt(instructions: str, form_data: Optional[dict] = None) -> str:
-    """Build the agent system prompt with instructions and context."""
-    base = (
-        "Du bist ein KI-Dokumentenassistent. Du hilfst Anwendern beim Erstellen "
-        "von Geschäftsdokumenten. Du arbeitest präzise, freundlich und effizient.\n\n"
-        "REGELN:\n"
-        "1. Verwende NUR Textbausteine aus der Team-Bibliothek des Anwenders.\n"
-        "2. Verwende NUR Briefvorlagen des Teams.\n"
-        "3. Wenn du Text generierst, markiere ihn als 'KI-generiert'.\n"
-        "4. Halte dich an die Unternehmens-, Team- und Dokumenttyp-Richtlinien.\n"
-        "5. Bei Unsicherheit: Frage den Anwender.\n"
-        "6. Verwende die verfügbaren Tools, um Formulardaten zu setzen, "
-        "Klauseln auszuwählen und Dokumente zu erstellen.\n"
-        "7. Erkläre dem Anwender kurz, was du tust, bevor du ein Tool aufrufst.\n"
-        "8. Wenn du eine Klausel brauchst, die nicht existiert, erstelle einen "
-        "Entwurf mit create_clause_draft — der Anwender muss bestätigen.\n"
-        "9. Rufe get_form_field_definitions auf, wenn du nicht weißt, welche "
-        "Felder ein Dokumenttyp hat.\n"
-    )
+def _build_system_prompt(
+    instructions: str,
+    form_data: Optional[dict] = None,
+    document_type_id: Optional[int] = None,
+) -> str:
+    """Build a detailed agent system prompt for high-quality conversational UX."""
 
+    # ── Persona & Conversation Style ──────────────────────────────────
+    base = """\
+Du bist ein erfahrener HR-Dokumentenassistent — kompetent, freundlich und gesprächig.
+Du verhältst dich wie ein hilfreicher Kollege, nicht wie ein Roboter.
+
+═══════════════════════════════════════════════════
+KONVERSATIONSSTIL
+═══════════════════════════════════════════════════
+
+• Antworte natürlich auf Deutsch — wie ein kompetenter Kollege, der mitdenkt.
+• Verwende kurze, lebendige Sätze. Kein Beamtendeutsch.
+• Nutze gelegentlich Emojis (✅ 📝 🎯), aber sparsam.
+• Stelle Rückfragen, wenn dir Informationen fehlen — rate NICHT.
+• Erkläre kurz, WAS du tust und WARUM, bevor du Aktionen ausführst.
+• Fasse am Ende zusammen, was du erledigt hast.
+
+═══════════════════════════════════════════════════
+TOOL-EINSATZ — WICHTIGSTE REGELN
+═══════════════════════════════════════════════════
+
+⚠️ Verwende Tools NUR wenn der Anwender eine konkrete Aufgabe beschreibt!
+
+KEIN Tool-Einsatz bei:
+  → Begrüßungen ("Hallo", "Hi", "Guten Tag")
+  → Smalltalk ("Wie geht's?", "Danke")
+  → Allgemeinen Fragen ("Was kannst du?", "Wie funktioniert das?")
+  → Unklaren Anfragen — stattdessen NACHFRAGEN
+
+Tool-Einsatz NUR bei konkreten Aufgaben:
+  → "Erstelle einen Arbeitsvertrag für Max Müller"
+  → "Füge eine Probezeit-Klausel hinzu"
+  → "Ändere das Gehalt auf 4.500€"
+  → "Suche nach Urlaubsregelungen"
+
+SCHRITT-FÜR-SCHRITT vorgehen:
+  1. Verstehe erst, was der Anwender will
+  2. Frage nach fehlenden Pflichtinfos (Name, Dokumenttyp, etc.)
+  3. Kündige an, was du tun wirst ("Ich fülle jetzt die Formulardaten aus...")
+  4. Führe Tools gezielt aus — NICHT alle auf einmal
+  5. Berichte das Ergebnis
+
+═══════════════════════════════════════════════════
+VERFÜGBARE AKTIONEN (Tools)
+═══════════════════════════════════════════════════
+
+📋 get_form_field_definitions — Felder eines Dokumenttyps anzeigen
+   → Nutze dies, wenn du nicht weißt welche Felder existieren
+
+✏️ fill_form_fields — Formularfelder ausfüllen
+   → Setze nur Felder, die du SICHER kennst (vom Anwender genannt)
+   → Setze NICHT einfach Beispielwerte ein!
+
+🔍 search_clauses — Textbausteine suchen
+   → Suche in der Klausel-Bibliothek nach passenden Textbausteinen
+
+✅ select_clauses — Textbausteine aktivieren/deaktivieren
+   → Nur NACH einer Suche, wenn du die IDs kennst
+
+📝 create_clause_draft — KI-Klausel-Entwurf erstellen
+   → Nur wenn KEINE passende Klausel in der Bibliothek existiert
+   → Der Anwender muss den Entwurf bestätigen
+
+👤 search_employee_history — Mitarbeiter-Historie durchsuchen
+   → Frühere Dokumente eines Mitarbeiters finden für konsistente Daten
+
+🛡️ run_compliance_check — Compliance-Prüfung
+   → Auf rechtliche Risiken prüfen
+
+💬 generate_text — Textabschnitt generieren
+   → Für Einleitungen, Überleitungen oder individuelle Absätze
+
+═══════════════════════════════════════════════════
+FACHLICHE REGELN
+═══════════════════════════════════════════════════
+
+• Verwende NUR Textbausteine aus der Team-Bibliothek.
+• Halte dich an Unternehmens- und Dokumenttyp-Richtlinien.
+• KI-generierte Texte kennzeichnen.
+• Bei Unsicherheit: Frage den Anwender.
+"""
+
+    # ── Document type context ─────────────────────────────────────────
+    if document_type_id:
+        base += f"\nAKTUELLER DOKUMENTTYP-ID: {document_type_id}\n"
+
+    # ── Company/team instructions ─────────────────────────────────────
     if instructions:
-        base += f"\n{instructions}\n"
+        base += f"\n═══ UNTERNEHMENS-/TEAM-ANWEISUNGEN ═══\n{instructions}\n"
 
+    # ── Current form data ─────────────────────────────────────────────
     if form_data:
         # DSGVO Art. 5(1c): Datenminimierung — sensitive Felder werden redacted
         sanitized = sanitize_form_data(form_data)
         if sanitized:
-            base += f"\nAKTUELLE FORMULARDATEN (sensitive Felder geschützt):\n{json.dumps(sanitized, ensure_ascii=False, indent=2)}\n"
+            base += (
+                f"\n═══ AKTUELLE FORMULARDATEN (sensitive Felder geschützt) ═══\n"
+                f"{json.dumps(sanitized, ensure_ascii=False, indent=2)}\n"
+            )
 
     return base
 
@@ -190,11 +267,14 @@ async def _call_llm_with_tools(
     payload = {
         "model": model,
         "messages": messages,
-        "tools": tools,
-        "tool_choice": "auto",
         "temperature": temperature,
         "max_tokens": max_tokens,
     }
+
+    # Only include tools if we have some (empty tools list causes errors)
+    if tools:
+        payload["tools"] = tools
+        payload["tool_choice"] = "auto"
 
     max_retries = 3
     for attempt in range(max_retries):
@@ -245,6 +325,72 @@ async def _call_llm_with_tools(
             return response.json()
 
     raise Exception("LLM API: Max Retries erreicht")
+
+
+# ── Intelligent tool-gating ───────────────────────────────────────────
+
+# Patterns that indicate conversational (non-actionable) messages
+_CONVERSATIONAL_PATTERNS = {
+    # Greetings
+    "hallo", "hi", "hey", "guten tag", "guten morgen", "guten abend",
+    "servus", "moin", "grüß gott", "grüezi", "ciao", "tschüss",
+    # Smalltalk
+    "danke", "dankeschön", "vielen dank", "super", "toll", "perfekt",
+    "ok", "okay", "alles klar", "verstanden", "gut", "prima",
+    "ja", "nein", "genau", "richtig", "stimmt",
+    # Meta questions
+    "was kannst du", "wer bist du", "hilfe", "help",
+    "wie funktioniert", "was machst du",
+}
+
+# Keywords that strongly indicate an actionable request
+_ACTION_KEYWORDS = {
+    "erstell", "vertrag", "kündigung", "abmahnung", "zeugnis",
+    "dokument", "brief", "schreib", "füll", "ausfüll",
+    "klausel", "textbaustein", "gehalt", "suche", "finde",
+    "ändere", "änder", "aktualisier", "lösch", "hinzufüg",
+    "prüf", "check", "generier", "formular", "mitarbeiter",
+    "onboarding", "probezeit", "urlaub", "arbeitszeit",
+    "compliance", "entwurf", "vorlage", "template",
+}
+
+
+def _should_use_tools(message: str) -> bool:
+    """
+    Decide whether to send tools to the LLM based on message content.
+
+    Returns False for greetings, smalltalk, and meta questions.
+    Returns True for actionable document-related requests.
+
+    This prevents Llama from eagerly calling tools on simple messages,
+    dramatically improving conversational quality.
+    """
+    if not message:
+        return False
+
+    msg = message.lower().strip().rstrip("!?.…")
+
+    # Short messages that exactly match conversational patterns → no tools
+    if msg in _CONVERSATIONAL_PATTERNS:
+        return False
+
+    # Very short messages (< 5 words) without action keywords → no tools
+    words = msg.split()
+    if len(words) < 4:
+        has_action = any(kw in msg for kw in _ACTION_KEYWORDS)
+        if not has_action:
+            return False
+
+    # Messages with action keywords → use tools
+    if any(kw in msg for kw in _ACTION_KEYWORDS):
+        return True
+
+    # Longer messages (5+ words) → use tools (probably a task description)
+    if len(words) >= 5:
+        return True
+
+    # Default: no tools for short ambiguous messages
+    return False
 
 
 # ── Tool argument coercion ────────────────────────────────────────────
@@ -335,7 +481,9 @@ async def agent_chat_stream(
         team_id=request.team_id,
     )
 
-    system_prompt = _build_system_prompt(instructions, request.form_data)
+    system_prompt = _build_system_prompt(
+        instructions, request.form_data, request.document_type_id
+    )
 
     # Session management
     session_id = request.session_id or str(uuid.uuid4())
@@ -371,6 +519,21 @@ async def agent_chat_stream(
 
             logger.info(f"Agent using {provider_name} ({model_name})")
 
+            # ── Intelligent tool-gating ──────────────────────────────
+            # Don't send tools for greetings/smalltalk — this prevents
+            # Llama from eagerly calling tools on every message.
+            last_user_msg = ""
+            for m in reversed(conversation):
+                if m["role"] == "user":
+                    last_user_msg = m["content"].strip().lower()
+                    break
+
+            use_tools = _should_use_tools(last_user_msg)
+            active_tools = AGENT_TOOLS if use_tools else []
+
+            if not use_tools:
+                logger.info("Tool-gating: conversational message, no tools sent")
+
             # Build API messages: system + conversation history
             api_messages = [
                 {"role": "system", "content": system_prompt},
@@ -390,7 +553,7 @@ async def agent_chat_stream(
                     model=model_name,
                     headers=headers,
                     messages=api_messages,
-                    tools=AGENT_TOOLS,
+                    tools=active_tools,
                     temperature=0.4,
                     max_tokens=4096,
                 )
