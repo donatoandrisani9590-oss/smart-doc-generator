@@ -397,7 +397,7 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
 
     return (
         <TooltipProvider>
-        <div className="space-y-5 px-1">
+        <div className="space-y-5 px-0.5">
             {/* Fortschrittsanzeige für Pflichtfelder */}
             <div className="flex items-center justify-between text-[11px] text-muted-foreground/60 pb-3">
                 <span>
@@ -496,7 +496,7 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
             </div>
 
             {/* Vertragsdaten */}
-            <div className="space-y-3 pt-5">
+            <div className="space-y-3 pt-5 border-t border-border/30">
                 <h4 className="text-[11px] font-medium text-foreground/40 tracking-wide">
                     {labels.section_contract}
                 </h4>
@@ -688,7 +688,7 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
             </div>
 
             {/* Zusatzleistungen */}
-            <div className="space-y-3 pt-5">
+            <div className="space-y-3 pt-5 border-t border-border/30">
                 <h4 className="text-[11px] font-medium text-foreground/40 tracking-wide">
                     {labels.section_benefits}
                 </h4>
@@ -802,7 +802,7 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
 
             {/* AT-Optionen (nur bei AT-Angestellter) */}
             {formData.vertragsart === "at_angestellter" && (
-                <div className="space-y-3 pt-5">
+                <div className="space-y-3 pt-5 border-t border-border/30">
                     <h4 className="text-[11px] font-medium text-foreground/40 tracking-wide">
                         {labels.section_at}
                     </h4>
@@ -844,7 +844,7 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
             )}
 
             {/* Unterzeichner */}
-            <div className="space-y-3 pt-5">
+            <div className="space-y-3 pt-5 border-t border-border/30">
                 <h4 className="text-[11px] font-medium text-foreground/40 tracking-wide">
                     {labels.section_signatory}
                 </h4>
