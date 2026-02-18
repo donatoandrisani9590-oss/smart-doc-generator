@@ -365,6 +365,7 @@ async def upload_user_template(
     team_id: Optional[int] = Query(None),
     category: Optional[str] = Query(None, max_length=100),
     template_type: str = Query("stationery", pattern="^(stationery|content)$"),
+    is_default: bool = Query(False, description="Als Standard-Briefpapier setzen"),
     current_user: Annotated[User, Depends(get_current_user)] = None,
     db: AsyncSession = Depends(get_db),
 ):
@@ -457,6 +458,30 @@ async def upload_user_template(
     db.add(template)
     await db.commit()
     await db.refresh(template)
+
+    # Falls is_default gesetzt: andere Defaults für gleiches Land zurücksetzen
+    if is_default and template_type == "stationery":
+        from sqlalchemy import update
+        country_filter = (
+            UserTemplate.country_code == country_code
+            if country_code is not None
+            else UserTemplate.country_code.is_(None)
+        )
+        await db.execute(
+            update(UserTemplate)
+            .where(
+                and_(
+                    country_filter,
+                    UserTemplate.is_default == True,
+                    UserTemplate.id != template.id,
+                    UserTemplate.template_type == "stationery",
+                )
+            )
+            .values(is_default=False)
+        )
+        template.is_default = True
+        await db.commit()
+        await db.refresh(template)
 
     logger.info(
         f"User template uploaded: id={template.id}, user={current_user.id}, "
@@ -672,6 +697,45 @@ async def set_default_template(
         f"Template {template_id} als Standard gesetzt "
         f"(country={template.country_code}, user={current_user.id})"
     )
+
+    return _template_to_dict(template, current_user.id)
+
+
+@router.patch("/{template_id}")
+async def update_user_template(
+    template_id: int,
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: AsyncSession = Depends(get_db),
+    name: Optional[str] = Query(None, min_length=1, max_length=255),
+    description: Optional[str] = Query(None, max_length=1000),
+    country_code: Optional[str] = Query(None, max_length=2),
+    category: Optional[str] = Query(None, max_length=100),
+):
+    """
+    Aktualisiert Name, Beschreibung, Land oder Kategorie einer Vorlage.
+
+    Nur der Ersteller kann seine Vorlagen bearbeiten.
+    """
+    template = await db.get(UserTemplate, template_id)
+    if not template or template.user_id != current_user.id:
+        raise HTTPException(status_code=404, detail="Vorlage nicht gefunden")
+
+    if name is not None:
+        template.name = name.strip()
+    if description is not None:
+        template.description = description.strip() or None
+    if country_code is not None:
+        cc = country_code.strip().upper()
+        if cc and not re.match(r'^[A-Z]{2}$', cc):
+            raise HTTPException(status_code=400, detail="Ungültiger Ländercode (2 Buchstaben)")
+        template.country_code = cc or None
+    if category is not None:
+        template.category = category.strip() or None
+
+    await db.commit()
+    await db.refresh(template)
+
+    logger.info(f"User template updated: id={template_id}, user={current_user.id}")
 
     return _template_to_dict(template, current_user.id)
 

@@ -13,6 +13,7 @@ import {
     Download,
     Star,
     Trash2,
+    Pencil,
     Image,
     PanelTop,
     PanelBottom,
@@ -49,13 +50,14 @@ interface StationeryCardProps {
     onSetDefault: (id: number) => void;
     onDelete: (template: StationeryTemplate) => void;
     onDownload: (template: StationeryTemplate) => void;
+    onEdit: (template: StationeryTemplate) => void;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
 // COMPONENT
 // ═══════════════════════════════════════════════════════════════════════════
 
-export function StationeryCard({ template, onSetDefault, onDelete, onDownload }: StationeryCardProps) {
+export function StationeryCard({ template, onSetDefault, onDelete, onDownload, onEdit }: StationeryCardProps) {
     return (
         <Card className="group hover:shadow-md transition-all overflow-hidden">
             {/* Thumbnail area - 3:4 aspect ratio */}
@@ -86,6 +88,16 @@ export function StationeryCard({ template, onSetDefault, onDelete, onDownload }:
                 {/* Hover overlay with actions */}
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors flex items-end justify-center pb-3 opacity-0 group-hover:opacity-100">
                     <div className="flex gap-1">
+                        {template.is_own && (
+                            <Button
+                                size="sm"
+                                variant="secondary"
+                                onClick={() => onEdit(template)}
+                                title="Bearbeiten"
+                            >
+                                <Pencil className="w-3.5 h-3.5" />
+                            </Button>
+                        )}
                         <Button
                             size="sm"
                             variant="secondary"

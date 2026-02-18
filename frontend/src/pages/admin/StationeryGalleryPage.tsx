@@ -12,6 +12,9 @@ import { useState, useCallback, useEffect, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
     Dialog,
     DialogContent,
@@ -26,6 +29,7 @@ import {
     Loader2,
     Upload,
     Stamp,
+    Save,
 } from "lucide-react";
 import { apiFetch } from "@/lib/api-client";
 import { useToast } from "@/components/ui/toast";
@@ -98,6 +102,111 @@ function DeleteDialog({ template, open, onOpenChange, onConfirm, isDeleting }: D
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// EDIT DIALOG
+// ═══════════════════════════════════════════════════════════════════════════
+
+interface EditDialogProps {
+    template: StationeryTemplate | null;
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+    onSave: (id: number, data: { name: string; description: string; country_code: string; category: string }) => void;
+    isSaving: boolean;
+}
+
+function EditDialog({ template, open, onOpenChange, onSave, isSaving }: EditDialogProps) {
+    const [name, setName] = useState("");
+    const [description, setDescription] = useState("");
+    const [countryCode, setCountryCode] = useState("");
+    const [category, setCategory] = useState("");
+
+    useEffect(() => {
+        if (template && open) {
+            setName(template.name);
+            setDescription(template.description || "");
+            setCountryCode(template.country_code || "");
+            setCategory(template.category || "");
+        }
+    }, [template, open]);
+
+    return (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent className="sm:max-w-[450px]">
+                <DialogHeader>
+                    <DialogTitle>Briefpapier bearbeiten</DialogTitle>
+                    <DialogDescription>
+                        Name, Beschreibung, Land oder Kategorie ändern.
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-2">
+                    <div className="space-y-1.5">
+                        <Label htmlFor="edit-name">Name *</Label>
+                        <Input
+                            id="edit-name"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            maxLength={255}
+                        />
+                    </div>
+                    <div className="space-y-1.5">
+                        <Label htmlFor="edit-desc">Beschreibung</Label>
+                        <Textarea
+                            id="edit-desc"
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
+                            rows={2}
+                            maxLength={1000}
+                        />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1.5">
+                            <Label htmlFor="edit-country">Land</Label>
+                            <Input
+                                id="edit-country"
+                                value={countryCode}
+                                onChange={(e) => setCountryCode(e.target.value.toUpperCase().slice(0, 2))}
+                                placeholder="z.B. DE"
+                                maxLength={2}
+                            />
+                        </div>
+                        <div className="space-y-1.5">
+                            <Label htmlFor="edit-category">Kategorie</Label>
+                            <Input
+                                id="edit-category"
+                                value={category}
+                                onChange={(e) => setCategory(e.target.value)}
+                                placeholder="z.B. HR"
+                                maxLength={100}
+                            />
+                        </div>
+                    </div>
+                </div>
+                <DialogFooter>
+                    <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSaving}>
+                        Abbrechen
+                    </Button>
+                    <Button
+                        onClick={() => template && onSave(template.id, { name, description, country_code: countryCode, category })}
+                        disabled={!name.trim() || isSaving}
+                    >
+                        {isSaving ? (
+                            <>
+                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                Wird gespeichert...
+                            </>
+                        ) : (
+                            <>
+                                <Save className="w-4 h-4 mr-2" />
+                                Speichern
+                            </>
+                        )}
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // MAIN COMPONENT
 // ═══════════════════════════════════════════════════════════════════════════
 
@@ -108,6 +217,8 @@ export function StationeryGalleryPage() {
     const [uploadOpen, setUploadOpen] = useState(false);
     const [deleteTemplate, setDeleteTemplate] = useState<StationeryTemplate | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [editTemplate, setEditTemplate] = useState<StationeryTemplate | null>(null);
+    const [isSaving, setIsSaving] = useState(false);
     const [activeCountryFilter, setActiveCountryFilter] = useState<string>("all");
 
     // ───────────────────────────────────────────────────────────────────────
@@ -192,12 +303,16 @@ export function StationeryGalleryPage() {
                 method: "PUT",
             });
             if (response.ok) {
-                // Update local state: un-default all, then set this one
+                // Country-aware: nur Defaults desselben Landes zurücksetzen
+                const target = templates.find((t) => t.id === id);
+                const targetCountry = target?.country_code?.toUpperCase() ?? null;
                 setTemplates((prev) =>
-                    prev.map((t) => ({
-                        ...t,
-                        is_default: t.id === id,
-                    }))
+                    prev.map((t) => {
+                        const tCountry = t.country_code?.toUpperCase() ?? null;
+                        if (t.id === id) return { ...t, is_default: true };
+                        if (tCountry === targetCountry) return { ...t, is_default: false };
+                        return t;
+                    })
                 );
                 toast.success("Standard gesetzt", "Briefpapier als Standard festgelegt");
             } else {
@@ -226,6 +341,35 @@ export function StationeryGalleryPage() {
         } catch (err) {
             console.error("Failed to download stationery template:", err);
             toast.error("Fehler", "Download fehlgeschlagen");
+        }
+    };
+
+    const handleEdit = async (id: number, data: { name: string; description: string; country_code: string; category: string }) => {
+        setIsSaving(true);
+        try {
+            const params = new URLSearchParams();
+            params.set("name", data.name.trim());
+            params.set("description", data.description.trim());
+            params.set("country_code", data.country_code.trim());
+            params.set("category", data.category.trim());
+
+            const response = await apiFetch(`/api/v1/user-templates/${id}?${params.toString()}`, {
+                method: "PATCH",
+            });
+            if (response.ok) {
+                const updated = await response.json();
+                setTemplates((prev) => prev.map((t) => (t.id === id ? { ...t, ...updated } : t)));
+                toast.success("Gespeichert", "Briefpapier wurde aktualisiert");
+                setEditTemplate(null);
+            } else {
+                const err = await response.json().catch(() => null);
+                toast.error("Fehler", err?.detail || "Änderungen konnten nicht gespeichert werden");
+            }
+        } catch (err) {
+            console.error("Failed to update stationery template:", err);
+            toast.error("Fehler", "Änderungen konnten nicht gespeichert werden");
+        } finally {
+            setIsSaving(false);
         }
     };
 
@@ -316,6 +460,7 @@ export function StationeryGalleryPage() {
                             onSetDefault={handleSetDefault}
                             onDelete={setDeleteTemplate}
                             onDownload={handleDownload}
+                            onEdit={setEditTemplate}
                         />
                     ))}
                 </div>
@@ -337,6 +482,15 @@ export function StationeryGalleryPage() {
                 onOpenChange={(open) => { if (!open) setDeleteTemplate(null); }}
                 onConfirm={handleDelete}
                 isDeleting={isDeleting}
+            />
+
+            {/* Edit Dialog */}
+            <EditDialog
+                template={editTemplate}
+                open={!!editTemplate}
+                onOpenChange={(open) => { if (!open) setEditTemplate(null); }}
+                onSave={handleEdit}
+                isSaving={isSaving}
             />
         </div>
     );
