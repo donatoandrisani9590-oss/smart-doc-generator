@@ -95,22 +95,22 @@ export const GhostwriterCard = ({
         {isGenerating ? (
           <Loader2 className="w-3.5 h-3.5 text-primary/60 animate-spin shrink-0" />
         ) : (
-          <Sparkles className="w-3.5 h-3.5 text-primary/50 shrink-0" />
+          <Sparkles className="w-3.5 h-3.5 text-primary/50 dark:text-primary/70 shrink-0" />
         )}
-        <span className="text-[12px] font-medium text-foreground/50 flex-1">
+        <span className="text-[12px] font-medium text-foreground/50 dark:text-foreground/70 flex-1">
           {isCollapsed ? "KI-Entwurf verfügbar" : "KI-Entwurf"}
           {isStreaming && (
-            <span className="text-xs text-primary/60 ml-2 font-normal">wird generiert...</span>
+            <span className="text-xs text-primary/60 dark:text-primary/80 ml-2 font-normal">wird generiert...</span>
           )}
         </span>
         {!isStreaming && isCollapsed && (
-          <span className="text-[11px] text-primary/50 hover:text-primary/70 transition-colors">
+          <span className="text-[11px] text-primary/50 dark:text-primary/70 hover:text-primary/70 dark:hover:text-primary/90 transition-colors">
             Anzeigen
           </span>
         )}
         {!isStreaming && !isCollapsed && (
-          <button className="p-1 hover:bg-primary/10 rounded transition-colors">
-            <ChevronUp className="w-3.5 h-3.5 text-muted-foreground/40" />
+          <button className="p-1 hover:bg-primary/10 dark:hover:bg-white/10 rounded transition-colors">
+            <ChevronUp className="w-3.5 h-3.5 text-muted-foreground/40 dark:text-foreground/50" />
           </button>
         )}
       </div>
@@ -163,7 +163,7 @@ export const GhostwriterCard = ({
                 onRegenerate();
               }}
               disabled={isGenerating}
-              className="h-8 text-xs gap-1.5 text-muted-foreground"
+              className="h-8 text-xs gap-1.5 text-muted-foreground dark:text-foreground/60"
             >
               <RefreshCw className="w-3.5 h-3.5" />
               Neu generieren

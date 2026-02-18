@@ -532,16 +532,16 @@
 
   /* Dark mode: pill tabs need higher contrast against the dark canvas */
   .dark .ive-pill-tabs {
-    background: hsl(225 14% 22% / 0.6);
+    background: hsl(225 14% 24% / 0.7);
   }
   .dark .ive-pill-tab {
-    color: hsl(var(--foreground) / 0.5);
+    color: hsl(var(--foreground) / 0.55);
   }
   .dark .ive-pill-tab:hover {
-    color: hsl(var(--foreground) / 0.75);
+    color: hsl(var(--foreground) / 0.8);
   }
   .dark .ive-pill-tab-active {
-    background: hsl(225 16% 26%);
+    background: hsl(225 16% 30%);
     color: hsl(var(--foreground));
   }
 }
@@ -928,17 +928,37 @@
    The oxide-dark skin provides base dark styling, but we refine
    it to match our corporate design tokens exactly. */
 
+/* Dark Mode TinyMCE: toolbar surface should float above the paper */
+.dark .tox .tox-toolbar-overlord,
+.dark .tox .tox-toolbar__primary {
+  background: hsl(225 14% 20%) !important;
+}
+
+.dark .tox .tox-tbtn {
+  color: hsl(220 10% 75%) !important;
+}
+
 .dark .tox .tox-tbtn:hover {
-  background-color: hsl(225 14% 22%) !important;
+  background-color: hsl(225 14% 26%) !important;
+  color: hsl(220 10% 90%) !important;
 }
 
 .dark .tox .tox-toolbar__group {
-  border-right-color: hsl(225 12% 20% / 0.6) !important;
+  border-right-color: hsl(225 12% 26% / 0.6) !important;
 }
 
 .dark .tox .tox-tbtn--enabled,
 .dark .tox .tox-tbtn--enabled:hover {
-  background-color: hsl(var(--primary) / 0.15) !important;
+  background-color: hsl(var(--primary) / 0.2) !important;
+  color: hsl(220 60% 75%) !important;
+}
+
+.dark .tox .tox-tbtn--bespoke .tox-tbtn__select-label {
+  color: hsl(220 10% 80%) !important;
+}
+
+.dark .tox .tox-editor-header {
+  border-bottom-color: hsl(225 12% 24%) !important;
 }
 
 /* Dropdowns/menus inside TinyMCE */

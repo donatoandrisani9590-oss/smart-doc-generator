@@ -6,7 +6,7 @@
  * - Widgets only shown when they have data
  */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -27,8 +27,10 @@ import { ApprovalRequestsWidget } from "@/components/dashboard/ApprovalRequestsW
 import { OnboardingBanner } from "@/components/dashboard/OnboardingBanner";
 
 import { MotionContainer, MotionListItem } from "@/components/ui/motion";
+import { useAuth } from "@/contexts/AuthContext";
+import { api } from "@/lib/api-client";
 
-// Greeting based on time
+// Greeting based on time of day
 const getGreeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return "Guten Morgen";
@@ -36,23 +38,48 @@ const getGreeting = () => {
     return "Guten Abend";
 };
 
+// Extract first name from email (e.g. "donato.andrisani@..." → "Donato")
+const getFirstName = (email: string): string | null => {
+    const name = email.split("@")[0];
+    const parts = name.split(/[._-]/);
+    if (parts.length > 0 && parts[0].length > 1) {
+        return parts[0].charAt(0).toUpperCase() + parts[0].slice(1);
+    }
+    return null;
+};
+
 export const Dashboard = () => {
+    const { user } = useAuth();
     const { data: stats, isLoading: statsLoading } = useDashboardStats();
     const { data: activity, isLoading: activityLoading } = useMyActivity(5);
     const { data: clauses } = useClauses();
     const { data: documentTypes } = useDocumentTypes();
     const [searchQuery, setSearchQuery] = useState("");
     const [wizardOpen, setWizardOpen] = useState(false);
+    const [pendingApprovals, setPendingApprovals] = useState(0);
+    const [overdueDeadlines, setOverdueDeadlines] = useState(0);
 
     const [onboardingDismissed, setOnboardingDismissed] = useState(() =>
         localStorage.getItem("onboarding-dismissed") === "true"
     );
     const navigate = useNavigate();
 
+    const firstName = user ? getFirstName(user.email) : null;
+
+    // Fetch lightweight counts for greeting subtitle
+    useEffect(() => {
+        api.get<{ clauses: unknown[]; total: number }>("/api/v1/clauses/pending-approval?limit=0")
+            .then(({ data }) => setPendingApprovals(data.total))
+            .catch(() => {});
+        api.get<{ overdue_count: number }>("/api/v1/deadlines/summary")
+            .then(({ data }) => setOverdueDeadlines(data.overdue_count))
+            .catch(() => {});
+    }, []);
 
     const isLoading = statsLoading || activityLoading;
-    const hasOpenDrafts = (stats?.open_drafts ?? 0) > 0;
-    const hasPendingTasks = hasOpenDrafts;
+    const openDrafts = stats?.open_drafts ?? 0;
+    const totalOpenTasks = openDrafts + pendingApprovals + overdueDeadlines;
+    const hasPendingTasks = totalOpenTasks > 0;
     const hasNoDocumentTypes = !isLoading && (documentTypes?.length ?? 0) === 0;
 
     // Onboarding: Prüfe ob Ersteinrichtung abgeschlossen
@@ -89,14 +116,14 @@ export const Dashboard = () => {
                 <div className="relative z-10">
                     <div>
                         <h1 className="text-3xl font-semibold tracking-tight text-white">
-                            {getGreeting()}
+                            {getGreeting()}{firstName ? `, ${firstName}` : ""}
                         </h1>
                         <p className="text-white/70 mt-2 text-lg font-light">
                             {hasNoDocumentTypes
-                                ? "Richten Sie Ihre erste Dokumentvorlage ein"
+                                ? "Richte deine erste Dokumentvorlage ein"
                                 : hasPendingTasks
-                                ? "Sie haben offene Aufgaben"
-                                : "Bereit für neue Dokumente"}
+                                ? `Du hast ${totalOpenTasks} offene ${totalOpenTasks === 1 ? "Aufgabe" : "Aufgaben"}`
+                                : "Alles erledigt \u2014 Zeit für neue Projekte!"}
                         </p>
                         {/* Quick inline stats */}
                         <div className="flex gap-8 mt-5">
@@ -190,7 +217,7 @@ export const Dashboard = () => {
                         <div className="flex-1">
                             <h2 className="text-xl font-semibold tracking-tight text-foreground">KI-Dokumentassistent</h2>
                             <p className="text-sm text-muted-foreground">
-                                Beschreiben Sie, welches Dokument Sie benötigen — die KI führt Sie durch den Prozess.
+                                Beschreibe, welches Dokument du benötigst — die KI führt dich durch den Prozess.
                             </p>
                         </div>
                         <Link

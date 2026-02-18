@@ -153,7 +153,7 @@ export const RightEditorPanel = () => {
     return (
         <div className="h-full flex flex-col">
             {/* Unified Toolbar — Workflow Stepper (left) + AI Tools (right) on one line */}
-            <div className="flex items-center justify-between px-3 py-2 bg-card/80 dark:bg-[hsl(225_14%_20%)] backdrop-blur-sm border-b border-transparent dark:border-border/40">
+            <div className="flex items-center justify-between px-3 py-2 bg-card/80 dark:bg-[hsl(225_14%_22%)] backdrop-blur-sm border-b border-transparent dark:border-border/40">
                 <div className="flex items-center gap-2">
                     {/* Workflow Stepper — integrated inline */}
                     <WorkflowStepper compact />
