@@ -112,7 +112,7 @@ export const AddVariantDialog = ({
                         Variante hinzufügen
                     </DialogTitle>
                     <DialogDescription>
-                        Fügen Sie einen Textbaustein als Variante zu "{group.name}" hinzu
+                        Füge einen Textbaustein als Variante zu "{group.name}" hinzu
                     </DialogDescription>
                 </DialogHeader>
 

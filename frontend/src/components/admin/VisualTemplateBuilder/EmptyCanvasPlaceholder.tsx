@@ -32,7 +32,7 @@ export const EmptyCanvasPlaceholder = ({ isOver, onAddSection }: EmptyCanvasPlac
                 {isOver ? "Textbaustein hier ablegen" : "Textbausteine hier ablegen"}
             </p>
             <p className="text-sm text-muted-foreground mt-1">
-                Ziehen Sie Textbausteine aus der Toolbox hierher
+                Ziehe Textbausteine aus der Toolbox hierher
             </p>
             {onAddSection && (
                 <Button

@@ -278,7 +278,7 @@ export const AttachmentSelector = ({
                 <p className="text-sm text-muted-foreground flex items-start gap-2">
                     <Info className="w-4 h-4 mt-0.5 flex-shrink-0" />
                     <span>
-                        Wählen Sie Anlagen aus, die dem generierten Dokument angehängt werden sollen.
+                        Wähle Anlagen aus, die dem generierten Dokument angehängt werden sollen.
                     </span>
                 </p>
 

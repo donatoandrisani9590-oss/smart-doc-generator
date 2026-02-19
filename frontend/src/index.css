@@ -159,7 +159,7 @@
     color: hsl(var(--primary));
   }
 
-  /* Improved Heading Typography */
+  /* Improved Heading Typography — always foreground, never primary */
   h1,
   h2,
   h3,
@@ -167,7 +167,7 @@
   h5,
   h6 {
     @apply font-semibold tracking-tight;
-    color: hsl(var(--primary));
+    color: hsl(var(--foreground));
   }
 }
 
@@ -193,14 +193,14 @@
   .glass-card {
     background-color: rgb(255 255 255 / 0.85);
     backdrop-filter: blur(4px);
-    box-shadow: var(--shadow-soft-md);
+    box-shadow: var(--shadow-elevated);
     border-radius: var(--radius);
-    border: 1px solid hsl(220 13% 91% / 0.6);
+    border: none;
   }
 
   .dark .glass-card {
     background-color: hsl(225 18% 13% / 0.85);
-    border-color: hsl(225 12% 22% / 0.5);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15), 0 4px 12px rgba(0,0,0,0.1);
   }
 
   .glass-panel {
@@ -225,47 +225,46 @@
     background-color: rgb(0 0 0 / 0.65);
   }
 
-  /* Dialog/Popover Content - Solid background */
+  /* Dialog/Popover Content - Solid background, elevated shadow */
   .glass-popover {
     background-color: hsl(var(--card));
-    border: 1px solid hsl(var(--border));
+    border: none;
     border-radius: var(--radius);
-    box-shadow: var(--shadow-soft-xl);
+    box-shadow: 0 0 0 0.5px rgba(0,0,0,0.04), 0 8px 32px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04);
   }
 
-  /* Header - Apple-style translucent bar */
+  /* Header - Apple-style translucent bar, shadow instead of border */
   .glass-header-bar {
     background: rgba(255, 255, 255, 0.72);
     backdrop-filter: blur(20px) saturate(180%);
-    border-bottom: 0.5px solid rgba(0, 0, 0, 0.06);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02);
   }
 
   .dark .glass-header-bar {
     background: rgba(23, 23, 23, 0.72);
-    border-bottom-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15), 0 1px 2px rgba(0,0,0,0.1);
   }
 
   /* Soft Cards - Premium elevation */
   .card-soft {
     background-color: hsl(var(--card));
     border-radius: 0.75rem;
-    box-shadow: var(--shadow-soft-sm);
+    box-shadow: var(--shadow-elevated);
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    border: 1px solid hsl(var(--border) / 0.5);
+    border: none;
   }
 
   .card-soft:hover {
-    box-shadow: var(--shadow-soft-lg);
+    box-shadow: var(--shadow-elevated-hover);
     transform: translateY(-2px);
-    border-color: hsl(var(--primary) / 0.15);
   }
 
   .dark .card-soft {
-    border-color: hsl(225 12% 20% / 0.5);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15), 0 4px 12px rgba(0,0,0,0.1);
   }
 
   .dark .card-soft:hover {
-    border-color: hsl(225 12% 25%);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2), 0 8px 24px rgba(0,0,0,0.15);
   }
 
   /* Elevated Cards - Ive triple-shadow, no border */
@@ -306,9 +305,8 @@
     transform: scale(0.98);
   }
 
-  /* Footer - Quiet anchor */
+  /* Footer - Quiet anchor, no border */
   .app-footer {
-    border-top: 0.5px solid hsl(var(--border) / 0.5);
     background: hsl(var(--background) / 0.8);
   }
 
@@ -335,17 +333,17 @@
     color: hsl(var(--muted-foreground) / 0.4);
   }
 
-  /* Form field group — quiet card */
+  /* Form field group — quiet card, borderless */
   .form-field-group {
     background-color: hsl(var(--card));
     border-radius: var(--radius);
-    border: 1px solid hsl(var(--border) / 0.5);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    border: none;
+    box-shadow: var(--shadow-elevated);
   }
 
   .dark .form-field-group {
     background-color: hsl(225 18% 14%);
-    border-color: hsl(225 12% 22% / 0.5);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15), 0 4px 12px rgba(0,0,0,0.1);
   }
 
   /* Buttons - Niederwieser Corporate Pill Style */
@@ -396,15 +394,16 @@
 
   /* ── Design Utilities ── */
 
-  /* Sidebar - Clean white */
+  /* Sidebar - Clean white, shadow instead of border */
   .glass-sidebar {
     background: hsl(var(--card));
-    border-right: 1px solid hsl(var(--border));
+    border-right: none;
+    box-shadow: 1px 0 3px rgba(0,0,0,0.04), 4px 0 12px rgba(0,0,0,0.02);
   }
 
   .dark .glass-sidebar {
     background: hsl(225 18% 13%);
-    border-right-color: hsl(225 12% 20%);
+    box-shadow: 1px 0 3px rgba(0,0,0,0.15), 4px 0 12px rgba(0,0,0,0.1);
   }
 
   /* Hero banner gradient (Niederwieser Blue) */
@@ -421,39 +420,37 @@
     background: linear-gradient(135deg, hsl(225 14% 13%) 0%, hsl(225 14% 15%) 100%);
   }
 
-  /* Status filter cards (Repository page) */
+  /* Status filter cards (Repository page) — borderless, shadow-based */
   .status-card {
     background: hsl(var(--card));
     border-radius: var(--radius);
     padding: 1rem 1.25rem;
-    border: 1px solid hsl(var(--border));
+    border: none;
+    box-shadow: var(--shadow-elevated);
     transition: all 0.2s;
   }
 
   .status-card:hover {
-    border-color: hsl(var(--primary) / 0.3);
-    box-shadow: var(--shadow-soft-md);
+    box-shadow: var(--shadow-elevated-hover);
+    transform: translateY(-1px);
   }
 
   .status-card.active {
-    border-color: hsl(var(--primary));
     background: hsl(var(--primary) / 0.04);
-    box-shadow: 0 0 0 1px hsl(var(--primary) / 0.2);
+    box-shadow: var(--shadow-elevated), 0 0 0 1.5px hsl(var(--primary) / 0.2);
   }
 
   .dark .status-card.active {
     background: hsl(var(--primary) / 0.1);
   }
 
-  /* Info card header */
+  /* Info card header — no border, subtle background only */
   .info-card-header {
-    background: hsl(var(--muted) / 0.7);
-    border-bottom: 1px solid hsl(var(--border) / 0.5);
+    background: hsl(var(--muted) / 0.5);
   }
 
   .dark .info-card-header {
-    background: hsl(225 14% 15% / 0.7);
-    border-bottom-color: hsl(225 12% 22% / 0.5);
+    background: hsl(225 14% 15% / 0.5);
   }
 
   /* ═══════════════════════════════════════════════════════════════════════

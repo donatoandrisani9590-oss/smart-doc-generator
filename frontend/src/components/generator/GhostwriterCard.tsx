@@ -79,14 +79,14 @@ export const GhostwriterCard = ({
   return (
     <div
       className={cn(
-        "bg-primary/[0.06] border border-primary/[0.12] dark:bg-[hsl(225_16%_22%)] dark:border-border/30 overflow-hidden transition-all duration-300",
-        isCollapsed ? "rounded-2xl" : "rounded-t-2xl",
+        "bg-primary/[0.04] dark:bg-[hsl(225_16%_22%/0.5)] rounded-2xl overflow-hidden transition-all duration-300 ease-out",
+        !isCollapsed && "shadow-[var(--shadow-elevated)]",
         className
       )}
       onClick={isCollapsed ? handleInteraction : undefined}
     >
       {/* Header — collapsed: single-line hint */}
-      <div className="flex items-center gap-2 px-3.5 py-2 cursor-pointer select-none hover:bg-primary/[0.10] dark:hover:bg-white/[0.04] transition-colors"
+      <div className="flex items-center gap-2 px-3.5 py-2 cursor-pointer select-none hover:bg-primary/[0.06] dark:hover:bg-white/[0.04] transition-colors rounded-2xl"
         onClick={() => {
           handleInteraction();
           if (!isStreaming) setIsCollapsed(!isCollapsed);
@@ -109,18 +109,23 @@ export const GhostwriterCard = ({
           </span>
         )}
         {!isStreaming && !isCollapsed && (
-          <button className="p-1 hover:bg-primary/10 dark:hover:bg-white/10 rounded transition-colors">
-            <ChevronUp className="w-3.5 h-3.5 text-muted-foreground/40 dark:text-foreground/50" />
+          <button className="p-1 hover:bg-primary/[0.06] dark:hover:bg-white/10 rounded-full transition-colors">
+            <ChevronUp className="w-3.5 h-3.5 text-foreground/30 dark:text-foreground/50" />
           </button>
         )}
       </div>
 
-      {/* Content (collapsible) */}
-      {!isCollapsed && (
-        <>
+      {/* Content (collapsible with slide-down) */}
+      <div
+        className={cn(
+          "grid transition-all duration-300 ease-out",
+          isCollapsed ? "grid-rows-[0fr] opacity-0" : "grid-rows-[1fr] opacity-100"
+        )}
+      >
+        <div className="overflow-hidden">
           {/* Error state */}
           {error && (
-            <div className="px-3 py-2 text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border-t border-red-100 dark:border-red-800/30">
+            <div className="px-3 py-2 text-xs text-red-600 dark:text-red-400 bg-red-50/60 dark:bg-red-900/20">
               {error}
             </div>
           )}
@@ -182,8 +187,8 @@ export const GhostwriterCard = ({
               Verwerfen
             </Button>
           </div>
-        </>
-      )}
+        </div>
+      </div>
     </div>
   );
 };

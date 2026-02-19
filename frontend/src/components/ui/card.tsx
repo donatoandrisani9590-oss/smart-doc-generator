@@ -30,12 +30,11 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
         <motion.div
             ref={ref}
             className={cn(
-                // Base styles with refined glass effect
-                "rounded-lg text-card-foreground",
-                // Frosted glass styling - subtle & performant
-                "glass-card",
+                // Ive Surface & Depth — borderless, shadow-elevated, rounded-2xl
+                "rounded-2xl text-card-foreground bg-card border-0",
+                "shadow-[0_1px_3px_rgba(36,49,134,0.04),0_4px_12px_rgba(36,49,134,0.03)]",
                 // Interactive state
-                interactive && "cursor-pointer",
+                interactive && "cursor-pointer hover:shadow-[0_2px_8px_rgba(36,49,134,0.06),0_8px_24px_rgba(36,49,134,0.04)] hover:-translate-y-px transition-all duration-200",
                 className
             )}
             variants={interactive ? cardMotionVariants : undefined}

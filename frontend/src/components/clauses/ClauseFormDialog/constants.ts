@@ -14,7 +14,7 @@ export const CATEGORIES: CategoryOption[] = [
     { value: "Nebentätigkeit", label: "Nebentätigkeit", description: "Regelungen zu Nebentätigkeiten", group: "Arbeitsvertrag" },
     { value: "Wettbewerb", label: "Wettbewerb", description: "Wettbewerbsverbote", group: "Arbeitsvertrag" },
     { value: "Ausschlussfristen", label: "Ausschlussfristen", description: "Verfall-Textbausteine und Ausschlussfristen", group: "Arbeitsvertrag" },
-    { value: "Schlussbestimmungen", label: "Schlussbestimmungen", description: "Salvatorische Klausel, Schriftform, Gerichtsstand", group: "Arbeitsvertrag" },
+    { value: "Schlussbestimmungen", label: "Schlussbestimmungen", description: "Salvatorische Bestimmung, Schriftform, Gerichtsstand", group: "Arbeitsvertrag" },
     // HR-Korrespondenz-Kategorien
     { value: "Einladung", label: "Einladung", description: "Einladungsschreiben", group: "HR-Korrespondenz" },
     { value: "Mitteilung", label: "Mitteilung", description: "Allgemeine Mitteilungen", group: "HR-Korrespondenz" },

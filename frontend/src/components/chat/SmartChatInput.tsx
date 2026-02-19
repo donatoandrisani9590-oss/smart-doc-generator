@@ -200,7 +200,7 @@ export function SmartChatInput({
       setInput("");
     } catch (err) {
       console.error("Smart chat error:", err);
-      setError("Verarbeitung fehlgeschlagen. Bitte versuchen Sie es erneut.");
+      setError("Verarbeitung fehlgeschlagen. Bitte versuche es erneut.");
     } finally {
       setIsLoading(false);
     }
@@ -353,7 +353,7 @@ export function SmartChatInput({
                       <p>
                         🔒 <strong>100% lokal verarbeitet</strong>
                         <br />
-                        Ihre Daten haben den Browser nie verlassen.
+                        Deine Daten haben den Browser nie verlassen.
                       </p>
                     ) : (
                       <p>

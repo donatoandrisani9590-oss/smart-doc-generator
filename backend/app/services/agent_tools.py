@@ -58,8 +58,8 @@ AGENT_TOOLS = [
         "function": {
             "name": "select_clauses",
             "description": (
-                "Aktiviere oder deaktiviere Textbausteine (Klauseln) für das Dokument. "
-                "Gib die IDs der zu aktivierenden und zu deaktivierenden Klauseln an."
+                "Aktiviere oder deaktiviere Textbausteine für das Dokument. "
+                "Gib die IDs der zu aktivierenden und zu deaktivierenden Textbausteine an."
             ),
             "parameters": {
                 "type": "object",
@@ -67,12 +67,12 @@ AGENT_TOOLS = [
                     "enable": {
                         "type": "array",
                         "items": {"type": "integer"},
-                        "description": "Klausel-IDs zum Aktivieren",
+                        "description": "Textbaustein-IDs zum Aktivieren",
                     },
                     "disable": {
                         "type": "array",
                         "items": {"type": "integer"},
-                        "description": "Klausel-IDs zum Deaktivieren",
+                        "description": "Textbaustein-IDs zum Deaktivieren",
                     },
                     "reason": {
                         "type": "string",
@@ -88,7 +88,7 @@ AGENT_TOOLS = [
         "function": {
             "name": "search_clauses",
             "description": (
-                "Durchsuche die Klausel-Bibliothek nach passenden Textbausteinen. "
+                "Durchsuche die Textbaustein-Bibliothek nach passenden Textbausteinen. "
                 "Suche nach Titel, Inhalt oder Kategorie."
             ),
             "parameters": {
@@ -100,7 +100,7 @@ AGENT_TOOLS = [
                     },
                     "document_type_id": {
                         "type": "integer",
-                        "description": "Optional: Nur Klauseln für diesen Dokumenttyp",
+                        "description": "Optional: Nur Textbausteine für diesen Dokumenttyp",
                     },
                 },
                 "required": ["query"],
@@ -112,20 +112,20 @@ AGENT_TOOLS = [
         "function": {
             "name": "create_clause_draft",
             "description": (
-                "Erstelle einen KI-generierten Klausel-Entwurf. Der Anwender muss den "
+                "Erstelle einen KI-generierten Textbaustein-Entwurf. Der Anwender muss den "
                 "Entwurf bestätigen, bevor er ins Dokument eingefügt wird. "
-                "Verwende dies nur, wenn keine passende Klausel in der Bibliothek existiert."
+                "Verwende dies nur, wenn kein passender Textbaustein in der Bibliothek existiert."
             ),
             "parameters": {
                 "type": "object",
                 "properties": {
                     "title": {
                         "type": "string",
-                        "description": "Titel der neuen Klausel",
+                        "description": "Titel des neuen Textbausteins",
                     },
                     "content": {
                         "type": "string",
-                        "description": "HTML-Inhalt der Klausel (kann {{ Platzhalter }} enthalten)",
+                        "description": "HTML-Inhalt des Textbausteins (kann {{ Platzhalter }} enthalten)",
                     },
                     "category": {
                         "type": "string",
@@ -366,7 +366,7 @@ async def _exec_select_clauses(
         valid = {row.id: row.title for row in result.all()}
         invalid = [cid for cid in all_ids if cid not in valid]
         if invalid:
-            return {"error": f"Unbekannte Klausel-IDs: {invalid}"}
+            return {"error": f"Unbekannte Textbaustein-IDs: {invalid}"}
 
     return {
         "status": "ok",

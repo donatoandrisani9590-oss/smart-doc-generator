@@ -184,7 +184,7 @@ export const ExportReviewModal = ({
                         Export-Zusammenfassung
                     </DialogTitle>
                     <DialogDescription className="text-xs">
-                        Bitte überprüfen Sie die Daten vor dem {formatLabel}-Export.
+                        Bitte überprüfe die Daten vor dem {formatLabel}-Export.
                     </DialogDescription>
                 </DialogHeader>
 
@@ -270,7 +270,7 @@ export const ExportReviewModal = ({
                     <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
                     <p className="text-[11px] text-amber-700 dark:text-amber-400 leading-relaxed">
                         Nach dem Export wird das Dokument unter <strong>Meine Dokumente</strong> gespeichert.
-                        Bitte überprüfen Sie die Daten sorgfältig.
+                        Bitte überprüfe die Daten sorgfältig.
                     </p>
                 </div>
 

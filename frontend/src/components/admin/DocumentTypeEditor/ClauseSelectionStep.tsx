@@ -201,7 +201,7 @@ export const ClauseSelectionStep = ({
                                 <FileText className="w-8 h-8 mx-auto mb-2 opacity-50" />
                                 <p className="text-sm">Keine Textbausteine ausgewählt</p>
                                 <p className="text-xs">
-                                    Klicken Sie links auf einen Textbaustein, um ihn hinzuzufügen
+                                    Klicke links auf einen Textbaustein, um ihn hinzuzufügen
                                 </p>
                             </div>
                         ) : (

@@ -194,7 +194,7 @@ export function BulkClauseImportDialog({
         const detected = detectParagraphs(rawText);
         if (detected.length === 0) {
             setError(
-                "Keine §-Paragraphen erkannt. Bitte stellen Sie sicher, dass Ihr Text Paragraphen im Format '§ 1 Titel' enthält."
+                "Keine §-Paragraphen erkannt. Bitte stelle sicher, dass dein Text Paragraphen im Format '§ 1 Titel' enthält."
             );
             return;
         }
@@ -223,7 +223,7 @@ export function BulkClauseImportDialog({
     const handleImport = async () => {
         const selectedParagraphs = paragraphs.filter((p) => p.selected);
         if (selectedParagraphs.length === 0) {
-            setError("Bitte wählen Sie mindestens einen Paragraphen aus.");
+            setError("Bitte wähle mindestens einen Paragraphen aus.");
             return;
         }
 
@@ -287,7 +287,7 @@ export function BulkClauseImportDialog({
                         Freitext-Import: §-Paragraphen erkennen
                     </DialogTitle>
                     <DialogDescription>
-                        Fügen Sie einen Vertragstext ein und die App erkennt
+                        Füge einen Vertragstext ein und die App erkennt
                         automatisch die §-Paragraphen als einzelne Textbausteine.
                     </DialogDescription>
                 </DialogHeader>
@@ -310,7 +310,7 @@ export function BulkClauseImportDialog({
                                     Vertragstext einfügen
                                 </Label>
                                 <p className="text-xs text-muted-foreground">
-                                    Kopieren Sie den vollständigen Vertragstext
+                                    Kopiere den vollständigen Vertragstext
                                     hier hinein. Paragraphen werden anhand von
                                     §-Zeichen erkannt (z.B. "§ 1 Vertragsgegenstand").
                                 </p>
@@ -472,7 +472,7 @@ export function BulkClauseImportDialog({
                                     importiert
                                 </p>
                                 <p className="text-sm text-muted-foreground">
-                                    Wählen Sie die Standard-Kategorie für alle
+                                    Wähle die Standard-Kategorie für alle
                                     importierten Textbausteine.
                                 </p>
                             </div>

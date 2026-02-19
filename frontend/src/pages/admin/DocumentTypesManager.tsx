@@ -115,9 +115,9 @@ export const DocumentTypesManager = () => {
             {/* Header */}
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-xl font-semibold tracking-tight text-foreground">Dokumenttypen verwalten</h1>
+                    <h1 className="text-xl font-semibold tracking-tight text-foreground/80">Dokumenttypen verwalten</h1>
                     <p className="text-sm text-muted-foreground">
-                        Erstellen, bearbeiten und duplizieren Sie Dokumenttypen
+                        Erstelle, bearbeite und dupliziere Dokumenttypen
                     </p>
                 </div>
                 <div className="flex gap-2">
@@ -171,7 +171,7 @@ export const DocumentTypesManager = () => {
             {/* Document Types List */}
             <Card>
                 <CardHeader>
-                    <CardTitle className="text-foreground">
+                    <CardTitle className="text-foreground/80">
                         {filteredTypes.length} Dokumenttyp{filteredTypes.length !== 1 ? "en" : ""}
                     </CardTitle>
                 </CardHeader>
@@ -185,7 +185,7 @@ export const DocumentTypesManager = () => {
                             <FileText className="w-12 h-12 mx-auto mb-4 text-muted-foreground opacity-50" />
                             <h3 className="text-lg font-medium mb-2">Noch keine Dokumenttypen</h3>
                             <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                                Importieren Sie eine bestehende Word-Vorlage oder erstellen Sie einen neuen Dokumenttyp von Grund auf.
+                                Importiere eine bestehende Word-Vorlage oder erstelle einen neuen Dokumenttyp von Grund auf.
                             </p>
                             <div className="flex gap-3 justify-center">
                                 <Button
@@ -311,7 +311,7 @@ export const DocumentTypesManager = () => {
                     <DialogHeader>
                         <DialogTitle>Dokumenttyp löschen?</DialogTitle>
                         <DialogDescription>
-                            Sind Sie sicher, dass Sie "{selectedType?.name}" löschen möchten?
+                            Bist du sicher, dass du "{selectedType?.name}" löschen möchtest?
                             Diese Aktion kann nicht rückgängig gemacht werden.
                         </DialogDescription>
                     </DialogHeader>

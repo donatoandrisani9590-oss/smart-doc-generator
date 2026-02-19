@@ -226,7 +226,7 @@ export function WordImportWizard({
     const handleImport = async () => {
         const selectedSections = sections.filter((s) => s.selected);
         if (selectedSections.length === 0) {
-            setError("Bitte wählen Sie mindestens einen Abschnitt aus.");
+            setError("Bitte wähle mindestens einen Abschnitt aus.");
             return;
         }
 
@@ -276,7 +276,7 @@ export function WordImportWizard({
                         Word-Vorlage importieren
                     </DialogTitle>
                     <DialogDescription>
-                        Importieren Sie bestehende Word-Dokumente als wiederverwendbare Textbausteine
+                        Importiere bestehende Word-Dokumente als wiederverwendbare Textbausteine
                     </DialogDescription>
                 </DialogHeader>
 
@@ -359,7 +359,7 @@ export function WordImportWizard({
                                 </CardHeader>
                                 <CardContent className="text-sm text-muted-foreground">
                                     <ul className="list-disc list-inside space-y-1">
-                                        <li>Verwenden Sie Word-Überschriften-Styles (Überschrift 1, 2, ...)</li>
+                                        <li>Verwende Word-Überschriften-Styles (Überschrift 1, 2, ...)</li>
                                         <li>Paragraphen mit §, Art. oder Nummerierung werden erkannt</li>
                                         <li>Tabellen werden zu Listen konvertiert</li>
                                         <li>Bilder/Logos werden ignoriert</li>
@@ -476,7 +476,7 @@ export function WordImportWizard({
                                 <CardHeader>
                                     <CardTitle className="text-base">Import-Einstellungen</CardTitle>
                                     <CardDescription>
-                                        Konfigurieren Sie wie die Textbausteine importiert werden
+                                        Konfiguriere, wie die Textbausteine importiert werden
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
@@ -558,7 +558,7 @@ export function WordImportWizard({
                                 </div>
                                 <p className="text-blue-700 dark:text-blue-300">
                                     Die importierten Textbausteine werden als "Entwurf" gespeichert.
-                                    Bitte prüfen Sie diese und fügen Sie Platzhalter ({"{{ name }}"}) manuell ein.
+                                    Bitte prüfe diese und füge Platzhalter ({"{{ name }}"}) manuell ein.
                                 </p>
                             </div>
                         </div>

@@ -240,7 +240,7 @@ export function useWizardDrafts(params: UseWizardDraftsParams): UseWizardDraftsR
                 setCurrentStep(recovered.currentStep);
             }
 
-            toast.success("Entwurf wiederhergestellt", "Ihre nicht gespeicherten Änderungen wurden wiederhergestellt");
+            toast.success("Entwurf wiederhergestellt", "Deine nicht gespeicherten Änderungen wurden wiederhergestellt");
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [recoverDraftFromStorage, setFormDataRaw, setDynamicFormValues, setDocumentTitle, setDocumentTypeIdState, setComments, setCurrentStep]);
@@ -306,7 +306,7 @@ export function useWizardDrafts(params: UseWizardDraftsParams): UseWizardDraftsR
 
     const saveDraft = useCallback(async () => {
         if (!documentTypeId) {
-            toast.error("Fehler", "Bitte wählen Sie einen Dokumenttyp");
+            toast.error("Fehler", "Bitte wähle einen Dokumenttyp");
             return;
         }
 

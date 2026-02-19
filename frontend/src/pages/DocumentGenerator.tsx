@@ -72,8 +72,8 @@ export const DocumentGenerator = () => {
                     <Rocket className="w-12 h-12 mx-auto mb-4 text-primary/50" />
                     <h3 className="text-lg font-semibold">Willkommen beim Dokumenten-Generator</h3>
                     <p className="text-muted-foreground mt-2">
-                        Bevor Sie Ihr erstes Dokument erstellen können, müssen einige Einstellungen vorgenommen werden.
-                        Folgen Sie den Schritten unten, um loszulegen.
+                        Bevor du dein erstes Dokument erstellen kannst, müssen einige Einstellungen vorgenommen werden.
+                        Folge den Schritten unten, um loszulegen.
                     </p>
                 </div>
 
@@ -86,7 +86,7 @@ export const DocumentGenerator = () => {
 
                 <div className="text-center">
                     <p className="text-xs text-muted-foreground">
-                        Tipp: Sie können auch eine bestehende Word-Vorlage unter Einstellungen &gt; Textbausteine &gt; Word importieren hochladen.
+                        Tipp: Du kannst auch eine bestehende Word-Vorlage unter Einstellungen &gt; Textbausteine &gt; Word importieren hochladen.
                     </p>
                 </div>
             </div>

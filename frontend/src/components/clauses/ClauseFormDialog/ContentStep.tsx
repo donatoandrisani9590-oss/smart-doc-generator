@@ -28,7 +28,7 @@ export const ContentStep = ({
                 <div>
                     <h3 className="font-medium text-foreground">Textbaustein bearbeiten</h3>
                     <p className="text-sm text-muted-foreground">
-                        Verwenden Sie Platzhalter wie {"{{mitarbeiter_name}}"} für variable Felder
+                        Verwende Platzhalter wie {"{{mitarbeiter_name}}"} für variable Felder
                     </p>
                 </div>
                 <div className="flex items-center gap-2">

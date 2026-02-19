@@ -142,7 +142,7 @@ export const LeftControlPanel = ({ documentTypes }: LeftControlPanelProps) => {
                             </div>
                             <div className="flex items-center gap-2">
                                 {selectedAttachmentIds.length > 0 && (
-                                    <Badge variant="secondary" className="text-[10px] font-normal">
+                                    <Badge variant="secondary" className="text-[10px] font-normal bg-primary/8 text-primary/70 rounded-full">
                                         {selectedAttachmentIds.length}
                                     </Badge>
                                 )}

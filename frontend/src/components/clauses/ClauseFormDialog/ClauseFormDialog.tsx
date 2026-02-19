@@ -241,7 +241,7 @@ export const ClauseFormDialog = ({
         }
 
         if (category === "custom" && !customCategory.trim()) {
-            newErrors.customCategory = "Bitte geben Sie eine Kategorie ein";
+            newErrors.customCategory = "Bitte gib eine Kategorie ein";
         }
 
         setErrors(newErrors);
@@ -351,8 +351,8 @@ export const ClauseFormDialog = ({
                         </DialogTitle>
                         <DialogDescription>
                             {isEditMode
-                                ? "Bearbeiten Sie den Textbaustein und seinen Inhalt"
-                                : "Erstellen Sie einen neuen wiederverwendbaren Textbaustein für Ihre Dokumente"}
+                                ? "Bearbeite den Textbaustein und seinen Inhalt"
+                                : "Erstelle einen neuen wiederverwendbaren Textbaustein für deine Dokumente"}
                         </DialogDescription>
                     </DialogHeader>
 
@@ -542,8 +542,8 @@ export const ClauseFormDialog = ({
                             Ungespeicherte Änderungen
                         </AlertDialogTitle>
                         <AlertDialogDescription>
-                            Sie haben Änderungen vorgenommen, die noch nicht gespeichert wurden.
-                            Wenn Sie fortfahren, gehen diese Änderungen verloren.
+                            Du hast Änderungen vorgenommen, die noch nicht gespeichert wurden.
+                            Wenn du fortfährst, gehen diese Änderungen verloren.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>

@@ -479,7 +479,7 @@ function RequestApprovalDialog({
                 <DialogHeader>
                     <DialogTitle>Freigabe anfordern</DialogTitle>
                     <DialogDescription>
-                        Wählen Sie einen Prüfer, der dieses Dokument freigeben soll.
+                        Wähle einen Prüfer, der dieses Dokument freigeben soll.
                     </DialogDescription>
                 </DialogHeader>
 
@@ -619,7 +619,7 @@ const DECISION_CONFIG = {
     },
     reject: {
         title: "Dokument ablehnen?",
-        description: "Das Dokument wird als abgelehnt markiert. Bitte begründen Sie Ihre Entscheidung.",
+        description: "Das Dokument wird als abgelehnt markiert. Bitte begründe deine Entscheidung.",
         buttonLabel: "Ablehnen",
         buttonClass: "bg-red-600 hover:bg-red-700",
         commentRequired: true,
@@ -632,7 +632,7 @@ const DECISION_CONFIG = {
         buttonLabel: "Änderungen anfordern",
         buttonClass: "bg-orange-600 hover:bg-orange-700",
         commentRequired: true,
-        commentPlaceholder: "Beschreiben Sie die erforderlichen Änderungen (erforderlich)",
+        commentPlaceholder: "Beschreibe die erforderlichen Änderungen (erforderlich)",
     },
     resubmit: {
         title: "Erneut einreichen?",

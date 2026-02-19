@@ -283,7 +283,7 @@ export function SmartModeWizard({
           ...prev,
           {
             type: "system",
-            content: "Perfekt! Alle Angaben sind vollständig. Klicken Sie auf 'Dokument erstellen' um fortzufahren.",
+            content: "Perfekt! Alle Angaben sind vollständig. Klicke auf 'Dokument erstellen', um fortzufahren.",
           },
         ]);
       }
@@ -340,7 +340,7 @@ export function SmartModeWizard({
           ...prev,
           {
             type: "system",
-            content: "Perfekt! Alle Angaben sind vollständig. Klicken Sie auf 'Dokument erstellen' um fortzufahren.",
+            content: "Perfekt! Alle Angaben sind vollständig. Klicke auf 'Dokument erstellen', um fortzufahren.",
           },
         ]);
       }

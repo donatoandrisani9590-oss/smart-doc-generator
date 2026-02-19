@@ -385,7 +385,7 @@ export const ClausesPage = () => {
             {/* Header */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                    <h1 className="text-xl font-semibold tracking-tight text-foreground">
+                    <h1 className="text-xl font-semibold tracking-tight text-foreground/80">
                         Textbausteine
                     </h1>
                     <p className="text-sm text-muted-foreground">
@@ -394,25 +394,21 @@ export const ClausesPage = () => {
                 </div>
                 <div className="flex gap-2">
                     {/* View Mode Toggle */}
-                    <div className="flex border rounded-md">
-                        <Button
-                            variant={viewMode === 'cards' ? 'default' : 'ghost'}
-                            size="icon"
-                            className="h-9 w-9 rounded-r-none"
+                    <div className="ive-pill-tabs">
+                        <button
+                            className={cn("ive-pill-tab", viewMode === 'cards' && "ive-pill-tab-active")}
                             onClick={() => setViewMode('cards')}
                             title="Karten-Ansicht"
                         >
-                            <LayoutGrid className="w-4 h-4" />
-                        </Button>
-                        <Button
-                            variant={viewMode === 'table' ? 'default' : 'ghost'}
-                            size="icon"
-                            className="h-9 w-9 rounded-l-none border-l"
+                            <LayoutGrid className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                            className={cn("ive-pill-tab", viewMode === 'table' && "ive-pill-tab-active")}
                             onClick={() => setViewMode('table')}
                             title="Tabellen-Ansicht"
                         >
-                            <List className="w-4 h-4" />
-                        </Button>
+                            <List className="w-3.5 h-3.5" />
+                        </button>
                     </div>
                     <Button
                         variant="outline"
@@ -442,12 +438,12 @@ export const ClausesPage = () => {
 
             {/* Tabs für Textbausteine und Varianten */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid w-full max-w-md grid-cols-2">
-                    <TabsTrigger value="clauses" className="gap-2">
+                <TabsList className="ive-pill-tabs bg-transparent h-auto p-0 w-fit">
+                    <TabsTrigger value="clauses" className="ive-pill-tab data-[state=active]:ive-pill-tab-active gap-2">
                         <FileText className="w-4 h-4" />
                         Textbausteine
                     </TabsTrigger>
-                    <TabsTrigger value="variants" className="gap-2">
+                    <TabsTrigger value="variants" className="ive-pill-tab data-[state=active]:ive-pill-tab-active gap-2">
                         <Layers className="w-4 h-4" />
                         Varianten
                     </TabsTrigger>

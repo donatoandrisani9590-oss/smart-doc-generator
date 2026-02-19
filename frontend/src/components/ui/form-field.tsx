@@ -170,8 +170,8 @@ export const FormField = ({
             },
             className: cn(
                 (child as React.ReactElement<{ className?: string }>).props.className,
-                hasError && "border-destructive focus-visible:ring-destructive",
-                showSuccess && "border-secondary focus-visible:ring-secondary"
+                hasError && "!shadow-[inset_0_-2px_0_0_hsl(0_84%_60%)]",
+                showSuccess && "!shadow-[inset_0_-2px_0_0_hsl(137_40%_58%)]"
             ),
             "aria-invalid": hasError,
             "aria-describedby": hasError ? `${name}-error` : undefined,
@@ -189,11 +189,11 @@ export const FormField = ({
                 <div className="flex items-center gap-1.5">
                     <label
                         htmlFor={name}
-                        className="text-sm font-medium text-foreground"
+                        className="text-[13px] font-medium text-foreground/60"
                     >
                         {label}
                         {required && (
-                            <span className="text-destructive ml-0.5" aria-hidden="true">
+                            <span className="text-primary/40 ml-0.5" aria-hidden="true">
                                 *
                             </span>
                         )}
@@ -216,7 +216,7 @@ export const FormField = ({
 
             {/* Description */}
             {description && (
-                <p className="text-xs text-muted-foreground">{description}</p>
+                <p className="text-[12px] text-muted-foreground/50">{description}</p>
             )}
 
             {/* Field Input */}
@@ -288,7 +288,7 @@ export const validators = {
     },
 
     /** E-Mail Format */
-    email: (message = "Bitte geben Sie eine gültige E-Mail-Adresse ein"): ValidateFn => (value) => {
+    email: (message = "Bitte gib eine gültige E-Mail-Adresse ein"): ValidateFn => (value) => {
         const str = String(value || "");
         if (str && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(str)) {
             return message;
@@ -297,7 +297,7 @@ export const validators = {
     },
 
     /** Nur Zahlen */
-    numeric: (message = "Bitte geben Sie nur Zahlen ein"): ValidateFn => (value) => {
+    numeric: (message = "Bitte gib nur Zahlen ein"): ValidateFn => (value) => {
         const str = String(value || "");
         if (str && !/^\d+$/.test(str)) {
             return message;
@@ -306,7 +306,7 @@ export const validators = {
     },
 
     /** Datum Format (DD.MM.YYYY) */
-    dateDE: (message = "Bitte geben Sie ein gültiges Datum ein (TT.MM.JJJJ)"): ValidateFn => (value) => {
+    dateDE: (message = "Bitte gib ein gültiges Datum ein (TT.MM.JJJJ)"): ValidateFn => (value) => {
         const str = String(value || "");
         if (str && !/^\d{2}\.\d{2}\.\d{4}$/.test(str)) {
             return message;

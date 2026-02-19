@@ -88,7 +88,7 @@ export const CreateGroupDialog = ({
                         Neue Varianten-Gruppe
                     </DialogTitle>
                     <DialogDescription>
-                        Gruppieren Sie ähnliche Textbausteine mit unterschiedlichen Ausprägungen
+                        Gruppiere ähnliche Textbausteine mit unterschiedlichen Ausprägungen
                     </DialogDescription>
                 </DialogHeader>
 

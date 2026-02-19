@@ -102,8 +102,8 @@ export function TemplateUploadDialog({
     // Dialog titles based on type
     const dialogTitle = isStationery ? "Briefpapier hochladen" : "Vorlage hochladen";
     const dialogDescription = isStationery
-        ? "Laden Sie eine DOCX-Datei mit Ihrem Blanko-Briefpapier hoch (Logo, Kopf-/Fusszeile, ohne Textinhalt)."
-        : "Laden Sie eine DOCX-Datei mit Ihrem Firmen-Branding hoch (Logo, Kopf-/Fusszeile).";
+        ? "Lade eine DOCX-Datei mit deinem Blanko-Briefpapier hoch (Logo, Kopf-/Fusszeile, ohne Textinhalt)."
+        : "Lade eine DOCX-Datei mit deinem Firmen-Branding hoch (Logo, Kopf-/Fusszeile).";
 
     // Fetch user's teams
     useEffect(() => {

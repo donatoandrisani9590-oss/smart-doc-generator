@@ -89,7 +89,7 @@ export const ActionBar = () => {
                 field: "documentTitle",
                 fieldId: "documentTitle",
                 label: "Dokumenttitel",
-                message: "Bitte geben Sie einen Titel ein",
+                message: "Bitte gib einen Titel ein",
                 group: "Dokument",
             });
         } else {
@@ -149,7 +149,7 @@ export const ActionBar = () => {
         } catch (err) {
             toast.error(
                 "Export fehlgeschlagen",
-                err instanceof Error ? err.message : "Bitte versuchen Sie es erneut.",
+                err instanceof Error ? err.message : "Bitte versuche es erneut.",
             );
             return false;
         } finally {
@@ -228,51 +228,52 @@ export const ActionBar = () => {
                 className="w-full"
             />
 
-            {/* Entwurf speichern - erlaubt auch partielle Daten */}
-            <Button
-                variant="outline"
-                className="w-full gap-2"
-                onClick={handleSaveDraft}
-                disabled={!canSaveDraft || isAnyLoading}
-            >
-                {isSavingDraft ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                    <Save className="w-4 h-4" />
-                )}
-                Als Entwurf speichern
-            </Button>
+            {/* Speichern + Exportieren — side by side */}
+            <div className="flex items-center gap-2">
+                <Button
+                    variant="ghost"
+                    className="flex-1 gap-2"
+                    onClick={handleSaveDraft}
+                    disabled={!canSaveDraft || isAnyLoading}
+                >
+                    {isSavingDraft ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                        <Save className="w-4 h-4" />
+                    )}
+                    Speichern
+                </Button>
 
-            {/* Export Button — only visible when ready (reduces visual noise) */}
-            {canExport && (
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button
-                            variant="default"
-                            className="w-full gap-2"
-                            disabled={isAnyLoading}
-                        >
-                            {(isExportingPdf || isExportingDocx) ? (
-                                <Loader2 className="w-4 h-4 animate-spin" />
-                            ) : (
-                                <Download className="w-4 h-4" />
-                            )}
-                            {isExportingPdf ? "Exportiert PDF…" : isExportingDocx ? "Exportiert DOCX…" : "Exportieren"}
-                            {!isAnyLoading && <ChevronDown className="w-3.5 h-3.5 ml-auto opacity-60" />}
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="center" className="w-[calc(var(--radix-dropdown-menu-trigger-width))]">
-                        <DropdownMenuItem onClick={() => handleOpenReview("pdf")} className="gap-2 cursor-pointer">
-                            <FileText className="w-4 h-4 text-red-500" />
-                            Als PDF exportieren
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleOpenReview("docx")} className="gap-2 cursor-pointer">
-                            <FileType2 className="w-4 h-4 text-blue-500" />
-                            Als DOCX exportieren
-                        </DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
-            )}
+                {canExport && (
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button
+                                variant="default"
+                                className="flex-1 gap-2"
+                                disabled={isAnyLoading}
+                            >
+                                {(isExportingPdf || isExportingDocx) ? (
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                    <Download className="w-4 h-4" />
+                                )}
+                                {isExportingPdf ? "PDF…" : isExportingDocx ? "DOCX…" : "Exportieren"}
+                                {!isAnyLoading && <ChevronDown className="w-3.5 h-3.5 ml-auto opacity-60" />}
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="center" className="w-[calc(var(--radix-dropdown-menu-trigger-width))]">
+                            <DropdownMenuItem onClick={() => handleOpenReview("pdf")} className="gap-2 cursor-pointer">
+                                <FileText className="w-4 h-4 text-red-500" />
+                                Als PDF exportieren
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleOpenReview("docx")} className="gap-2 cursor-pointer">
+                                <FileType2 className="w-4 h-4 text-blue-500" />
+                                Als DOCX exportieren
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                )}
+            </div>
 
             {/* Export Review Modal (Zusammenfassung vor Export) */}
             <ExportReviewModal

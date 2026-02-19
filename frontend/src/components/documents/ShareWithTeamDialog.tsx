@@ -103,7 +103,7 @@ export const ShareWithTeamDialog = ({
 
     const handleShare = async () => {
         if (!selectedTeamId) {
-            setError("Bitte wählen Sie ein Team aus");
+            setError("Bitte wähle ein Team aus");
             return;
         }
 

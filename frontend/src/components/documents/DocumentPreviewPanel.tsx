@@ -93,7 +93,7 @@ export const DocumentPreviewPanel = ({
                         </h3>
                         <p className="text-sm text-muted-foreground max-w-sm">
                             Dieses Dokument wurde vor der Vorschau-Funktion erstellt.
-                            Sie können es herunterladen, um den Inhalt zu sehen.
+                            Du kannst es herunterladen, um den Inhalt zu sehen.
                         </p>
                     </div>
                     <Button

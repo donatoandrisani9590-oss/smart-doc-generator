@@ -176,7 +176,7 @@ export const ClauseApprovalQueue = () => {
                 <div>
                     <h1 className="text-xl font-semibold tracking-tight text-foreground">Textbaustein-Freigaben</h1>
                     <p className="text-sm text-muted-foreground">
-                        Prüfen und genehmigen Sie eingereichte Textbausteine für die Bibliothek
+                        Prüfe und genehmige eingereichte Textbausteine für die Bibliothek
                     </p>
                 </div>
 
@@ -336,7 +336,7 @@ export const ClauseApprovalQueue = () => {
                             Textbaustein ablehnen
                         </DialogTitle>
                         <DialogDescription>
-                            Bitte geben Sie einen Grund für die Ablehnung an. Der Ersteller wird benachrichtigt.
+                            Bitte gib einen Grund für die Ablehnung an. Der Ersteller wird benachrichtigt.
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 py-4">

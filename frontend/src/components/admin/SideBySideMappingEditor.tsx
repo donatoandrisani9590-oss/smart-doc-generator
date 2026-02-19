@@ -833,7 +833,7 @@ export function SideBySideMappingEditor({
                     <div className="p-4 bg-white border-b">
                         <h3 className="font-semibold">Erkannte Werte zuordnen</h3>
                         <p className="text-sm text-muted-foreground">
-                            Klicken Sie auf einen Wert oder nutzen Sie Tastenkürzel
+                            Klicke auf einen Wert oder nutze Tastenkürzel
                         </p>
                     </div>
 

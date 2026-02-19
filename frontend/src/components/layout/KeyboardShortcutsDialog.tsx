@@ -90,7 +90,7 @@ export function KeyboardShortcutsDialog({ open, onOpenChange }: KeyboardShortcut
                         Tastaturkürzel
                     </DialogTitle>
                     <DialogDescription>
-                        Drücken Sie <Badge variant="outline" className="mx-1 font-mono">?</Badge> um diese Hilfe jederzeit anzuzeigen.
+                        Drücke <Badge variant="outline" className="mx-1 font-mono">?</Badge> um diese Hilfe jederzeit anzuzeigen.
                     </DialogDescription>
                 </DialogHeader>
 

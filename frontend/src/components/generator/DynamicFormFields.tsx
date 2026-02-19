@@ -12,7 +12,7 @@
  */
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -194,7 +194,7 @@ export const DynamicFormFields = ({
             if (field.field_type === "email") {
                 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                 if (!emailRegex.test(stringValue)) {
-                    return t("validation.email", "Bitte geben Sie eine gültige E-Mail-Adresse ein");
+                    return t("validation.email", "Bitte gib eine gültige E-Mail-Adresse ein");
                 }
             }
 
@@ -340,7 +340,7 @@ export const DynamicFormFields = ({
                             />
                             <Label htmlFor={fieldId} className="cursor-pointer">
                                 {field.field_label}
-                                {field.is_required && <span className="text-destructive ml-1">*</span>}
+                                {field.is_required && <span className="text-primary/40 ml-1">*</span>}
                             </Label>
                         </div>
                     );
@@ -527,10 +527,10 @@ export const DynamicFormFields = ({
         return (
             <div key={field.id} className="space-y-2">
                 <div className="flex items-center gap-2">
-                    <Label htmlFor={fieldId} className="text-sm font-medium">
+                    <Label htmlFor={fieldId} className="text-[13px] text-foreground/60">
                         {field.field_label}
                         {field.is_required && (
-                            <span className="text-destructive ml-1" aria-label="Pflichtfeld" title="Pflichtfeld">*</span>
+                            <span className="text-primary/40 ml-1" aria-label="Pflichtfeld" title="Pflichtfeld">*</span>
                         )}
                     </Label>
                     {field.help_text && (
@@ -592,14 +592,12 @@ export const DynamicFormFields = ({
     return (
         <div className={cn("space-y-6", className)}>
             {groupNames.map((groupName) => (
-                <Card key={groupName}>
-                    <CardHeader className="pb-4">
-                        <CardTitle className="text-base">{groupName}</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
+                <div key={groupName} className="space-y-3">
+                    <h4 className="ive-section-header">{groupName}</h4>
+                    <div className="space-y-4">
                         {groupedFields[groupName].map(renderField)}
-                    </CardContent>
-                </Card>
+                    </div>
+                </div>
             ))}
         </div>
     );

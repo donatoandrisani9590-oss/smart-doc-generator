@@ -68,7 +68,7 @@ const TOOL_LABELS: Record<string, string> = {
   fill_form_fields: "Formular ausfüllen",
   select_clauses: "Textbausteine wählen",
   search_clauses: "Textbausteine suchen",
-  create_clause_draft: "Klausel-Entwurf",
+  create_clause_draft: "Textbaustein-Entwurf",
   search_employee_history: "Mitarbeiter-Historie",
   run_compliance_check: "Compliance-Check",
   generate_text: "Text generieren",
@@ -593,7 +593,7 @@ function ToolActionCard({ action }: { action: ToolAction }) {
       <div className="px-3 py-2 rounded-lg bg-amber-50 border border-amber-200 text-xs max-w-md">
         <div className="flex items-center gap-2 text-amber-700 font-medium mb-1">
           <FilePlus className="w-3.5 h-3.5" />
-          Klausel-Entwurf: {action.title}
+          Textbaustein-Entwurf: {action.title}
         </div>
         <div
           className="text-muted-foreground line-clamp-2 text-[11px]"

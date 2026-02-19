@@ -119,13 +119,13 @@ export const ClauseChangeReasonDialog = ({
         const newErrors: Record<string, string> = {};
 
         if (!selectedReason) {
-            newErrors.reason = "Bitte wählen Sie einen Änderungsgrund";
+            newErrors.reason = "Bitte wähle einen Änderungsgrund";
         }
 
         if (!comment.trim()) {
-            newErrors.comment = "Bitte beschreiben Sie die Änderung";
+            newErrors.comment = "Bitte beschreibe die Änderung";
         } else if (comment.length < 10) {
-            newErrors.comment = "Bitte geben Sie eine ausführlichere Beschreibung an";
+            newErrors.comment = "Bitte gib eine ausführlichere Beschreibung an";
         }
 
         setErrors(newErrors);
@@ -159,7 +159,7 @@ export const ClauseChangeReasonDialog = ({
                         Änderung dokumentieren
                     </DialogTitle>
                     <DialogDescription>
-                        Bitte dokumentieren Sie den Grund für die Änderung an "{clauseTitle}"
+                        Bitte dokumentiere den Grund für die Änderung an "{clauseTitle}"
                         <span className="ml-1 text-muted-foreground">
                             (v{currentVersion} → v{currentVersion + 1})
                         </span>
@@ -220,7 +220,7 @@ export const ClauseChangeReasonDialog = ({
                             id="comment"
                             value={comment}
                             onChange={(e) => setComment(e.target.value)}
-                            placeholder="Beschreiben Sie, was und warum geändert wurde..."
+                            placeholder="Beschreibe, was und warum geändert wurde..."
                             rows={3}
                             className={cn(errors.comment && "border-red-500")}
                         />
@@ -249,7 +249,7 @@ export const ClauseChangeReasonDialog = ({
                             placeholder="z.B. § 4 TzBfG, BAG Urteil vom 01.01.2025"
                         />
                         <p className="text-xs text-muted-foreground">
-                            Verweisen Sie auf Gesetze, Urteile oder interne Dokumente
+                            Verweise auf Gesetze, Urteile oder interne Dokumente
                         </p>
                     </div>
 

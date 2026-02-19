@@ -363,7 +363,7 @@ export const ConditionBuilder = ({
                                                 Bedingung testen
                                             </DialogTitle>
                                             <DialogDescription>
-                                                Prüfen Sie, ob den Textbaustein mit bestimmten Werten angezeigt wird.
+                                                Prüfe, ob der Textbaustein mit bestimmten Werten angezeigt wird.
                                             </DialogDescription>
                                         </DialogHeader>
                                         <ConditionTester
@@ -402,7 +402,7 @@ export const ConditionBuilder = ({
                                             ))}
                                         </div>
                                         <p className="text-xs text-muted-foreground mt-3">
-                                            Tipp: Verwenden Sie die Buttons zum Duplizieren und Löschen von Bedingungen.
+                                            Tipp: Verwende die Buttons zum Duplizieren und Löschen von Bedingungen.
                                         </p>
                                         <DialogFooter>
                                             <Button variant="outline" onClick={() => setShowShortcutsDialog(false)}>
@@ -420,10 +420,10 @@ export const ConditionBuilder = ({
                         <p className="flex items-start gap-2">
                             <HelpCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
                             <span>
-                                Definieren Sie, wann diesen Textbaustein erscheint. Verknüpfen Sie Bedingungen mit{" "}
+                                Definiere, wann dieser Textbaustein erscheint. Verknüpfe Bedingungen mit{" "}
                                 <strong className="text-blue-600">UND</strong> (alle müssen zutreffen) oder{" "}
                                 <strong className="text-amber-600">ODER</strong> (mindestens eine muss zutreffen).
-                                Ziehen Sie Bedingungen per Drag & Drop in die gewünschte Reihenfolge.
+                                Ziehe Bedingungen per Drag & Drop in die gewünschte Reihenfolge.
                             </span>
                         </p>
                     </div>
@@ -482,7 +482,7 @@ export const ConditionBuilder = ({
                                 <AlertCircle className="w-4 h-4 mt-0.5 text-destructive flex-shrink-0" />
                                 <div className="text-sm">
                                     <p className="font-medium text-destructive mb-1">
-                                        Bitte vervollständigen Sie die Bedingung:
+                                        Bitte vervollständige die Bedingung:
                                     </p>
                                     <ul className="list-disc list-inside text-muted-foreground space-y-0.5">
                                         {validation.errors.map((error, i) => (

@@ -153,14 +153,14 @@ export const RightEditorPanel = () => {
     return (
         <div className="h-full flex flex-col">
             {/* Unified Toolbar — Workflow Stepper (left) + AI Tools (right) on one line */}
-            <div className="flex items-center justify-between px-3 py-2 bg-white/90 dark:bg-[hsl(225_14%_22%)] backdrop-blur-sm border-b border-border/40 dark:border-border/40">
+            <div className="flex items-center justify-between px-3 py-2 bg-card/80 dark:bg-[hsl(225_14%_22%/0.8)] backdrop-blur-sm">
                 <div className="flex items-center gap-2">
                     {/* Workflow Stepper — integrated inline */}
                     <WorkflowStepper compact />
 
                     {/* Local edits warning - NUR anzeigen wenn User wirklich manuell editiert hat */}
                     {hasLocalEdits && (
-                        <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-md">
+                        <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-50/80 rounded-full">
                             <AlertTriangle className="w-4 h-4 text-amber-600" />
                             <span className="text-xs text-amber-700">
                                 Manuelle Änderungen vorhanden
@@ -199,7 +199,7 @@ export const RightEditorPanel = () => {
                     </Button>
 
                     {/* Separator */}
-                    <div className="w-px h-4 bg-border/30 mx-1.5" />
+                    <div className="w-px h-4 bg-foreground/10 mx-1.5" />
 
                     {/* Add comment button with popover */}
                     <Popover open={isAddCommentOpen} onOpenChange={setIsAddCommentOpen}>

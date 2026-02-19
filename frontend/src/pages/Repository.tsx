@@ -319,7 +319,7 @@ export const RepositoryPage = () => {
             </div>
 
             {/* Status Filter - Segmented Control */}
-            <div className="flex items-center gap-1 p-1 bg-warm-50 dark:bg-warm-800/30 rounded-lg w-fit">
+            <div className="ive-pill-tabs">
                 {[
                     { key: "all" as const, label: "Alle", count: (stats?.total_documents ?? 0) + (drafts?.length ?? 0) },
                     { key: "draft" as const, label: "Entwürfe", count: drafts?.length ?? 0 },
@@ -329,15 +329,11 @@ export const RepositoryPage = () => {
                     <button
                         key={card.key}
                         onClick={() => setActiveFilter(card.key)}
-                        className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
-                            activeFilter === card.key
-                                ? 'bg-white dark:bg-warm-700 text-primary shadow-md ring-1 ring-black/5 dark:ring-white/10'
-                                : 'text-muted-foreground hover:text-foreground hover:bg-warm-100/50'
-                        }`}
+                        className={`ive-pill-tab ${activeFilter === card.key ? 'ive-pill-tab-active' : ''}`}
                     >
                         {card.label}
-                        <span className={`ml-1.5 text-xs ${
-                            activeFilter === card.key ? 'text-primary/70' : 'text-muted-foreground/60'
+                        <span className={`ml-1.5 text-[11px] ${
+                            activeFilter === card.key ? 'text-foreground/60' : 'text-muted-foreground/40'
                         }`}>
                             {card.count}
                         </span>
@@ -375,9 +371,9 @@ export const RepositoryPage = () => {
 
                 {/* Erweiterte Filter */}
                 {showFilters && (
-                    <div className="mt-4 pt-4 border-t grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div className="mt-4 pt-4 grid grid-cols-1 md:grid-cols-4 gap-4">
                         <div>
-                            <label className="text-sm font-medium text-foreground mb-1 block">
+                            <label className="text-[13px] font-medium text-foreground/60 mb-1 block">
                                 Dokumenttyp
                             </label>
                             <select
@@ -388,7 +384,7 @@ export const RepositoryPage = () => {
                                         e.target.value ? Number(e.target.value) : undefined
                                     )
                                 }
-                                className="w-full h-10 px-3 border border-input rounded-md bg-background text-sm"
+                                className="w-full h-10 px-0 border-0 bg-transparent text-sm shadow-[inset_0_-1px_0_0_hsl(33_12%_78%)] focus:shadow-[inset_0_-2px_0_0_hsl(228_58%_33%)] transition-shadow outline-none"
                             >
                                 <option value="">Alle Typen</option>
                                 {(documentTypes || []).map((dt: { id: number; name: string }) => (
@@ -399,7 +395,7 @@ export const RepositoryPage = () => {
                             </select>
                         </div>
                         <div>
-                            <label className="text-sm font-medium text-foreground mb-1 block">
+                            <label className="text-[13px] font-medium text-foreground/60 mb-1 block">
                                 Von Datum
                             </label>
                             <Input
@@ -411,7 +407,7 @@ export const RepositoryPage = () => {
                             />
                         </div>
                         <div>
-                            <label className="text-sm font-medium text-foreground mb-1 block">
+                            <label className="text-[13px] font-medium text-foreground/60 mb-1 block">
                                 Bis Datum
                             </label>
                             <Input
@@ -442,7 +438,7 @@ export const RepositoryPage = () => {
 
             {/* Bulk Actions - SimpleDocs Style */}
             {selectedIds.length > 0 && (
-                <div className="bg-primary/5 border border-primary/20 rounded-xl px-4 py-3 animate-in fade-in slide-in-from-bottom-2">
+                <div className="bg-primary/5 rounded-xl px-4 py-3 shadow-[var(--shadow-elevated)] animate-in fade-in slide-in-from-bottom-2">
                     <div className="flex items-center justify-between">
                         <span className="text-sm font-medium text-foreground">
                             {selectedIds.length} ausgewählt
@@ -485,7 +481,7 @@ export const RepositoryPage = () => {
 
             {/* Document List - SimpleDocs Style */}
             <div className="card-soft">
-                <div className="flex items-center justify-between px-4 py-3 border-b info-card-header">
+                <div className="flex items-center justify-between px-4 py-3 info-card-header">
                     <h3 className="font-medium text-foreground">
                         {filteredItems.length} Einträge
                         {activeFilter === "all" && drafts?.length ? ` (${drafts.length} Entwürfe)` : ""}
@@ -502,7 +498,7 @@ export const RepositoryPage = () => {
 
                 {/* Sortierbare Spaltenköpfe */}
                 {filteredItems.length > 0 && (
-                    <div className="hidden md:flex items-center gap-4 px-4 py-2.5 border-b bg-warm-50 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    <div className="hidden md:flex items-center gap-4 px-4 py-2.5 bg-muted/30 text-xs font-medium text-muted-foreground/50 uppercase tracking-wider">
                         <div className="w-5" /> {/* Checkbox Spacer */}
                         <div className="w-10" /> {/* Icon Spacer */}
                         <button

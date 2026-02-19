@@ -292,7 +292,7 @@ export function ClauseSuggestions({
         <CollapsibleContent>
           <CardContent className="pt-0">
             <p className="text-sm text-muted-foreground mb-4">
-              Basierend auf Ihren Eingaben empfehlen wir folgende Textbausteine:
+              Basierend auf deinen Eingaben empfehlen wir folgende Textbausteine:
             </p>
 
             <div className="space-y-3">

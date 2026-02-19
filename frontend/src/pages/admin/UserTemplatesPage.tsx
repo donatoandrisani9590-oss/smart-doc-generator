@@ -554,7 +554,7 @@ export function UserTemplatesPage() {
     const sharedTemplates = templates.filter((t) => !t.is_own);
 
     const renderTemplateCard = (template: UserTemplate) => (
-        <Card key={template.id} className="hover:shadow-sm transition-shadow">
+        <Card key={template.id} className="group hover:shadow-[var(--shadow-elevated-hover)] transition-shadow">
             <CardContent className="flex items-center gap-4 py-4 px-5">
                 {/* Icon */}
                 <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
@@ -564,7 +564,7 @@ export function UserTemplatesPage() {
                 {/* Info */}
                 <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                        <h4 className="font-medium text-sm truncate">{template.name}</h4>
+                        <h4 className="font-medium text-sm truncate text-foreground">{template.name}</h4>
                         {template.country_code && (
                             <Badge variant="outline" className="text-xs">
                                 {template.country_code}
@@ -621,7 +621,7 @@ export function UserTemplatesPage() {
                 </div>
 
                 {/* Actions */}
-                <div className="flex items-center gap-1 flex-shrink-0">
+                <div className="flex items-center gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
                     <Button
                         variant="ghost"
                         size="icon"
@@ -652,7 +652,7 @@ export function UserTemplatesPage() {
             {/* Header */}
             <div className="flex items-start justify-between">
                 <div>
-                    <h2 className="text-xl font-semibold tracking-tight text-foreground">Vorlagen</h2>
+                    <h2 className="text-xl font-semibold tracking-tight text-foreground/80">Vorlagen</h2>
                     <p className="text-sm text-muted-foreground mt-1">
                         DOCX-Vorlagen mit Firmen-Branding für die Dokumentenerstellung. Geteilte Vorlagen anderer Nutzer sind ebenfalls sichtbar.
                     </p>
@@ -688,10 +688,10 @@ export function UserTemplatesPage() {
                     {/* Own Templates */}
                     {ownTemplates.length > 0 && (
                         <div className="space-y-2">
-                            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                            <h3 className="ive-section-header">
                                 Eigene Vorlagen ({ownTemplates.length})
                             </h3>
-                            <div className="grid gap-3">
+                            <div className="grid gap-2 [&>*+*]:border-t [&>*+*]:border-border/8 [&>*+*]:pt-2">
                                 {ownTemplates.map(renderTemplateCard)}
                             </div>
                         </div>
@@ -700,10 +700,10 @@ export function UserTemplatesPage() {
                     {/* Shared Templates */}
                     {sharedTemplates.length > 0 && (
                         <div className="space-y-2">
-                            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                            <h3 className="ive-section-header">
                                 Geteilte Vorlagen ({sharedTemplates.length})
                             </h3>
-                            <div className="grid gap-3">
+                            <div className="grid gap-2 [&>*+*]:border-t [&>*+*]:border-border/8 [&>*+*]:pt-2">
                                 {sharedTemplates.map(renderTemplateCard)}
                             </div>
                         </div>

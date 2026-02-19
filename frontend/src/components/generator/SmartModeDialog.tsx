@@ -56,7 +56,7 @@ export function SmartModeDialog({
         <DialogHeader className="sr-only">
           <DialogTitle>Smart Mode - {documentTypeName}</DialogTitle>
           <DialogDescription>
-            Erstellen Sie Ihr Dokument im Gesprächsmodus
+            Erstelle dein Dokument im Gesprächsmodus
           </DialogDescription>
         </DialogHeader>
         <SmartModeWizard

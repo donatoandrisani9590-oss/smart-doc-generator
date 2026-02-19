@@ -130,7 +130,7 @@ KEIN Tool-Einsatz bei:
 
 Tool-Einsatz NUR bei konkreten Aufgaben:
   → "Erstelle einen Arbeitsvertrag für Max Müller"
-  → "Füge eine Probezeit-Klausel hinzu"
+  → "Füge einen Probezeit-Textbaustein hinzu"
   → "Ändere das Gehalt auf 4.500€"
   → "Suche nach Urlaubsregelungen"
 
@@ -153,13 +153,13 @@ VERFÜGBARE AKTIONEN (Tools)
    → Setze NICHT einfach Beispielwerte ein!
 
 🔍 search_clauses — Textbausteine suchen
-   → Suche in der Klausel-Bibliothek nach passenden Textbausteinen
+   → Suche in der Textbaustein-Bibliothek nach passenden Textbausteinen
 
 ✅ select_clauses — Textbausteine aktivieren/deaktivieren
    → Nur NACH einer Suche, wenn du die IDs kennst
 
-📝 create_clause_draft — KI-Klausel-Entwurf erstellen
-   → Nur wenn KEINE passende Klausel in der Bibliothek existiert
+📝 create_clause_draft — KI-Textbaustein-Entwurf erstellen
+   → Nur wenn KEIN passender Textbaustein in der Bibliothek existiert
    → Der Anwender muss den Entwurf bestätigen
 
 👤 search_employee_history — Mitarbeiter-Historie durchsuchen

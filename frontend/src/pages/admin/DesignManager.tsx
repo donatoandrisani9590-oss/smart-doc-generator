@@ -229,11 +229,11 @@ export const DesignManager = () => {
             {/* Header */}
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-xl font-semibold tracking-tight text-foreground">
+                    <h1 className="text-xl font-semibold tracking-tight text-foreground/80">
                         Design Einstellungen
                     </h1>
                     <p className="text-sm text-muted-foreground">
-                        Gestalten Sie das Erscheinungsbild Ihrer Dokumente
+                        Gestalte das Erscheinungsbild deiner Dokumente
                     </p>
                 </div>
                 <div className="flex items-center gap-4">
@@ -249,7 +249,7 @@ export const DesignManager = () => {
                     <Button
                         onClick={handleSave}
                         disabled={saving}
-                        className="bg-primary hover:bg-primary/90"
+                        className="bg-primary hover:bg-primary/90 rounded-xl shadow-[var(--shadow-elevated)]"
                     >
                         {saving ? (
                             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -284,12 +284,12 @@ export const DesignManager = () => {
                 {/* Settings Tabs (3/5 width) */}
                 <div className="lg:col-span-3">
                     <Tabs defaultValue="branding" className="space-y-6">
-                        <TabsList className="bg-warm-100/60">
-                            <TabsTrigger value="branding" className="gap-2 data-[state=active]:bg-white data-[state=active]:shadow-sm">
+                        <TabsList className="ive-pill-tabs bg-transparent h-auto p-0 w-fit">
+                            <TabsTrigger value="branding" className="ive-pill-tab data-[state=active]:ive-pill-tab-active gap-2">
                                 <Image className="w-4 h-4" />
                                 Branding
                             </TabsTrigger>
-                            <TabsTrigger value="documents" className="gap-2 data-[state=active]:bg-white data-[state=active]:shadow-sm">
+                            <TabsTrigger value="documents" className="ive-pill-tab data-[state=active]:ive-pill-tab-active gap-2">
                                 <FileText className="w-4 h-4" />
                                 Dokumenten-Layout
                             </TabsTrigger>
@@ -301,7 +301,7 @@ export const DesignManager = () => {
                         {/* Logo Upload */}
                         <Card>
                             <CardHeader>
-                                <CardTitle>Firmenlogo</CardTitle>
+                                <CardTitle className="text-foreground/80">Firmenlogo</CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <input
@@ -348,7 +348,7 @@ export const DesignManager = () => {
                                 ) : (
                                     <div
                                         onClick={() => fileInputRef.current?.click()}
-                                        className="border-2 border-dashed border-border rounded-lg p-10 flex flex-col items-center justify-center text-center hover:bg-background transition-colors cursor-pointer"
+                                        className="border-2 border-dashed border-border/20 rounded-2xl p-10 flex flex-col items-center justify-center text-center hover:bg-muted/20 transition-colors cursor-pointer"
                                     >
                                         {logoUploading ? (
                                             <Loader2 className="w-8 h-8 animate-spin text-primary mb-4" />
@@ -367,7 +367,7 @@ export const DesignManager = () => {
                         {/* Color Scheme */}
                         <Card>
                             <CardHeader>
-                                <CardTitle>Farbschema</CardTitle>
+                                <CardTitle className="text-foreground/80">Farbschema</CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div className="space-y-2">
@@ -425,7 +425,7 @@ export const DesignManager = () => {
                         {/* DIN 5008 Page Margins */}
                         <Card>
                             <CardHeader>
-                                <CardTitle>Seitenränder (DIN 5008)</CardTitle>
+                                <CardTitle className="text-foreground/80">Seitenränder (DIN 5008)</CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div className="grid grid-cols-2 gap-4">
@@ -495,7 +495,7 @@ export const DesignManager = () => {
                         {/* Typography Settings */}
                         <Card>
                             <CardHeader>
-                                <CardTitle>Typographie</CardTitle>
+                                <CardTitle className="text-foreground/80">Typographie</CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div className="space-y-2">
@@ -558,7 +558,7 @@ export const DesignManager = () => {
                         {/* Header Content */}
                         <Card>
                             <CardHeader className="pb-3">
-                                <CardTitle>Kopfzeile</CardTitle>
+                                <CardTitle className="text-foreground/80">Kopfzeile</CardTitle>
                                 <p className="text-sm text-muted-foreground">Wird oben rechts im Dokument angezeigt</p>
                             </CardHeader>
                             <CardContent className="space-y-4">
@@ -601,7 +601,7 @@ export const DesignManager = () => {
                         {/* Footer Content */}
                         <Card>
                             <CardHeader className="pb-3">
-                                <CardTitle>Fußzeile</CardTitle>
+                                <CardTitle className="text-foreground/80">Fußzeile</CardTitle>
                                 <p className="text-sm text-muted-foreground">Erscheint am unteren Seitenrand</p>
                             </CardHeader>
                             <CardContent className="space-y-4">
@@ -648,7 +648,7 @@ export const DesignManager = () => {
 
                 {/* Live Preview (2/5 width) */}
                 <div className="lg:col-span-2">
-                    <Card className="sticky top-4">
+                    <Card className="sticky top-4 shadow-[var(--shadow-elevated)]">
                         <CardHeader className="pb-3">
                             <CardTitle className="text-sm font-medium text-muted-foreground">Live-Vorschau</CardTitle>
                         </CardHeader>
@@ -728,7 +728,7 @@ export const DesignManager = () => {
                                 </div>
                             </div>
                             <p className="text-[11px] text-muted-foreground mt-3 text-center">
-                                Echtzeit-Vorschau Ihrer Einstellungen
+                                Echtzeit-Vorschau deiner Einstellungen
                             </p>
                         </CardContent>
                     </Card>

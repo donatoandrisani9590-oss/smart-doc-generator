@@ -135,9 +135,9 @@ export const SearchPage = () => {
         <div className="space-y-6 max-w-4xl mx-auto">
             {/* Header - Einfach und klar */}
             <div className="text-center">
-                <h1 className="text-3xl font-bold tracking-tight">Suche</h1>
+                <h1 className="text-2xl font-semibold tracking-tight text-foreground">Suche</h1>
                 <p className="text-muted-foreground">
-                    Finden Sie Dokumente und Entwürfe
+                    Finde Dokumente und Entwürfe
                 </p>
             </div>
 
@@ -196,7 +196,7 @@ export const SearchPage = () => {
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                             {/* Document Type */}
                             <div>
-                                <label className="text-sm font-medium text-foreground mb-1 block">
+                                <label className="text-[13px] font-medium text-foreground/60 mb-1 block">
                                     Dokumenttyp
                                 </label>
                                 <Select
@@ -219,7 +219,7 @@ export const SearchPage = () => {
 
                             {/* Date From */}
                             <div>
-                                <label className="text-sm font-medium text-foreground mb-1 block">
+                                <label className="text-[13px] font-medium text-foreground/60 mb-1 block">
                                     Von Datum
                                 </label>
                                 <Input
@@ -231,7 +231,7 @@ export const SearchPage = () => {
 
                             {/* Date To */}
                             <div>
-                                <label className="text-sm font-medium text-foreground mb-1 block">
+                                <label className="text-[13px] font-medium text-foreground/60 mb-1 block">
                                     Bis Datum
                                 </label>
                                 <Input
@@ -243,7 +243,7 @@ export const SearchPage = () => {
 
                             {/* Sort */}
                             <div>
-                                <label className="text-sm font-medium text-foreground mb-1 block">
+                                <label className="text-[13px] font-medium text-foreground/60 mb-1 block">
                                     Sortierung
                                 </label>
                                 <Select value={sortBy} onValueChange={setSortBy}>
@@ -262,7 +262,7 @@ export const SearchPage = () => {
 
                         {/* Clear Filters */}
                         {hasActiveFilters && (
-                            <div className="mt-4 pt-4 border-t flex justify-end">
+                            <div className="mt-4 pt-4 flex justify-end">
                                 <Button variant="ghost" size="sm" onClick={clearFilters}>
                                     <X className="w-4 h-4 mr-2" />
                                     Filter zurücksetzen
@@ -285,9 +285,9 @@ export const SearchPage = () => {
                     <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-muted flex items-center justify-center">
                         <SearchIcon className="w-10 h-10 text-muted-foreground" />
                     </div>
-                    <h3 className="text-xl font-medium mb-2">Was suchen Sie?</h3>
+                    <h3 className="text-xl font-medium mb-2">Was suchst du?</h3>
                     <p className="text-muted-foreground max-w-sm mx-auto">
-                        Geben Sie mindestens 2 Zeichen ein
+                        Gib mindestens 2 Zeichen ein
                     </p>
                     <div className="mt-6 flex flex-wrap justify-center gap-2">
                         <span className="px-4 py-2 bg-muted rounded-full text-sm">Mitarbeitername</span>

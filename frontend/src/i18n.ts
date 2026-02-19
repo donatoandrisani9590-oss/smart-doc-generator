@@ -54,7 +54,7 @@ const resources = {
 
             // Preview
             'preview.title': 'Live-Vorschau',
-            'preview.placeholder': 'Wählen Sie ein Dokument, um eine Live-Vorschau zu sehen.',
+            'preview.placeholder': 'Wähle ein Dokument, um eine Live-Vorschau zu sehen.',
             'preview.page': 'Seite',
             'preview.of': 'von',
 
@@ -84,19 +84,19 @@ const resources = {
             'auth.noAccount': 'Noch kein Konto?',
             'auth.hasAccount': 'Bereits ein Konto?',
             'auth.welcome': 'Willkommen',
-            'auth.loginDescription': 'Melden Sie sich an, um auf das HR-Dokumentensystem zuzugreifen',
+            'auth.loginDescription': 'Melde dich an, um auf das HR-Dokumentensystem zuzugreifen',
 
             // Validation (v4.2.1)
             'validation.required': 'Dieses Feld ist erforderlich',
-            'validation.email': 'Bitte geben Sie eine gültige E-Mail-Adresse ein',
+            'validation.email': 'Bitte gib eine gültige E-Mail-Adresse ein',
             'validation.minLength': 'Mindestens {{min}} Zeichen erforderlich',
             'validation.maxLength': 'Maximal {{max}} Zeichen erlaubt',
             'validation.minValue': 'Mindestwert: {{min}}',
             'validation.maxValue': 'Maximalwert: {{max}}',
             'validation.pattern': 'Ungültiges Format',
-            'validation.number': 'Bitte geben Sie eine gültige Zahl ein',
-            'validation.date': 'Bitte geben Sie ein gültiges Datum ein',
-            'validation.missingFields': 'Bitte füllen Sie alle Pflichtfelder aus',
+            'validation.number': 'Bitte gib eine gültige Zahl ein',
+            'validation.date': 'Bitte gib ein gültiges Datum ein',
+            'validation.missingFields': 'Bitte fülle alle Pflichtfelder aus',
             'validation.formComplete': 'Alle Pflichtfelder sind ausgefüllt',
             'validation.passwordMismatch': 'Passwörter stimmen nicht überein',
             'validation.passwordTooShort': 'Passwort muss mindestens 8 Zeichen lang sein',

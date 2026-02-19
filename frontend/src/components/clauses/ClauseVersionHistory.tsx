@@ -23,7 +23,7 @@ export const ClauseVersionHistory = ({ clauseId, clauseTitle }: ClauseVersionHis
 
 
     const handleRestore = async (versionId: number) => {
-        if (confirm("Möchten Sie diese Version wirklich wiederherstellen? Die aktuelle Version wird als Backup gespeichert.")) {
+        if (confirm("Möchtest du diese Version wirklich wiederherstellen? Die aktuelle Version wird als Backup gespeichert.")) {
             await restoreVersion.mutateAsync({ clauseId, versionId });
             refetch();
         }

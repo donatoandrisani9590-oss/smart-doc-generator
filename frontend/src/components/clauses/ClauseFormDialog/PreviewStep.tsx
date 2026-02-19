@@ -247,7 +247,7 @@ export const NotesTab = ({
                             <MessageSquare className="w-6 h-6 opacity-30" />
                         </div>
                         <p>Noch keine internen Notizen vorhanden</p>
-                        <p className="text-xs mt-1">Nutzen Sie Notizen für die Kommunikation zwischen HR und Legal.</p>
+                        <p className="text-xs mt-1">Nutze Notizen für die Kommunikation zwischen HR und Legal.</p>
                     </div>
                 ) : (
                     <div className="space-y-4">

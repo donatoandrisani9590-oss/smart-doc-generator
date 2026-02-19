@@ -285,7 +285,7 @@ export function ClauseApprovalWorkflow({
                     <DialogHeader>
                         <DialogTitle>Freigabe anfordern</DialogTitle>
                         <DialogDescription>
-                            Reichen Sie den Textbaustein "{clauseTitle}" zur Prüfung ein.
+                            Reiche den Textbaustein "{clauseTitle}" zur Prüfung ein.
                         </DialogDescription>
                     </DialogHeader>
 
@@ -323,7 +323,7 @@ export function ClauseApprovalWorkflow({
                     <DialogHeader>
                         <DialogTitle>Textbaustein prüfen</DialogTitle>
                         <DialogDescription>
-                            Prüfen Sie den Textbaustein "{clauseTitle}" und treffen Sie eine Entscheidung.
+                            Prüfe den Textbaustein "{clauseTitle}" und triff eine Entscheidung.
                         </DialogDescription>
                     </DialogHeader>
 

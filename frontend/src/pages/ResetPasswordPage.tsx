@@ -37,7 +37,7 @@ export const ResetPasswordPage: React.FC = () => {
     }
 
     if (!token) {
-      setError("Ungültiger Reset-Link. Bitte fordern Sie einen neuen an.");
+      setError("Ungültiger Reset-Link. Bitte fordere einen neuen an.");
       return;
     }
 
@@ -70,7 +70,7 @@ export const ResetPasswordPage: React.FC = () => {
             <AlertCircle className="w-12 h-12 text-destructive mx-auto mb-4" />
             <h3 className="text-lg font-semibold mb-2">Ungültiger Link</h3>
             <p className="text-muted-foreground text-sm mb-6">
-              Der Reset-Link ist ungültig oder fehlt. Bitte fordern Sie einen neuen an.
+              Der Reset-Link ist ungültig oder fehlt. Bitte fordere einen neuen an.
             </p>
             <Link to="/forgot-password">
               <Button>Neuen Link anfordern</Button>
@@ -95,7 +95,7 @@ export const ResetPasswordPage: React.FC = () => {
               Neues Passwort setzen
             </CardTitle>
             <CardDescription className="text-center">
-              Geben Sie Ihr neues Passwort ein.
+              Gib dein neues Passwort ein.
             </CardDescription>
           </CardHeader>
 
@@ -105,7 +105,7 @@ export const ResetPasswordPage: React.FC = () => {
                 <CheckCircle className="w-12 h-12 text-secondary mx-auto mb-4" />
                 <h3 className="text-lg font-semibold mb-2">Passwort geändert</h3>
                 <p className="text-muted-foreground text-sm mb-6">
-                  Ihr Passwort wurde erfolgreich zurückgesetzt. Sie können sich jetzt anmelden.
+                  Dein Passwort wurde erfolgreich zurückgesetzt. Du kannst dich jetzt anmelden.
                 </p>
                 <Link to="/login">
                   <Button className="w-full" size="lg">

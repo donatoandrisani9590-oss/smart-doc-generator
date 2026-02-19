@@ -61,7 +61,7 @@ export const ConditionTester = ({ condition, fields, onClose }: ConditionTesterP
     return (
         <div className="space-y-4">
             <div className="text-sm text-muted-foreground">
-                Geben Sie Testwerte ein, um zu prüfen, ob die Bedingung erfüllt wird:
+                Gib Testwerte ein, um zu prüfen, ob die Bedingung erfüllt wird:
             </div>
 
             <div className="space-y-3 max-h-[300px] overflow-y-auto">

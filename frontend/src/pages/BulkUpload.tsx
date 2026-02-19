@@ -103,7 +103,7 @@ export const BulkUploadPage = () => {
                         </div>
                         <h3 className="text-xl font-medium mb-2">Dokumenttyp wählen</h3>
                         <p className="text-muted-foreground max-w-sm mx-auto">
-                            Wählen Sie oben einen Dokumenttyp aus
+                            Wähle oben einen Dokumenttyp aus
                         </p>
                         <div className="flex items-center justify-center gap-3 mt-8">
                             <div className="flex items-center gap-2 px-4 py-2 bg-muted rounded-full text-sm">

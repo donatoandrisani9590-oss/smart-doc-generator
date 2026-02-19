@@ -43,7 +43,7 @@ const FIELD_HINTS: Record<string, { de: string; it: string }> = {
         it: "Minimo legale: 4 settimane al 15 o a fine mese (§ 622 BGB). Il termine si allunga con l'anzianità aziendale.",
     },
     gehalt: {
-        de: "Bruttogehalt pro Monat. Beachten Sie den geltenden Mindestlohn (2025: 12,82 €/h) und eventuelle Tarifverträge.",
+        de: "Bruttogehalt pro Monat. Beachte den geltenden Mindestlohn (2025: 12,82 €/h) und eventuelle Tarifverträge.",
         it: "Retribuzione lorda mensile. Rispettare il salario minimo vigente (2025: 12,82 €/h) e eventuali contratti collettivi.",
     },
     wochenstunden: {
@@ -244,9 +244,9 @@ const FIELD_LABELS = {
         vertragsart_hint: "AT = Außertariflich (oberhalb der höchsten Tarifgruppe)",
         section_at: "AT-Optionen",
         zielbonus: "Zielbonus / Variable Vergütung",
-        freistellung: "Freistellungsklausel (Garden Leave)",
+        freistellung: "Freistellungsbaustein (Garden Leave)",
         spesen: "Spesen & Reisekosten",
-        renteneintritt: "Renteneintrittsklausel",
+        renteneintritt: "Renteneintrittsbaustein",
         gehalt_at: "Jahresgehalt (EUR)",
         gehalt_at_placeholder: "Brutto pro Jahr",
         jahressonderzahlung: "Jahressonderzahlung (13. Gehalt)",
@@ -404,7 +404,7 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
                     {requiredFieldsProgress.filled} {labels.progress_filled} {requiredFieldsProgress.total} {labels.progress_suffix}
                 </span>
                 <span>
-                    <span className="text-foreground/30">*</span> = {labels.required}
+                    <span className="text-primary/40">*</span> = {labels.required}
                 </span>
             </div>
 
@@ -416,8 +416,8 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
 
                 <div className="grid grid-cols-2 gap-2.5">
                     <div className="space-y-1">
-                        <Label htmlFor="vorname" className="text-xs">
-                            {labels.vorname} <span className="text-destructive/70">*</span>
+                        <Label htmlFor="vorname" className="text-[13px] text-foreground/60">
+                            {labels.vorname} <span className="text-primary/40">*</span>
                         </Label>
                         <Input
                             id="vorname"
@@ -431,8 +431,8 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
                         )}
                     </div>
                     <div className="space-y-1">
-                        <Label htmlFor="nachname" className="text-xs">
-                            {labels.nachname} <span className="text-destructive/70">*</span>
+                        <Label htmlFor="nachname" className="text-[13px] text-foreground/60">
+                            {labels.nachname} <span className="text-primary/40">*</span>
                         </Label>
                         <Input
                             id="nachname"
@@ -448,7 +448,7 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
                 </div>
 
                 <div className="space-y-1">
-                    <Label htmlFor="strasse" className="text-xs">{labels.adresse}</Label>
+                    <Label htmlFor="strasse" className="text-[13px] text-foreground/60">{labels.adresse}</Label>
                     <Input
                         id="strasse"
                         value={formData.strasse}
@@ -460,7 +460,7 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
 
                 <div className="grid grid-cols-2 gap-2.5">
                     <div className="space-y-1">
-                        <Label htmlFor="plz" className="text-xs">{labels.plz}</Label>
+                        <Label htmlFor="plz" className="text-[13px] text-foreground/60">{labels.plz}</Label>
                         <Input
                             id="plz"
                             value={formData.plz}
@@ -473,7 +473,7 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
                         )}
                     </div>
                     <div className="space-y-1">
-                        <Label htmlFor="ort" className="text-xs">{labels.ort}</Label>
+                        <Label htmlFor="ort" className="text-[13px] text-foreground/60">{labels.ort}</Label>
                         <Input
                             id="ort"
                             value={formData.ort}
@@ -484,7 +484,7 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
                 </div>
 
                 <div className="space-y-1">
-                    <Label htmlFor="geburtsdatum" className="text-xs">{labels.geburtsdatum}</Label>
+                    <Label htmlFor="geburtsdatum" className="text-[13px] text-foreground/60">{labels.geburtsdatum}</Label>
                     <Input
                         id="geburtsdatum"
                         type="date"
@@ -502,7 +502,7 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
                 </h4>
 
                 <div className="space-y-1">
-                    <Label htmlFor="vertragsart" className="text-xs">
+                    <Label htmlFor="vertragsart" className="text-[13px] text-foreground/60">
                         {labels.vertragsart}
                     </Label>
                     <Select
@@ -521,8 +521,8 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
                 </div>
 
                 <div className="space-y-1">
-                    <Label htmlFor="position" className="text-xs">
-                        {labels.position} <span className="text-destructive/70">*</span>
+                    <Label htmlFor="position" className="text-[13px] text-foreground/60">
+                        {labels.position} <span className="text-primary/40">*</span>
                     </Label>
                     <Input
                         id="position"
@@ -539,8 +539,8 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
 
                 <div className="grid grid-cols-2 gap-2.5">
                     <div className="space-y-1">
-                        <Label htmlFor="gehalt" className="text-xs flex items-center">
-                            {formData.vertragsart === "at_angestellter" ? labels.gehalt_at : labels.gehalt} <span className="text-destructive/70">*</span>
+                        <Label htmlFor="gehalt" className="text-[13px] text-foreground/60 flex items-center">
+                            {formData.vertragsart === "at_angestellter" ? labels.gehalt_at : labels.gehalt} <span className="text-primary/40">*</span>
                             <FieldHint fieldKey="gehalt" lang={lang} />
                         </Label>
                         <Input
@@ -557,8 +557,8 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
                         )}
                     </div>
                     <div className="space-y-1">
-                        <Label htmlFor="eintrittsdatum" className="text-xs">
-                            {labels.eintrittsdatum} <span className="text-destructive/70">*</span>
+                        <Label htmlFor="eintrittsdatum" className="text-[13px] text-foreground/60">
+                            {labels.eintrittsdatum} <span className="text-primary/40">*</span>
                         </Label>
                         <Input
                             id="eintrittsdatum"
@@ -576,7 +576,7 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
 
                 <div className="grid grid-cols-2 gap-2.5">
                     <div className="space-y-1">
-                        <Label htmlFor="wochenstunden" className="text-xs flex items-center">
+                        <Label htmlFor="wochenstunden" className="text-[13px] text-foreground/60 flex items-center">
                             {labels.wochenstunden}
                             <FieldHint fieldKey="wochenstunden" lang={lang} />
                         </Label>
@@ -593,7 +593,7 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
                         )}
                     </div>
                     <div className="space-y-1">
-                        <Label htmlFor="urlaubstage" className="text-xs flex items-center">
+                        <Label htmlFor="urlaubstage" className="text-[13px] text-foreground/60 flex items-center">
                             {labels.urlaubstage}
                             <FieldHint fieldKey="urlaubstage" lang={lang} />
                         </Label>
@@ -612,7 +612,7 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
                 </div>
 
                 <div className="space-y-1">
-                    <Label htmlFor="probezeit" className="text-xs flex items-center">
+                    <Label htmlFor="probezeit" className="text-[13px] text-foreground/60 flex items-center">
                         {labels.probezeit}
                         <FieldHint fieldKey="probezeit" lang={lang} />
                     </Label>
@@ -633,7 +633,7 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
 
                 {formData.vertragsart !== "at_angestellter" && (
                     <div className="space-y-1">
-                        <Label htmlFor="entgeltgruppe" className="text-xs flex items-center">
+                        <Label htmlFor="entgeltgruppe" className="text-[13px] text-foreground/60 flex items-center">
                             {labels.entgeltgruppe}
                             <FieldHint fieldKey="entgeltgruppe" lang={lang} />
                         </Label>
@@ -648,7 +648,7 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
                 )}
 
                 <div className="space-y-1">
-                    <Label htmlFor="kuendigungsfrist" className="text-xs flex items-center">
+                    <Label htmlFor="kuendigungsfrist" className="text-[13px] text-foreground/60 flex items-center">
                         {labels.kuendigungsfrist}
                         <FieldHint fieldKey="kuendigungsfrist" lang={lang} />
                     </Label>
@@ -668,7 +668,7 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
                 </div>
 
                 <div className="space-y-1">
-                    <Label htmlFor="au_frist" className="text-xs flex items-center">
+                    <Label htmlFor="au_frist" className="text-[13px] text-foreground/60 flex items-center">
                         {labels.au_frist}
                         <FieldHint fieldKey="au_frist" lang={lang} />
                     </Label>
@@ -709,7 +709,7 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
 
                     <div className="grid grid-cols-2 gap-2.5">
                         <div className="space-y-1">
-                            <Label htmlFor="urlaubsgeld_pro_tag" className="text-xs">{labels.urlaubsgeld_pro_tag}</Label>
+                            <Label htmlFor="urlaubsgeld_pro_tag" className="text-[13px] text-foreground/60">{labels.urlaubsgeld_pro_tag}</Label>
                             <Input
                                 id="urlaubsgeld_pro_tag"
                                 type="number"
@@ -720,7 +720,7 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
                             />
                         </div>
                         <div className="space-y-1">
-                            <Label htmlFor="vwl_betrag" className="text-xs flex items-center">
+                            <Label htmlFor="vwl_betrag" className="text-[13px] text-foreground/60 flex items-center">
                                 {labels.vwl_betrag}
                                 <FieldHint fieldKey="vwl_betrag" lang={lang} />
                             </Label>
@@ -850,8 +850,8 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
                 </h4>
 
                 <div className="space-y-1">
-                    <Label htmlFor="signatory_name" className="text-xs flex items-center">
-                        {labels.signatory_name} <span className="text-destructive/70">*</span>
+                    <Label htmlFor="signatory_name" className="text-[13px] text-foreground/60 flex items-center">
+                        {labels.signatory_name} <span className="text-primary/40">*</span>
                         <FieldHint fieldKey="signatory_name" lang={lang} />
                     </Label>
                     <Input

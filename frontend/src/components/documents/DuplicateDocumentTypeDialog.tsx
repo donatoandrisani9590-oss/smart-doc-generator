@@ -95,7 +95,7 @@ export const DuplicateDocumentTypeDialog = ({
                         Dokumenttyp duplizieren
                     </DialogTitle>
                     <DialogDescription>
-                        Erstellen Sie eine Kopie von "{documentType.name}"
+                        Erstelle eine Kopie von "{documentType.name}"
                     </DialogDescription>
                 </DialogHeader>
 

@@ -495,11 +495,11 @@ export function getErrorMessage(error: unknown): string {
     if (isApiError(error)) {
         switch (error.code) {
             case "OFFLINE":
-                return "Sie sind offline. Bitte überprüfen Sie Ihre Internetverbindung.";
+                return "Du bist offline. Bitte überprüfe deine Internetverbindung.";
             case "TIMEOUT":
-                return "Die Anfrage hat zu lange gedauert. Bitte versuchen Sie es erneut.";
+                return "Die Anfrage hat zu lange gedauert. Bitte versuche es erneut.";
             case "NETWORK_ERROR":
-                return "Verbindungsfehler. Bitte überprüfen Sie Ihre Internetverbindung.";
+                return "Verbindungsfehler. Bitte überprüfe deine Internetverbindung.";
             default:
                 return error.message;
         }

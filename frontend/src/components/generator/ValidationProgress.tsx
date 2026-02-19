@@ -252,7 +252,7 @@ export const ValidationProgress = ({
                     {totalIssues > 0 && (
                         <div className="p-2 border-t bg-muted/30 text-center">
                             <p className="text-xs text-muted-foreground">
-                                Klicken Sie auf ein Feld um dorthin zu springen
+                                Klicke auf ein Feld, um dorthin zu springen
                             </p>
                         </div>
                     )}

@@ -203,7 +203,7 @@ export function DocumentWizardChat({ compact, onCreateDocument }: DocumentWizard
                     const updated = [...prev];
                     updated[updated.length - 1] = {
                         role: "assistant",
-                        content: "Entschuldigung, der KI-Service ist momentan nicht verfügbar. Bitte versuchen Sie es später erneut.",
+                        content: "Entschuldigung, der KI-Service ist momentan nicht verfügbar. Bitte versuche es später erneut.",
                     };
                     return updated;
                 });
@@ -343,7 +343,7 @@ export function DocumentWizardChat({ compact, onCreateDocument }: DocumentWizard
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         onKeyDown={handleKeyDown}
-                        placeholder={hasMessages ? "Antwort eingeben..." : "Beschreiben Sie, welches Dokument Sie benötigen..."}
+                        placeholder={hasMessages ? "Antwort eingeben..." : "Beschreibe, welches Dokument du benötigst..."}
                         disabled={isLoading}
                         rows={1}
                         className="w-full resize-none rounded-xl border border-border bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary disabled:opacity-50 placeholder:text-muted-foreground/60"

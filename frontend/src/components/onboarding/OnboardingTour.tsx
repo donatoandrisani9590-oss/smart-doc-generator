@@ -39,14 +39,14 @@ const DEFAULT_TOUR_STEPS: TourStep[] = [
         id: "welcome",
         title: "Willkommen beim Document Generator!",
         description:
-            "Diese kurze Tour zeigt Ihnen die wichtigsten Funktionen. Sie können jederzeit überspringen.",
+            "Diese kurze Tour zeigt dir die wichtigsten Funktionen. Du kannst jederzeit überspringen.",
         icon: Sparkles,
     },
     {
         id: "sidebar",
         title: "Navigation",
         description:
-            "In der Seitenleiste finden Sie alle Bereiche: Dashboard, Dokumenterstellung, Suche und Verwaltung.",
+            "In der Seitenleiste findest du alle Bereiche: Dashboard, Dokumenterstellung, Suche und Verwaltung.",
         target: "[data-tour='sidebar']",
         icon: Layout,
         position: "right",
@@ -55,7 +55,7 @@ const DEFAULT_TOUR_STEPS: TourStep[] = [
         id: "generate",
         title: "Dokument erstellen",
         description:
-            "Hier erstellen Sie neue Dokumente. Wählen Sie einen Typ, füllen Sie das Formular aus und sehen Sie die Live-Vorschau.",
+            "Hier erstellst du neue Dokumente. Wähle einen Typ, fülle das Formular aus und sieh dir die Live-Vorschau an.",
         target: "[data-tour='generate']",
         icon: FileText,
         position: "right",
@@ -64,7 +64,7 @@ const DEFAULT_TOUR_STEPS: TourStep[] = [
         id: "search",
         title: "Globale Suche",
         description:
-            "Mit Cmd/Ctrl+K öffnen Sie die Schnellsuche. Finden Sie Dokumente, Textbausteine und mehr in Sekundenschnelle.",
+            "Mit Cmd/Ctrl+K öffnest du die Schnellsuche. Finde Dokumente, Textbausteine und mehr in Sekundenschnelle.",
         target: "[data-tour='search']",
         icon: Search,
         position: "bottom",
@@ -73,7 +73,7 @@ const DEFAULT_TOUR_STEPS: TourStep[] = [
         id: "notifications",
         title: "Benachrichtigungen",
         description:
-            "Hier sehen Sie wichtige Updates: Fristen, Genehmigungen und Systemhinweise.",
+            "Hier siehst du wichtige Updates: Fristen, Genehmigungen und Systemhinweise.",
         target: "[data-tour='notifications']",
         icon: Bell,
         position: "bottom",
@@ -82,7 +82,7 @@ const DEFAULT_TOUR_STEPS: TourStep[] = [
         id: "admin",
         title: "Administration",
         description:
-            "Im Admin-Bereich verwalten Sie Textbausteine, Dokumenttypen, Benutzer und Systemeinstellungen.",
+            "Im Admin-Bereich verwaltest du Textbausteine, Dokumenttypen, Benutzer und Systemeinstellungen.",
         target: "[data-tour='admin']",
         icon: Settings,
         position: "right",

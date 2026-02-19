@@ -319,7 +319,7 @@ export function DocumentTypeImportWizard({
                         Dokumententyp aus Word importieren
                     </DialogTitle>
                     <DialogDescription>
-                        Importieren Sie ein komplettes Word-Dokument als neuen Dokumententyp mit Textbausteine
+                        Importiere ein komplettes Word-Dokument als neuen Dokumententyp mit Textbausteinen
                     </DialogDescription>
                 </DialogHeader>
 
@@ -513,7 +513,7 @@ export function DocumentTypeImportWizard({
                     {step === "clauses" && (
                         <div className="space-y-4">
                             <p className="text-sm text-muted-foreground">
-                                Konfigurieren Sie für jeden Abschnitt, wie er importiert werden soll.
+                                Konfiguriere für jeden Abschnitt, wie er importiert werden soll.
                             </p>
 
                             <Accordion type="multiple" className="space-y-2">
@@ -622,7 +622,7 @@ export function DocumentTypeImportWizard({
                                     <Sparkles className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
                                     <p className="font-medium">Keine Platzhalter erkannt</p>
                                     <p className="text-sm text-muted-foreground">
-                                        Sie können Platzhalter später manuell hinzufügen.
+                                        Du kannst Platzhalter später manuell hinzufügen.
                                     </p>
                                 </Card>
                             ) : (

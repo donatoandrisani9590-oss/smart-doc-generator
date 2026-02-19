@@ -37,17 +37,17 @@ export const StepEmployeeInfo = () => {
                 </div>
                 <h2 className="text-2xl font-bold">Für wen ist das Dokument?</h2>
                 <p className="text-muted-foreground">
-                    Geben Sie die persönlichen Daten des Mitarbeiters ein.
+                    Gib die persönlichen Daten des Mitarbeiters ein.
                 </p>
             </div>
 
             {/* Formular */}
-            <Card>
+            <Card className="border-0 shadow-[var(--shadow-elevated)]">
                 <CardContent className="pt-6 space-y-6">
                     {/* Name */}
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <Label htmlFor="vorname">
+                            <Label htmlFor="vorname" className="text-[13px] text-foreground/60">
                                 Vorname <span className="text-destructive">*</span>
                             </Label>
                             <Input
@@ -62,7 +62,7 @@ export const StepEmployeeInfo = () => {
                             )}
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="nachname">
+                            <Label htmlFor="nachname" className="text-[13px] text-foreground/60">
                                 Nachname <span className="text-destructive">*</span>
                             </Label>
                             <Input
@@ -79,12 +79,12 @@ export const StepEmployeeInfo = () => {
                     </div>
 
                     {/* Adresse */}
-                    <div className="space-y-4 pt-4 border-t">
-                        <p className="text-sm text-muted-foreground">
+                    <div className="space-y-4 pt-4 border-t border-foreground/[0.04]">
+                        <p className="text-[11px] uppercase tracking-wider text-foreground/40 font-semibold">
                             Adresse (optional)
                         </p>
                         <div className="space-y-2">
-                            <Label htmlFor="strasse">Straße und Hausnummer</Label>
+                            <Label htmlFor="strasse" className="text-[13px] text-foreground/60">Straße und Hausnummer</Label>
                             <Input
                                 id="strasse"
                                 value={formData.strasse}
@@ -94,7 +94,7 @@ export const StepEmployeeInfo = () => {
                         </div>
                         <div className="grid grid-cols-3 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="plz">PLZ</Label>
+                                <Label htmlFor="plz" className="text-[13px] text-foreground/60">PLZ</Label>
                                 <Input
                                     id="plz"
                                     value={formData.plz}
@@ -104,7 +104,7 @@ export const StepEmployeeInfo = () => {
                                 />
                             </div>
                             <div className="col-span-2 space-y-2">
-                                <Label htmlFor="ort">Ort</Label>
+                                <Label htmlFor="ort" className="text-[13px] text-foreground/60">Ort</Label>
                                 <Input
                                     id="ort"
                                     value={formData.ort}
@@ -116,8 +116,8 @@ export const StepEmployeeInfo = () => {
                     </div>
 
                     {/* Geburtsdatum */}
-                    <div className="space-y-2 pt-4 border-t">
-                        <Label htmlFor="geburtsdatum">Geburtsdatum (optional)</Label>
+                    <div className="space-y-2 pt-4 border-t border-foreground/[0.04]">
+                        <Label htmlFor="geburtsdatum" className="text-[13px] text-foreground/60">Geburtsdatum (optional)</Label>
                         <Input
                             id="geburtsdatum"
                             type="date"

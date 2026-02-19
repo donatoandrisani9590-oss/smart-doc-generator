@@ -195,7 +195,7 @@ const UploadDialog = ({ open, onOpenChange, countryCode, onSuccess }: UploadDial
                         Neue Anlage hochladen
                     </DialogTitle>
                     <DialogDescription>
-                        Laden Sie eine PDF- oder Word-Datei hoch, die als Anlage zu Dokumenten hinzugefügt werden kann.
+                        Lade eine PDF- oder Word-Datei hoch, die als Anlage zu Dokumenten hinzugefügt werden kann.
                     </DialogDescription>
                 </DialogHeader>
 
@@ -374,7 +374,7 @@ const DeleteDialog = ({ attachment, onClose, onConfirm, isDeleting }: DeleteDial
                     Anlage löschen?
                 </DialogTitle>
                 <DialogDescription>
-                    Sind Sie sicher, dass Sie diese Anlage löschen möchten?
+                    Bist du sicher, dass du diese Anlage löschen möchtest?
                 </DialogDescription>
             </DialogHeader>
 
@@ -485,7 +485,7 @@ export const AttachmentsPage = () => {
                         Anlagen-Verwaltung
                     </h1>
                     <p className="text-sm text-muted-foreground mt-1">
-                        Verwalten Sie Dokumente, die als Anlagen zu generierten Verträgen hinzugefügt werden können
+                        Verwalte Dokumente, die als Anlagen zu generierten Verträgen hinzugefügt werden können
                     </p>
                 </div>
                 <Button
@@ -623,8 +623,8 @@ export const AttachmentsPage = () => {
                             </p>
                             <p className="text-muted-foreground mt-1 max-w-md mx-auto">
                                 {searchQuery || categoryFilter !== "all"
-                                    ? "Versuchen Sie andere Filterkriterien oder laden Sie eine neue Anlage hoch."
-                                    : "Laden Sie Ihre erste Anlage hoch, um sie zu Dokumenten hinzufügen zu können."}
+                                    ? "Versuche andere Filterkriterien oder lade eine neue Anlage hoch."
+                                    : "Lade deine erste Anlage hoch, um sie zu Dokumenten hinzufügen zu können."}
                             </p>
                             {!searchQuery && categoryFilter === "all" && (
                                 <Button

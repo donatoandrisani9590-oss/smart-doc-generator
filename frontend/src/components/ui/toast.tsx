@@ -218,9 +218,8 @@ function ToastItem({ toast, onClose }: { toast: Toast; onClose: () => void }) {
             exit={{ opacity: 0, x: 100, scale: 0.95 }}
             transition={{ duration: 0.2 }}
             className={cn(
-                "pointer-events-auto rounded-lg border p-4 shadow-lg",
-                config.bgColor,
-                config.borderColor
+                "pointer-events-auto rounded-2xl border-0 p-4 shadow-[0_2px_8px_rgba(36,49,134,0.06),0_8px_24px_rgba(36,49,134,0.04)] backdrop-blur-xl",
+                config.bgColor
             )}
         >
             <div className="flex items-start gap-3">

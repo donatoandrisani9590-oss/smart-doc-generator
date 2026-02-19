@@ -91,7 +91,7 @@ export const StepReview = ({ documentTypes }: StepReviewProps) => {
                 </div>
                 <h2 className="text-2xl font-bold">Zusammenfassung</h2>
                 <p className="text-muted-foreground">
-                    Prüfen Sie Ihre Eingaben und exportieren Sie das Dokument.
+                    Prüfe deine Eingaben und exportiere das Dokument.
                 </p>
             </div>
 
@@ -99,44 +99,44 @@ export const StepReview = ({ documentTypes }: StepReviewProps) => {
                 {/* Linke Spalte: Zusammenfassung */}
                 <div className="space-y-4">
                     {/* Zusammenfassung */}
-                    <Card>
+                    <Card className="border-0 shadow-[var(--shadow-elevated)]">
                         <CardHeader className="pb-3">
-                            <CardTitle className="text-base">
+                            <CardTitle className="text-[11px] uppercase tracking-wider text-foreground/40 font-semibold">
                                 {documentTitle || documentTypeName}
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-3 text-sm">
                             <div className="flex justify-between">
-                                <span className="text-muted-foreground">Dokumenttyp</span>
-                                <span className="font-medium">{documentTypeName}</span>
+                                <span className="text-[13px] text-foreground/50">Dokumenttyp</span>
+                                <span className="text-[13px] font-medium">{documentTypeName}</span>
                             </div>
-                            <Separator />
+                            <Separator className="bg-foreground/[0.04]" />
                             <div className="flex justify-between">
-                                <span className="text-muted-foreground">Mitarbeiter</span>
-                                <span className="font-medium">
+                                <span className="text-[13px] text-foreground/50">Mitarbeiter</span>
+                                <span className="text-[13px] font-medium">
                                     {formData.vorname} {formData.nachname}
                                 </span>
                             </div>
                             <div className="flex justify-between">
-                                <span className="text-muted-foreground">Position</span>
-                                <span className="font-medium">{formData.position || "—"}</span>
+                                <span className="text-[13px] text-foreground/50">Position</span>
+                                <span className="text-[13px] font-medium">{formData.position || "—"}</span>
                             </div>
                             <div className="flex justify-between">
-                                <span className="text-muted-foreground">Gehalt</span>
-                                <span className="font-medium">
+                                <span className="text-[13px] text-foreground/50">Gehalt</span>
+                                <span className="text-[13px] font-medium">
                                     {formData.gehalt ? `${formatGehalt(formData.gehalt)} brutto` : "—"}
                                 </span>
                             </div>
                             <div className="flex justify-between">
-                                <span className="text-muted-foreground">Beginn</span>
-                                <span className="font-medium">
+                                <span className="text-[13px] text-foreground/50">Beginn</span>
+                                <span className="text-[13px] font-medium">
                                     {formatDate(formData.eintrittsdatum)}
                                 </span>
                             </div>
-                            <Separator />
+                            <Separator className="bg-foreground/[0.04]" />
                             <div className="flex justify-between">
-                                <span className="text-muted-foreground">Textbausteine</span>
-                                <span className="font-medium">
+                                <span className="text-[13px] text-foreground/50">Textbausteine</span>
+                                <span className="text-[13px] font-medium">
                                     {enabledClausesCount} aktiv
                                     {!showClausesStep && " (Standard)"}
                                 </span>
@@ -157,7 +157,7 @@ export const StepReview = ({ documentTypes }: StepReviewProps) => {
                     </Card>
 
                     {/* Unterzeichner */}
-                    <Card>
+                    <Card className="border-0 shadow-[var(--shadow-elevated)]">
                         <CardContent className="pt-6">
                             <div className="space-y-2">
                                 <Label htmlFor="signatory_name">
@@ -181,7 +181,7 @@ export const StepReview = ({ documentTypes }: StepReviewProps) => {
                     </Card>
 
                     {/* Export Buttons */}
-                    <Card>
+                    <Card className="border-0 shadow-[var(--shadow-elevated)]">
                         <CardContent className="pt-6">
                             <div className="space-y-3">
                                 <Button
@@ -235,11 +235,11 @@ export const StepReview = ({ documentTypes }: StepReviewProps) => {
                 </div>
 
                 {/* Rechte Spalte: Preview */}
-                <Card className="overflow-hidden">
-                    <CardHeader className="pb-2 bg-muted/30">
+                <Card className="overflow-hidden border-0 shadow-[var(--shadow-elevated)]">
+                    <CardHeader className="pb-2">
                         <div className="flex items-center justify-between">
-                            <CardTitle className="text-sm font-medium flex items-center gap-2">
-                                <FileText className="w-4 h-4" />
+                            <CardTitle className="text-[11px] uppercase tracking-wider text-foreground/40 font-semibold flex items-center gap-2">
+                                <FileText className="w-3.5 h-3.5" />
                                 Dokumentvorschau
                             </CardTitle>
                             <Button

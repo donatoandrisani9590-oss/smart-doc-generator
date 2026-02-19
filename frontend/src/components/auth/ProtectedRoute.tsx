@@ -47,7 +47,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
         <div className="text-center">
           <h1 className="text-2xl font-bold text-destructive mb-2">Zugriff verweigert</h1>
           <p className="text-muted-foreground">
-            Sie haben keine Berechtigung für diese Seite.
+            Du hast keine Berechtigung für diese Seite.
           </p>
         </div>
       </div>

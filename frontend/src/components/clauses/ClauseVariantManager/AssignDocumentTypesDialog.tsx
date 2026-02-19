@@ -167,7 +167,7 @@ export const AssignDocumentTypesDialog = ({
                         Dokumenttypen zuordnen
                     </DialogTitle>
                     <DialogDescription>
-                        Ordnen Sie die Varianten-Gruppe "{group.name}" den gewünschten Dokumenttypen zu.
+                        Ordne die Varianten-Gruppe "{group.name}" den gewünschten Dokumenttypen zu.
                         Bei der Dokumenterstellung erscheint dann eine Auswahl für die Varianten.
                     </DialogDescription>
                 </DialogHeader>

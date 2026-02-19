@@ -157,8 +157,8 @@ export const NotificationsPage = () => {
                             <p className="text-lg">Keine Benachrichtigungen</p>
                             <p className="text-sm">
                                 {unreadOnly
-                                    ? "Sie haben alle Benachrichtigungen gelesen."
-                                    : "Sie haben noch keine Benachrichtigungen erhalten."}
+                                    ? "Du hast alle Benachrichtigungen gelesen."
+                                    : "Du hast noch keine Benachrichtigungen erhalten."}
                             </p>
                         </div>
                     ) : (

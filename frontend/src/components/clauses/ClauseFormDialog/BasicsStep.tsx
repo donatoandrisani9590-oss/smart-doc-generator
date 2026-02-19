@@ -102,7 +102,7 @@ export const BasicsStep = ({
             )}
             {!compact && (
             <p className="text-xs text-muted-foreground">
-                Wählen Sie einen eindeutigen, beschreibenden Titel
+                Wähle einen eindeutigen, beschreibenden Titel
             </p>
             )}
         </div>
@@ -265,7 +265,7 @@ export const BasicsStep = ({
                     maxLength={500}
                 />
                 <p className="text-xs text-muted-foreground">
-                    Beschreiben Sie kurz den Zweck des Textbausteins. Die KI nutzt diese Beschreibung, um den richtigen Textbaustein auszuwählen.
+                    Beschreibe kurz den Zweck des Textbausteins. Die KI nutzt diese Beschreibung, um den richtigen Textbaustein auszuwählen.
                 </p>
             </div>
 
@@ -338,7 +338,7 @@ export const BasicsStep = ({
                 <div className="flex items-start gap-2">
                     <Lightbulb className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
                     <div className="text-sm text-foreground">
-                        <strong>Tipp:</strong> Verwenden Sie eindeutige Titel, die den Inhalt
+                        <strong>Tipp:</strong> Verwende eindeutige Titel, die den Inhalt
                         des Textbausteins beschreiben. Das erleichtert das spätere Auffinden.
                         Die KI-Metadaten (Tags, Beschreibung, Ton) sind optional, verbessern
                         aber die automatische Textbaustein-Auswahl erheblich.

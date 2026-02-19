@@ -27,7 +27,7 @@ export const PreviewPanel = ({ sections, availableClauses }: PreviewPanelProps) 
     // Generate preview HTML
     const previewHtml = useMemo(() => {
         if (debouncedClauses.length === 0) {
-            return '<p class="text-muted">Keine Textbausteine ausgewaehlt. Ziehen Sie Textbausteine auf den Canvas, um eine Vorschau zu sehen.</p>';
+            return '<p class="text-muted">Keine Textbausteine ausgewählt. Ziehe Textbausteine auf den Canvas, um eine Vorschau zu sehen.</p>';
         }
 
         return sections

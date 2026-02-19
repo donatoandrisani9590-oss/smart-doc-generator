@@ -113,7 +113,7 @@ export const ConditionEditor = ({
                             </span>
                         ) : (
                             <span className="text-muted-foreground italic">
-                                Wählen Sie ein Feld aus
+                                Wähle ein Feld aus
                             </span>
                         )}
                     </div>

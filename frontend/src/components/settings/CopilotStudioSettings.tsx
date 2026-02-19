@@ -204,10 +204,10 @@ export const CopilotStudioSettings = () => {
       toast.success("Gespeichert", "Copilot Studio Einstellungen wurden gespeichert");
     } catch (error: unknown) {
       // Detailliertere Fehlermeldung
-      let errorDetail = "Bitte prüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.";
+      let errorDetail = "Bitte prüfe deine Internetverbindung und versuche es erneut.";
       if (error instanceof Error) {
         if (error.message.includes("401") || error.message.includes("403")) {
-          errorDetail = "Sie haben keine Berechtigung für diese Aktion. Bitte melden Sie sich erneut an.";
+          errorDetail = "Du hast keine Berechtigung für diese Aktion. Bitte melde dich erneut an.";
         } else if (error.message.includes("network") || error.message.includes("Network")) {
           errorDetail = "Netzwerkfehler: Server ist nicht erreichbar.";
         }
@@ -234,10 +234,10 @@ export const CopilotStudioSettings = () => {
             }
           : prev
       );
-      toast.success("API-Schlüssel generiert", "Kopieren Sie den Schlüssel jetzt - er wird nur einmal vollständig angezeigt!");
+      toast.success("API-Schlüssel generiert", "Kopiere den Schlüssel jetzt - er wird nur einmal vollständig angezeigt!");
       setShowApiKey(true);
     } catch (error: unknown) {
-      let errorDetail = "Bitte versuchen Sie es erneut.";
+      let errorDetail = "Bitte versuche es erneut.";
       if (error instanceof Error) {
         if (error.message.includes("401") || error.message.includes("403")) {
           errorDetail = "Keine Berechtigung. Nur Administratoren können API-Schlüssel generieren.";
@@ -317,12 +317,12 @@ export const CopilotStudioSettings = () => {
       setWebhooks((prev) => [res.data, ...prev]);
       setShowNewWebhookDialog(false);
       setNewWebhook({ url: "", events: [], description: "", secret: "" });
-      toast.success("Webhook erstellt", "Webhook-Subscription wurde erfolgreich erstellt. Testen Sie die Verbindung mit dem Play-Button.");
+      toast.success("Webhook erstellt", "Webhook-Subscription wurde erfolgreich erstellt. Teste die Verbindung mit dem Play-Button.");
     } catch (error: unknown) {
-      let errorDetail = "Bitte überprüfen Sie die eingegebenen Daten.";
+      let errorDetail = "Bitte überprüfe die eingegebenen Daten.";
       if (error instanceof Error) {
         if (error.message.includes("400")) {
-          errorDetail = "Ungültige Daten. Bitte prüfen Sie URL und Events.";
+          errorDetail = "Ungültige Daten. Bitte prüfe URL und Events.";
         } else if (error.message.includes("409")) {
           errorDetail = "Ein Webhook mit dieser URL existiert bereits.";
         }
@@ -401,7 +401,7 @@ export const CopilotStudioSettings = () => {
         <div>
           <h2 className="text-xl font-semibold tracking-tight text-foreground">Copilot Studio Integration</h2>
           <p className="text-sm text-muted-foreground">
-            Verbinden Sie Ihren HR Document Generator mit Microsoft Copilot Studio und Power Automate
+            Verbinde deinen HR Document Generator mit Microsoft Copilot Studio und Power Automate
           </p>
         </div>
 
@@ -409,7 +409,7 @@ export const CopilotStudioSettings = () => {
         <Alert>
           <Info className="h-4 w-4" />
           <AlertDescription>
-            Mit dieser Integration können Sie HR-Dokumente über Teams-Bots erstellen und Workflows in Power Automate
+            Mit dieser Integration kannst du HR-Dokumente über Teams-Bots erstellen und Workflows in Power Automate
             automatisieren.{" "}
             <a
               href="https://copilotstudio.microsoft.com"
@@ -461,7 +461,7 @@ export const CopilotStudioSettings = () => {
                   API-Verbindung
                 </CardTitle>
                 <CardDescription>
-                  Verwenden Sie diese Informationen um einen Custom Connector in Copilot Studio zu erstellen
+                  Verwende diese Informationen um einen Custom Connector in Copilot Studio zu erstellen
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -475,7 +475,7 @@ export const CopilotStudioSettings = () => {
                     </Button>
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Importieren Sie diese URL in Copilot Studio als Custom Connector
+                    Importiere diese URL in Copilot Studio als Custom Connector
                   </p>
                 </div>
 
@@ -600,7 +600,7 @@ export const CopilotStudioSettings = () => {
                     <Webhook className="w-8 h-8 mx-auto mb-2 opacity-50" />
                     <p className="text-sm">Keine Webhooks konfiguriert</p>
                     <p className="text-xs mt-1">
-                      Erstellen Sie einen Webhook um Events an Power Automate zu senden
+                      Erstelle einen Webhook um Events an Power Automate zu senden
                     </p>
                   </div>
                 ) : (
@@ -753,7 +753,7 @@ export const CopilotStudioSettings = () => {
             <DialogHeader>
               <DialogTitle>Neuen Webhook erstellen</DialogTitle>
               <DialogDescription>
-                Geben Sie die Power Automate HTTP-Trigger URL ein und wählen Sie die Events aus
+                Gib die Power Automate HTTP-Trigger URL ein und wähle die Events aus
               </DialogDescription>
             </DialogHeader>
 

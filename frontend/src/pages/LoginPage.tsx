@@ -65,7 +65,7 @@ export const LoginPage: React.FC = () => {
     setError(null);
 
     if (!email || !password) {
-      setError("Bitte geben Sie E-Mail und Passwort ein.");
+      setError("Bitte gib E-Mail und Passwort ein.");
       return;
     }
 
@@ -81,7 +81,7 @@ export const LoginPage: React.FC = () => {
         });
         return;
       }
-      setError(err instanceof Error ? err.message : "Login fehlgeschlagen. Bitte versuchen Sie es erneut.");
+      setError(err instanceof Error ? err.message : "Login fehlgeschlagen. Bitte versuche es erneut.");
     }
   };
 
@@ -103,7 +103,7 @@ export const LoginPage: React.FC = () => {
               Willkommen
             </CardTitle>
             <CardDescription className="text-center">
-              Melden Sie sich an, um auf das HR-Dokumentensystem zuzugreifen
+              Melde dich an, um auf das HR-Dokumentensystem zuzugreifen
             </CardDescription>
           </CardHeader>
 
@@ -142,7 +142,7 @@ export const LoginPage: React.FC = () => {
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
-                    placeholder="Ihr Passwort"
+                    placeholder="Dein Passwort"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     disabled={isLoading}

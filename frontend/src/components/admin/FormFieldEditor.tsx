@@ -132,11 +132,11 @@ export const FormFieldEditor = ({ documentTypeId, documentTypeName }: FormFieldE
                     <div className="flex gap-3">
                         <HelpCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
                         <div className="text-sm text-blue-800">
-                            <p className="font-medium">So passen Sie Felder an:</p>
+                            <p className="font-medium">So passt du Felder an:</p>
                             <ul className="mt-1 list-disc list-inside space-y-1">
-                                <li>Klicken Sie auf ein Feld, um Label, Hilfetext und Validierung zu ändern</li>
+                                <li>Klicke auf ein Feld, um Label, Hilfetext und Validierung zu ändern</li>
                                 <li>Pflichtfelder werden mit * markiert</li>
-                                <li>Ihre Änderungen werden sofort gespeichert</li>
+                                <li>Deine Änderungen werden sofort gespeichert</li>
                             </ul>
                         </div>
                     </div>

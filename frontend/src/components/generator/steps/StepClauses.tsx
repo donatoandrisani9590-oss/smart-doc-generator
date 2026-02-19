@@ -107,19 +107,19 @@ export const StepClauses = () => {
                 </div>
                 <h2 className="text-2xl font-bold">Textbausteine anpassen</h2>
                 <p className="text-muted-foreground">
-                    Passen Sie die Vertragsinhalte nach Ihren Wünschen an.
+                    Passe die Vertragsinhalte nach deinen Wünschen an.
                 </p>
             </div>
 
             {/* Textbausteine */}
-            <Card>
+            <Card className="border-0 shadow-[var(--shadow-elevated)]">
                 <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
-                        <CardTitle className="text-base flex items-center gap-2">
-                            <Layers className="w-4 h-4" />
+                        <CardTitle className="text-[11px] uppercase tracking-wider text-foreground/40 font-semibold flex items-center gap-2">
+                            <Layers className="w-3.5 h-3.5" />
                             Textbausteine
                         </CardTitle>
-                        <Badge variant="secondary">
+                        <Badge variant="secondary" className="bg-primary/[0.08] text-primary border-0 text-[11px]">
                             {enabledCount} von {totalCount} aktiv
                         </Badge>
                     </div>
@@ -141,16 +141,16 @@ export const StepClauses = () => {
 
             {/* Varianten - rendered for each group */}
             {variantGroups.length > 0 && (
-                <Card>
+                <Card className="border-0 shadow-[var(--shadow-elevated)]">
                     <CardHeader className="pb-3">
-                        <CardTitle className="text-base">Varianten auswählen</CardTitle>
+                        <CardTitle className="text-[11px] uppercase tracking-wider text-foreground/40 font-semibold">Varianten auswählen</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-6">
                         {variantGroups.map((group) => (
                             <div key={group.id} className="space-y-2">
                                 <div className="flex items-center gap-2">
-                                    <span className="font-medium text-sm">{group.name}</span>
-                                    <Badge variant="outline" className="text-xs">
+                                    <span className="font-medium text-[13px]">{group.name}</span>
+                                    <Badge variant="outline" className="text-[10px] bg-primary/[0.08] text-primary border-0">
                                         Pflicht
                                     </Badge>
                                 </div>

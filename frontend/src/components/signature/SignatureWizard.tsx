@@ -163,7 +163,7 @@ function SignersStep({ signers, onSignersChange, errors }: SignersStepProps) {
   return (
     <WizardStepContent
       title="Wer soll unterschreiben?"
-      description="Fügen Sie alle Personen hinzu, die dieses Dokument unterschreiben sollen."
+      description="Füge alle Personen hinzu, die dieses Dokument unterschreiben sollen."
     >
       <div className="space-y-4">
         {signers.map((signer, index) => (
@@ -328,7 +328,7 @@ function FieldsStep({
   return (
     <WizardStepContent
       title="Wo sollen die Unterschriften platziert werden?"
-      description="Wählen Sie die Signaturfelder für jeden Unterzeichner aus."
+      description="Wähle die Signaturfelder für jeden Unterzeichner aus."
     >
       <div className="space-y-6">
         {/* Simplified PDF Preview */}
@@ -486,7 +486,7 @@ function ReviewStep({
   return (
     <WizardStepContent
       title="Zusammenfassung"
-      description="Überprüfen Sie die Details bevor Sie das Dokument zur Unterschrift senden."
+      description="Überprüfe die Details, bevor du das Dokument zur Unterschrift sendest."
     >
       <div className="space-y-6">
         {/* Document Info */}
@@ -811,7 +811,7 @@ export function SignatureWizard({
         })),
         fields,
         subject: `Bitte unterschreiben: ${documentTitle}`,
-        message: `Sie wurden gebeten, das Dokument "${documentTitle}" zu unterschreiben. Bitte klicken Sie auf den Link in dieser E-Mail, um das Dokument zu überprüfen und zu unterschreiben.`,
+        message: `Du wurdest gebeten, das Dokument "${documentTitle}" zu unterschreiben. Bitte klicke auf den Link in dieser E-Mail, um das Dokument zu überprüfen und zu unterschreiben.`,
         expiresInDays: Math.max(1, expiresInDays),
       };
 

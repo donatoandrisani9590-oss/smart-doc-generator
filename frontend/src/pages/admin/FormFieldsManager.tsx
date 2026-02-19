@@ -21,9 +21,9 @@ export const FormFieldsManager = () => {
         <div className="space-y-6">
             {/* Header */}
             <div>
-                <h1 className="text-xl font-semibold tracking-tight text-foreground">Formularfelder verwalten</h1>
+                <h1 className="text-xl font-semibold tracking-tight text-foreground/80">Formularfelder verwalten</h1>
                 <p className="text-sm text-muted-foreground">
-                    Passen Sie Labels, Validierung und Hilfetexte für Formularfelder an
+                    Passe Labels, Validierung und Hilfetexte für Formularfelder an
                 </p>
             </div>
 
@@ -32,14 +32,14 @@ export const FormFieldsManager = () => {
                 <Card className="lg:col-span-1">
                     <CardHeader>
                         <div className="flex justify-between items-center">
-                            <CardTitle className="text-base">Dokumenttyp wählen</CardTitle>
+                            <CardTitle className="text-base text-foreground/80">Dokumenttyp wählen</CardTitle>
                             <select
                                 value={countryCode}
                                 onChange={(e) => {
                                     setCountryCode(e.target.value);
                                     setSelectedDocType(null);
                                 }}
-                                className="h-8 px-2 text-sm border border-input rounded-md bg-background"
+                                className="h-8 px-2 text-sm border-0 rounded-lg bg-muted/30 focus:ring-0"
                             >
                                 <option value="DE">DE</option>
                                 <option value="IT">IT</option>
@@ -61,10 +61,10 @@ export const FormFieldsManager = () => {
                                 {(documentTypes || []).map((dt: DocumentType) => (
                                     <div
                                         key={dt.id}
-                                        className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${
+                                        className={`flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all ${
                                             selectedDocType?.id === dt.id
-                                                ? "bg-primary/10 border border-primary"
-                                                : "hover:bg-muted/50"
+                                                ? "bg-muted/40 shadow-[var(--shadow-elevated)]"
+                                                : "hover:bg-muted/20"
                                         }`}
                                         onClick={() => setSelectedDocType(dt)}
                                     >
@@ -92,7 +92,7 @@ export const FormFieldsManager = () => {
                             <CardContent className="flex items-center justify-center h-64 text-muted-foreground">
                                 <div className="text-center">
                                     <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                                    <p>Wählen Sie einen Dokumenttyp aus der Liste</p>
+                                    <p>Wähle einen Dokumenttyp aus der Liste</p>
                                 </div>
                             </CardContent>
                         </Card>

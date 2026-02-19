@@ -199,9 +199,9 @@ export const TeamsPage = () => {
             });
             setLeaveDialogOpen(false);
             setSelectedTeam(null);
-            toast.info("Team verlassen", `Sie haben "${teamName}" verlassen`);
+            toast.info("Team verlassen", `Du hast "${teamName}" verlassen`);
         } catch {
-            toast.error("Fehler", "Sie konnten das Team nicht verlassen");
+            toast.error("Fehler", "Du konntest das Team nicht verlassen");
         }
     };
 
@@ -212,7 +212,7 @@ export const TeamsPage = () => {
                 <div>
                     <h1 className="text-2xl font-bold">Teams</h1>
                     <p className="text-muted-foreground">
-                        Verwalten Sie Ihre Teams und teilen Sie Dokumente mit Kollegen
+                        Verwalte deine Teams und teile Dokumente mit Kollegen
                     </p>
                 </div>
                 <Button onClick={() => setCreateDialogOpen(true)}>
@@ -240,7 +240,7 @@ export const TeamsPage = () => {
                                 </div>
                                 <h3 className="font-medium mb-1">Noch kein Team</h3>
                                 <p className="text-sm text-muted-foreground mb-4 max-w-xs mx-auto">
-                                    Erstellen Sie ein Team, um Dokumente mit Kollegen zu teilen.
+                                    Erstelle ein Team, um Dokumente mit Kollegen zu teilen.
                                 </p>
                                 <Button onClick={() => setCreateDialogOpen(true)}>
                                     <Plus className="w-4 h-4 mr-2" />
@@ -414,7 +414,7 @@ export const TeamsPage = () => {
                                                 <FileText className="w-10 h-10 mx-auto mb-3 text-muted-foreground" />
                                                 <p className="text-sm font-medium mb-1">Noch keine geteilten Dokumente</p>
                                                 <p className="text-xs text-muted-foreground max-w-xs mx-auto">
-                                                    Teilen Sie Dokumente aus dem Repository mit diesem Team.
+                                                    Teile Dokumente aus dem Repository mit diesem Team.
                                                 </p>
                                             </div>
                                         ) : (
@@ -465,7 +465,7 @@ export const TeamsPage = () => {
                                                 <LayoutTemplate className="w-10 h-10 mx-auto mb-3 text-muted-foreground" />
                                                 <p className="text-sm font-medium mb-1">Noch keine Team-Vorlagen</p>
                                                 <p className="text-xs text-muted-foreground max-w-xs mx-auto">
-                                                    Erstellen Sie Vorlagen, die nur für dieses Team sichtbar sind.
+                                                    Erstelle Vorlagen, die nur für dieses Team sichtbar sind.
                                                 </p>
                                                 {(selectedTeam.my_role === "owner" || selectedTeam.my_role === "admin") && (
                                                     <Button
@@ -548,7 +548,7 @@ export const TeamsPage = () => {
                                 </div>
                                 <h3 className="font-medium mb-1">Team auswählen</h3>
                                 <p className="text-sm text-muted-foreground max-w-xs">
-                                    Wählen Sie ein Team aus der Liste, um Details und Mitglieder anzuzeigen.
+                                    Wähle ein Team aus der Liste, um Details und Mitglieder anzuzeigen.
                                 </p>
                             </div>
                         </CardContent>
@@ -562,7 +562,7 @@ export const TeamsPage = () => {
                     <DialogHeader>
                         <DialogTitle>Neues Team erstellen</DialogTitle>
                         <DialogDescription>
-                            Erstellen Sie ein Team, um Dokumente mit Kollegen zu teilen.
+                            Erstelle ein Team, um Dokumente mit Kollegen zu teilen.
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 py-4">
@@ -610,7 +610,7 @@ export const TeamsPage = () => {
                     <DialogHeader>
                         <DialogTitle>Mitglied hinzufügen</DialogTitle>
                         <DialogDescription>
-                            Fügen Sie einen Benutzer zum Team "{selectedTeam?.name}" hinzu.
+                            Füge einen Benutzer zum Team "{selectedTeam?.name}" hinzu.
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 py-4">
@@ -664,8 +664,8 @@ export const TeamsPage = () => {
                     <DialogHeader>
                         <DialogTitle>Team verlassen?</DialogTitle>
                         <DialogDescription>
-                            Sind Sie sicher, dass Sie das Team "{selectedTeam?.name}" verlassen möchten?
-                            Sie verlieren den Zugriff auf alle geteilten Dokumente dieses Teams.
+                            Bist du sicher, dass du das Team "{selectedTeam?.name}" verlassen möchtest?
+                            Du verlierst den Zugriff auf alle geteilten Dokumente dieses Teams.
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
@@ -694,7 +694,7 @@ export const TeamsPage = () => {
                     <DialogHeader>
                         <DialogTitle>Neue Team-Vorlage erstellen</DialogTitle>
                         <DialogDescription>
-                            Erstellen Sie eine Vorlage, die nur für Mitglieder dieses Teams sichtbar ist.
+                            Erstelle eine Vorlage, die nur für Mitglieder dieses Teams sichtbar ist.
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 py-4">
@@ -742,7 +742,7 @@ export const TeamsPage = () => {
                     <DialogHeader>
                         <DialogTitle>Team löschen?</DialogTitle>
                         <DialogDescription>
-                            Sind Sie sicher, dass Sie das Team "{selectedTeam?.name}" löschen möchten?
+                            Bist du sicher, dass du das Team "{selectedTeam?.name}" löschen möchtest?
                             Alle Mitgliedschaften und geteilten Dokumente werden entfernt.
                             Diese Aktion kann nicht rückgängig gemacht werden.
                         </DialogDescription>

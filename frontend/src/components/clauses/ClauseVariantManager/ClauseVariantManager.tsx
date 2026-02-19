@@ -163,7 +163,7 @@ export const ClauseVariantManager = ({
                         Textbaustein-Varianten
                     </h2>
                     <p className="text-sm text-muted-foreground">
-                        Verwalten Sie alternative Versionen von Textbausteine
+                        Verwalte alternative Versionen von Textbausteinen
                     </p>
                 </div>
                 <Button
@@ -410,7 +410,7 @@ export const ClauseVariantManager = ({
                                             </Button>
                                         </div>
                                         <p className="text-xs text-muted-foreground">
-                                            Ordnen Sie diese Varianten-Gruppe Dokumenttypen zu, damit Benutzer
+                                            Ordne diese Varianten-Gruppe Dokumenttypen zu, damit Benutzer
                                             bei der Dokumenterstellung die passende Variante auswählen können.
                                         </p>
                                     </div>
@@ -420,7 +420,7 @@ export const ClauseVariantManager = ({
                             <div className="flex items-center justify-center h-full text-muted-foreground">
                                 <div className="text-center">
                                     <Layers className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                                    <p>Wählen Sie eine Gruppe aus</p>
+                                    <p>Wähle eine Gruppe aus</p>
                                 </div>
                             </div>
                         )}
@@ -435,8 +435,8 @@ export const ClauseVariantManager = ({
                         </p>
                         <p className="text-muted-foreground mb-4">
                             {searchQuery
-                                ? "Passen Sie Ihre Suche an"
-                                : "Erstellen Sie Ihre erste Varianten-Gruppe"
+                                ? "Passe deine Suche an"
+                                : "Erstelle deine erste Varianten-Gruppe"
                             }
                         </p>
                         {!searchQuery && (

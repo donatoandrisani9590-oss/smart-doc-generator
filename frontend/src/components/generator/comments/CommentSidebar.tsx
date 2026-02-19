@@ -378,7 +378,7 @@ export const CommentSidebar = () => {
                                         </span>
                                     </TooltipTrigger>
                                     <TooltipContent side="bottom">
-                                        Nur lokal gespeichert. Speichern Sie den Entwurf, um zu synchronisieren.
+                                        Nur lokal gespeichert. Speichere den Entwurf, um zu synchronisieren.
                                     </TooltipContent>
                                 </Tooltip>
                             </TooltipProvider>
@@ -494,7 +494,7 @@ export const CommentSidebar = () => {
                                 Noch keine Kommentare
                             </h4>
                             <p className="text-xs text-muted-foreground mb-4 max-w-[200px] mx-auto">
-                                Fügen Sie Anmerkungen hinzu, um mit Ihrem Team zusammenzuarbeiten.
+                                Füge Anmerkungen hinzu, um mit deinem Team zusammenzuarbeiten.
                             </p>
 
                             {/* CTA Button */}
@@ -516,7 +516,7 @@ export const CommentSidebar = () => {
                                     transition={{ delay: 0.5 }}
                                     className="text-[10px] mt-4 text-amber-600 bg-amber-50 rounded-md py-1.5 px-2"
                                 >
-                                    💡 Tipp: Speichern Sie den Entwurf, um Kommentare mit dem Team zu teilen.
+                                    💡 Tipp: Speichere den Entwurf, um Kommentare mit dem Team zu teilen.
                                 </motion.p>
                             )}
                         </motion.div>

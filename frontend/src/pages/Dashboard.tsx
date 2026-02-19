@@ -175,7 +175,7 @@ export const Dashboard = () => {
                                 placeholder="Dokumente, Vorlagen oder Personen suchen..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="pl-11 h-11 bg-white/10 border-white/20 text-white placeholder:text-white/60 focus:bg-white/15 focus:border-white/40 transition-all rounded-xl text-sm"
+                                className="pl-11 h-11 bg-white/10 text-white placeholder:text-white/40 focus-visible:!shadow-[inset_0_-2px_0_0_rgba(255,255,255,0.5)] shadow-[inset_0_-1px_0_0_rgba(255,255,255,0.2)] transition-all rounded-xl text-sm"
                                 data-global-search
                             />
                             {searchQuery.trim() && (

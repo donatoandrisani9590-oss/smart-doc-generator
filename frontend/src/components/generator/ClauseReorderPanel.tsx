@@ -504,8 +504,8 @@ export const ClauseReorderPanel = ({
                                     <Info className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
                                     <p className="text-xs text-blue-800">
                                         Optionale Textbausteine können ein-/ausgeschaltet werden.
-                                        {variantCount > 0 && " Bei Varianten wählen Sie die passende Version."}
-                                        {optionalCount > 0 && " Ziehen Sie Textbausteine zum Umsortieren (außer gesperrte)."}
+                                        {variantCount > 0 && " Bei Varianten wähle die passende Version."}
+                                        {optionalCount > 0 && " Ziehe Textbausteine zum Umsortieren (außer gesperrte)."}
                                     </p>
                                 </div>
                             )}

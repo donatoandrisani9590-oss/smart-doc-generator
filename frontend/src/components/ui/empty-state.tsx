@@ -224,7 +224,7 @@ export const EmptyStatePresets = {
     noDocuments: {
         icon: FileText,
         title: "Keine Dokumente vorhanden",
-        description: "Erstellen Sie Ihr erstes Dokument, um loszulegen.",
+        description: "Erstelle dein erstes Dokument, um loszulegen.",
         variant: "default" as const,
     },
 
@@ -232,7 +232,7 @@ export const EmptyStatePresets = {
     noSearchResults: {
         icon: Search,
         title: "Keine Ergebnisse gefunden",
-        description: "Versuchen Sie andere Suchbegriffe oder Filter.",
+        description: "Versuche andere Suchbegriffe oder Filter.",
         variant: "search" as const,
     },
 
@@ -240,7 +240,7 @@ export const EmptyStatePresets = {
     noFilterResults: {
         icon: Filter,
         title: "Keine Einträge gefunden",
-        description: "Versuchen Sie andere Filterkriterien.",
+        description: "Versuche andere Filterkriterien.",
         variant: "filter" as const,
     },
 
@@ -248,7 +248,7 @@ export const EmptyStatePresets = {
     noClauses: {
         icon: FileText,
         title: "Keine Textbausteine vorhanden",
-        description: "Erstellen Sie Ihren ersten Textbaustein oder importieren Sie aus Word.",
+        description: "Erstelle deinen ersten Textbaustein oder importiere aus Word.",
         variant: "default" as const,
     },
 
@@ -256,7 +256,7 @@ export const EmptyStatePresets = {
     noTeams: {
         icon: FileText,
         title: "Keine Teams vorhanden",
-        description: "Erstellen Sie ein Team, um Dokumente zu teilen.",
+        description: "Erstelle ein Team, um Dokumente zu teilen.",
         variant: "default" as const,
     },
 
@@ -264,7 +264,7 @@ export const EmptyStatePresets = {
     loadError: {
         icon: AlertCircle,
         title: "Fehler beim Laden",
-        description: "Die Daten konnten nicht geladen werden. Bitte versuchen Sie es erneut.",
+        description: "Die Daten konnten nicht geladen werden. Bitte versuche es erneut.",
         variant: "error" as const,
     },
 };

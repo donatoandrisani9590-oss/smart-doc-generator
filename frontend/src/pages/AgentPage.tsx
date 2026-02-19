@@ -330,7 +330,7 @@ export default function AgentPage() {
                         {enabledClauses.map(id => (
                           <div key={id} className="flex items-center gap-2 text-[11px] text-muted-foreground">
                             <CheckCircle2 className="w-3 h-3 text-emerald-500 flex-shrink-0" />
-                            Klausel #{id}
+                            Textbaustein #{id}
                           </div>
                         ))}
                       </div>

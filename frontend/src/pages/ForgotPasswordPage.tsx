@@ -53,7 +53,7 @@ export const ForgotPasswordPage: React.FC = () => {
               Passwort vergessen?
             </CardTitle>
             <CardDescription className="text-center">
-              Geben Sie Ihre E-Mail-Adresse ein und wir senden Ihnen einen Link zum Zurücksetzen.
+              Gib deine E-Mail-Adresse ein und wir senden dir einen Link zum Zurücksetzen.
             </CardDescription>
           </CardHeader>
 

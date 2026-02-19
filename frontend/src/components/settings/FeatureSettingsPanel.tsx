@@ -158,7 +158,7 @@ export function FeatureSettingsPanel() {
           <div>
             <h2 className="text-xl font-semibold tracking-tight text-foreground">Funktionen</h2>
             <p className="text-sm text-muted-foreground">
-              Aktivieren oder deaktivieren Sie Funktionen nach Bedarf
+              Aktiviere oder deaktiviere Funktionen nach Bedarf
             </p>
           </div>
 
@@ -286,7 +286,7 @@ export function FeatureSettingsPanel() {
               <div className="text-sm text-muted-foreground">
                 <p className="font-medium text-foreground mb-1">Hinweis</p>
                 <p>
-                  Alle Funktionen sind standardmäßig aktiviert. Sie können nicht
+                  Alle Funktionen sind standardmäßig aktiviert. Du kannst nicht
                   benötigte Funktionen jederzeit deaktivieren, um die Benutzeroberfläche
                   zu vereinfachen. Der Genehmigungsworkflow ist optional und wird nur
                   bei Bedarf gestartet.

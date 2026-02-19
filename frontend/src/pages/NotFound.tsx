@@ -24,7 +24,7 @@ export function NotFoundPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <p className="text-sm text-muted-foreground">
-                        Bitte überprüfen Sie die URL oder navigieren Sie zurück zur Startseite.
+                        Bitte überprüfe die URL oder navigiere zurück zur Startseite.
                     </p>
 
                     <div className="flex flex-col sm:flex-row gap-2 justify-center">
@@ -42,7 +42,7 @@ export function NotFoundPage() {
 
                     <div className="pt-4 border-t">
                         <p className="text-xs text-muted-foreground mb-2">
-                            Oder suchen Sie nach dem gewünschten Inhalt:
+                            Oder suche nach dem gewünschten Inhalt:
                         </p>
                         <Button variant="ghost" size="sm" asChild>
                             <Link to="/search">

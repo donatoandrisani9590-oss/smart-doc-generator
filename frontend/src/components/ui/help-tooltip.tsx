@@ -106,7 +106,7 @@ export const HelpTooltip = ({
 export const HELP_TEXTS = {
     vorname: {
         content: "Der Vorname des Mitarbeiters, wie er im Vertrag erscheinen soll.",
-        tip: "Achten Sie auf korrekte Schreibweise mit Umlauten.",
+        tip: "Achte auf korrekte Schreibweise mit Umlauten.",
     },
     nachname: {
         content: "Der Nachname des Mitarbeiters für die Vertragsunterzeichnung.",
@@ -122,7 +122,7 @@ export const HELP_TEXTS = {
     },
     position: {
         content: "Die offizielle Stellenbezeichnung gemäß Arbeitsvertrag.",
-        tip: "Verwenden Sie die interne Stellenbezeichnung.",
+        tip: "Verwende die interne Stellenbezeichnung.",
     },
     gehalt: {
         content: "Das monatliche Bruttogehalt in Euro.",
@@ -139,11 +139,11 @@ export const HELP_TEXTS = {
         tip: "Maximal 6 Monate gesetzlich zulässig.",
     },
     firmenwagen: {
-        content: "Aktivieren Sie diese Option, wenn dem Mitarbeiter ein Firmenwagen zur Verfügung gestellt wird.",
+        content: "Aktiviere diese Option, wenn dem Mitarbeiter ein Firmenwagen zur Verfügung gestellt wird.",
         title: "Firmenwagen",
     },
     homeoffice: {
-        content: "Aktivieren Sie diese Option, wenn eine Home-Office-Vereinbarung Teil des Vertrags ist.",
+        content: "Aktiviere diese Option, wenn eine Home-Office-Vereinbarung Teil des Vertrags ist.",
         title: "Home-Office",
     },
     signatory_name: {
@@ -159,9 +159,9 @@ export const HELP_TEXTS = {
         tip: "Format: 12345 Musterstadt",
     },
     document_type: {
-        content: "Wählen Sie den Vertragstyp aus, den Sie erstellen möchten.",
+        content: "Wähle den Vertragstyp aus, den du erstellen möchtest.",
         title: "Dokumenttyp",
-        tip: "Sie können eigene Vorlagen über 'Word importieren' hinzufügen.",
+        tip: "Du kannst eigene Vorlagen über 'Word importieren' hinzufügen.",
     },
 };
 

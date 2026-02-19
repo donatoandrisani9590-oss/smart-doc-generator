@@ -40,7 +40,7 @@ export const TwoFactorVerifyPage: React.FC = () => {
     setError(null);
 
     if (code.length !== 6) {
-      setError("Bitte geben Sie den 6-stelligen Code ein.");
+      setError("Bitte gib den 6-stelligen Code ein.");
       return;
     }
 
@@ -100,7 +100,7 @@ export const TwoFactorVerifyPage: React.FC = () => {
               Zwei-Faktor-Authentifizierung
             </CardTitle>
             <CardDescription className="text-center">
-              Geben Sie den 6-stelligen Code aus Ihrer Authenticator-App ein.
+              Gib den 6-stelligen Code aus deiner Authenticator-App ein.
             </CardDescription>
           </CardHeader>
 
@@ -146,7 +146,7 @@ export const TwoFactorVerifyPage: React.FC = () => {
             </form>
 
             <p className="mt-4 text-center text-xs text-muted-foreground">
-              Öffnen Sie Ihre Authenticator-App (z.B. Google Authenticator) und geben Sie den aktuellen Code ein.
+              Öffne deine Authenticator-App (z.B. Google Authenticator) und gib den aktuellen Code ein.
             </p>
           </CardContent>
         </Card>

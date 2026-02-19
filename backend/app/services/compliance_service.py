@@ -222,7 +222,7 @@ RISK_PATTERNS_DE: List[Dict[str, Any]] = [
     {
         "pattern": r"(salvatorische|teilnichtigkeit).{0,30}klausel",
         "severity": RiskSeverity.LOW,
-        "title": "Salvatorische Klausel",
+        "title": "Salvatorische Bestimmung",
         "description": "Standard-Textbaustein zur Vertragserhaltung - normalerweise unproblematisch.",
         "legal_reference": "§ 306 BGB",
         "suggestion": "Keine Änderung erforderlich, aber Einzelfallprüfung bei komplexen Verträgen.",

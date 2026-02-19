@@ -78,7 +78,7 @@ export const DeleteConfirmDialog = ({
                     <Card className="border-destructive/30 bg-destructive/5">
                         <CardContent className="py-3">
                             <p className="text-sm text-destructive">
-                                Sind Sie sicher, dass Sie den Textbaustein{" "}
+                                Bist du sicher, dass du den Textbaustein{" "}
                                 <strong>"{clause.title}"</strong> löschen möchten?
                             </p>
                             <p className="text-xs text-destructive/80 mt-2">

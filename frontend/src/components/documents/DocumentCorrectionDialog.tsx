@@ -128,7 +128,7 @@ export const DocumentCorrectionDialog = ({
             return;
         }
         if (!changeReason.trim()) {
-            setError("Bitte geben Sie einen Änderungsgrund an");
+            setError("Bitte gib einen Änderungsgrund an");
             return;
         }
 
@@ -300,7 +300,7 @@ export const DocumentCorrectionDialog = ({
                     {step === "edit" && (
                         <div className="space-y-4">
                             <p className="text-sm text-muted-foreground">
-                                Bearbeiten Sie die Felder, die korrigiert werden sollen.
+                                Bearbeite die Felder, die korrigiert werden sollen.
                                 Geänderte Felder werden hervorgehoben.
                             </p>
 
@@ -347,7 +347,7 @@ export const DocumentCorrectionDialog = ({
                                     <Textarea
                                         value={changeReason}
                                         onChange={(e) => setChangeReason(e.target.value)}
-                                        placeholder="Bitte begründen Sie die Änderung..."
+                                        placeholder="Bitte begründe die Änderung..."
                                         rows={2}
                                         className={!changeReason.trim() ? "border-red-300" : ""}
                                     />

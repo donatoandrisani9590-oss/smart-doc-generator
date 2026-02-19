@@ -417,7 +417,7 @@ export const ClauseEditor = ({
                         <HelpCircle className="w-4 h-4 mt-0.5 flex-shrink-0 text-amber-600" />
                         <div>
                             <strong>Tipp zur Paragraphen-Nummerierung:</strong>{' '}
-                            Verwenden Sie <code className="bg-amber-100 px-1 rounded">{'{{ paragraph_number }}'}</code> in
+                            Verwende <code className="bg-amber-100 px-1 rounded">{'{{ paragraph_number }}'}</code> in
                             der Überschrift, z.B. "§ {'{{ paragraph_number }}'} Vertragsgegenstand".
                             Die Nummern werden automatisch beim Zusammenstellen des Dokuments vergeben.
                         </div>

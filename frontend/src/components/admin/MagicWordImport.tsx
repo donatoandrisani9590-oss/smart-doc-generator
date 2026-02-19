@@ -303,7 +303,7 @@ export function MagicWordImport({ onSuccess, onCancel }: MagicWordImportProps) {
                         Magic Word-Import
                     </CardTitle>
                     <p className="text-muted-foreground">
-                        Ziehen Sie Ihr Word-Dokument hierher - wir erkennen automatisch alle
+                        Ziehe dein Word-Dokument hierher - wir erkennen automatisch alle
                         Platzhalter
                     </p>
                 </CardHeader>

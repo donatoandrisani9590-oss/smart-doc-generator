@@ -70,7 +70,7 @@ export const PlaceholderValidationWarning = ({
                             {placeholder.suggestions.length > 0 ? (
                                 <div className="mt-2">
                                     <p className="text-xs text-muted-foreground mb-1">
-                                        Meinten Sie:
+                                        Meintest du:
                                     </p>
                                     <div className="flex flex-wrap gap-2">
                                         {placeholder.suggestions.map((suggestion, index) => (

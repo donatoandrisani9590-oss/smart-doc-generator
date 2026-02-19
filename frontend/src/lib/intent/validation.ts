@@ -21,7 +21,7 @@ export function validateExtractedData(
   if (typeof data.salary === 'number') {
     // Minijobs haben niedrigere Gehälter - das ist normal
     if (data.salary < 500 && !isMinijob) {
-      warnings.push('Gehalt erscheint sehr niedrig. Meinten Sie ein Jahresgehalt?');
+      warnings.push('Gehalt erscheint sehr niedrig. Meintest du ein Jahresgehalt?');
     }
     // Bei Minijobs max 520EUR (Stand 2024)
     if (isMinijob && data.salary > 520) {

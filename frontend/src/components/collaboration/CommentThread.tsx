@@ -610,7 +610,7 @@ export const CommentThread = ({
                         </div>
                         <p className="text-sm font-medium text-foreground">Noch keine Kommentare</p>
                         <p className="text-xs text-muted-foreground mt-1">
-                            Starten Sie die Diskussion
+                            Starte die Diskussion
                         </p>
                     </div>
                 ) : (

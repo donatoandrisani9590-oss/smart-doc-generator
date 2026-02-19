@@ -422,7 +422,7 @@ async def smart_chat(
     Example inputs:
     - "Erstelle einen Arbeitsvertrag für Max Müller"
     - "Der Mitarbeiter verdient 5000€ pro Monat"
-    - "Füge eine Homeoffice-Klausel hinzu"
+    - "Füge einen Homeoffice-Textbaustein hinzu"
 
     Returns detected intent and extracted data for form filling.
     """

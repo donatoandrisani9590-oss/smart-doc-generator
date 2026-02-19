@@ -325,7 +325,7 @@ const QUICK_ACTIONS = [
   {
     id: "search-all",
     label: "Alle Einstellungen durchsuchen",
-    description: "Tippen Sie, um zu suchen...",
+    description: "Tippe, um zu suchen...",
     icon: Search,
   },
   {
@@ -412,7 +412,7 @@ export function SettingsCommandPalette({
           <div className="py-4 text-center">
             <p className="text-muted-foreground">Keine Einstellungen gefunden.</p>
             <p className="text-xs text-muted-foreground mt-1">
-              Versuchen Sie andere Suchbegriffe.
+              Versuche andere Suchbegriffe.
             </p>
           </div>
         </CommandEmpty>

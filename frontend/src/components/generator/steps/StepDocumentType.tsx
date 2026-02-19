@@ -177,7 +177,7 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
                     Neues Dokument erstellen
                 </h1>
                 <p className="text-[13px] text-muted-foreground/60 mt-1">
-                    Wählen Sie eine Vorlage und geben Sie dem Dokument einen Namen.
+                    Wähle eine Vorlage und gib dem Dokument einen Namen.
                 </p>
             </div>
 
@@ -210,7 +210,7 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
                 {selectedType && (() => {
                     const rechtsstand = formatRechtsstand(selectedType.updated_at);
                     return (
-                    <div className="flex items-center gap-3 p-3 bg-primary/5 border-l-4 border-l-primary border border-primary/10 rounded-lg">
+                    <div className="flex items-center gap-3 p-3 bg-primary/5 ring-2 ring-primary/30 shadow-[var(--shadow-elevated)] rounded-xl">
                         <Star className="w-4 h-4 text-primary fill-primary shrink-0" />
                         <span className="font-medium text-foreground">{selectedType.name}</span>
                         {selectedType.category && (
@@ -266,7 +266,7 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
                                                 className={cn(
                                                     "w-full flex items-center justify-between px-4 py-3 text-left transition-all border-b border-warm-50 last:border-b-0",
                                                     state.documentTypeId === type.id
-                                                        ? "bg-primary/5 border-l-[3px] border-l-primary"
+                                                        ? "bg-primary/5 ring-2 ring-primary/30"
                                                         : "hover:bg-warm-50"
                                                 )}
                                             >
@@ -310,7 +310,7 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
                                                     "w-full flex items-center gap-3 px-4 py-3 text-left transition-all",
                                                     idx < types.length - 1 && "border-b border-warm-50",
                                                     state.documentTypeId === type.id
-                                                        ? "bg-primary/5 border-l-[3px] border-l-primary"
+                                                        ? "bg-primary/5 ring-2 ring-primary/30"
                                                         : "hover:bg-warm-50"
                                                 )}
                                             >
@@ -347,7 +347,7 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
 
                 {/* Dokumenttitel */}
                 <div className="space-y-2 pt-4">
-                    <Label htmlFor="document-title" className="text-sm font-medium text-foreground">
+                    <Label htmlFor="document-title" className="text-[13px] text-foreground/60">
                         Dokumentname
                     </Label>
                     <Input
@@ -355,10 +355,10 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
                         value={state.documentTitle}
                         onChange={(e) => actions.setDocumentTitle(e.target.value)}
                         placeholder="z.B. Arbeitsvertrag Max Müller"
-                        className="h-11 border-border focus:border-primary focus:ring-2 focus:ring-primary/10"
+                        className="h-11 ive-input"
                     />
                     <p className="text-xs text-muted-foreground">
-                        Dieser Name erscheint in Ihrer Dokumentübersicht.
+                        Dieser Name erscheint in deiner Dokumentübersicht.
                     </p>
                 </div>
 
@@ -375,17 +375,17 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
                         </CollapsibleTrigger>
                         <CollapsibleContent className="pt-3 space-y-2">
                             <p className="text-xs text-muted-foreground">
-                                Verwenden Sie eine DOCX-Vorlage als Layout-Basis (mit Logo, Kopf-/Fusszeile).
+                                Verwende eine DOCX-Vorlage als Layout-Basis (mit Logo, Kopf-/Fusszeile).
                             </p>
                             <div className="grid gap-2">
                                 {/* "Keine Vorlage" Option */}
                                 <button
                                     onClick={() => actions.setUserTemplateId(null)}
                                     className={cn(
-                                        "w-full text-left px-3 py-2.5 rounded-lg border transition-all text-sm",
+                                        "w-full text-left px-3 py-2.5 rounded-xl border-0 shadow-[var(--shadow-elevated)] transition-all text-sm",
                                         !state.userTemplateId
-                                            ? "border-primary bg-primary/5 text-foreground font-medium"
-                                            : "border-border hover:border-border/80 text-muted-foreground"
+                                            ? "ring-2 ring-primary/30 bg-primary/5 text-foreground font-medium"
+                                            : "hover:shadow-[var(--shadow-elevated-hover)] text-muted-foreground"
                                     )}
                                 >
                                     Standard-Layout (ohne Vorlage)
@@ -402,10 +402,10 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
                                         key={template.id}
                                         onClick={() => actions.setUserTemplateId(template.id)}
                                         className={cn(
-                                            "w-full text-left px-3 py-2.5 rounded-lg border transition-all",
+                                            "w-full text-left px-3 py-2.5 rounded-xl border-0 shadow-[var(--shadow-elevated)] transition-all",
                                             state.userTemplateId === template.id
-                                                ? "border-primary bg-primary/5"
-                                                : "border-border hover:border-border/80"
+                                                ? "ring-2 ring-primary/30 bg-primary/5"
+                                                : "hover:shadow-[var(--shadow-elevated-hover)]"
                                         )}
                                     >
                                         <div className="flex items-center gap-2">
@@ -448,10 +448,10 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
                                         key={template.id}
                                         onClick={() => actions.setUserTemplateId(template.id)}
                                         className={cn(
-                                            "w-full text-left px-3 py-2.5 rounded-lg border transition-all",
+                                            "w-full text-left px-3 py-2.5 rounded-xl border-0 shadow-[var(--shadow-elevated)] transition-all",
                                             state.userTemplateId === template.id
-                                                ? "border-primary bg-primary/5"
-                                                : "border-border hover:border-border/80"
+                                                ? "ring-2 ring-primary/30 bg-primary/5"
+                                                : "hover:shadow-[var(--shadow-elevated-hover)]"
                                         )}
                                     >
                                         <div className="flex items-center gap-2">
@@ -514,7 +514,7 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
                 {/* Hinweis wenn kein Dokumenttyp ausgewählt */}
                 {!canProceed && (
                     <p className="text-center text-sm text-muted-foreground mt-4">
-                        Bitte wählen Sie zuerst einen Dokumenttyp aus.
+                        Bitte wähle zuerst einen Dokumenttyp aus.
                     </p>
                 )}
             </div>

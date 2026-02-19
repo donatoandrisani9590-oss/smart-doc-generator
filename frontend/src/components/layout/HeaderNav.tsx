@@ -138,7 +138,7 @@ export const HeaderNav = () => {
                         onClick={() => setMobileMenuOpen(false)}
                         aria-hidden="true"
                     />
-                    <nav className="relative bg-background border-b shadow-elevated p-4 space-y-1" aria-label="Mobile Navigation">
+                    <nav className="relative bg-background shadow-[var(--shadow-elevated)] p-4 space-y-1" aria-label="Mobile Navigation">
                         {visibleNavItems.map((item) => (
                             <Link
                                 key={item.href}
@@ -154,7 +154,7 @@ export const HeaderNav = () => {
                                 {item.label}
                             </Link>
                         ))}
-                        <div className="pt-2 border-t border-border/50 mt-2">
+                        <div className="pt-2 mt-2">
                             <Link
                                 to="/generate"
                                 onClick={() => setMobileMenuOpen(false)}

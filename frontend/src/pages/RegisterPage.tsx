@@ -45,14 +45,14 @@ export const RegisterPage: React.FC = () => {
 
     // Validate all fields
     if (!email || !password || !confirmPassword) {
-      setError("Bitte füllen Sie alle Felder aus.");
+      setError("Bitte fülle alle Felder aus.");
       return;
     }
 
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      setError("Bitte geben Sie eine gültige E-Mail-Adresse ein.");
+      setError("Bitte gib eine gültige E-Mail-Adresse ein.");
       return;
     }
 
@@ -78,7 +78,7 @@ export const RegisterPage: React.FC = () => {
       await register({ email, password });
       navigate("/", { replace: true });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Registrierung fehlgeschlagen. Bitte versuchen Sie es erneut.");
+      setError(err instanceof Error ? err.message : "Registrierung fehlgeschlagen. Bitte versuche es erneut.");
     }
   };
 
@@ -100,7 +100,7 @@ export const RegisterPage: React.FC = () => {
               Konto erstellen
             </CardTitle>
             <CardDescription className="text-center">
-              Registrieren Sie sich für das HR-Dokumentensystem
+              Registriere dich für das HR-Dokumentensystem
             </CardDescription>
           </CardHeader>
 

@@ -210,7 +210,7 @@ export const DocumentWizardDialog = ({
                                     </Button>
                                     <div className="flex items-center gap-2 mt-4 text-xs text-muted-foreground justify-center">
                                         <Lightbulb className="w-3.5 h-3.5" />
-                                        <span>Tipp: Sie können auch eine bestehende Word-Vorlage importieren.</span>
+                                        <span>Tipp: Du kannst auch eine bestehende Word-Vorlage importieren.</span>
                                     </div>
                                 </div>
                             )}

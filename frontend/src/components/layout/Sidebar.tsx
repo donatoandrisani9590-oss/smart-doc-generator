@@ -34,8 +34,8 @@ const SidebarItem = ({ icon: Icon, label, href, active, badge, collapsed }: Side
                 ? "justify-center px-0 py-2.5"
                 : "justify-between px-3 py-2.5 text-sm",
             active
-                ? "bg-warm-100 text-primary font-medium border-l-2 border-primary"
-                : "text-muted-foreground hover:bg-warm-50 hover:text-foreground"
+                ? "bg-muted/40 text-foreground font-semibold"
+                : "text-foreground/50 hover:bg-muted/30 hover:text-foreground"
         )}
         aria-current={active ? "page" : undefined}
         aria-label={collapsed ? label : undefined}
@@ -44,7 +44,7 @@ const SidebarItem = ({ icon: Icon, label, href, active, badge, collapsed }: Side
             <Icon className={cn(
                 "shrink-0 transition-colors",
                 collapsed ? "w-5 h-5" : "w-[18px] h-[18px]",
-                active ? "text-primary bg-primary/10 rounded-md p-0.5 w-5 h-5" : "text-muted-foreground group-hover:text-foreground"
+                active ? "text-foreground" : "text-foreground/40 group-hover:text-foreground/70"
             )} aria-hidden="true" />
             {!collapsed && <span>{label}</span>}
         </div>
@@ -71,7 +71,7 @@ const SidebarSection = ({ title, children, defaultOpen = true, collapsed }: Side
             {!collapsed && (
                 <button
                     onClick={() => setIsOpen(!isOpen)}
-                    className="flex items-center justify-between w-full px-4 py-1.5 text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-widest hover:text-primary transition-colors"
+                    className="flex items-center justify-between w-full px-4 py-1.5 text-[10px] font-medium text-muted-foreground/30 uppercase tracking-widest hover:text-muted-foreground/50 transition-colors"
                 >
                     {title}
                     <ChevronDown className={cn(
@@ -138,7 +138,7 @@ export const Sidebar = ({ collapsed = false }: SidebarProps) => {
                         />
                         {!collapsed && (
                             <>
-                                <div className="h-5 w-px bg-border/60" />
+                                <div className="h-5 w-px bg-foreground/10" />
                                 <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-[0.15em]">
                                     Docs
                                 </span>
@@ -214,7 +214,7 @@ export const Sidebar = ({ collapsed = false }: SidebarProps) => {
                 {/* Bottom Section */}
                 <div className="mt-auto">
                     {/* Keyboard Shortcuts Hint */}
-                    <div className={cn("border-t border-border/50", collapsed ? "px-2 py-2" : "px-4 py-2")}>
+                    <div className={cn("", collapsed ? "px-2 py-2" : "px-4 py-2")}>
                         <button
                             onClick={() => setShowShortcuts(true)}
                             title={collapsed ? "Tastenkürzel (?)" : undefined}
@@ -235,7 +235,7 @@ export const Sidebar = ({ collapsed = false }: SidebarProps) => {
 
                     {/* User Dropdown */}
                     <div className={cn(
-                        "border-t border-border/50 bg-muted/20",
+                        "bg-muted/20",
                         collapsed ? "p-2" : "p-3"
                     )}>
                         <UserDropdown collapsed={collapsed} />
