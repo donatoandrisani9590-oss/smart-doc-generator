@@ -22,6 +22,7 @@ from app.api import deps
 from app.models import core as core_models
 from app.models import enterprise as models
 from app.models.documents import DocumentType
+from app.models.enterprise import DocumentAction
 
 router = APIRouter()
 
@@ -346,6 +347,100 @@ async def get_repository_stats(
         documents_by_type=documents_by_type,
         documents_by_month=documents_by_month,
     )
+
+
+@router.get("/action-summary")
+async def get_action_summary(
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[core_models.User, Depends(deps.get_current_user)],
+) -> Any:
+    """
+    Liefert Zähler für die Repository-Filterkarten.
+
+    Alle Zähler beziehen sich nur auf Dokumente des angemeldeten Benutzers
+    (created_by_id), sofern kein Admin. Admins sehen alle Dokumente.
+    """
+    is_admin = getattr(current_user, "role", "user") == "admin"
+    now = datetime.utcnow()
+
+    # Basis-Filter: nicht gelöschte Dokumente
+    base_filters = [models.GeneratedDocument.is_deleted == False]  # noqa: E712
+
+    if not is_admin:
+        base_filters.append(models.GeneratedDocument.created_by_id == current_user.id)
+
+    # 1) ohne_versand — Status "erstellt" (kein Versand erfolgt)
+    ohne_versand_q = await db.execute(
+        select(func.count(models.GeneratedDocument.id)).where(
+            and_(*base_filters, models.GeneratedDocument.workflow_status == "erstellt")
+        )
+    )
+    ohne_versand = ohne_versand_q.scalar() or 0
+
+    # 2) ruecksendung_ausstehend — offene return_pending Aktionen
+    rueck_q = await db.execute(
+        select(func.count(func.distinct(DocumentAction.document_id))).where(
+            and_(
+                DocumentAction.action_type == "return_pending",
+                DocumentAction.is_completed == False,  # noqa: E712
+                DocumentAction.document_id.in_(
+                    select(models.GeneratedDocument.id).where(and_(*base_filters))
+                ),
+            )
+        )
+    )
+    ruecksendung_ausstehend = rueck_q.scalar() or 0
+
+    # 3) wiedervorlage_faellig — reminder_set mit due_date <= jetzt
+    wv_q = await db.execute(
+        select(func.count(func.distinct(DocumentAction.document_id))).where(
+            and_(
+                DocumentAction.action_type == "reminder_set",
+                DocumentAction.is_completed == False,  # noqa: E712
+                DocumentAction.due_date <= now,
+                DocumentAction.document_id.in_(
+                    select(models.GeneratedDocument.id).where(and_(*base_filters))
+                ),
+            )
+        )
+    )
+    wiedervorlage_faellig = wv_q.scalar() or 0
+
+    # 4) freigabe_offen — offene approval_requested Aktionen
+    freigabe_q = await db.execute(
+        select(func.count(func.distinct(DocumentAction.document_id))).where(
+            and_(
+                DocumentAction.action_type == "approval_requested",
+                DocumentAction.is_completed == False,  # noqa: E712
+                DocumentAction.document_id.in_(
+                    select(models.GeneratedDocument.id).where(and_(*base_filters))
+                ),
+            )
+        )
+    )
+    freigabe_offen = freigabe_q.scalar() or 0
+
+    # 5) entwuerfe_ablaufend — Retention-Datum in nächsten 30 Tagen
+    threshold = now + timedelta(days=30)
+    ablauf_q = await db.execute(
+        select(func.count(models.GeneratedDocument.id)).where(
+            and_(
+                *base_filters,
+                models.GeneratedDocument.retention_date.isnot(None),
+                models.GeneratedDocument.retention_date <= threshold,
+                models.GeneratedDocument.retention_date > now,
+            )
+        )
+    )
+    entwuerfe_ablaufend = ablauf_q.scalar() or 0
+
+    return {
+        "ohne_versand": ohne_versand,
+        "ruecksendung_ausstehend": ruecksendung_ausstehend,
+        "wiedervorlage_faellig": wiedervorlage_faellig,
+        "freigabe_offen": freigabe_offen,
+        "entwuerfe_ablaufend": entwuerfe_ablaufend,
+    }
 
 
 @router.get("/{document_id}")

@@ -73,7 +73,7 @@ export const Dashboard = () => {
 
     // Fetch lightweight counts for greeting subtitle
     useEffect(() => {
-        api.get<{ clauses: unknown[]; total: number }>("/api/v1/clauses/pending-approval?limit=0")
+        api.get<{ clauses: unknown[]; total: number }>("/api/v1/clause-approval/pending")
             .then(({ data }) => setPendingApprovals(data.total))
             .catch(() => {});
         api.get<{ overdue_count: number }>("/api/v1/deadlines/summary")
