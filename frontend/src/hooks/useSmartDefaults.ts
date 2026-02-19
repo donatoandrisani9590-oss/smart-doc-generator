@@ -46,8 +46,8 @@ export function useSmartDefaults(
         const data = await res.json();
         setDefaults(data);
       }
-    } catch (err) {
-      console.error("Smart defaults fetch failed:", err);
+    } catch {
+      // Non-critical fetch — silently ignore failures
     } finally {
       setIsLoading(false);
     }

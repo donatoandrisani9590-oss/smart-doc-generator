@@ -131,8 +131,8 @@ export const UsersPage = () => {
                 const data = await response.json();
                 setStats(data);
             }
-        } catch (err) {
-            console.error("Failed to fetch stats:", err);
+        } catch {
+            // Stats are supplementary — silent fail is acceptable
         }
     };
 
@@ -304,7 +304,7 @@ export const UsersPage = () => {
                         Benutzerverwaltung
                     </h1>
                     <p className="text-sm text-muted-foreground">
-                        Verwalten Sie Benutzer und deren Berechtigungen
+                        Verwalte Benutzer und deren Berechtigungen
                     </p>
                 </div>
                 <Button
@@ -521,7 +521,7 @@ export const UsersPage = () => {
                     <DialogHeader>
                         <DialogTitle>Neuen Benutzer anlegen</DialogTitle>
                         <DialogDescription>
-                            Erstellen Sie einen neuen Benutzer für das System.
+                            Erstelle einen neuen Benutzer für das System.
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 py-4">

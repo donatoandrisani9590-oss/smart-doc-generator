@@ -193,8 +193,8 @@ export function TeamInstructionsPage() {
           setValues(parseInstructions(data.ai_instructions || ""));
           setHasChanges(false);
         }
-      } catch (err) {
-        console.error("Failed to load instructions:", err);
+      } catch {
+        toast.error("KI-Anweisungen konnten nicht geladen werden");
       } finally {
         setIsLoading(false);
       }
@@ -298,7 +298,7 @@ export function TeamInstructionsPage() {
         <div className="text-center space-y-1">
           <p className="text-sm font-medium text-foreground">Noch kein Team vorhanden</p>
           <p className="text-sm text-muted-foreground max-w-sm">
-            Erstellen Sie zuerst ein Team, um KI-Anweisungen zu konfigurieren.
+            Erstelle zuerst ein Team, um KI-Anweisungen zu konfigurieren.
             Teams ermöglichen abteilungsspezifische Regeln für die KI.
           </p>
         </div>
@@ -325,8 +325,8 @@ export function TeamInstructionsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Ungespeicherte Änderungen</AlertDialogTitle>
             <AlertDialogDescription>
-              Sie haben Änderungen an den KI-Anweisungen vorgenommen, die noch nicht gespeichert wurden.
-              Möchten Sie die Änderungen verwerfen?
+              Du hast Änderungen an den KI-Anweisungen vorgenommen, die noch nicht gespeichert wurden.
+              Möchtest du die Änderungen verwerfen?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -344,7 +344,7 @@ export function TeamInstructionsPage() {
       <div>
         <h2 className="text-xl font-semibold tracking-tight text-foreground">KI-Anweisungen</h2>
         <p className="text-sm text-muted-foreground mt-1">
-          Definieren Sie Regeln, die der KI-Assistent bei der Dokumenterstellung befolgen soll.
+          Definiere Regeln, die der KI-Assistent bei der Dokumenterstellung befolgen soll.
         </p>
       </div>
 

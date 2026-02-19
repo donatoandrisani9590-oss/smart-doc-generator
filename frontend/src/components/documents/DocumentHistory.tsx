@@ -115,9 +115,14 @@ export const DocumentHistory = ({ userId = "anonymous", countryCode }: DocumentH
                                         variant="ghost"
                                         size="icon"
                                         onClick={() => handleDelete(doc.id)}
+                                        disabled={deleteDoc.isPending}
                                         className="text-destructive hover:text-destructive"
                                     >
-                                        <Trash2 className="w-4 h-4" />
+                                        {deleteDoc.isPending ? (
+                                            <Loader2 className="w-4 h-4 animate-spin" />
+                                        ) : (
+                                            <Trash2 className="w-4 h-4" />
+                                        )}
                                     </Button>
                                 </div>
                             </div>

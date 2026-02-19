@@ -78,7 +78,7 @@ const FEATURE_LABELS: Record<string, string> = {
     compliance: "Compliance-Prüfung",
     chat: "Chat-Assistent",
     smart_mode: "Smart Mode",
-    clause_ai: "Klausel-KI",
+    clause_ai: "Textbaustein-KI",
     consistency: "Konsistenzprüfung",
     document_upload: "Dokumentenanalyse",
 };
@@ -111,8 +111,8 @@ export function LLMUsagePage() {
         try {
             const { data } = await api.get<LLMUsageStats>("/api/v1/admin/llm-usage/stats");
             setStats(data);
-        } catch (err) {
-            console.error("Fehler beim Laden der KI-Statistiken:", err);
+        } catch {
+            // Silently handled - empty state shown when stats is null
         }
     }, []);
 
@@ -128,8 +128,8 @@ export function LLMUsagePage() {
                 `/api/v1/admin/llm-usage/logs?${params}`
             );
             setLogs(data);
-        } catch (err) {
-            console.error("Fehler beim Laden der KI-Logs:", err);
+        } catch {
+            // Silently handled - empty state shown when logs is null
         } finally {
             setLogsLoading(false);
         }

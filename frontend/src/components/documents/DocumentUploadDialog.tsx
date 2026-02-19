@@ -159,8 +159,7 @@ export function DocumentUploadDialog({
             description: `${response.data.extracted_fields.length} Felder erkannt`,
           });
         }
-      } catch (err) {
-        console.error("Upload failed:", err);
+      } catch {
         toast.error("Upload fehlgeschlagen");
         setResult({
           success: false,
@@ -171,7 +170,7 @@ export function DocumentUploadDialog({
           page_count: 0,
           file_type: "",
           provider: "error",
-          error: "Analyse fehlgeschlagen. Bitte versuchen Sie es erneut.",
+          error: "Analyse fehlgeschlagen. Bitte versuche es erneut.",
         });
       } finally {
         setIsUploading(false);
@@ -248,7 +247,7 @@ export function DocumentUploadDialog({
             Dokument hochladen
           </DialogTitle>
           <DialogDescription>
-            Laden Sie ein bestehendes Dokument hoch und extrahieren Sie Daten
+            Lade ein bestehendes Dokument hoch und extrahiere Daten
             automatisch
           </DialogDescription>
         </DialogHeader>
@@ -464,7 +463,7 @@ export function DocumentUploadDialog({
             <div className="flex items-start gap-2 text-xs text-muted-foreground">
               <Shield className="w-4 h-4 mt-0.5 flex-shrink-0" />
               <p>
-                Ihre Dokumente werden datenschutzkonform verarbeitet.{" "}
+                Deine Dokumente werden datenschutzkonform verarbeitet.{" "}
                 {useAI
                   ? "KI-Analyse über EU-hosted Mistral AI oder lokales Ollama."
                   : "Nur musterbasierte Extraktion ohne externe Dienste."}

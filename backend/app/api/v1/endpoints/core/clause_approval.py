@@ -264,7 +264,7 @@ async def reset_to_draft(
     current_user: Annotated[Any, Depends(deps.get_current_user)],
 ) -> Any:
     """
-    Abgelehnte Klausel zurück zu Entwurf setzen (Tenant-isoliert).
+    Abgelehnten Textbaustein zurück zu Entwurf setzen (Tenant-isoliert).
 
     Status: rejected → draft
     """
@@ -302,7 +302,7 @@ async def approve_clause(
     current_user: Any = Depends(deps.get_current_active_admin),
 ) -> Any:
     """
-    Klausel direkt freigeben (vereinfachter Endpoint für Smart UX, Tenant-isoliert).
+    Textbaustein direkt freigeben (vereinfachter Endpoint für Smart UX, Tenant-isoliert).
     """
     clause = await db.get(Clause, clause_id)
     if not clause:
@@ -342,7 +342,7 @@ async def approve_clause(
                 approved=True,
             )
         except Exception as e:
-            logger.warning("Benachrichtigung für Klausel-Freigabe fehlgeschlagen (clause_id=%s): %s", clause_id, e)
+            logger.warning("Benachrichtigung für Textbaustein-Freigabe fehlgeschlagen (clause_id=%s): %s", clause_id, e)
 
     return {
         "message": "Textbaustein freigegeben und aktiviert",
@@ -359,7 +359,7 @@ async def reject_clause(
     current_user: Annotated[Any, Depends(deps.get_current_active_admin)],
 ) -> Any:
     """
-    Klausel direkt ablehnen (vereinfachter Endpoint für Smart UX, Tenant-isoliert).
+    Textbaustein direkt ablehnen (vereinfachter Endpoint für Smart UX, Tenant-isoliert).
     """
     clause = await db.get(Clause, clause_id)
     if not clause:
@@ -395,7 +395,7 @@ async def reject_clause(
                 reason=request.reason,
             )
         except Exception as e:
-            logger.warning("Benachrichtigung für Klausel-Ablehnung fehlgeschlagen (clause_id=%s): %s", clause_id, e)
+            logger.warning("Benachrichtigung für Textbaustein-Ablehnung fehlgeschlagen (clause_id=%s): %s", clause_id, e)
 
     return {
         "message": "Textbaustein abgelehnt",

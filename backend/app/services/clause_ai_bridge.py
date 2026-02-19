@@ -121,7 +121,7 @@ def build_clause_catalog_prompt(clauses: List[Dict[str, Any]]) -> str:
     - Includes content preview so the LLM knows what each clause does
 
     Example output:
-    === VERFÜGBARE KLAUSELN (12 Stück) ===
+    === VERFÜGBARE TEXTBAUSTEINE (12 Stück) ===
 
     ## Kategorie: Kündigung
     [ID:5] "Ordentliche Kündigung Standard"
@@ -148,7 +148,7 @@ def build_clause_catalog_prompt(clauses: List[Dict[str, Any]]) -> str:
         cat = clause["category"]
         categories.setdefault(cat, []).append(clause)
 
-    lines = [f"=== VERFÜGBARE KLAUSELN ({len(clauses)} Stück) ===\n"]
+    lines = [f"=== VERFÜGBARE TEXTBAUSTEINE ({len(clauses)} Stück) ===\n"]
 
     for cat_name, cat_clauses in sorted(categories.items()):
         lines.append(f"## Kategorie: {cat_name}")

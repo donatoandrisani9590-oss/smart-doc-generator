@@ -167,8 +167,8 @@ export const TemplateHeaderFooterEditor = ({
     try {
       const res = await api.get<DocumentType[]>("/api/v1/document-types");
       setAvailableTemplates(res.data.filter((t) => t.id !== documentTypeId));
-    } catch (error) {
-      console.error("Failed to load templates:", error);
+    } catch {
+      toast.error("Fehler", "Verfügbare Vorlagen konnten nicht geladen werden");
     }
   };
 
@@ -304,7 +304,7 @@ export const TemplateHeaderFooterEditor = ({
         <Alert>
           <Info className="h-4 w-4" />
           <AlertDescription>
-            Diese Vorlage verwendet die globalen Design-Einstellungen. Aktivieren Sie die Schalter unten,
+            Diese Vorlage verwendet die globalen Design-Einstellungen. Aktiviere die Schalter unten,
             um individuelle Kopf-/Fußzeilen für diese Vorlage zu definieren.
           </AlertDescription>
         </Alert>
@@ -487,7 +487,7 @@ export const TemplateHeaderFooterEditor = ({
           <DialogHeader>
             <DialogTitle>Einstellungen von Vorlage übernehmen</DialogTitle>
             <DialogDescription>
-              Wählen Sie eine Vorlage aus, deren Kopf-/Fußzeilen-Einstellungen Sie übernehmen möchten.
+              Wähle eine Vorlage aus, deren Kopf-/Fußzeilen-Einstellungen du übernehmen möchtest.
             </DialogDescription>
           </DialogHeader>
 

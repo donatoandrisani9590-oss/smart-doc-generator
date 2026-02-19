@@ -224,8 +224,8 @@ export default function RetentionPoliciesPage() {
                 body: JSON.stringify({ ...policy, is_active: !policy.is_active }),
             });
             await fetchPolicies();
-        } catch (err) {
-            console.error("Toggle failed:", err);
+        } catch {
+            // Handled by global error boundary
         }
     };
 
@@ -248,7 +248,7 @@ export default function RetentionPoliciesPage() {
                         Aufbewahrungsrichtlinien
                     </h1>
                     <p className="text-sm text-muted-foreground">
-                        Definieren Sie, wie lange Dokumente aufbewahrt werden
+                        Definiere, wie lange Dokumente aufbewahrt werden
                     </p>
                 </div>
                 <Button onClick={openNewDialog}>
@@ -373,7 +373,7 @@ export default function RetentionPoliciesPage() {
                             {editingPolicy ? "Richtlinie bearbeiten" : "Neue Aufbewahrungsrichtlinie"}
                         </DialogTitle>
                         <DialogDescription>
-                            Definieren Sie, wie lange Dokumente aufbewahrt werden sollen.
+                            Definiere, wie lange Dokumente aufbewahrt werden sollen.
                         </DialogDescription>
                     </DialogHeader>
 

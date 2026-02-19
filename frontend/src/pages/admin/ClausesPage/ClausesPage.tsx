@@ -292,8 +292,7 @@ export const ClausesPage = () => {
             setShowDeleteConfirm(false);
             setClauseToDelete(null);
             toast.success("Textbaustein gelöscht", `"${clauseToDelete.title}" wurde erfolgreich gelöscht`);
-        } catch (error) {
-            console.error("Delete failed:", error);
+        } catch {
             toast.error("Löschen fehlgeschlagen", "Der Textbaustein konnte nicht gelöscht werden");
         }
     };
@@ -312,8 +311,7 @@ export const ClausesPage = () => {
             await createMutation.mutateAsync(duplicateData);
             toast.success("Textbaustein dupliziert", `Kopie von "${clause.title}" wurde erstellt`);
             refetch();
-        } catch (error) {
-            console.error("Duplicate failed:", error);
+        } catch {
             toast.error("Duplizieren fehlgeschlagen", "Der Textbaustein konnte nicht kopiert werden");
         }
     };
@@ -391,7 +389,7 @@ export const ClausesPage = () => {
                         Textbausteine
                     </h1>
                     <p className="text-sm text-muted-foreground">
-                        Verwalten Sie wiederverwendbare Textblöcke für Ihre Dokumente
+                        Verwalte wiederverwendbare Textblöcke für deine Dokumente
                     </p>
                 </div>
                 <div className="flex gap-2">
@@ -638,7 +636,7 @@ export const ClausesPage = () => {
                                     Keine Textbausteine gefunden
                                 </p>
                                 <p className="text-muted-foreground mb-4">
-                                    Versuchen Sie andere Filterkriterien oder erstellen Sie einen neuen Textbaustein.
+                                    Versuche andere Filterkriterien oder erstelle einen neuen Textbaustein.
                                 </p>
                             </>
                         ) : (
@@ -648,8 +646,8 @@ export const ClausesPage = () => {
                                     Willkommen bei den Textbausteinen!
                                 </p>
                                 <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                                    Textbausteine sind wiederverwendbare Absätze für Ihre Dokumente.
-                                    Erstellen Sie z.B. Bausteine für <span className="font-medium">{"\u201E"}Arbeitszeit{"\u201C"}</span>,
+                                    Textbausteine sind wiederverwendbare Absätze für deine Dokumente.
+                                    Erstelle z.B. Bausteine für <span className="font-medium">{"\u201E"}Arbeitszeit{"\u201C"}</span>,
                                     <span className="font-medium"> {"\u201E"}Kündigungsfrist{"\u201C"}</span> oder
                                     <span className="font-medium"> {"\u201E"}Geheimhaltung{"\u201C"}</span>.
                                 </p>
@@ -682,7 +680,7 @@ export const ClausesPage = () => {
                                 </Button>
 
                                 <p className="text-xs text-muted-foreground mt-4">
-                                    Tipp: Sie können auch bestehende Word-Dokumente importieren
+                                    Tipp: Du kannst auch bestehende Word-Dokumente importieren
                                 </p>
                             </>
                         )}

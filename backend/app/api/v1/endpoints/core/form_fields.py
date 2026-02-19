@@ -510,7 +510,7 @@ async def sync_form_fields_from_clauses(
             )
             db.add(new_field)
             created_count += 1
-            clause_info = f" (Klausel #{source_clause_id})" if source_clause_id else ""
+            clause_info = f" (Textbaustein #{source_clause_id})" if source_clause_id else ""
             details.append(f"✅ Feld erstellt: {placeholder_name} ({new_field.field_label}){clause_info}")
 
     # 5. Remove system fields that are no longer used

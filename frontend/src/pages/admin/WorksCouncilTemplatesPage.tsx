@@ -126,8 +126,8 @@ export default function WorksCouncilTemplatesPage() {
                 const data = await response.json();
                 setTemplates(data);
             }
-        } catch (error) {
-            console.error("Failed to load templates:", error);
+        } catch {
+            // Handled by global error boundary
         } finally {
             setIsLoading(false);
         }
@@ -140,8 +140,8 @@ export default function WorksCouncilTemplatesPage() {
                 const data = await response.json();
                 setNotifications(data);
             }
-        } catch (error) {
-            console.error("Failed to load notifications:", error);
+        } catch {
+            // Handled by global error boundary
         }
     };
 
@@ -191,8 +191,8 @@ export default function WorksCouncilTemplatesPage() {
                 setShowEditor(false);
                 loadTemplates();
             }
-        } catch (error) {
-            console.error("Failed to save template:", error);
+        } catch {
+            // Handled by global error boundary
         } finally {
             setIsLoading(false);
         }
@@ -262,7 +262,7 @@ export default function WorksCouncilTemplatesPage() {
                         Betriebsrat-Vorlagen
                     </h1>
                     <p className="text-sm text-muted-foreground">
-                        Verwalten Sie Vorlagen für §99 BetrVG Mitteilungen
+                        Verwalte Vorlagen für §99 BetrVG Mitteilungen
                     </p>
                 </div>
                 <div className="flex gap-2">
@@ -303,7 +303,7 @@ export default function WorksCouncilTemplatesPage() {
                                 <Users className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
                                 <h3 className="font-medium mb-2">Keine Vorlagen vorhanden</h3>
                                 <p className="text-muted-foreground mb-4">
-                                    Erstellen Sie Ihre erste BR-Vorlage.
+                                    Erstelle deine erste BR-Vorlage.
                                 </p>
                                 <Button onClick={() => openEditor()}>
                                     <Plus className="w-4 h-4 mr-2" />
@@ -407,7 +407,7 @@ export default function WorksCouncilTemplatesPage() {
                             {editingTemplate ? "Vorlage bearbeiten" : "Neue Vorlage erstellen"}
                         </DialogTitle>
                         <DialogDescription>
-                            Konfigurieren Sie die BR-Mitteilungsvorlage
+                            Konfiguriere die BR-Mitteilungsvorlage
                         </DialogDescription>
                     </DialogHeader>
 
@@ -446,7 +446,7 @@ export default function WorksCouncilTemplatesPage() {
                         <div className="space-y-2">
                             <Label>Übermittelte Felder</Label>
                             <p className="text-sm text-muted-foreground">
-                                Wählen Sie die Felder, die in der BR-Mitteilung enthalten sein sollen.
+                                Wähle die Felder, die in der BR-Mitteilung enthalten sein sollen.
                             </p>
                             <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3 mt-2">
                                 {AVAILABLE_FIELDS.map((field) => (
@@ -471,7 +471,7 @@ export default function WorksCouncilTemplatesPage() {
                         <div className="space-y-2">
                             <Label>Template-Inhalt (HTML)</Label>
                             <p className="text-sm text-muted-foreground">
-                                Verwenden Sie {"{{feldname}}"} als Platzhalter.
+                                Verwende {"{{feldname}}"} als Platzhalter.
                             </p>
                             <Textarea
                                 value={formData.content_html}

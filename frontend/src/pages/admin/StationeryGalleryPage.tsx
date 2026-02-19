@@ -74,7 +74,7 @@ function DeleteDialog({ template, open, onOpenChange, onConfirm, isDeleting }: D
                 <DialogHeader>
                     <DialogTitle>Briefpapier löschen</DialogTitle>
                     <DialogDescription>
-                        Sind Sie sicher, dass Sie das Briefpapier &ldquo;{template?.name}&rdquo; löschen möchten?
+                        Bist du sicher, dass du das Briefpapier &ldquo;{template?.name}&rdquo; löschen möchtest?
                         Diese Aktion kann nicht rückgängig gemacht werden.
                     </DialogDescription>
                 </DialogHeader>
@@ -236,8 +236,8 @@ export function StationeryGalleryPage() {
                 // API endpoint may not be deployed yet - show empty state
                 setTemplates([]);
             }
-        } catch (err) {
-            console.error("Failed to fetch stationery templates:", err);
+        } catch {
+            toast.error("Fehler", "Briefpapiere konnten nicht geladen werden");
             setTemplates([]);
         } finally {
             setLoading(false);
@@ -289,8 +289,7 @@ export function StationeryGalleryPage() {
             } else {
                 toast.error("Fehler", "Briefpapier konnte nicht gelöscht werden");
             }
-        } catch (err) {
-            console.error("Failed to delete stationery template:", err);
+        } catch {
             toast.error("Fehler", "Briefpapier konnte nicht gelöscht werden");
         } finally {
             setIsDeleting(false);
@@ -318,8 +317,7 @@ export function StationeryGalleryPage() {
             } else {
                 toast.error("Fehler", "Standard konnte nicht gesetzt werden");
             }
-        } catch (err) {
-            console.error("Failed to set default stationery:", err);
+        } catch {
             toast.error("Fehler", "Standard konnte nicht gesetzt werden");
         }
     };
@@ -338,8 +336,7 @@ export function StationeryGalleryPage() {
             } else {
                 toast.error("Fehler", "Download fehlgeschlagen");
             }
-        } catch (err) {
-            console.error("Failed to download stationery template:", err);
+        } catch {
             toast.error("Fehler", "Download fehlgeschlagen");
         }
     };
@@ -365,8 +362,7 @@ export function StationeryGalleryPage() {
                 const err = await response.json().catch(() => null);
                 toast.error("Fehler", err?.detail || "Änderungen konnten nicht gespeichert werden");
             }
-        } catch (err) {
-            console.error("Failed to update stationery template:", err);
+        } catch {
             toast.error("Fehler", "Änderungen konnten nicht gespeichert werden");
         } finally {
             setIsSaving(false);
@@ -442,7 +438,7 @@ export function StationeryGalleryPage() {
                                 : "Noch kein Briefpapier"}
                         </h3>
                         <p className="text-sm text-muted-foreground max-w-md mb-4">
-                            Laden Sie eine DOCX-Datei mit Ihrem Firmen-Briefpapier hoch (Logo, Kopf-/Fusszeile),
+                            Lade eine DOCX-Datei mit deinem Firmen-Briefpapier hoch (Logo, Kopf-/Fusszeile),
                             um dieses als Layout-Basis bei der Dokumentenerstellung zu verwenden.
                         </p>
                         <Button onClick={() => setUploadOpen(true)} variant="outline" className="gap-2">

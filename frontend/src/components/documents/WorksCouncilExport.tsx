@@ -40,6 +40,7 @@ import {
     Loader2,
     Send,
 } from "lucide-react";
+import { toast } from "sonner";
 
 interface BRTemplate {
     id: number;
@@ -140,8 +141,8 @@ export function WorksCouncilExport({
                     setSelectedTemplate(String(data[0].id));
                 }
             }
-        } catch (error) {
-            console.error("Failed to load templates:", error);
+        } catch {
+            toast.error("Vorlagen konnten nicht geladen werden");
         } finally {
             setIsLoading(false);
         }
@@ -194,8 +195,8 @@ export function WorksCouncilExport({
                 setGeneratedId(data.id);
                 setActiveTab("preview");
             }
-        } catch (error) {
-            console.error("Preview generation failed:", error);
+        } catch {
+            toast.error("Vorschau konnte nicht generiert werden");
         } finally {
             setIsLoading(false);
         }
@@ -211,8 +212,8 @@ export function WorksCouncilExport({
                 method: "PATCH",
             });
             onOpenChange(false);
-        } catch (error) {
-            console.error("Failed to update status:", error);
+        } catch {
+            toast.error("Status konnte nicht aktualisiert werden");
         } finally {
             setIsGenerating(false);
         }
@@ -234,7 +235,7 @@ export function WorksCouncilExport({
                         Betriebsrat-Mitteilung erstellen
                     </DialogTitle>
                     <DialogDescription>
-                        Erstellen Sie eine §99 BetrVG konforme Mitteilung an den Betriebsrat.
+                        Erstelle eine §99 BetrVG konforme Mitteilung an den Betriebsrat.
                         Sensible Daten (Gehalt, Bank, etc.) werden automatisch ausgeschlossen.
                     </DialogDescription>
                 </DialogHeader>
@@ -332,7 +333,7 @@ export function WorksCouncilExport({
                                     <AlertCircle className="w-8 h-8 mx-auto mb-2" />
                                     <p>Keine BR-relevanten Daten gefunden.</p>
                                     <p className="text-sm">
-                                        Bitte füllen Sie zuerst das Formular aus.
+                                        Bitte fülle zuerst das Formular aus.
                                     </p>
                                 </div>
                             )}
@@ -349,7 +350,7 @@ export function WorksCouncilExport({
                                 />
                             ) : (
                                 <div className="text-center py-8 text-muted-foreground">
-                                    Klicken Sie auf "Vorschau generieren" um die Mitteilung zu sehen.
+                                    Klicke auf "Vorschau generieren", um die Mitteilung zu sehen.
                                 </div>
                             )}
                         </div>

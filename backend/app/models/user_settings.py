@@ -54,7 +54,7 @@ class UserFeatureSettings(Base):
 # Feature definitions for frontend
 FEATURE_DEFINITIONS = {
     "show_documents_overview": {
-        "label": "Dokumentenübersicht",
+        "label": "Meine Dokumente",
         "description": "Zeigt eine Tabelle aller Dokumente mit Status und Suche",
         "category": "dashboard",
         "icon": "FileText"

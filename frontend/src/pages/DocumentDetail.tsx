@@ -154,7 +154,6 @@ export const DocumentDetailPage = () => {
             })
             .catch((err) => {
                 if (err.name === "AbortError") return;
-                console.error("Failed to fetch related documents:", err);
                 if (!abortController.signal.aborted) {
                     setRelatedDocs([]);
                 }

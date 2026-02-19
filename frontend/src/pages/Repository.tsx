@@ -273,8 +273,7 @@ export const RepositoryPage = () => {
             } else {
                 toast.success("Aktion erfolgreich", messages[action]);
             }
-        } catch (error) {
-            console.error("Bulk action failed:", error);
+        } catch {
             toast.error("Fehler", "Die Aktion konnte nicht ausgeführt werden");
         }
     };
@@ -308,7 +307,7 @@ export const RepositoryPage = () => {
                     <h1 className="text-2xl font-semibold text-foreground leading-tight">Meine Dokumente</h1>
                     <p className="text-sm text-muted-foreground mt-2">
                         {drafts?.length ? `${drafts.length} Entwürfe, ` : ""}
-                        {stats ? `${stats.total_documents} fertige Dokumente` : "Alle Ihre Dokumente"}
+                        {stats ? `${stats.total_documents} fertige Dokumente` : "Alle deine Dokumente"}
                     </p>
                 </div>
                 <Link to="/generate" className="flex-shrink-0">
@@ -563,7 +562,7 @@ export const RepositoryPage = () => {
                                 <>
                                     <h3 className="text-lg font-medium mb-2">Keine Treffer</h3>
                                     <p className="text-muted-foreground mb-4">
-                                        Versuchen Sie andere Suchkriterien.
+                                        Versuche andere Suchkriterien.
                                     </p>
                                     <Button variant="outline" onClick={clearFilters}>
                                         Filter zurücksetzen
@@ -573,7 +572,7 @@ export const RepositoryPage = () => {
                                 <>
                                     <h3 className="text-lg font-medium mb-2">Noch keine Dokumente</h3>
                                     <p className="text-muted-foreground mb-4">
-                                        Erstellen Sie Ihr erstes Dokument.
+                                        Erstelle dein erstes Dokument.
                                     </p>
                                     <Button onClick={() => navigate("/generate")}>
                                         <PlusCircle className="w-4 h-4 mr-2" />

@@ -180,7 +180,7 @@ class MistralService {
         intent: localResult,
         message: localResult.confidence > 0.3
           ? this.generateLocalMessage(localResult)
-          : 'Ich konnte Ihre Anfrage nicht vollständig verstehen. Bitte formulieren Sie sie etwas genauer.',
+          : 'Ich konnte deine Anfrage nicht vollständig verstehen. Bitte formuliere sie etwas genauer.',
         suggestedActions: this.generateSuggestedActions(localResult),
         provider: 'local',
         processingTime: performance.now() - startTime,
@@ -194,8 +194,7 @@ class MistralService {
         ...mistralResult,
         processingTime: performance.now() - startTime,
       };
-    } catch (error) {
-      console.error('Mistral API error:', error);
+    } catch {
       // Fallback auf lokales Ergebnis
       return {
         intent: localResult,
@@ -278,7 +277,7 @@ class MistralService {
       if (dataCount > 0) {
         return `Ich erstelle einen ${intent.documentType} mit ${dataCount} vorausgefüllten Feldern.`;
       }
-      return `Ich erstelle einen ${intent.documentType} für Sie.`;
+      return `Ich erstelle einen ${intent.documentType} für dich.`;
     }
 
     if (intent.intentType === 'fill_field' && dataCount > 0) {
@@ -289,7 +288,7 @@ class MistralService {
       return `Ich habe folgende Daten erkannt: ${Object.keys(intent.extractedData).join(', ')}.`;
     }
 
-    return 'Bitte beschreiben Sie, welches Dokument Sie erstellen möchten.';
+    return 'Bitte beschreibe, welches Dokument du erstellen möchtest.';
   }
 
   /**

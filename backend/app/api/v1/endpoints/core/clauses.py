@@ -223,7 +223,7 @@ async def read_clause(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[models.Base, Depends(deps.get_current_user)],
 ) -> Any:
-    """Einzelne Klausel abrufen (Tenant-isoliert)."""
+    """Einzelnen Textbaustein abrufen (Tenant-isoliert)."""
     clause = await db.get(models.Clause, clause_id)
     if not clause:
         raise HTTPException(status_code=404, detail="Textbaustein nicht gefunden")
@@ -263,7 +263,7 @@ async def update_clause(
     current_user: Annotated[models.Base, Depends(deps.get_current_active_admin)],
 ) -> Any:
     """
-    Klausel aktualisieren.
+    Textbaustein aktualisieren.
 
     Erfordert Admin-Rechte. Die Versionsnummer wird automatisch erhöht.
     Tenant-isoliert: Nur eigene oder globale Textbausteine dürfen bearbeitet werden.
@@ -297,7 +297,7 @@ async def delete_clause(
     current_user: Annotated[models.Base, Depends(deps.get_current_active_admin)],
 ) -> Any:
     """
-    Klausel löschen.
+    Textbaustein löschen.
 
     Erfordert Admin-Rechte. Entfernt den Textbaustein auch aus allen Dokumenttypen.
     Tenant-isoliert: Nur eigene Textbausteine dürfen gelöscht werden.

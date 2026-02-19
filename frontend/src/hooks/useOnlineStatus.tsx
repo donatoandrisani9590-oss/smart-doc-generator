@@ -4,14 +4,17 @@
  * Überwacht den Verbindungsstatus und zeigt einen Indikator an.
  */
 
-import { useState, useEffect, createContext, useContext } from "react";
+import { useState, useEffect, useRef, createContext, useContext } from "react";
 import type { ReactNode } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Wifi, WifiOff, RefreshCw } from "lucide-react";
+import { Wifi, WifiOff, RefreshCw, ServerOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { getApiBaseUrl } from "@/lib/api-client";
 
 interface OnlineStatusContextType {
     isOnline: boolean;
+    /** Backend is reachable */
+    isBackendReachable: boolean;
     /** Time since last online (in ms) */
     offlineSince: number | null;
     /** Manually check connection */
@@ -45,18 +48,28 @@ export function OnlineStatusProvider({
     const [isOnline, setIsOnline] = useState(
         typeof navigator !== "undefined" ? navigator.onLine : true
     );
+    const [isBackendReachable, setIsBackendReachable] = useState(true);
     const [offlineSince, setOfflineSince] = useState<number | null>(null);
     const [showReconnected, setShowReconnected] = useState(false);
+    const backendCheckRef = useRef<ReturnType<typeof setInterval>>(undefined);
 
-    // Check connection by pinging server
+    // Build full backend URL for health pings
+    const backendPingUrl = `${getApiBaseUrl()}${pingEndpoint}`;
+
+    // Check connection by pinging backend server
     const checkConnection = async (): Promise<boolean> => {
         try {
-            const response = await fetch(pingEndpoint, {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 5000);
+            const response = await fetch(backendPingUrl, {
                 method: "HEAD",
                 cache: "no-store",
+                signal: controller.signal,
             });
+            clearTimeout(timeoutId);
             const online = response.ok;
             setIsOnline(online);
+            setIsBackendReachable(online);
             if (online && offlineSince) {
                 setOfflineSince(null);
                 setShowReconnected(true);
@@ -64,7 +77,13 @@ export function OnlineStatusProvider({
             }
             return online;
         } catch {
-            setIsOnline(false);
+            setIsBackendReachable(false);
+            if (navigator.onLine) {
+                // Browser is online but backend is down
+                setIsOnline(true);
+            } else {
+                setIsOnline(false);
+            }
             if (!offlineSince) {
                 setOfflineSince(Date.now());
             }
@@ -72,18 +91,23 @@ export function OnlineStatusProvider({
         }
     };
 
+    // Initial backend health check on mount
+    useEffect(() => {
+        const timer = setTimeout(() => checkConnection(), 2000);
+        return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     useEffect(() => {
         const handleOnline = () => {
             setIsOnline(true);
-            if (offlineSince) {
-                setShowReconnected(true);
-                setTimeout(() => setShowReconnected(false), 3000);
-            }
-            setOfflineSince(null);
+            // When browser comes back online, verify backend too
+            checkConnection();
         };
 
         const handleOffline = () => {
             setIsOnline(false);
+            setIsBackendReachable(false);
             if (!offlineSince) {
                 setOfflineSince(Date.now());
             }
@@ -102,33 +126,46 @@ export function OnlineStatusProvider({
             window.removeEventListener("app:online", handleOnline);
             window.removeEventListener("app:offline", handleOffline);
         };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [offlineSince]);
 
-    // Periodic connection check when offline
+    // Periodic connection check when offline or backend unreachable
     useEffect(() => {
-        if (isOnline) return;
+        if (isOnline && isBackendReachable) {
+            if (backendCheckRef.current) clearInterval(backendCheckRef.current);
+            return;
+        }
 
-        const interval = setInterval(() => {
+        backendCheckRef.current = setInterval(() => {
             checkConnection();
         }, 10000); // Check every 10 seconds
 
-        return () => clearInterval(interval);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- checkConnection is stable; only start/stop interval based on online state
-    }, [isOnline]);
+        return () => {
+            if (backendCheckRef.current) clearInterval(backendCheckRef.current);
+        };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isOnline, isBackendReachable]);
 
     return (
-        <OnlineStatusContext.Provider value={{ isOnline, offlineSince, checkConnection }}>
+        <OnlineStatusContext.Provider value={{ isOnline, isBackendReachable, offlineSince, checkConnection }}>
             {children}
 
             {showBanner && (
                 <>
-                    {/* Offline Banner */}
+                    {/* Offline Banner (no internet) */}
                     <AnimatePresence>
                         {!isOnline && (
                             <OfflineBanner
                                 offlineSince={offlineSince}
                                 onRetry={checkConnection}
                             />
+                        )}
+                    </AnimatePresence>
+
+                    {/* Backend Unreachable Banner (internet OK but server down) */}
+                    <AnimatePresence>
+                        {isOnline && !isBackendReachable && (
+                            <BackendDownBanner onRetry={checkConnection} />
                         )}
                     </AnimatePresence>
 
@@ -186,6 +223,55 @@ function OfflineBanner({ offlineSince, onRetry }: OfflineBannerProps) {
                                 Offline seit {formatDuration(Date.now() - offlineSince)}
                             </p>
                         )}
+                    </div>
+                </div>
+
+                <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={handleRetry}
+                    disabled={isRetrying}
+                    className="bg-white/20 hover:bg-white/30 text-white border-0"
+                >
+                    {isRetrying ? (
+                        <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                        <RefreshCw className="w-4 h-4 mr-2" />
+                    )}
+                    Erneut versuchen
+                </Button>
+            </div>
+        </motion.div>
+    );
+}
+
+function BackendDownBanner({ onRetry }: { onRetry: () => void }) {
+    const [isRetrying, setIsRetrying] = useState(false);
+
+    const handleRetry = async () => {
+        setIsRetrying(true);
+        await onRetry();
+        setIsRetrying(false);
+    };
+
+    return (
+        <motion.div
+            initial={{ y: -100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: -100, opacity: 0 }}
+            transition={{ type: "spring", damping: 20 }}
+            className="fixed top-0 left-0 right-0 z-50 bg-red-600 text-white px-4 py-3 shadow-lg"
+            role="alert"
+            aria-live="assertive"
+        >
+            <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                    <ServerOff className="w-5 h-5" aria-hidden="true" />
+                    <div>
+                        <p className="font-medium">Server nicht erreichbar</p>
+                        <p className="text-sm text-white/80">
+                            Das Backend antwortet nicht. Einige Funktionen sind eingeschränkt.
+                        </p>
                     </div>
                 </div>
 

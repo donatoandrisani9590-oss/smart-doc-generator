@@ -72,6 +72,7 @@ import { useVariantGroups, useTestPreview, useSyncFormFields, type VariantGroup,
 import { sanitizeHtml } from "@/utils/sanitize";
 import "@/styles/preview.css";
 import { RefreshCw, AlertTriangle } from "lucide-react";
+import { toast } from "sonner";
 
 import type { Clause, ClauseCondition, AssignedClause, Attachment, AssignedAttachment } from "./types";
 import { listItemVariants, listTransition } from "./constants";
@@ -169,8 +170,8 @@ export const DocumentDesigner = () => {
                     // Load assigned clauses
                     // const assignedRes = await fetch(`/api/v1/document-types/${id}/clauses`);
                 }
-            } catch (error) {
-                console.error("Error loading data:", error);
+            } catch {
+                toast.error("Daten konnten nicht geladen werden");
             } finally {
                 setIsLoading(false);
             }
@@ -293,7 +294,7 @@ export const DocumentDesigner = () => {
     const handleTestPreview = async () => {
         const clauseIds = assignedClauses.map(c => c.id);
         if (clauseIds.length === 0) {
-            alert("Bitte fügen Sie mindestens einen Textbaustein hinzu");
+            alert("Bitte füge mindestens einen Textbaustein hinzu");
             return;
         }
 
@@ -304,15 +305,15 @@ export const DocumentDesigner = () => {
             });
             setPreviewHtml(html);
             setShowPreviewDialog(true);
-        } catch (error) {
-            console.error("Preview failed:", error);
+        } catch {
+            toast.error("Vorschau konnte nicht generiert werden");
         }
     };
 
     // Handle form field sync - extracts placeholders from clauses and creates form fields
     const handleSyncFormFields = async () => {
         if (!id || isNewDocument) {
-            alert("Bitte speichern Sie den Dokumenttyp zuerst");
+            alert("Bitte speichere den Dokumenttyp zuerst");
             return;
         }
 
@@ -320,8 +321,8 @@ export const DocumentDesigner = () => {
             const result = await syncFormFieldsMutation.mutateAsync(parseInt(id));
             setSyncResult(result);
             setShowSyncResultDialog(true);
-        } catch (error) {
-            console.error("Sync failed:", error);
+        } catch {
+            toast.error("Formularfelder konnten nicht synchronisiert werden");
         }
     };
 
@@ -364,8 +365,8 @@ export const DocumentDesigner = () => {
             // await apiFetch(url, { method: isNewDocument ? "POST" : "PUT", body: JSON.stringify(payload) });
             await new Promise((r) => setTimeout(r, 1000)); // Simulate API call
             navigate("/admin/document-types");
-        } catch (error) {
-            console.error("Error saving:", error);
+        } catch {
+            toast.error("Dokumenttyp konnte nicht gespeichert werden");
         } finally {
             setIsSaving(false);
         }
@@ -657,7 +658,7 @@ export const DocumentDesigner = () => {
                                                 <Layers className="w-8 h-8 mx-auto mb-2 opacity-50" />
                                                 <p className="text-sm">Keine Varianten-Gruppen vorhanden</p>
                                                 <p className="text-xs mt-1">
-                                                    Erstellen Sie Varianten in der Textbaustein-Verwaltung
+                                                    Erstelle Varianten in der Textbaustein-Verwaltung
                                                 </p>
                                             </div>
                                         ) : (
@@ -837,7 +838,7 @@ export const DocumentDesigner = () => {
                                         Keine Textbausteine zugewiesen
                                     </h3>
                                     <p className="text-muted-foreground">
-                                        Klicken Sie auf <Plus className="w-4 h-4 inline" /> bei einem
+                                        Klicke auf <Plus className="w-4 h-4 inline" /> bei einem
                                         Textbaustein links, um ihn hinzuzufügen.
                                     </p>
                                 </div>
@@ -903,7 +904,7 @@ export const DocumentDesigner = () => {
                                 </div>
                                 <p className="text-sm text-muted-foreground mt-4">
                                     Diese Felder werden automatisch im Formular für Nutzer angezeigt.
-                                    Sie können die Felder im{" "}
+                                    Du kannst die Felder im{" "}
                                     <a
                                         href="/admin/form-fields"
                                         className="text-primary hover:underline"
@@ -975,7 +976,7 @@ export const DocumentDesigner = () => {
                     <DialogHeader>
                         <DialogTitle>Bedingung bearbeiten</DialogTitle>
                         <DialogDescription>
-                            Legen Sie fest, wann der Textbaustein "{editingClause?.title}" angezeigt
+                            Lege fest, wann der Textbaustein "{editingClause?.title}" angezeigt
                             werden soll.
                         </DialogDescription>
                     </DialogHeader>

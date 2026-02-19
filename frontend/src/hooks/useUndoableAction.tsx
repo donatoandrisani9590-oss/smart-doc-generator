@@ -11,6 +11,7 @@
 
 import { useState, useCallback, useRef, useEffect, createContext, useContext } from "react";
 import type { ReactNode } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Undo2, X } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
@@ -137,8 +138,8 @@ export function UndoProvider({ children }: UndoProviderProps) {
         // Execute undo callback
         try {
             await action.undoCallback();
-        } catch (error) {
-            console.error("Undo failed:", error);
+        } catch {
+            toast.error("Rückgängig-Aktion fehlgeschlagen. Bitte versuchen Sie es erneut.");
         }
 
         // Remove action

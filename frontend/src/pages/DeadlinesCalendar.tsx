@@ -124,8 +124,8 @@ export default function DeadlinesCalendar() {
                 const data = await response.json();
                 setSummary(data);
             }
-        } catch (err) {
-            console.error("Failed to fetch summary:", err);
+        } catch {
+            // Silent fail — summary is supplementary data
         }
     };
 
@@ -196,8 +196,7 @@ export default function DeadlinesCalendar() {
                 dismissed: "ignoriert",
             };
             toast.success("Status aktualisiert", `Frist wurde ${statusLabels[status] || "aktualisiert"}`);
-        } catch (err) {
-            console.error("Status update failed:", err);
+        } catch {
             toast.error("Fehler", "Status konnte nicht aktualisiert werden");
         }
     };
@@ -222,8 +221,7 @@ export default function DeadlinesCalendar() {
             setEditingDeadline(null);
             await fetchDeadlines();
             toast.success("Notizen gespeichert", "Die Änderungen wurden übernommen");
-        } catch (err) {
-            console.error("Notes update failed:", err);
+        } catch {
             toast.error("Fehler", "Notizen konnten nicht gespeichert werden");
         } finally {
             setIsSubmitting(false);
@@ -346,7 +344,7 @@ export default function DeadlinesCalendar() {
                                     Keine Fristen für diese Filter
                                 </h3>
                                 <p className="text-muted-foreground mb-4 max-w-md mx-auto">
-                                    Passen Sie Ihre Filtereinstellungen an oder setzen Sie sie zurück.
+                                    Passe deine Filtereinstellungen an oder setze sie zurück.
                                 </p>
                                 <Button
                                     variant="outline"
@@ -364,7 +362,7 @@ export default function DeadlinesCalendar() {
                                     Keine Fristen vorhanden
                                 </h3>
                                 <p className="text-muted-foreground mb-4 max-w-md mx-auto">
-                                    Legen Sie Ihre erste Frist an, um Probezeiten und Befristungen zu überwachen.
+                                    Lege deine erste Frist an, um Probezeiten und Befristungen zu überwachen.
                                 </p>
                                 <Button onClick={() => setShowNewDialog(true)}>
                                     <Plus className="w-4 h-4 mr-2" />
@@ -523,7 +521,7 @@ export default function DeadlinesCalendar() {
                     <DialogHeader>
                         <DialogTitle>Neue Frist erstellen</DialogTitle>
                         <DialogDescription>
-                            Erstellen Sie eine neue Frist für einen Mitarbeiter.
+                            Erstelle eine neue Frist für einen Mitarbeiter.
                         </DialogDescription>
                     </DialogHeader>
 

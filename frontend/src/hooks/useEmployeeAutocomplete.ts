@@ -68,7 +68,7 @@ export function useEmployeeAutocomplete(
         }
       } catch (err) {
         if (err instanceof DOMException && err.name === "AbortError") return;
-        console.error("Employee autocomplete failed:", err);
+        // Non-critical autocomplete — silently ignore failures
       } finally {
         setIsLoading(false);
       }

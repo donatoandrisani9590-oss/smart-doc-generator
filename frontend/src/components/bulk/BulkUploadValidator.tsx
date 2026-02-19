@@ -77,8 +77,10 @@ export const BulkUploadValidator = ({
                 file: selectedFile,
             });
             setValidationResult(result);
-        } catch (error) {
-            console.error("Validation failed:", error);
+        } catch {
+            toast.error("Validierung fehlgeschlagen", {
+                description: "Die Datei konnte nicht überprüft werden",
+            });
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- validateMutation reference changes on every render but mutateAsync is stable
     }, [documentTypeId]);
@@ -135,8 +137,10 @@ export const BulkUploadValidator = ({
                 outputFormat: "pdf",
             });
             setJobId(result.job_id);
-        } catch (error) {
-            console.error("Generation failed:", error);
+        } catch {
+            toast.error("Generierung fehlgeschlagen", {
+                description: "Die Dokumente konnten nicht erstellt werden",
+            });
         }
     };
 
@@ -218,7 +222,7 @@ export const BulkUploadValidator = ({
                 </CardHeader>
                 <CardContent>
                     <p className="text-sm text-muted-foreground mb-4">
-                        Laden Sie eine Vorlage herunter, die alle erforderlichen Spalten
+                        Lade eine Vorlage herunter, die alle erforderlichen Spalten
                         für "{documentTypeName}" enthält.
                     </p>
                     <div className="flex gap-2">

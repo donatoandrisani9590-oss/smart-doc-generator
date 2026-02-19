@@ -129,8 +129,7 @@ export function FeatureSettingsProvider({ children }: FeatureSettingsProviderPro
       setCategories(response.data.categories);
       setSettings(response.data.raw_settings);
       setHasFetched(true);
-    } catch (err) {
-      console.error("Failed to load feature settings:", err);
+    } catch {
       setError("Einstellungen konnten nicht geladen werden");
       // Use defaults on error
       setSettings(DEFAULT_SETTINGS);
@@ -166,7 +165,6 @@ export function FeatureSettingsProvider({ children }: FeatureSettingsProviderPro
         setCategories(response.data.categories);
         setSettings(response.data.raw_settings);
       } catch (err) {
-        console.error("Failed to toggle feature:", err);
         setSettings(previousSettings);
         toast.error("Einstellung konnte nicht geändert werden");
         throw err;
@@ -189,7 +187,6 @@ export function FeatureSettingsProvider({ children }: FeatureSettingsProviderPro
         setCategories(response.data.categories);
         setSettings(response.data.raw_settings);
       } catch (err) {
-        console.error("Failed to update settings:", err);
         setSettings(previousSettings);
         toast.error("Einstellungen konnten nicht gespeichert werden");
         throw err;
@@ -207,7 +204,6 @@ export function FeatureSettingsProvider({ children }: FeatureSettingsProviderPro
       setCategories(response.data.categories);
       setSettings(response.data.raw_settings);
     } catch (err) {
-      console.error("Failed to reset settings:", err);
       toast.error("Zurücksetzen fehlgeschlagen");
       throw err;
     }

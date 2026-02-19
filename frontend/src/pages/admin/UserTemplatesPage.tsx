@@ -228,7 +228,7 @@ function UploadDialog({ open, onOpenChange, onSuccess }: UploadDialogProps) {
                 <DialogHeader>
                     <DialogTitle>Vorlage hochladen</DialogTitle>
                     <DialogDescription>
-                        Laden Sie eine DOCX-Datei mit Ihrem Firmen-Branding hoch (Logo, Kopf-/Fusszeile).
+                        Lade eine DOCX-Datei mit deinem Firmen-Branding hoch (Logo, Kopf-/Fusszeile).
                     </DialogDescription>
                 </DialogHeader>
 
@@ -353,7 +353,7 @@ function UploadDialog({ open, onOpenChange, onSuccess }: UploadDialogProps) {
                                 </Select>
                             ) : (
                                 <p className="text-xs text-muted-foreground">
-                                    Sie sind noch keinem Team zugeordnet.
+                                    Du bist noch keinem Team zugeordnet.
                                 </p>
                             )}
                         </div>
@@ -435,7 +435,7 @@ function DeleteDialog({ template, open, onOpenChange, onConfirm, isDeleting }: D
                 <DialogHeader>
                     <DialogTitle>Vorlage löschen</DialogTitle>
                     <DialogDescription>
-                        Sind Sie sicher, dass Sie die Vorlage &ldquo;{template?.name}&rdquo; löschen möchten?
+                        Bist du sicher, dass du die Vorlage &ldquo;{template?.name}&rdquo; löschen möchtest?
                         Diese Aktion kann nicht rückgängig gemacht werden.
                     </DialogDescription>
                 </DialogHeader>
@@ -498,8 +498,8 @@ export function UserTemplatesPage() {
                 const data = await response.json();
                 setTemplates(data.items || []);
             }
-        } catch (err) {
-            console.error("Failed to fetch templates:", err);
+        } catch {
+            toast.error("Fehler", "Vorlagen konnten nicht geladen werden");
         } finally {
             setLoading(false);
         }
@@ -523,8 +523,7 @@ export function UserTemplatesPage() {
             } else {
                 toast.error("Fehler", "Vorlage konnte nicht gelöscht werden");
             }
-        } catch (err) {
-            console.error("Failed to delete template:", err);
+        } catch {
             toast.error("Fehler", "Vorlage konnte nicht gelöscht werden");
         } finally {
             setIsDeleting(false);
@@ -545,8 +544,7 @@ export function UserTemplatesPage() {
             } else {
                 toast.error("Fehler", "Download fehlgeschlagen");
             }
-        } catch (err) {
-            console.error("Failed to download template:", err);
+        } catch {
             toast.error("Fehler", "Download fehlgeschlagen");
         }
     };
@@ -676,7 +674,7 @@ export function UserTemplatesPage() {
                         <LayoutTemplate className="w-12 h-12 text-muted-foreground/50 mb-4" />
                         <h3 className="text-lg font-medium text-foreground mb-1">Noch keine Vorlagen</h3>
                         <p className="text-sm text-muted-foreground max-w-md mb-4">
-                            Laden Sie eine DOCX-Datei mit Ihrem Firmen-Logo, Kopf- und Fusszeile hoch,
+                            Lade eine DOCX-Datei mit deinem Firmen-Logo, Kopf- und Fusszeile hoch,
                             um diese als Layout-Vorlage bei der Dokumentenerstellung zu verwenden.
                         </p>
                         <Button onClick={() => setUploadOpen(true)} variant="outline" className="gap-2">
