@@ -23,6 +23,7 @@ import { QuickTemplates } from "@/components/dashboard/QuickTemplates";
 import { DocumentWizardChat } from "@/components/chat/DocumentWizardChat";
 import { DeadlinesWidget } from "@/components/dashboard/DeadlinesWidget";
 import { ApprovalRequestsWidget } from "@/components/dashboard/ApprovalRequestsWidget";
+import { ActionSummaryCards } from "@/components/documents/ActionSummaryCards";
 
 import { OnboardingBanner } from "@/components/dashboard/OnboardingBanner";
 
@@ -242,6 +243,19 @@ export const Dashboard = () => {
                         />
                     </div>
                 </div>
+                )}
+
+                {/* Action Summary — Handlungsbedarf auf einen Blick */}
+                {!hasNoDocumentTypes && (
+                    <ActionSummaryCards
+                        onFilterChange={(filter) => {
+                            if (filter) {
+                                navigate(`/documents?action=${filter}`);
+                            } else {
+                                navigate("/documents");
+                            }
+                        }}
+                    />
                 )}
 
                 {/* Widgets Row - only renders when widgets have data */}

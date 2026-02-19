@@ -4,16 +4,20 @@
  * Feiert den Erfolg des Users mit:
  * - Animierter Checkmark
  * - Subtle Celebration Animation
+ * - Lifecycle Quick-Actions (Versand markieren, Wiedervorlage, Genehmigung)
  * - Hinweis auf automatische Speicherung in Meine Dokumente
  * - "Zu Meine Dokumente" Button
  * - Download-Buttons
  *
- * v2.0: "Zu Meine Dokumente" Navigation + Speicher-Feedback
+ * v3.0: + Document Lifecycle Actions nach Export (Phase 3)
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { CheckCircle, FileText, FileType2, X, Sparkles, FolderOpen, PlusCircle } from "lucide-react";
+import {
+    CheckCircle, FileText, FileType2, X, Sparkles, FolderOpen, PlusCircle,
+    Send, CalendarClock, ShieldCheck, Loader2,
+} from "lucide-react";
 import {
     Dialog,
     DialogContent,
@@ -21,34 +25,102 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { api } from "@/lib/api-client";
+import { useToast } from "@/components/ui/toast";
 
 interface ExportSuccessModalProps {
     isOpen: boolean;
     onClose: () => void;
     documentTitle: string;
     exportFormat: "pdf" | "docx";
+    documentId?: number | null;
     onDownloadAgain?: (format: "pdf" | "docx") => void;
     onGoToDocuments?: () => void;
 }
+
+type QuickActionKey = "sent" | "reminder_set" | "approval_requested";
+
+const QUICK_ACTIONS: Array<{
+    key: QuickActionKey;
+    label: string;
+    description: string;
+    icon: typeof Send;
+    actionType: string;
+}> = [
+    {
+        key: "sent",
+        label: "Als versendet markieren",
+        description: "Dokument wurde an Mitarbeiter gesendet",
+        icon: Send,
+        actionType: "sent",
+    },
+    {
+        key: "reminder_set",
+        label: "Wiedervorlage setzen",
+        description: "In 14 Tagen erinnern",
+        icon: CalendarClock,
+        actionType: "reminder_set",
+    },
+    {
+        key: "approval_requested",
+        label: "Genehmigung anfragen",
+        description: "Zur Freigabe vorlegen",
+        icon: ShieldCheck,
+        actionType: "approval_requested",
+    },
+];
 
 export const ExportSuccessModal = ({
     isOpen,
     onClose,
     documentTitle,
     exportFormat,
+    documentId,
     onDownloadAgain,
     onGoToDocuments,
 }: ExportSuccessModalProps) => {
     const [showConfetti, setShowConfetti] = useState(false);
+    const [completedActions, setCompletedActions] = useState<Set<QuickActionKey>>(new Set());
+    const [loadingAction, setLoadingAction] = useState<QuickActionKey | null>(null);
+    const toast = useToast();
 
     useEffect(() => {
         if (isOpen) {
             // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: trigger confetti animation when modal opens
             setShowConfetti(true);
+            setCompletedActions(new Set());
             const timer = setTimeout(() => setShowConfetti(false), 2000);
             return () => clearTimeout(timer);
         }
     }, [isOpen]);
+
+    const handleQuickAction = useCallback(async (action: typeof QUICK_ACTIONS[number]) => {
+        if (!documentId || loadingAction) return;
+
+        setLoadingAction(action.key);
+        try {
+            const payload: Record<string, unknown> = {
+                action_type: action.actionType,
+                note: action.description,
+            };
+
+            // Add a 14-day due date for reminders
+            if (action.key === "reminder_set") {
+                const dueDate = new Date();
+                dueDate.setDate(dueDate.getDate() + 14);
+                payload.due_date = dueDate.toISOString();
+            }
+
+            await api.post(`/api/v1/documents/${documentId}/actions`, payload);
+
+            setCompletedActions(prev => new Set(prev).add(action.key));
+            toast.success("Aktion gespeichert", action.label);
+        } catch {
+            toast.error("Fehler", "Aktion konnte nicht gespeichert werden");
+        } finally {
+            setLoadingAction(null);
+        }
+    }, [documentId, loadingAction, toast]);
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
@@ -154,11 +226,61 @@ export const ExportSuccessModal = ({
                         </div>
                     </motion.div>
 
+                    {/* Lifecycle Quick Actions (Phase 3) */}
+                    {documentId && (
+                        <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.8 }}
+                            className="mt-5 w-full"
+                        >
+                            <p className="text-[11px] font-medium text-foreground/40 uppercase tracking-wider mb-2.5">
+                                Nächste Schritte
+                            </p>
+                            <div className="space-y-1.5">
+                                {QUICK_ACTIONS.map((action) => {
+                                    const Icon = action.icon;
+                                    const isDone = completedActions.has(action.key);
+                                    const isLoading = loadingAction === action.key;
+
+                                    return (
+                                        <button
+                                            key={action.key}
+                                            onClick={() => handleQuickAction(action)}
+                                            disabled={isDone || isLoading}
+                                            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all hover:bg-foreground/[0.03] active:bg-foreground/[0.06] disabled:opacity-60 disabled:cursor-default group"
+                                        >
+                                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${isDone ? "bg-green-100 dark:bg-green-900/30" : "bg-foreground/[0.04] group-hover:bg-foreground/[0.07]"}`}>
+                                                {isLoading ? (
+                                                    <Loader2 className="w-4 h-4 animate-spin text-foreground/40" />
+                                                ) : isDone ? (
+                                                    <CheckCircle className="w-4 h-4 text-green-600" />
+                                                ) : (
+                                                    <Icon className="w-4 h-4 text-foreground/50" />
+                                                )}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <span className={`text-[13px] font-medium ${isDone ? "text-green-700 dark:text-green-400" : "text-foreground"}`}>
+                                                    {isDone ? "Erledigt" : action.label}
+                                                </span>
+                                                {!isDone && (
+                                                    <p className="text-[11px] text-foreground/40 mt-0.5">
+                                                        {action.description}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </motion.div>
+                    )}
+
                     {/* Action Buttons */}
                     <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.8 }}
+                        transition={{ delay: documentId ? 1.0 : 0.8 }}
                         className="mt-6 w-full space-y-3"
                     >
                         {/* Primary: Zu Meine Dokumente */}

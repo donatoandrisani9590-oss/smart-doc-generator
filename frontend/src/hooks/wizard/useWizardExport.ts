@@ -36,7 +36,10 @@ export interface UseWizardExportParams {
 export interface UseWizardExportReturn {
     isGenerating: boolean;
     hasExported: boolean;
-    exportDocument: (format: "pdf" | "docx") => Promise<void>;
+    /** Returns the document ID from the backend (for lifecycle actions), or null on failure. */
+    exportDocument: (format: "pdf" | "docx") => Promise<number | null>;
+    /** The document ID from the last successful export */
+    lastExportedDocumentId: number | null;
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -61,16 +64,17 @@ export function useWizardExport(params: UseWizardExportParams): UseWizardExportR
     const toast = useToast();
     const [isGenerating, setIsGenerating] = useState(false);
     const [hasExported, setHasExported] = useState(false);
+    const [lastExportedDocumentId, setLastExportedDocumentId] = useState<number | null>(null);
     const exportLockRef = useRef(false);
 
-    const exportDocument = useCallback(async (format: "pdf" | "docx") => {
-        if (exportLockRef.current) return;
+    const exportDocument = useCallback(async (format: "pdf" | "docx"): Promise<number | null> => {
+        if (exportLockRef.current) return null;
 
         // Validate all required fields
         const allValid = [0, 1, 2, 4].every(step => validateStep(step));
         if (!allValid) {
             toast.error("Validierungsfehler", "Bitte füllen Sie alle Pflichtfelder aus");
-            return;
+            return null;
         }
 
         exportLockRef.current = true;
@@ -108,6 +112,10 @@ export function useWizardExport(params: UseWizardExportParams): UseWizardExportR
                 throw new Error(errorData.detail || "Export fehlgeschlagen");
             }
 
+            // Capture the document ID from the response header (Phase 3 lifecycle)
+            const documentIdHeader = response.headers.get("X-Document-Id");
+            const documentId = documentIdHeader ? parseInt(documentIdHeader, 10) : null;
+
             const blob = await response.blob();
 
             // Download file
@@ -121,10 +129,15 @@ export function useWizardExport(params: UseWizardExportParams): UseWizardExportR
             window.URL.revokeObjectURL(url);
 
             setHasExported(true);
+            if (documentId && !isNaN(documentId)) {
+                setLastExportedDocumentId(documentId);
+            }
             toast.success("Dokument erstellt", `${format.toUpperCase()}-Datei wurde heruntergeladen`);
+            return documentId && !isNaN(documentId) ? documentId : null;
         } catch (error) {
             logError("Export failed", { error: error as unknown as Record<string, unknown> });
             toast.error("Export fehlgeschlagen", "Bitte versuchen Sie es erneut.");
+            return null;
         } finally {
             setIsGenerating(false);
             exportLockRef.current = false;
@@ -136,5 +149,6 @@ export function useWizardExport(params: UseWizardExportParams): UseWizardExportR
         isGenerating,
         hasExported,
         exportDocument,
+        lastExportedDocumentId,
     };
 }

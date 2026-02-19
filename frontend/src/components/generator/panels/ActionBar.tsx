@@ -40,7 +40,7 @@ const REQUIRED_FIELDS = [
 
 export const ActionBar = () => {
     const { state, actions } = useWizardContext();
-    const { documentTypeId, documentTitle, formData, isGenerating, autoSaveStatus, lastSavedText } = state;
+    const { documentTypeId, documentTitle, formData, isGenerating, autoSaveStatus, lastSavedText, lastExportedDocumentId } = state;
     const toast = useToast();
     const navigate = useNavigate();
 
@@ -292,6 +292,7 @@ export const ActionBar = () => {
                 onClose={() => setShowSuccessModal(false)}
                 documentTitle={documentTitle}
                 exportFormat={lastExportFormat}
+                documentId={lastExportedDocumentId}
                 onDownloadAgain={handleDownloadAgain}
                 onGoToDocuments={handleGoToDocuments}
             />

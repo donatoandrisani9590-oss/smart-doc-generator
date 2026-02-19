@@ -193,6 +193,7 @@ export interface WizardState {
     isSaving: boolean;
     isGenerating: boolean;
     hasExported: boolean;
+    lastExportedDocumentId: number | null;
     hasUnsavedChanges: boolean;
 
     // Validierung
@@ -239,7 +240,7 @@ export interface WizardActions {
     saveDraft: () => Promise<void>;
 
     // Export
-    exportDocument: (format: "pdf" | "docx") => Promise<void>;
+    exportDocument: (format: "pdf" | "docx") => Promise<number | null>;
 
     // Undo/Redo
     undo: () => void;
@@ -348,6 +349,7 @@ export const initialWizardState: WizardState = {
     isSaving: false,
     isGenerating: false,
     hasExported: false,
+    lastExportedDocumentId: null,
     hasUnsavedChanges: false,
 
     validationErrors: [],

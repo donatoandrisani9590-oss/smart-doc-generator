@@ -28,6 +28,7 @@ const DeadlinesCalendar = lazy(() => import("@/pages/DeadlinesCalendar"));
 const BulkUploadPage = lazy(() => import("@/pages/BulkUpload"));
 const SettingsHub = lazy(() => import("@/pages/SettingsHub"));
 const AgentPage = lazy(() => import("@/pages/AgentPage"));
+const GuestReviewPage = lazy(() => import("@/pages/GuestReviewPage"));
 
 // Minimal loading fallback
 function PageLoading() {
@@ -54,6 +55,8 @@ function App() {
               <Route path="/reset-password" element={<ResetPasswordPage />} />
               <Route path="/2fa-verify" element={<TwoFactorVerifyPage />} />
               <Route path="/sso-callback" element={<SSOCallbackPage />} />
+              {/* Public Guest Review (token-based, no auth) */}
+              <Route path="/guest-review/:token" element={<GuestReviewPage />} />
 
               {/* Protected Routes */}
               <Route

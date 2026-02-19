@@ -45,6 +45,7 @@ import {
     ArrowUp,
     ArrowDown,
 } from "lucide-react";
+import { ActionSummaryCards } from "@/components/documents/ActionSummaryCards";
 import { DocumentCorrectionDialog } from "@/components/documents/DocumentCorrectionDialog";
 import { useFeatureEnabled } from "@/hooks/useFeatureSettings";
 import {
@@ -104,6 +105,7 @@ export const RepositoryPage = () => {
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     const [pendingAction, setPendingAction] = useState<"delete" | "archive" | null>(null);
     const [activeFilter, setActiveFilter] = useState<"all" | "draft" | "completed" | "corrections">("all");
+    const [actionFilter, setActionFilter] = useState<string | null>(null);
 
     const { data: repository, isLoading: loadingDocs, refetch } = useRepository(filters);
     const { data: stats } = useRepositoryStats();
@@ -340,6 +342,12 @@ export const RepositoryPage = () => {
                     </button>
                 ))}
             </div>
+
+            {/* Action Summary Cards (Phase 3 — Handlungsbedarf) */}
+            <ActionSummaryCards
+                activeFilter={actionFilter}
+                onFilterChange={setActionFilter}
+            />
 
             {/* Search - SimpleDocs Style */}
             <div className="card-soft p-4">

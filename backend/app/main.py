@@ -40,6 +40,7 @@ from app.api.v1.endpoints.core import (
 from app.api.v1.endpoints.documents import (
     generation, preview, history, drafts, corrections, locks,
     export, repository, document_upload, approvals,
+    document_actions, guest_review,
 )
 
 # User Features
@@ -110,6 +111,7 @@ class CSRFProtectionMiddleware(BaseHTTPMiddleware):
         f"{settings.API_V1_STR}/actions/",
         f"{settings.API_V1_STR}/webhooks/",
         f"{settings.API_V1_STR}/copilot-studio/",
+        f"{settings.API_V1_STR}/guest-review/",
     )
 
     async def dispatch(self, request: Request, call_next: Callable):
@@ -457,6 +459,92 @@ async def lifespan(app: FastAPI):
                     migrations_run += 1
                     logger.info("Migration: added column user_feature_settings.enable_ai_agent")
 
+            # --- generated_documents: Document Lifecycle fields (Phase 3) ---
+            gd_cols = await get_columns("generated_documents")
+            gd_migrations = [
+                ("workflow_status", "ALTER TABLE generated_documents ADD COLUMN workflow_status VARCHAR(30) DEFAULT 'erstellt' NOT NULL"),
+                ("has_open_actions", "ALTER TABLE generated_documents ADD COLUMN has_open_actions BOOLEAN DEFAULT FALSE"),
+                ("next_due_date", "ALTER TABLE generated_documents ADD COLUMN next_due_date TIMESTAMPTZ"),
+            ]
+            for col_name, sql in gd_migrations:
+                if col_name not in gd_cols:
+                    await conn.execute(text(sql))
+                    migrations_run += 1
+                    logger.info(f"Migration: added column generated_documents.{col_name}")
+            if "workflow_status" not in gd_cols:
+                await conn.execute(text("CREATE INDEX IF NOT EXISTS ix_generated_documents_workflow_status ON generated_documents (workflow_status)"))
+                await conn.execute(text("CREATE INDEX IF NOT EXISTS ix_generated_documents_has_open_actions ON generated_documents (has_open_actions)"))
+                await conn.execute(text("CREATE INDEX IF NOT EXISTS ix_generated_documents_next_due_date ON generated_documents (next_due_date)"))
+
+            # --- document_actions table (Phase 3 — Lifecycle Events) ---
+            if not await table_exists("document_actions"):
+                await conn.execute(text("""
+                    CREATE TABLE document_actions (
+                        id SERIAL PRIMARY KEY,
+                        document_id INTEGER NOT NULL REFERENCES generated_documents(id) ON DELETE CASCADE,
+                        action_type VARCHAR(50) NOT NULL,
+                        performed_by_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+                        performed_by_name VARCHAR(255),
+                        performed_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+                        note TEXT,
+                        metadata_json TEXT,
+                        due_date TIMESTAMPTZ,
+                        is_completed BOOLEAN DEFAULT FALSE,
+                        completed_at TIMESTAMPTZ
+                    )
+                """))
+                await conn.execute(text("CREATE INDEX IF NOT EXISTS ix_document_actions_document_id ON document_actions (document_id)"))
+                await conn.execute(text("CREATE INDEX IF NOT EXISTS ix_document_actions_action_type ON document_actions (action_type)"))
+                await conn.execute(text("CREATE INDEX IF NOT EXISTS ix_document_actions_performed_at ON document_actions (performed_at)"))
+                await conn.execute(text("CREATE INDEX IF NOT EXISTS ix_document_actions_due_date ON document_actions (due_date)"))
+                migrations_run += 1
+                logger.info("Migration: created table document_actions")
+
+            # --- guest_review_links table (Phase 3 — External Review) ---
+            if not await table_exists("guest_review_links"):
+                await conn.execute(text("""
+                    CREATE TABLE guest_review_links (
+                        id SERIAL PRIMARY KEY,
+                        document_id INTEGER NOT NULL REFERENCES generated_documents(id) ON DELETE CASCADE,
+                        token VARCHAR(100) NOT NULL UNIQUE,
+                        recipient_name VARCHAR(255) NOT NULL,
+                        recipient_email VARCHAR(255),
+                        permissions VARCHAR(30) DEFAULT 'comment_only' NOT NULL,
+                        expires_at TIMESTAMPTZ NOT NULL,
+                        is_active BOOLEAN DEFAULT TRUE NOT NULL,
+                        created_by_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+                        created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+                        updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+                    )
+                """))
+                await conn.execute(text("CREATE INDEX IF NOT EXISTS ix_guest_review_links_token ON guest_review_links (token)"))
+                await conn.execute(text("CREATE INDEX IF NOT EXISTS ix_guest_review_links_document_id ON guest_review_links (document_id)"))
+                migrations_run += 1
+                logger.info("Migration: created table guest_review_links")
+
+            # --- guest_review_comments table (Phase 3 — External Review) ---
+            if not await table_exists("guest_review_comments"):
+                await conn.execute(text("""
+                    CREATE TABLE guest_review_comments (
+                        id SERIAL PRIMARY KEY,
+                        link_id INTEGER NOT NULL REFERENCES guest_review_links(id) ON DELETE CASCADE,
+                        guest_name VARCHAR(255) NOT NULL,
+                        comment_type VARCHAR(30) DEFAULT 'comment' NOT NULL,
+                        target_clause_id INTEGER,
+                        target_text TEXT,
+                        content TEXT NOT NULL,
+                        suggested_replacement TEXT,
+                        status VARCHAR(30) DEFAULT 'pending' NOT NULL,
+                        resolved_by_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+                        resolved_at TIMESTAMPTZ,
+                        created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+                    )
+                """))
+                await conn.execute(text("CREATE INDEX IF NOT EXISTS ix_guest_review_comments_link_id ON guest_review_comments (link_id)"))
+                await conn.execute(text("CREATE INDEX IF NOT EXISTS ix_guest_review_comments_status ON guest_review_comments (status)"))
+                migrations_run += 1
+                logger.info("Migration: created table guest_review_comments")
+
             # --- Data fix: remove duplicate euro sign from AT-Vergütung clause ---
             result = await conn.execute(text("""
                 UPDATE clauses
@@ -597,7 +685,7 @@ if settings.BACKEND_CORS_ORIGINS:
             "X-Request-ID",
         ],
         # Expose custom headers to frontend
-        expose_headers=["X-Response-Time", "X-Request-ID"],
+        expose_headers=["X-Response-Time", "X-Request-ID", "X-Document-Id"],
         max_age=600,  # Cache preflight for 10 minutes
     )
 
@@ -721,6 +809,12 @@ app.include_router(copilot_studio.router, prefix=f"{settings.API_V1_STR}/copilot
 
 # Events (SSE Real-time Updates)
 app.include_router(event_stream.router, prefix=f"{settings.API_V1_STR}/events", tags=["events"])
+
+# Document Lifecycle Actions (Phase 3)
+app.include_router(document_actions.router, prefix=f"{settings.API_V1_STR}", tags=["document-actions"])
+
+# Guest Review Links (Phase 3)
+app.include_router(guest_review.router, prefix=f"{settings.API_V1_STR}", tags=["guest-review"])
 
 # Public/Guest Access
 app.include_router(guest.router, tags=["guest"])

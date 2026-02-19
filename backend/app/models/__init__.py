@@ -41,6 +41,9 @@ from app.models.enterprise import (
     LLMCallLog,
     TeamPattern,
     OnboardingJob,
+    DocumentAction,
+    GuestReviewLink,
+    GuestReviewComment,
 )
 from app.models.composer import (
     DocumentClauseInstance,
@@ -104,6 +107,9 @@ __all__ = [
     "LLMCallLog",
     "TeamPattern",
     "OnboardingJob",
+    "DocumentAction",
+    "GuestReviewLink",
+    "GuestReviewComment",
     # Composer (Smart UX)
     "DocumentClauseInstance",
     "ClauseOrigin",

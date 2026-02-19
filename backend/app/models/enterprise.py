@@ -2,6 +2,7 @@ from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, T
 from sqlalchemy.sql import func
 from app.db import Base
 import uuid
+import secrets
 
 class GeneratedDocument(Base):
     __tablename__ = "generated_documents"
@@ -30,6 +31,12 @@ class GeneratedDocument(Base):
     current_version = Column(Integer, default=1)  # Track version number
     is_correctable = Column(Boolean, default=True)  # Can this doc be corrected?
     content_html = Column(Text, nullable=True)  # HTML preview for document detail view
+
+    # Document Lifecycle (Phase 3 — denormalized from DocumentAction for fast queries)
+    workflow_status = Column(String(30), default="erstellt", nullable=False, index=True)
+    # Erlaubte Werte: erstellt, in_bearbeitung, abgeschlossen
+    has_open_actions = Column(Boolean, default=False, index=True)
+    next_due_date = Column(DateTime(timezone=True), nullable=True, index=True)
 
 class DocumentLock(Base):
     """
@@ -814,4 +821,102 @@ class TeamPattern(Base):
     __table_args__ = (
         UniqueConstraint("team_id", "document_type_id", name="uq_team_pattern_team_doctype"),
     )
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# DOCUMENT LIFECYCLE (Phase 3)
+# ═══════════════════════════════════════════════════════════════════════════
+
+class DocumentAction(Base):
+    """
+    Event-Log für den Dokumentenlebenszyklus.
+
+    Jede Statusänderung wird als immutables Event gespeichert.
+    action_type-Werte:
+      created, sent, return_pending, returned, approval_requested,
+      approved, rejected, note, completed, reminder_set, reminder_done
+    """
+    __tablename__ = "document_actions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    document_id = Column(Integer, ForeignKey("generated_documents.id", ondelete="CASCADE"), nullable=False, index=True)
+
+    # Was passiert ist
+    action_type = Column(String(30), nullable=False, index=True)
+
+    # Wer hat es gemacht
+    performed_by_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    performed_by_name = Column(String(255), nullable=True)
+    performed_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
+
+    # Optionale Details
+    note = Column(Text, nullable=True)
+    metadata_json = Column(Text, nullable=True)  # JSON: Versandart, Empfänger, etc.
+
+    # Wiedervorlage
+    due_date = Column(DateTime(timezone=True), nullable=True, index=True)
+    is_completed = Column(Boolean, default=False)
+    completed_at = Column(DateTime(timezone=True), nullable=True)
+
+
+class GuestReviewLink(Base):
+    """
+    Sichere Gast-Links für externes Dokument-Review.
+
+    Ermöglicht Empfängern (z.B. zukünftige Mitarbeiter, Anwälte) das
+    Kommentieren/Vorschlagen von Änderungen ohne Account.
+    """
+    __tablename__ = "guest_review_links"
+
+    id = Column(Integer, primary_key=True, index=True)
+    document_id = Column(Integer, ForeignKey("generated_documents.id", ondelete="CASCADE"), nullable=False, index=True)
+    token = Column(String(64), unique=True, nullable=False, index=True, default=lambda: secrets.token_urlsafe(48))
+
+    # Empfänger
+    recipient_name = Column(String(255), nullable=False)
+    recipient_email = Column(String(255), nullable=True)
+
+    # Berechtigungen
+    permissions = Column(String(30), default="comment_only", nullable=False)
+    # Erlaubte Werte: view_only, comment_only, suggest_changes
+
+    # Gültigkeit
+    expires_at = Column(DateTime(timezone=True), nullable=False)
+    is_active = Column(Boolean, default=True, index=True)
+
+    # Ersteller
+    created_by_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now())
+
+
+class GuestReviewComment(Base):
+    """
+    Kommentare und Änderungsvorschläge von Gast-Reviewern.
+
+    status-Werte: pending, accepted, rejected, noted
+    comment_type-Werte: comment, suggestion, approval
+    """
+    __tablename__ = "guest_review_comments"
+
+    id = Column(Integer, primary_key=True, index=True)
+    link_id = Column(Integer, ForeignKey("guest_review_links.id", ondelete="CASCADE"), nullable=False, index=True)
+
+    # Gast-Identifikation
+    guest_name = Column(String(255), nullable=False)
+
+    # Kommentar-Details
+    comment_type = Column(String(20), nullable=False, default="comment")  # comment, suggestion, approval
+    target_clause_id = Column(Integer, nullable=True)
+    target_text = Column(Text, nullable=True)
+    content = Column(Text, nullable=False)
+    suggested_replacement = Column(Text, nullable=True)
+
+    # Status
+    status = Column(String(20), default="pending", nullable=False, index=True)
+    resolved_by_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    resolved_at = Column(DateTime(timezone=True), nullable=True)
+
+    # Metadata
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
 

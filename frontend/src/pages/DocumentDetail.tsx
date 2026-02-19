@@ -24,6 +24,7 @@ interface RelatedDocument {
     created_at: string | null;
     relation: "same_employee" | "same_type";
 }
+import { DocumentLifecycleTab } from "@/components/documents/DocumentLifecycleTab";
 import { DocumentCorrectionDialog } from "@/components/documents/DocumentCorrectionDialog";
 import { VersionHistoryPanel } from "@/components/documents/VersionHistoryPanel";
 import { ShareWithTeamDialog } from "@/components/documents/ShareWithTeamDialog";
@@ -50,6 +51,7 @@ import {
     Info,
     MessageSquare,
     Shield,
+    ClipboardList,
 } from "lucide-react";
 
 // Deutsche Labels für Formulardaten-Anzeige
@@ -107,7 +109,7 @@ function formatFieldValue(key: string, value: unknown): string {
     return strValue;
 }
 
-type SidebarTab = "details" | "verlauf" | "kommentare" | "freigabe";
+type SidebarTab = "details" | "verwaltung" | "verlauf" | "kommentare" | "freigabe";
 
 export const DocumentDetailPage = () => {
     const { documentId } = useParams<{ documentId: string }>();
@@ -328,6 +330,17 @@ export const DocumentDetailPage = () => {
                             </button>
                             <button
                                 className={`flex-1 px-4 py-2.5 text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
+                                    activeTab === "verwaltung"
+                                        ? "text-primary border-b-[3px] border-primary -mb-[1px]"
+                                        : "text-muted-foreground hover:text-foreground hover:bg-warm-50/50"
+                                }`}
+                                onClick={() => setActiveTab("verwaltung")}
+                            >
+                                <ClipboardList className="w-3.5 h-3.5" />
+                                Verwaltung
+                            </button>
+                            <button
+                                className={`flex-1 px-4 py-2.5 text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
                                     activeTab === "verlauf"
                                         ? "text-primary border-b-[3px] border-primary -mb-[1px]"
                                         : "text-muted-foreground hover:text-foreground hover:bg-warm-50/50"
@@ -457,6 +470,10 @@ export const DocumentDetailPage = () => {
                                         </div>
                                     )}
                                 </>
+                            )}
+
+                            {activeTab === "verwaltung" && (
+                                <DocumentLifecycleTab documentId={document.id} />
                             )}
 
                             {activeTab === "verlauf" && (

@@ -1027,16 +1027,22 @@ async def generate_document_by_type(
             )
             db.add(generated_doc)
             await db.commit()
+            await db.refresh(generated_doc)
             logger.info(f"Document saved to repository: id={generated_doc.id}, title={doc_title}")
         except Exception as save_err:
             logger.warning(f"Could not save document to repository: {save_err}")
             # Don't fail the generation if repository save fails
 
-        return FileResponse(
+        response = FileResponse(
             output_path,
             media_type=media_type,
             filename=output_filename
         )
+        # Expose document ID for post-export lifecycle actions
+        if generated_doc is not None and generated_doc.id:
+            response.headers["X-Document-Id"] = str(generated_doc.id)
+            response.headers["Access-Control-Expose-Headers"] = "X-Document-Id"
+        return response
 
     except Exception as e:
         logger.exception(f"Document generation failed for user {current_user.id}: {e}")

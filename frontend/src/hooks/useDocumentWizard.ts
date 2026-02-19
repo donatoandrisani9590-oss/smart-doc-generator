@@ -290,6 +290,7 @@ export function useDocumentWizard(initialDraftId?: number): WizardContextValue {
         isSaving: drafts.isSaving || drafts.isAutoSaving,
         isGenerating: exportHook.isGenerating,
         hasExported: exportHook.hasExported,
+        lastExportedDocumentId: exportHook.lastExportedDocumentId,
         hasUnsavedChanges: form.hasUnsavedChanges || drafts.autoSaveHasUnsavedChanges,
         validationErrors: nav.validationErrors,
         // Auto-Save
