@@ -11,7 +11,7 @@
  * v5.0: Aufgeräumtes Design - keine Akkordeons mehr
  */
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { FileText, Users, Layers, Paperclip, ChevronRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -29,7 +29,9 @@ import { ClauseSelectionSection } from "./ClauseSelectionSection";
 import { ActionBar } from "./ActionBar";
 import { AttachmentSelector } from "../AttachmentSelector";
 import { StationeryPicker } from "./StationeryPicker";
+import { ToneSlider } from "../ToneSlider";
 import { DocumentStatusBadge, useDocumentStatus } from "@/components/documents/DocumentStatusBadge";
+import { useMagicFill } from "@/hooks/useMagicFill";
 
 interface DocumentType {
     id: number;
@@ -64,6 +66,37 @@ export const LeftControlPanel = ({ documentTypes }: LeftControlPanelProps) => {
         hasExported: state.hasExported,
     });
 
+    // Magic Fill — Vorschläge aus historischen Dokumenten
+    const magicFill = useMagicFill({
+        documentTypeId: documentTypeId ?? null,
+        countryCode: documentCountryCode,
+        enabled: !!documentTypeId,
+    });
+
+    const handleMagicFillApply = useCallback(
+        (fieldKey: string) => {
+            const value = magicFill.applyField(fieldKey);
+            if (value !== undefined) {
+                actions.updateFormField(fieldKey as keyof typeof state.formData, value);
+            }
+        },
+        [magicFill, actions, state.formData]
+    );
+
+    const handleMagicFillApplyAll = useCallback(() => {
+        const values = magicFill.applyAll();
+        for (const [fieldKey, value] of values) {
+            actions.updateFormField(fieldKey as keyof typeof state.formData, value);
+        }
+    }, [magicFill, actions, state.formData]);
+
+    const handleMagicFillDismiss = useCallback(
+        (fieldKey: string) => {
+            magicFill.dismissField(fieldKey);
+        },
+        [magicFill]
+    );
+
     return (
         <div className="h-full flex flex-col overflow-hidden">
             {/* Header mit Dokumenttitel */}
@@ -97,6 +130,14 @@ export const LeftControlPanel = ({ documentTypes }: LeftControlPanelProps) => {
                 />
             </div>
 
+            {/* Tonalität */}
+            <div className="px-4 pb-3">
+                <ToneSlider
+                    value={state.toneOfVoice}
+                    onChange={actions.setToneOfVoice}
+                />
+            </div>
+
             {/* Scrollbarer Bereich für Sektionen */}
             <ScrollArea className="flex-1 overflow-auto">
                 <div className="p-4 space-y-4">
@@ -106,7 +147,14 @@ export const LeftControlPanel = ({ documentTypes }: LeftControlPanelProps) => {
                             <Users className="w-3 h-3 text-muted-foreground/30 shrink-0" />
                             <span className="ive-section-header">Formularfelder</span>
                         </div>
-                        <FormFieldsSection countryCode={documentCountryCode} />
+                        <FormFieldsSection
+                            countryCode={documentCountryCode}
+                            magicFillSuggestions={magicFill.suggestions}
+                            magicFillDocumentCount={magicFill.documentCount}
+                            onMagicFillApply={handleMagicFillApply}
+                            onMagicFillApplyAll={handleMagicFillApplyAll}
+                            onMagicFillDismiss={handleMagicFillDismiss}
+                        />
                     </div>
 
                     {/* Textbausteine - Kompakter Link mit Modal */}

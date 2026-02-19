@@ -23,12 +23,14 @@ import { QuickTemplates } from "@/components/dashboard/QuickTemplates";
 import { DocumentWizardChat } from "@/components/chat/DocumentWizardChat";
 import { DeadlinesWidget } from "@/components/dashboard/DeadlinesWidget";
 import { ApprovalRequestsWidget } from "@/components/dashboard/ApprovalRequestsWidget";
+import { EmailDraftsWidget } from "@/components/dashboard/EmailDraftsWidget";
 import { ActionSummaryCards } from "@/components/documents/ActionSummaryCards";
 
 import { OnboardingBanner } from "@/components/dashboard/OnboardingBanner";
 
 import { MotionContainer, MotionListItem } from "@/components/ui/motion";
 import { useAuth } from "@/contexts/AuthContext";
+import { useFeatureEnabled } from "@/hooks/useFeatureSettings";
 import { api } from "@/lib/api-client";
 
 // Greeting based on time of day
@@ -59,6 +61,8 @@ export const Dashboard = () => {
     const [wizardOpen, setWizardOpen] = useState(false);
     const [pendingApprovals, setPendingApprovals] = useState(0);
     const [overdueDeadlines, setOverdueDeadlines] = useState(0);
+
+    const emailIngestEnabled = useFeatureEnabled("enable_email_ingest");
 
     const [onboardingDismissed, setOnboardingDismissed] = useState(() =>
         localStorage.getItem("onboarding-dismissed") === "true"
@@ -263,6 +267,9 @@ export const Dashboard = () => {
                     <DeadlinesWidget limit={4} showStats={true} />
                     <ApprovalRequestsWidget limit={3} />
                 </div>
+
+                {/* Email-to-Draft Widget - only when feature is enabled */}
+                {emailIngestEnabled && <EmailDraftsWidget />}
 
                 {/* Combined Document Section */}
                 {showDocumentSection && (

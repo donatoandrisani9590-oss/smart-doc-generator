@@ -12,6 +12,11 @@ from app.api.v1.endpoints.smart import (
     autocomplete,
     patterns,
     onboarding,
+    gap_analysis,
+    magic_fill,
+    diff,
+    email_ingest,
+    bulk_smart,
 )
 
 __all__ = [
@@ -27,4 +32,9 @@ __all__ = [
     "autocomplete",
     "patterns",
     "onboarding",
+    "gap_analysis",
+    "magic_fill",
+    "diff",
+    "email_ingest",
+    "bulk_smart",
 ]

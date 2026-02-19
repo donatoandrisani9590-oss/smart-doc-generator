@@ -29,6 +29,7 @@ const BulkUploadPage = lazy(() => import("@/pages/BulkUpload"));
 const SettingsHub = lazy(() => import("@/pages/SettingsHub"));
 const AgentPage = lazy(() => import("@/pages/AgentPage"));
 const GuestReviewPage = lazy(() => import("@/pages/GuestReviewPage"));
+const BulkWizardPage = lazy(() => import("@/pages/BulkWizardPage"));
 
 // Minimal loading fallback
 function PageLoading() {
@@ -73,6 +74,7 @@ function App() {
                 <Route path="generate" element={<PageErrorBoundary><DocumentGenerator /></PageErrorBoundary>} />
                 <Route path="agent" element={<PageErrorBoundary><AgentPage /></PageErrorBoundary>} />
                 <Route path="bulk" element={<PageErrorBoundary><BulkUploadPage /></PageErrorBoundary>} />
+                <Route path="bulk-wizard" element={<PageErrorBoundary><BulkWizardPage /></PageErrorBoundary>} />
                 {/* Legacy: /composer → /generate (v4.2 UX-Refactoring) */}
                 <Route path="composer/*" element={<Navigate to="/generate" replace />} />
                 <Route path="documents" element={<PageErrorBoundary><RepositoryPage /></PageErrorBoundary>} />

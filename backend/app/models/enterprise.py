@@ -77,14 +77,25 @@ class RetentionPolicy(Base):
 
 class BulkJob(Base):
     __tablename__ = "bulk_jobs"
-    
+
     id = Column(Integer, primary_key=True, index=True)
-    status = Column(String, default="PENDING", index=True)  # PENDING, PROCESSING, COMPLETED, FAILED - indexed
+    status = Column(String, default="PENDING", index=True)  # PENDING, PROCESSING, COMPLETED, FAILED, CANCELLED, mapping, previewing - indexed
     total_records = Column(Integer, default=0)
     processed_records = Column(Integer, default=0)
     result_file_path = Column(String, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
     created_by_id = Column(Integer, ForeignKey("users.id"), index=True)
+
+    # Smart Bulk Operations (Phase 8.2)
+    document_type_id = Column(Integer, ForeignKey("document_types.id"), nullable=True, index=True)
+    source_filename = Column(String(255), nullable=True)
+    column_mapping = Column(Text, nullable=True)  # JSON: {csv_column -> form_field}
+    successful_rows = Column(Integer, default=0)
+    failed_rows = Column(Integer, default=0)
+    draft_ids = Column(Text, nullable=True)  # JSON array of created draft IDs
+    errors = Column(Text, nullable=True)  # JSON: [{row, field, error}]
+    completed_at = Column(DateTime(timezone=True), nullable=True)
+
 
 class CloudSyncConfig(Base):
     __tablename__ = "cloud_sync_config"
@@ -920,3 +931,34 @@ class GuestReviewComment(Base):
     # Metadata
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
+
+# ═══════════════════════════════════════════════════════════════════════════
+# EMAIL INGEST (Phase 8.1 — E-Mail-to-Draft Pipeline)
+# ═══════════════════════════════════════════════════════════════════════════
+
+class EmailIngest(Base):
+    """
+    Tracks incoming emails that are parsed into document drafts.
+
+    Workflow:
+    1. External email service sends webhook with email content
+    2. System matches sender to a registered user
+    3. LLM extracts structured data from email body
+    4. DocumentDraft is created with extracted data
+    5. User receives in-app notification
+
+    Status values: processing, completed, failed, rejected
+    """
+    __tablename__ = "email_ingests"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    from_email = Column(String(255), nullable=False)
+    subject = Column(String(500), nullable=True)
+    body_text = Column(Text, nullable=False)
+    received_at = Column(DateTime(timezone=True), server_default=func.now())
+    status = Column(String(20), default="processing", nullable=False, index=True)
+    extracted_data = Column(Text, nullable=True)  # JSON: structured data from LLM
+    draft_ids = Column(Text, nullable=True)  # JSON array of created draft IDs
+    error_message = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())

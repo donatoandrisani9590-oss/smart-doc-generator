@@ -30,6 +30,15 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/smart/draft", tags=["smart-draft"])
 
+# ── Tone of Voice definitions ────────────────────────────────────────
+TONE_PROMPTS = {
+    1: "Verwende ausschließlich juristisch korrekte Formulierungen. Kein Smalltalk, keine emotionalen Ausdrücke. Passivkonstruktionen bevorzugt.",
+    2: "Verwende klare, professionelle Sprache. Höflich, aber sachlich.",
+    3: "Verwende professionelle, aber wertschätzende Sprache. Der Mitarbeiter soll sich willkommen fühlen.",
+    4: "Verwende eine warme, persönliche Ansprache. Zeige Wertschätzung und menschliche Nähe.",
+    5: "Verwende einfühlsame, verständnisvolle Sprache. Besonders geeignet für sensible Themen wie Kündigung oder Abmahnung.",
+}
+
 
 # ═══════════════════════════════════════════════════════════════════════════
 # MODELS
@@ -40,6 +49,7 @@ class DraftRequest(BaseModel):
     document_type_id: int = Field(..., description="ID des Dokumenttyps")
     form_data: Dict[str, Any] = Field(..., description="Aktuelle Formulardaten")
     country_code: str = Field(default="DE", pattern="^(DE|AT|CH|IT)$")
+    tone_of_voice: Optional[int] = Field(None, ge=1, le=5)
 
 
 class DraftResponse(BaseModel):
@@ -140,6 +150,9 @@ Regeln:
 - Behalte die Sprache passend zum Land ({_country_name(request.country_code)}).
 - Gib NUR den HTML-Absatz zurück, keine Erklärungen oder zusätzlichen Text.
 {f"- Berücksichtige folgende Unternehmensrichtlinien: {custom_instructions}" if custom_instructions else ""}"""
+
+    tone_text = TONE_PROMPTS.get(request.tone_of_voice or 2, TONE_PROMPTS[2])
+    system_prompt += f"\nTonalität: {tone_text}\n"
 
     user_prompt = f"""Dokumenttyp: {doc_type_name}
 

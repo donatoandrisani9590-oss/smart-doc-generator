@@ -13,6 +13,8 @@ import { apiStreamSSE, type SSEEvent } from "@/lib/api-stream";
 import { sanitizeHtml } from "@/utils/sanitize";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ReasoningPanel, type ReasoningEntry } from "./ReasoningPanel";
+import { ChatWidget, type ChatWidgetData } from "./ChatWidget";
 import {
   Loader2,
   Sparkles,
@@ -34,7 +36,7 @@ import {
 
 // Types
 interface ToolAction {
-  type: "tool_start" | "tool_result" | "form_update" | "clause_update" | "clause_draft";
+  type: "tool_start" | "tool_result" | "form_update" | "clause_update" | "clause_draft" | "widget";
   tool?: string;
   args?: Record<string, unknown>;
   result?: Record<string, unknown>;
@@ -44,6 +46,7 @@ interface ToolAction {
   title?: string;
   html?: string;
   requires_confirmation?: boolean;
+  widget?: ChatWidgetData;
 }
 
 interface ChatMessage {
@@ -57,6 +60,7 @@ interface AgentChatProps {
   teamId?: number | null;
   documentTypeId?: number | null;
   formData?: Record<string, unknown>;
+  toneOfVoice?: number;
   onFormUpdate?: (fields: Record<string, string>) => void;
   onClauseUpdate?: (enable: number[], disable: number[]) => void;
   onClauseDraft?: (title: string, html: string) => void;
@@ -98,6 +102,7 @@ export function AgentChat({
   teamId,
   documentTypeId,
   formData,
+  toneOfVoice,
   onFormUpdate,
   onClauseUpdate,
   onClauseDraft,
@@ -108,6 +113,7 @@ export function AgentChat({
   const [isStreaming, setIsStreaming] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [reasoningEntries, setReasoningEntries] = useState<ReasoningEntry[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -173,6 +179,7 @@ export function AgentChat({
         team_id: teamId,
         document_type_id: documentTypeId,
         form_data: formData,
+        tone_of_voice: toneOfVoice,
         session_id: sessionId,
       };
 
@@ -204,6 +211,35 @@ export function AgentChat({
           onClauseDraft?.(event.title ?? "", event.html ?? "");
           updateLastMessage();
         }
+        if (event.type === "widget" && event.widget_type) {
+          toolActions.push({
+            type: "widget",
+            widget: {
+              id: event.widget_id || crypto.randomUUID(),
+              widget_type: event.widget_type,
+              field_key: event.field_key ?? "",
+              label: event.label ?? "",
+              options: event.options,
+              placeholder: event.placeholder,
+              input_type: event.input_type as ChatWidgetData["input_type"],
+              min: event.min,
+              max: event.max,
+              step: event.widget_step,
+              unit: event.unit,
+              hint: event.hint,
+            },
+          });
+          updateLastMessage();
+        }
+        if (event.type === "reasoning") {
+          const category = (event as SSEEvent & { category?: string }).category;
+          setReasoningEntries(prev => [...prev, {
+            id: crypto.randomUUID(),
+            content: event.content ?? "",
+            category: (category as ReasoningEntry["category"]) ?? "context",
+            timestamp: new Date(),
+          }]);
+        }
         if (event.type === "done") {
           const sid = (event as SSEEvent & { session_id?: string }).session_id;
           if (sid) { setSessionId(sid); onSessionCreated?.(sid); }
@@ -224,7 +260,7 @@ export function AgentChat({
       scrollRef.current?.scrollIntoView({ behavior: "smooth" });
       inputRef.current?.focus();
     }
-  }, [input, isStreaming, messages, countryCode, teamId, documentTypeId, formData, sessionId, onFormUpdate, onClauseUpdate, onClauseDraft, onSessionCreated]);
+  }, [input, isStreaming, messages, countryCode, teamId, documentTypeId, formData, toneOfVoice, sessionId, onFormUpdate, onClauseUpdate, onClauseDraft, onSessionCreated]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -238,6 +274,7 @@ export function AgentChat({
     setMessages([]);
     setSessionId(null);
     setError(null);
+    setReasoningEntries([]);
   };
 
   return (
@@ -303,112 +340,133 @@ export function AgentChat({
         </div>
       ) : (
         /* ── Chat Mode: messages scrollable, input fixed at bottom ── */
-        <>
-          <div className="flex-1 overflow-y-auto">
-            <div className="max-w-3xl mx-auto px-4">
-              {messages.map((msg, i) => (
-                <div key={i} className="py-4">
-                  {msg.role === "user" ? (
-                    <div className="flex justify-end">
-                      <div className="max-w-[80%] px-4 py-2.5 rounded-2xl rounded-tr-md bg-primary text-primary-foreground text-sm whitespace-pre-wrap">
-                        {msg.content}
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      {/* Tool Actions — collapsed into a single summary bar */}
-                      {msg.toolActions && msg.toolActions.length > 0 && (
-                        <CollapsedToolActions
-                          actions={msg.toolActions}
-                          isActive={isStreaming && i === messages.length - 1}
-                        />
-                      )}
-
-                      {/* Text Content — no bubble, just text (ChatGPT style) */}
-                      {msg.content && (
-                        <div className="text-sm text-foreground whitespace-pre-wrap leading-relaxed pl-1">
+        <div className="flex flex-1 min-h-0">
+          {/* Main chat column */}
+          <div className="flex-1 flex flex-col min-w-0">
+            <div className="flex-1 overflow-y-auto">
+              <div className="max-w-3xl mx-auto px-4">
+                {messages.map((msg, i) => (
+                  <div key={i} className="py-4">
+                    {msg.role === "user" ? (
+                      <div className="flex justify-end">
+                        <div className="max-w-[80%] px-4 py-2.5 rounded-2xl rounded-tr-md bg-primary text-primary-foreground text-sm whitespace-pre-wrap">
                           {msg.content}
-                          {isStreaming && i === messages.length - 1 && (
-                            <span className="inline-block w-1.5 h-4 ml-0.5 bg-primary/50 animate-pulse rounded-sm align-middle" />
-                          )}
                         </div>
-                      )}
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {/* Tool Actions — collapsed into a single summary bar */}
+                        {msg.toolActions && msg.toolActions.length > 0 && (
+                          <CollapsedToolActions
+                            actions={msg.toolActions}
+                            isActive={isStreaming && i === messages.length - 1}
+                          />
+                        )}
 
-                      {/* Streaming without text */}
-                      {!msg.content && isStreaming && i === messages.length - 1 && msg.toolActions?.length === 0 && (
-                        <div className="pl-1">
-                          <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              ))}
+                        {/* Text Content — no bubble, just text (ChatGPT style) */}
+                        {msg.content && (
+                          <div className="text-sm text-foreground whitespace-pre-wrap leading-relaxed pl-1">
+                            {msg.content}
+                            {isStreaming && i === messages.length - 1 && (
+                              <span className="inline-block w-1.5 h-4 ml-0.5 bg-primary/50 animate-pulse rounded-sm align-middle" />
+                            )}
+                          </div>
+                        )}
 
-              {/* Error */}
-              {error && (
-                <div className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-red-50 text-red-700 text-sm mb-4">
-                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                  {error}
-                </div>
-              )}
+                        {/* Dynamic Interview Widgets */}
+                        {msg.toolActions
+                          ?.filter((a): a is ToolAction & { widget: ChatWidgetData } => a.type === "widget" && !!a.widget)
+                          .map((a) => (
+                            <ChatWidget
+                              key={a.widget.id}
+                              widget={a.widget}
+                              disabled={isStreaming}
+                              onSubmit={(_fieldKey, value) => {
+                                const display = Array.isArray(value) ? value.join(", ") : value;
+                                sendMessage(`${a.widget.label}: ${display}`);
+                              }}
+                            />
+                          ))}
 
-              <div ref={scrollRef} className="h-4" />
-            </div>
-          </div>
+                        {/* Streaming without text */}
+                        {!msg.content && isStreaming && i === messages.length - 1 && msg.toolActions?.length === 0 && (
+                          <div className="pl-1">
+                            <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))}
 
-          {/* Input Area — bottom-fixed during conversation */}
-          <div className="border-t border-warm-100 bg-background">
-            <div className="max-w-3xl mx-auto px-4 py-3">
-              <div className="relative flex items-end gap-2 rounded-2xl border border-warm-200 bg-background px-3 py-2 focus-within:border-primary/40 focus-within:ring-1 focus-within:ring-primary/20 transition-all">
-                <textarea
-                  ref={inputRef}
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  placeholder="Beschreibe dein Dokument..."
-                  disabled={isStreaming}
-                  rows={1}
-                  className="flex-1 resize-none bg-transparent text-sm placeholder:text-muted-foreground focus:outline-none disabled:opacity-50 max-h-[120px] py-1"
-                />
-                <div className="flex items-center gap-1 flex-shrink-0">
-                  {isStreaming ? (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 rounded-full hover:bg-warm-100"
-                      onClick={stopStreaming}
-                    >
-                      <Square className="w-4 h-4" />
-                    </Button>
-                  ) : (
-                    <Button
-                      size="icon"
-                      className="h-8 w-8 rounded-full"
-                      onClick={() => sendMessage()}
-                      disabled={!input.trim()}
-                    >
-                      <ArrowUp className="w-4 h-4" />
-                    </Button>
-                  )}
-                </div>
+                {/* Error */}
+                {error && (
+                  <div className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-red-50 text-red-700 text-sm mb-4">
+                    <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                    {error}
+                  </div>
+                )}
+
+                <div ref={scrollRef} className="h-4" />
               </div>
+            </div>
 
-              {/* Reset */}
-              {!isStreaming && (
-                <div className="flex justify-center mt-2">
-                  <button
-                    onClick={handleReset}
-                    className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    <RefreshCw className="w-3 h-3" />
-                    Neues Gespräch
-                  </button>
+            {/* Input Area — bottom-fixed during conversation */}
+            <div className="border-t border-warm-100 bg-background">
+              <div className="max-w-3xl mx-auto px-4 py-3">
+                <div className="relative flex items-end gap-2 rounded-2xl border border-warm-200 bg-background px-3 py-2 focus-within:border-primary/40 focus-within:ring-1 focus-within:ring-primary/20 transition-all">
+                  <textarea
+                    ref={inputRef}
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder="Beschreibe dein Dokument..."
+                    disabled={isStreaming}
+                    rows={1}
+                    className="flex-1 resize-none bg-transparent text-sm placeholder:text-muted-foreground focus:outline-none disabled:opacity-50 max-h-[120px] py-1"
+                  />
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    {isStreaming ? (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 rounded-full hover:bg-warm-100"
+                        onClick={stopStreaming}
+                      >
+                        <Square className="w-4 h-4" />
+                      </Button>
+                    ) : (
+                      <Button
+                        size="icon"
+                        className="h-8 w-8 rounded-full"
+                        onClick={() => sendMessage()}
+                        disabled={!input.trim()}
+                      >
+                        <ArrowUp className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
                 </div>
-              )}
+
+                {/* Reset */}
+                {!isStreaming && (
+                  <div className="flex justify-center mt-2">
+                    <button
+                      onClick={handleReset}
+                      className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      <RefreshCw className="w-3 h-3" />
+                      Neues Gespräch
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-        </>
+
+          {/* Reasoning Side-Channel Panel */}
+          <ReasoningPanel entries={reasoningEntries} />
+        </div>
       )}
     </div>
   );
@@ -436,8 +494,10 @@ function CollapsedToolActions({
   const semanticActions = actions.filter(
     a => a.type === "form_update" || a.type === "clause_update" || a.type === "clause_draft"
   );
+  // Widget actions are rendered separately via ChatWidget, not in this summary
+  const nonWidgetActions = actions.filter(a => a.type !== "widget");
 
-  // Nothing to show
+  // Nothing to show (widget-only messages have no tool summary)
   if (completedTools.length === 0 && activeTools.length === 0 && semanticActions.length === 0) {
     return null;
   }
@@ -513,7 +573,7 @@ function CollapsedToolActions({
       {/* Expanded details */}
       {expanded && (
         <div className="mt-1.5 space-y-1 pl-2 border-l-2 border-warm-200 ml-2">
-          {actions.map((action, j) => (
+          {nonWidgetActions.map((action, j) => (
             <ToolActionCard key={j} action={action} />
           ))}
         </div>

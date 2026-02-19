@@ -16,6 +16,7 @@ interface UseGhostwriterDraftParams {
   formData: Record<string, unknown>;
   countryCode: string;
   enabled: boolean;
+  toneOfVoice?: number;
 }
 
 interface UseGhostwriterDraftReturn {
@@ -56,6 +57,7 @@ export function useGhostwriterDraft({
   formData,
   countryCode,
   enabled,
+  toneOfVoice,
 }: UseGhostwriterDraftParams): UseGhostwriterDraftReturn {
   const [draftHtml, setDraftHtml] = useState("");
   const [streamedText, setStreamedText] = useState("");
@@ -124,6 +126,7 @@ export function useGhostwriterDraft({
           document_type_id: documentTypeId,
           form_data: formData,
           country_code: countryCode,
+          tone_of_voice: toneOfVoice || undefined,
         },
         controller.signal
       )) {
@@ -153,7 +156,7 @@ export function useGhostwriterDraft({
       setIsGenerating(false);
       setIsStreaming(false);
     }
-  }, [documentTypeId, formData, countryCode, enabled]);
+  }, [documentTypeId, formData, countryCode, enabled, toneOfVoice]);
 
   // Debounced trigger on form data changes
   useEffect(() => {

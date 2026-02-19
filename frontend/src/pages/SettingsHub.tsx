@@ -2,7 +2,7 @@
  * SettingsHub - Zentrale Einstellungsseite mit Sidebar-Navigation
  *
  * Sidebar-Layout (wie GitHub/Notion Settings):
- * - Links: Kategorisierte Navigation (6 Gruppen, 16 Eintraege)
+ * - Links: Kategorisierte Navigation (7 Gruppen, 17 Eintraege)
  * - Rechts: Content-Area mit lazy-loaded Komponenten
  * - Mobile: Horizontale Scroll-Leiste statt Sidebar
  */
@@ -34,6 +34,7 @@ import {
     LayoutTemplate,
     Stamp,
     Sparkles,
+    Scale,
 } from "lucide-react";
 import { SettingsCommandPalette } from "@/components/settings/SettingsCommandPalette";
 
@@ -57,9 +58,10 @@ const UserTemplatesPage = lazy(() => import("./admin/UserTemplatesPage").then(m 
 const StationeryGalleryPage = lazy(() => import("./admin/StationeryGalleryPage").then(m => ({ default: m.StationeryGalleryPage })));
 const LLMUsagePage = lazy(() => import("./admin/LLMUsagePage"));
 const TeamInstructionsPage = lazy(() => import("./admin/TeamInstructionsPage"));
+const LegalAuditPage = lazy(() => import("./admin/LegalAuditPage"));
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Navigation Structure - 6 Groups, 16 Items
+// Navigation Structure - 7 Groups, 17 Items
 // ═══════════════════════════════════════════════════════════════════════════
 
 interface SettingsNavItem {
@@ -121,6 +123,7 @@ const SETTINGS_NAV: SettingsNavGroup[] = [
         items: [
             { id: "retention", label: "Aufbewahrung", icon: Archive, component: RetentionPoliciesPage, adminOnly: true },
             { id: "audit", label: "Protokoll", icon: Shield, component: AuditLogPage, adminOnly: true },
+            { id: "legal-audit", label: "Rechtsprüfung", icon: Scale, component: LegalAuditPage, adminOnly: true },
         ],
     },
     {
@@ -178,6 +181,7 @@ const LEGACY_ROUTE_MAP: Record<string, string> = {
     "works-council": "works-council",
     "retention": "retention",
     "audit": "audit",
+    "legal-audit": "legal-audit",
 };
 
 // ═══════════════════════════════════════════════════════════════════════════

@@ -29,6 +29,15 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/smart/refine", tags=["smart-refine"])
 
+# ── Tone of Voice definitions ────────────────────────────────────────
+TONE_PROMPTS = {
+    1: "Verwende ausschließlich juristisch korrekte Formulierungen. Kein Smalltalk, keine emotionalen Ausdrücke. Passivkonstruktionen bevorzugt.",
+    2: "Verwende klare, professionelle Sprache. Höflich, aber sachlich.",
+    3: "Verwende professionelle, aber wertschätzende Sprache. Der Mitarbeiter soll sich willkommen fühlen.",
+    4: "Verwende eine warme, persönliche Ansprache. Zeige Wertschätzung und menschliche Nähe.",
+    5: "Verwende einfühlsame, verständnisvolle Sprache. Besonders geeignet für sensible Themen wie Kündigung oder Abmahnung.",
+}
+
 
 # ═══════════════════════════════════════════════════════════════════════════
 # MODELS
@@ -62,6 +71,7 @@ class RefineRequest(BaseModel):
         default=None,
         description="Document type ID for context-aware instructions"
     )
+    tone_of_voice: Optional[int] = Field(None, ge=1, le=5)
 
 
 class RefineResponse(BaseModel):
@@ -126,6 +136,7 @@ async def refine_text(
         logging.getLogger(__name__).warning(f"Unerwarteter Fehler beim Laden der KI-Anweisungen: {e}")
 
     # Build system prompt
+    tone_text = TONE_PROMPTS.get(request.tone_of_voice or 2, TONE_PROMPTS[2])
     system_prompt = f"""Du bist ein erfahrener HR-Textexperte für {_country_name(request.country_code)}.
 Deine Aufgabe ist es, den gegebenen Text gemäß der Anweisung zu überarbeiten.
 
@@ -136,7 +147,8 @@ Regeln:
 - Ändere nur das, was die Anweisung verlangt. Behalte den Rest so nah am Original wie möglich.
 - Wenn der Text bereits gut ist und keine Änderung nötig ist, gib ihn unverändert zurück.
 {f"- Berücksichtige folgende Unternehmensrichtlinien: {custom_ai_instructions}" if custom_ai_instructions else ""}
-{f"- Dokumentkontext: {request.context}" if request.context else ""}"""
+{f"- Dokumentkontext: {request.context}" if request.context else ""}
+Tonalität: {tone_text}"""
 
     user_prompt = f"""Anweisung: {instruction}
 
@@ -246,6 +258,7 @@ async def refine_text_stream(
         logger.warning(f"Unerwarteter Fehler beim Laden der KI-Anweisungen: {e}")
 
     # Build prompts (same as non-streaming endpoint)
+    tone_text = TONE_PROMPTS.get(request.tone_of_voice or 2, TONE_PROMPTS[2])
     system_prompt = f"""Du bist ein erfahrener HR-Textexperte für {_country_name(request.country_code)}.
 Deine Aufgabe ist es, den gegebenen Text gemäß der Anweisung zu überarbeiten.
 
@@ -256,7 +269,8 @@ Regeln:
 - Ändere nur das, was die Anweisung verlangt. Behalte den Rest so nah am Original wie möglich.
 - Wenn der Text bereits gut ist und keine Änderung nötig ist, gib ihn unverändert zurück.
 {f"- Berücksichtige folgende Unternehmensrichtlinien: {custom_ai_instructions}" if custom_ai_instructions else ""}
-{f"- Dokumentkontext: {request.context}" if request.context else ""}"""
+{f"- Dokumentkontext: {request.context}" if request.context else ""}
+Tonalität: {tone_text}"""
 
     user_prompt = f"""Anweisung: {instruction}
 

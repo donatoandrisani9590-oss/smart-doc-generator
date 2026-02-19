@@ -476,66 +476,85 @@ def create_document_from_clauses(
     Create a DOCX document from assembled clauses.
     Professional format following DIN 5008 (DE) or UNI (IT) standards.
     Fully localized based on country_code.
+
+    When no user template (Briefpapier) is selected, applies a full DIN 5008
+    fallback layout with company header, separator lines, and page numbers.
     """
     doc = Document()
 
     # Get localized text from configuration
     loc_text = get_document_texts_for_country(country_code)
 
-    # Set up page format - A4 with compliant margins (configurable)
+    # Set up page format - A4
     section = doc.sections[0]
     section.page_width = Cm(21.0)    # A4 width
     section.page_height = Cm(29.7)   # A4 height
-    section.left_margin = Cm(design_settings.get('margin_left_cm', 2.5))
-    section.right_margin = Cm(design_settings.get('margin_right_cm', 2.0))
-    section.top_margin = Cm(design_settings.get('margin_top_cm', 2.5))
-    section.bottom_margin = Cm(design_settings.get('margin_bottom_cm', 2.0))
-    section.header_distance = Cm(design_settings.get('header_distance_cm', 1.25))
-    section.footer_distance = Cm(design_settings.get('footer_distance_cm', 1.0))
 
-    # Set up document styles - configurable font size (default 11pt)
-    font_size = design_settings.get('font_size_pt', 11)
-    line_spacing = design_settings.get('line_spacing', 1.15)
+    # Apply DIN 5008 fallback layout (professional header, footer, margins, fonts)
+    # This provides: company header with separator, page numbers, heading styles
+    try:
+        from app.services.din5008_layout import DIN5008LayoutBuilder
 
-    style = doc.styles['Normal']
-    style.font.name = design_settings.get('font_family', 'Arial')
-    style.font.size = Pt(font_size)
-    style.paragraph_format.line_spacing = line_spacing
-
-    # Add logo to header (right-aligned) - professional size with spacing
-    logo_path = design_settings.get('logo_path')
-    logo_added = False
-
-    # Try multiple possible logo paths
-    possible_logo_paths = [
-        logo_path,
-        f"/app/storage/logos/{logo_path}" if logo_path and not logo_path.startswith('/') else None,
-        str(Path(__file__).parent.parent.parent.parent.parent / "storage" / "logos" / "niederwieser_logo.png"),
-        str(Path(__file__).parent.parent.parent.parent.parent / "storage" / "logos" / f"{country_code.lower()}" / "logo.png"),
-    ]
-
-    for lp in possible_logo_paths:
-        if lp and os.path.exists(lp):
-            try:
-                header = section.header
-                header_para = header.paragraphs[0]
-                header_para.alignment = WD_ALIGN_PARAGRAPH.RIGHT
-                run = header_para.add_run()
-                # Professional logo size from settings (default 5 cm)
-                logo_width = design_settings.get('logo_width_cm', 5.0)
-                run.add_picture(lp, width=Cm(logo_width))
-
-                # Add spacing line after logo for visual separation from content
-                spacer_para = header.add_paragraph()
-                spacer_para.alignment = WD_ALIGN_PARAGRAPH.RIGHT
-                logo_added = True
-                logger.info(f"Logo added from: {lp}")
+        # Resolve logo path from design settings or well-known locations
+        logo_path = design_settings.get('logo_path')
+        resolved_logo = None
+        possible_logo_paths = [
+            logo_path,
+            f"/app/storage/logos/{logo_path}" if logo_path and not logo_path.startswith('/') else None,
+            str(Path(__file__).parent.parent.parent.parent.parent / "storage" / "logos" / "niederwieser_logo.png"),
+            str(Path(__file__).parent.parent.parent.parent.parent / "storage" / "logos" / f"{country_code.lower()}" / "logo.png"),
+        ]
+        for lp in possible_logo_paths:
+            if lp and os.path.exists(lp):
+                resolved_logo = lp
                 break
-            except Exception as e:
-                logger.warning(f"Could not add logo from {lp}: {e}")
 
-    if not logo_added:
-        logger.warning(f"No logo found for country {country_code}. Checked paths: {possible_logo_paths}")
+        # Build company address string from design settings
+        company_address_parts = []
+        header_line1 = design_settings.get('header_line1', '')
+        header_line2 = design_settings.get('header_line2', '')
+        if header_line1:
+            company_address_parts.append(header_line1)
+        if header_line2:
+            company_address_parts.append(header_line2)
+        company_address = ", ".join(company_address_parts) if company_address_parts else ""
+
+        # Build footer lines from design settings
+        footer_lines = []
+        for key in ('footer_line1', 'footer_line2', 'footer_line3'):
+            val = design_settings.get(key, '')
+            if val:
+                footer_lines.append(val)
+
+        builder = DIN5008LayoutBuilder(
+            company_name=design_settings.get('company_name', ''),
+            company_address=company_address,
+            company_contact=design_settings.get('company_contact', ''),
+            logo_path=resolved_logo,
+            primary_color=design_settings.get('primary_color', '#243186'),
+            font_family=design_settings.get('font_family', 'Arial'),
+            font_size_pt=design_settings.get('font_size_pt', 11),
+            footer_lines=footer_lines,
+        )
+        builder.apply_layout(doc)
+        logger.info("DIN 5008 Fallback-Layout angewendet (kein Briefpapier vorhanden)")
+
+    except Exception as e:
+        # Fallback: apply basic margins and font if DIN 5008 builder fails
+        logger.warning(f"DIN 5008 Layout konnte nicht angewendet werden, verwende Basis-Layout: {e}")
+        section.left_margin = Cm(design_settings.get('margin_left_cm', 2.5))
+        section.right_margin = Cm(design_settings.get('margin_right_cm', 2.0))
+        section.top_margin = Cm(design_settings.get('margin_top_cm', 2.5))
+        section.bottom_margin = Cm(design_settings.get('margin_bottom_cm', 2.0))
+        section.header_distance = Cm(design_settings.get('header_distance_cm', 1.25))
+        section.footer_distance = Cm(design_settings.get('footer_distance_cm', 1.0))
+
+        font_size = design_settings.get('font_size_pt', 11)
+        line_spacing = design_settings.get('line_spacing', 1.15)
+        style = doc.styles['Normal']
+        style.font.name = design_settings.get('font_family', 'Arial')
+        style.font.size = Pt(font_size)
+        style.paragraph_format.line_spacing = line_spacing
 
     # Add document title - centered, larger font (LOCALIZED)
     title = doc.add_paragraph()
@@ -787,6 +806,13 @@ async def generate_document_by_type(
         # Logo
         "logo_width_cm": float(getattr(design, 'logo_width_cm', None) or 5.0),
         "logo_position": getattr(design, 'logo_position', None) or "right",
+
+        # DIN 5008 Fallback: Footer lines and primary color for header/footer
+        "primary_color": getattr(design, 'primary_color', None) or "#243186",
+        "footer_line1": getattr(design, 'footer_line1', None) or "",
+        "footer_line2": getattr(design, 'footer_line2', None) or "",
+        "footer_line3": getattr(design, 'footer_line3', None) or "",
+        "company_contact": getattr(design, 'header_line3', None) or "",
     }
 
     # 3. Load clauses for this document type

@@ -17,8 +17,9 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { sanitizeHtml } from "@/utils/sanitize";
 import { useWizardContext } from "../WizardContext";
-import { VariableHighlighter } from "../VariableHighlighter";
+import { A4Preview } from "@/components/preview/A4Preview";
 import { ComplianceChecker } from "@/components/ai/ComplianceChecker";
+import { GapAnalysisCard } from "../GapAnalysisCard";
 import "@/styles/preview.css";
 
 interface DocumentType {
@@ -254,29 +255,40 @@ export const StepReview = ({ documentTypes }: StepReviewProps) => {
                         </div>
                     </CardHeader>
                     <CardContent className="p-0">
-                        <div
-                            className="preview-container overflow-auto bg-white"
-                            style={{ maxHeight: "500px" }}
-                        >
-                            {isPreviewLoading ? (
-                                <div className="flex items-center justify-center h-64">
-                                    <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-                                </div>
-                            ) : previewHtml ? (
-                                <VariableHighlighter
-                                    html={sanitizeHtml(previewHtml)}
-                                    formData={formData as unknown as Record<string, string | number | undefined>}
-                                    className="preview-content p-6"
-                                />
-                            ) : (
-                                <div className="flex items-center justify-center h-64 text-muted-foreground">
-                                    <p>Vorschau wird geladen...</p>
-                                </div>
-                            )}
-                        </div>
+                        {isPreviewLoading ? (
+                            <div className="flex items-center justify-center h-64">
+                                <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+                            </div>
+                        ) : previewHtml ? (
+                            <A4Preview
+                                html={sanitizeHtml(previewHtml)}
+                                formData={formData as unknown as Record<string, string | number | undefined>}
+                                zoom={0.5}
+                                maxHeight="500px"
+                            />
+                        ) : (
+                            <div className="flex items-center justify-center h-64 text-muted-foreground">
+                                <p>Vorschau wird geladen...</p>
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
             </div>
+
+            {/* Lückenanalyse — proaktive Vollständigkeitsprüfung */}
+            {documentTypeId && (
+                <GapAnalysisCard
+                    documentTypeId={documentTypeId}
+                    countryCode="DE"
+                    enabledClauseIds={documentClauses.filter(c => c.is_enabled).map(c => c.id)}
+                    formData={formData as unknown as Record<string, unknown>}
+                    documentTitle={documentTitle}
+                    onAddClause={(clauseId) => {
+                        const clause = documentClauses.find(c => c.id === clauseId);
+                        if (clause) actions.toggleClause(clause.unique_id);
+                    }}
+                />
+            )}
 
             {/* KI-Compliance-Prüfung */}
             {documentTypeId && (

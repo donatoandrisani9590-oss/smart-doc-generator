@@ -4,11 +4,14 @@ Feature Settings API
 Endpoints for managing user-specific feature toggles.
 All features are enabled by default (opt-out model).
 """
+import logging
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from pydantic import BaseModel, Field
 from typing import Dict, List, Any, Optional
+
+logger = logging.getLogger(__name__)
 
 from app.db import get_db
 from app.api.deps import get_current_user
@@ -84,20 +87,28 @@ async def get_or_create_settings(
 
 
 def settings_to_dict(settings: UserFeatureSettings) -> Dict[str, bool]:
-    """Convert settings model to dictionary."""
-    return {
-        "show_documents_overview": settings.show_documents_overview,
-        "show_deadlines_widget": settings.show_deadlines_widget,
-        "show_activity_feed": settings.show_activity_feed,
-        "enable_document_upload": settings.enable_document_upload,
-        "enable_ai_extraction": settings.enable_ai_extraction,
-        "enable_approval_workflow": settings.enable_approval_workflow,
-        "enable_smart_mode": settings.enable_smart_mode,
-        "enable_compliance_scanner": settings.enable_compliance_scanner,
-        "enable_chat_assistant": settings.enable_chat_assistant,
-        "show_quick_templates": settings.show_quick_templates,
-        "compact_sidebar": settings.compact_sidebar,
+    """Convert settings model to dictionary.
+
+    Dynamically reads all keys from FEATURE_DEFINITIONS so that
+    newly added features are automatically included without having
+    to update this function.  Falls back to the feature's default
+    value (True, except where defined otherwise) when a column
+    does not exist yet in the DB (migration pending).
+    """
+    # Defaults per feature (most are True)
+    _DEFAULTS: Dict[str, bool] = {
+        "compact_sidebar": False,
+        "enable_email_ingest": False,
     }
+    result: Dict[str, bool] = {}
+    for key in FEATURE_DEFINITIONS:
+        try:
+            value = getattr(settings, key, None)
+            result[key] = value if value is not None else _DEFAULTS.get(key, True)
+        except Exception:
+            # Column might not exist yet on production DB
+            result[key] = _DEFAULTS.get(key, True)
+    return result
 
 
 def build_categories_response(settings_dict: Dict[str, bool]) -> List[FeatureCategory]:
@@ -149,8 +160,18 @@ async def get_feature_settings(
     Returns categorized list of all features with their current enabled status.
     All features default to enabled (opt-out model).
     """
-    settings = await get_or_create_settings(db, current_user.id)
-    settings_dict = settings_to_dict(settings)
+    try:
+        settings = await get_or_create_settings(db, current_user.id)
+        settings_dict = settings_to_dict(settings)
+    except Exception as exc:
+        # Graceful fallback when user_feature_settings table is missing
+        # columns (migration not yet applied on production)
+        logger.warning("Feature-Settings DB-Fehler (Migration ausstehend?): %s", exc)
+        _DEFAULTS: Dict[str, bool] = {
+            "compact_sidebar": False,
+            "enable_email_ingest": False,
+        }
+        settings_dict = {key: _DEFAULTS.get(key, True) for key in FEATURE_DEFINITIONS}
 
     return FeatureSettingsResponse(
         categories=build_categories_response(settings_dict),
@@ -238,18 +259,18 @@ async def reset_to_defaults(
     """
     settings = await get_or_create_settings(db, current_user.id)
 
-    # Reset all to True (except compact_sidebar which defaults to False)
-    settings.show_documents_overview = True
-    settings.show_deadlines_widget = True
-    settings.show_activity_feed = True
-    settings.enable_document_upload = True
-    settings.enable_ai_extraction = True
-    settings.enable_approval_workflow = True
-    settings.enable_smart_mode = True
-    settings.enable_compliance_scanner = True
-    settings.enable_chat_assistant = True
-    settings.show_quick_templates = True
-    settings.compact_sidebar = False
+    # Reset all features to their default value (True, except special cases)
+    _DEFAULTS: Dict[str, bool] = {
+        "compact_sidebar": False,
+        "enable_email_ingest": False,
+    }
+    for key in FEATURE_DEFINITIONS:
+        default = _DEFAULTS.get(key, True)
+        if hasattr(settings, key):
+            try:
+                setattr(settings, key, default)
+            except Exception:
+                pass  # Column may not exist in DB yet
 
     await db.commit()
     await db.refresh(settings)

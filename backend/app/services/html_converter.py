@@ -15,7 +15,7 @@ from typing import Any, Optional, Iterator
 from bs4 import BeautifulSoup, NavigableString, Tag
 from docx import Document
 from docx.shared import Pt, Cm, Inches, RGBColor
-from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_BREAK
 from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.enum.style import WD_STYLE_TYPE
 from docx.oxml.ns import qn
@@ -131,17 +131,29 @@ class HtmlToDocxConverter:
             elif tag_name in ('h1', 'h2', 'h3', 'h4', 'h5', 'h6'):
                 self._add_heading(container, element, tag_name)
 
-            # Paragraphs and divs
+            # Paragraphs and divs (check for page-break class first)
             elif tag_name in ('p', 'div'):
-                self._add_paragraph(container, element)
+                css_class = element.get('class', [])
+                if isinstance(css_class, str):
+                    css_class = css_class.split()
+                if 'page-break' in css_class or 'pagebreak' in css_class:
+                    self._add_page_break(container)
+                else:
+                    self._add_paragraph(container, element)
 
             # Blockquote
             elif tag_name == 'blockquote':
                 self._add_blockquote(container, element)
 
-            # Horizontal rule
+            # Horizontal rule (check for page-break class)
             elif tag_name == 'hr':
-                self._add_horizontal_rule(container)
+                css_class = element.get('class', [])
+                if isinstance(css_class, str):
+                    css_class = css_class.split()
+                if 'page-break' in css_class or 'pagebreak' in css_class:
+                    self._add_page_break(container)
+                else:
+                    self._add_horizontal_rule(container)
 
             # Line break at top level - add empty paragraph
             elif tag_name == 'br':
@@ -370,42 +382,74 @@ class HtmlToDocxConverter:
                 para.add_run(prefix)
 
     def _add_heading(self, container: Any, element: Tag, tag_name: str) -> None:
-        """Add a heading paragraph."""
+        """
+        Add a heading using proper Word heading styles (Heading 1, Heading 2, etc.).
+
+        Using built-in heading styles ensures:
+        - Automatic Table of Contents (TOC) support
+        - Consistent typography across the document
+        - Proper outline level for navigation
+        """
         level = int(tag_name[1])  # h1 -> 1, h2 -> 2, etc.
 
+        # Use proper Word heading styles for levels 1-3, fall back to manual for 4-6
+        if level <= 3:
+            try:
+                heading_style = f'Heading {level}'
+                para = container.add_paragraph(style=heading_style)
+                self._add_inline_content(para, element)
+                # Ensure correct font family on heading runs
+                for run in para.runs:
+                    run.font.name = self.font_family
+                return
+            except KeyError:
+                # Heading style not available -- fall through to manual formatting
+                logger.debug(f"Word style 'Heading {level}' nicht verfuegbar, verwende manuelle Formatierung")
+
+        # Manual heading formatting (levels 4-6 or when styles are unavailable)
         para = container.add_paragraph()
         para.alignment = WD_ALIGN_PARAGRAPH.LEFT
 
-        # Set heading style based on level
-        sizes = {1: 18, 2: 16, 3: 14, 4: 12, 5: 11, 6: 11}
+        sizes = {1: 16, 2: 14, 3: 12, 4: 12, 5: 11, 6: 11}
         font_size = sizes.get(level, 11)
 
         self._add_inline_content(para, element)
 
-        # Apply heading formatting
+        # Apply heading formatting to all runs
         for run in para.runs:
             run.bold = True
             run.font.size = Pt(font_size)
+            run.font.name = self.font_family
 
         # Add space before heading
         para.paragraph_format.space_before = Pt(12)
+        para.paragraph_format.space_after = Pt(4)
 
     def _add_paragraph(self, container: Any, element: Tag) -> None:
-        """Add a regular paragraph."""
+        """Add a regular paragraph with alignment and page-break support."""
+        style_attr = element.get('style', '')
+
+        # Handle CSS page-break-before: always / page-break-after: always
+        if 'page-break-before' in style_attr and 'always' in style_attr:
+            self._add_page_break(container)
+
         para = container.add_paragraph()
 
         # Check for alignment style
-        style = element.get('style', '')
-        if 'text-align: center' in style or 'text-align:center' in style:
+        if 'text-align: center' in style_attr or 'text-align:center' in style_attr:
             para.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        elif 'text-align: right' in style or 'text-align:right' in style:
+        elif 'text-align: right' in style_attr or 'text-align:right' in style_attr:
             para.alignment = WD_ALIGN_PARAGRAPH.RIGHT
-        elif 'text-align: justify' in style or 'text-align:justify' in style:
+        elif 'text-align: justify' in style_attr or 'text-align:justify' in style_attr:
             para.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
         else:
             para.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY  # Default to justified
 
         self._add_inline_content(para, element)
+
+        # Handle page-break-after
+        if 'page-break-after' in style_attr and 'always' in style_attr:
+            self._add_page_break(container)
 
     def _add_blockquote(self, container: Any, element: Tag) -> None:
         """Add a blockquote with indentation."""
@@ -444,6 +488,19 @@ class HtmlToDocxConverter:
         bottom.set(qn('w:color'), '000000')
         pBdr.append(bottom)
         pPr.append(pBdr)
+
+    def _add_page_break(self, container: Any) -> None:
+        """
+        Add an explicit page break to the document.
+
+        Triggered by:
+        - <div class="page-break">
+        - <hr class="page-break">
+        - <p class="pagebreak">
+        """
+        para = container.add_paragraph()
+        run = para.add_run()
+        run.add_break(WD_BREAK.PAGE)
 
     def _add_inline_content(self, para: Any, element: Tag) -> None:
         """

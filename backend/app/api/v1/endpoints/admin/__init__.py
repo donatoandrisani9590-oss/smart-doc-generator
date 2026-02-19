@@ -11,6 +11,7 @@ from app.api.v1.endpoints.admin import (
     document_type_import,
     feature_settings,
     llm_usage,
+    legal_audit,
 )
 
 __all__ = [
@@ -25,4 +26,5 @@ __all__ = [
     "document_type_import",
     "feature_settings",
     "llm_usage",
+    "legal_audit",
 ]

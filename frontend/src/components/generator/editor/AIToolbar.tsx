@@ -47,6 +47,8 @@ interface AIToolbarProps {
     countryCode?: string;
     /** Document type ID */
     documentTypeId?: number | null;
+    /** Tone of voice (1-5) */
+    toneOfVoice?: number;
 }
 
 interface RefineResponse {
@@ -71,6 +73,7 @@ export const AIToolbar = ({
     documentContext,
     countryCode = "DE",
     documentTypeId,
+    toneOfVoice,
 }: AIToolbarProps) => {
     const [isOpen, setIsOpen] = useState(false);
     const [status, setStatus] = useState<ToolbarStatus>("idle");
@@ -126,6 +129,7 @@ export const AIToolbar = ({
             context: documentContext || undefined,
             country_code: countryCode,
             document_type_id: documentTypeId || undefined,
+            tone_of_voice: toneOfVoice || undefined,
         };
 
         // Create AbortController for cancellation
@@ -233,7 +237,7 @@ export const AIToolbar = ({
         } finally {
             abortControllerRef.current = null;
         }
-    }, [getSelectedText, replaceSelectedText, documentContext, countryCode, documentTypeId, clearStatusAfter]);
+    }, [getSelectedText, replaceSelectedText, documentContext, countryCode, documentTypeId, toneOfVoice, clearStatusAfter]);
 
     const handleCustomSubmit = useCallback(() => {
         if (customInstruction.trim()) {

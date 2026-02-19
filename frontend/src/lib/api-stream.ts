@@ -22,8 +22,14 @@ export interface SSEEvent {
   type?: "text_delta" | "thinking" | "tool_start" | "tool_result"
        | "form_update" | "clause_update" | "clause_draft"
        | "preview_ready" | "done" | "error"
+       // Reasoning side-channel
+       | "reasoning"
+       // Dynamic Interview widgets
+       | "widget"
        // Onboarding pipeline events
-       | "status" | "employee_history" | "draft_created" | "draft_error";
+       | "status" | "employee_history" | "draft_created" | "draft_error"
+       // Bulk operations events
+       | "progress" | "row_complete" | "row_error";
   message?: string;
   content?: string;
   tool?: string;
@@ -38,6 +44,20 @@ export interface SSEEvent {
   latency_ms?: number;
   requires_confirmation?: boolean;
 
+  // Widget fields (Dynamic Interview)
+  widget_id?: string;
+  widget_type?: "chips" | "input" | "multi_select" | "slider";
+  field_key?: string;
+  label?: string;
+  options?: Array<{ value: string; label: string; is_default?: boolean }>;
+  placeholder?: string;
+  input_type?: string;
+  min?: number;
+  max?: number;
+  unit?: string;
+  hint?: string;
+  widget_step?: number;
+
   // Onboarding pipeline fields
   draft?: Record<string, unknown>;
   drafts?: Array<Record<string, unknown>>;
@@ -48,6 +68,16 @@ export interface SSEEvent {
   step?: string;
   extracted_fields?: string[];
   package_key?: string;
+
+  // Bulk operations fields
+  current?: number;
+  total?: number;
+  percent?: number;
+  employee_name?: string;
+  row?: number;
+  field?: string;
+  success_count?: number;
+  error_count?: number;
 }
 
 /**

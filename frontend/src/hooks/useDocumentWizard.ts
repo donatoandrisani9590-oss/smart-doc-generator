@@ -103,6 +103,10 @@ export function useDocumentWizard(initialDraftId?: number): WizardContextValue {
         enterSplitScreenMode: nav.enterSplitScreenMode,
     });
 
+    // ── 6b. Tone of Voice (1-5, default 2 = Professionell) ──────────────
+
+    const [toneOfVoice, setToneOfVoice] = useState<1 | 2 | 3 | 4 | 5>(2);
+
     // ── 7. User Template Selection (optional layout template) ──────────────
 
     const [userTemplateId, setUserTemplateIdState] = useState<number | null>(null);
@@ -266,6 +270,7 @@ export function useDocumentWizard(initialDraftId?: number): WizardContextValue {
         documentTitle: form.documentTitle,
         loadedDraftId: drafts.loadedDraftId,
         userTemplateId,
+        toneOfVoice,
         stationeryZones,
         // Form
         formData: form.formData,
@@ -314,6 +319,7 @@ export function useDocumentWizard(initialDraftId?: number): WizardContextValue {
         setDocumentTitle: form.setDocumentTitle,
         setUserTemplateId: handleSetUserTemplateId,
         loadStationeryZones,
+        setToneOfVoice,
         updateFormField: form.updateFormField,
         updateDynamicField: form.updateDynamicField,
         setFormData: form.setFormData,

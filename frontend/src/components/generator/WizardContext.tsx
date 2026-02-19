@@ -154,6 +154,9 @@ export interface WizardState {
     // Eigene Vorlage (optional: DOCX mit Branding/Layout)
     userTemplateId: number | null;
 
+    // Tonalität (1-5: streng formal → empathisch)
+    toneOfVoice: 1 | 2 | 3 | 4 | 5;
+
     // Briefpapier-Zonen (Header/Footer aus Blanko)
     stationeryZones: {
         headerImages: Array<{ data: string; filename: string }>;
@@ -221,6 +224,7 @@ export interface WizardActions {
     setDocumentTitle: (title: string) => void;
     setUserTemplateId: (id: number | null) => void;
     loadStationeryZones: (templateId: number) => Promise<void>;
+    setToneOfVoice: (tone: 1 | 2 | 3 | 4 | 5) => void;
 
     // Formulardaten
     updateFormField: <K extends keyof FormData>(field: K, value: FormData[K]) => void;
@@ -324,6 +328,7 @@ export const initialWizardState: WizardState = {
     loadedDraftId: null,
 
     userTemplateId: null,
+    toneOfVoice: 2,
     stationeryZones: null,
 
     formData: initialFormData,

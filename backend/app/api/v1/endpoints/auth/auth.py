@@ -122,7 +122,7 @@ async def login_access_token(
     if not user or not security.verify_password(form_data.password, user.password_hash):
         # Increment failed login attempts
         if user:
-            user.failed_login_attempts += 1
+            user.failed_login_attempts = (user.failed_login_attempts or 0) + 1
 
             # Lock account after 5 failed attempts
             if user.failed_login_attempts >= 5:
@@ -142,7 +142,7 @@ async def login_access_token(
         raise HTTPException(status_code=400, detail="Benutzerkonto ist deaktiviert")
 
     # Successful login - reset failed attempts
-    if user.failed_login_attempts > 0:
+    if (user.failed_login_attempts or 0) > 0:
         user.failed_login_attempts = 0
         user.locked_until = None
         await db.commit()

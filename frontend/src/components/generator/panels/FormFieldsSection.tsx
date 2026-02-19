@@ -25,8 +25,9 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Info, AlertCircle } from "lucide-react";
+import { Info, AlertCircle, Sparkles, X } from "lucide-react";
 import { useWizardContext } from "../WizardContext";
+import type { MagicFillSuggestion } from "@/hooks/useMagicFill";
 
 // ══════════════════════════════════════════════════════════════════════════════
 // KONTEXTUELLE HILFETEXTE (PACTA-inspiriert)
@@ -333,9 +334,34 @@ type LanguageCode = keyof typeof FIELD_LABELS;
 
 interface FormFieldsSectionProps {
     countryCode?: string;
+    magicFillSuggestions?: MagicFillSuggestion[];
+    magicFillDocumentCount?: number;
+    onMagicFillApply?: (fieldKey: string) => void;
+    onMagicFillApplyAll?: () => void;
+    onMagicFillDismiss?: (fieldKey: string) => void;
 }
 
-export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) => {
+// Lesbarer Feldname für die Magic-Fill-Anzeige
+const MAGIC_FILL_FIELD_LABELS: Record<string, string> = {
+    probezeit: "Probezeit",
+    urlaubstage: "Urlaubstage",
+    wochenstunden: "Wochenstunden",
+    kuendigungsfrist: "Kündigungsfrist",
+    au_frist: "AU-Frist",
+    vwl_betrag: "VWL",
+    urlaubsgeld_pro_tag: "Urlaubsgeld",
+    vertragsart: "Vertragsart",
+    entgeltgruppe: "Entgeltgruppe",
+};
+
+export const FormFieldsSection = ({
+    countryCode,
+    magicFillSuggestions,
+    magicFillDocumentCount,
+    onMagicFillApply,
+    onMagicFillApplyAll,
+    onMagicFillDismiss,
+}: FormFieldsSectionProps = {}) => {
     const { state, actions } = useWizardContext();
     const { formData } = state;
 
@@ -379,7 +405,11 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
         const error = getInlineError(field, value);
         const baseClass = "h-8 text-sm ive-input";
         const errorClass = error ? "border-red-500 focus-visible:ring-red-500/30" : "";
-        return [baseClass, errorClass, extra].filter(Boolean).join(" ");
+        // Subtle pulse for empty required fields (even before touched)
+        const isEmpty = !value || !value.trim();
+        const isRequired = REQUIRED_FIELDS.includes(field as typeof REQUIRED_FIELDS[number]);
+        const pulseClass = (isEmpty && isRequired && !error) ? "shadow-[inset_0_-2px_0_hsl(0_70%_60%_/_0.15)] animate-pulse" : "";
+        return [baseClass, errorClass, pulseClass, extra].filter(Boolean).join(" ");
     }, [getInlineError]);
 
     // Berechne ausgefüllte Pflichtfelder (inkl. Dokumenttitel für konsistente Zählung)
@@ -395,17 +425,91 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
         return { filled, total, percentage };
     }, [formData, state.documentTitle]);
 
+    const activeSuggestions = magicFillSuggestions ?? [];
+
     return (
         <TooltipProvider>
         <div className="space-y-5 px-0.5">
+            {/* Magic Fill: Vorschläge aus Teamhistorie */}
+            {activeSuggestions.length > 0 && (
+                <div className="mb-1 p-3 rounded-xl bg-primary/[0.03] space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <div className="flex items-center justify-between">
+                        <span className="text-[11px] text-primary/60 font-medium flex items-center gap-1.5">
+                            <Sparkles className="w-3 h-3" />
+                            {lang === "de" ? "Vorschläge aus Teamhistorie" : "Suggerimenti dalla cronologia del team"}
+                        </span>
+                        {onMagicFillApplyAll && (
+                            <button
+                                type="button"
+                                onClick={onMagicFillApplyAll}
+                                className="text-[11px] text-primary hover:underline"
+                            >
+                                {lang === "de" ? "Alle übernehmen" : "Applica tutti"}
+                            </button>
+                        )}
+                    </div>
+                    {activeSuggestions.map((s) => (
+                        <div key={s.field_key} className="flex items-center justify-between text-[12px]">
+                            <Tooltip delayDuration={200}>
+                                <TooltipTrigger asChild>
+                                    <span className="text-foreground/60 truncate cursor-help">
+                                        {MAGIC_FILL_FIELD_LABELS[s.field_key] ?? s.field_key}: <strong className="text-foreground/80">{s.value}</strong>
+                                    </span>
+                                </TooltipTrigger>
+                                <TooltipContent side="top" className="max-w-[260px] text-xs leading-relaxed">
+                                    {s.hint}
+                                </TooltipContent>
+                            </Tooltip>
+                            <div className="flex items-center gap-1 shrink-0 ml-2">
+                                {onMagicFillApply && (
+                                    <button
+                                        type="button"
+                                        onClick={() => onMagicFillApply(s.field_key)}
+                                        className="text-primary text-[11px] hover:underline whitespace-nowrap"
+                                    >
+                                        Übernehmen
+                                    </button>
+                                )}
+                                {onMagicFillDismiss && (
+                                    <button
+                                        type="button"
+                                        onClick={() => onMagicFillDismiss(s.field_key)}
+                                        className="text-foreground/30 hover:text-foreground/50 transition-colors"
+                                        aria-label="Verwerfen"
+                                    >
+                                        <X className="w-3 h-3" />
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    ))}
+                    {typeof magicFillDocumentCount === "number" && magicFillDocumentCount > 0 && (
+                        <p className="text-[10px] text-muted-foreground/40 italic">
+                            {lang === "de"
+                                ? `Basierend auf ${magicFillDocumentCount} ähnlichen Dokumenten`
+                                : `Basato su ${magicFillDocumentCount} documenti simili`}
+                        </p>
+                    )}
+                </div>
+            )}
+
             {/* Fortschrittsanzeige für Pflichtfelder */}
-            <div className="flex items-center justify-between text-[11px] text-muted-foreground/60 pb-3">
-                <span>
-                    {requiredFieldsProgress.filled} {labels.progress_filled} {requiredFieldsProgress.total} {labels.progress_suffix}
-                </span>
-                <span>
-                    <span className="text-primary/40">*</span> = {labels.required}
-                </span>
+            <div className="pb-3">
+                <div className="flex items-center justify-between text-[11px] text-muted-foreground/60 mb-1.5">
+                    <span>
+                        {requiredFieldsProgress.filled} {labels.progress_filled} {requiredFieldsProgress.total} {labels.progress_suffix}
+                    </span>
+                    <span>
+                        <span className="text-primary/40">*</span> = {labels.required}
+                    </span>
+                </div>
+                {/* Slim progress bar */}
+                <div className="h-1 w-full rounded-full bg-foreground/[0.06] overflow-hidden">
+                    <div
+                        className="h-full rounded-full bg-primary/40 transition-all duration-500 ease-out"
+                        style={{ width: `${requiredFieldsProgress.percentage}%` }}
+                    />
+                </div>
             </div>
 
             {/* Mitarbeiterdaten */}
@@ -413,6 +517,14 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
                 <h4 className="ive-section-header">
                     {labels.section_employee}
                 </h4>
+
+                {!formData.vorname && !formData.nachname && (
+                    <p className="text-[12px] text-muted-foreground/40 italic -mt-1">
+                        {lang === "de"
+                            ? "Beginne mit den Mitarbeiterdaten \u2014 Nachname reicht zum Starten"
+                            : "Inizia con i dati del dipendente \u2014 il cognome \u00e8 sufficiente per iniziare"}
+                    </p>
+                )}
 
                 <div className="grid grid-cols-2 gap-2.5">
                     <div className="space-y-1">
@@ -500,6 +612,14 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
                 <h4 className="ive-section-header">
                     {labels.section_contract}
                 </h4>
+
+                {!formData.position && !formData.gehalt && (formData.vorname || formData.nachname) && (
+                    <p className="text-[12px] text-muted-foreground/40 italic -mt-1">
+                        {lang === "de"
+                            ? "Jetzt die Vertragsdaten \u2014 Position und Gehalt sind die wichtigsten"
+                            : "Ora i dati contrattuali \u2014 posizione e retribuzione sono i pi\u00f9 importanti"}
+                    </p>
+                )}
 
                 <div className="space-y-1">
                     <Label htmlFor="vertragsart" className="text-[13px] text-foreground/60">
@@ -848,6 +968,14 @@ export const FormFieldsSection = ({ countryCode }: FormFieldsSectionProps = {}) 
                 <h4 className="ive-section-header">
                     {labels.section_signatory}
                 </h4>
+
+                {!formData.signatory_name && requiredFieldsProgress.filled >= requiredFieldsProgress.total - 2 && (
+                    <p className="text-[12px] text-muted-foreground/40 italic -mt-1">
+                        {lang === "de"
+                            ? "Fast fertig \u2014 nur noch den Unterzeichner angeben"
+                            : "Quasi finito \u2014 manca solo il firmatario"}
+                    </p>
+                )}
 
                 <div className="space-y-1">
                     <Label htmlFor="signatory_name" className="text-[13px] text-foreground/60 flex items-center">

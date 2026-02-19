@@ -42,6 +42,12 @@ class UserFeatureSettings(Base):
     enable_ai_agent = Column(Boolean, default=True, nullable=False)
     enable_onboarding_agent = Column(Boolean, default=True, nullable=False)
 
+    # Workflow Features (Email)
+    enable_email_ingest = Column(Boolean, default=False, nullable=False)
+
+    # Workflow Features (Bulk Operations)
+    enable_bulk_operations = Column(Boolean, default=True, nullable=False)
+
     # UI Preferences
     show_quick_templates = Column(Boolean, default=True, nullable=False)
     compact_sidebar = Column(Boolean, default=False, nullable=False)
@@ -131,6 +137,18 @@ FEATURE_DEFINITIONS = {
         "description": "Erstellt komplette Dokumentpakete (Onboarding, Kündigung, Beförderung) per Chat",
         "category": "ai",
         "icon": "Package"
+    },
+    "enable_email_ingest": {
+        "label": "E-Mail-Eingang",
+        "description": "Erstellt automatisch Dokumententwürfe aus eingehenden E-Mails",
+        "category": "workflow",
+        "icon": "Mail"
+    },
+    "enable_bulk_operations": {
+        "label": "Massenerstellung",
+        "description": "Ermöglicht die Massenverarbeitung von Dokumenten via CSV/Excel-Upload mit KI-Spaltenzuordnung",
+        "category": "workflow",
+        "icon": "Table2"
     },
     "show_quick_templates": {
         "label": "Schnellstart-Templates",

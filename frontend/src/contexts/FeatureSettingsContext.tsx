@@ -61,10 +61,13 @@ export type FeatureKey =
   | "enable_ai_streaming"
   | "enable_ghostwriter"
   | "enable_ai_agent"
+  | "enable_onboarding_agent"
+  | "enable_email_ingest"
+  | "enable_bulk_operations"
   | "show_quick_templates"
   | "compact_sidebar";
 
-// Default settings (all enabled except compact_sidebar)
+// Default settings (all enabled except compact_sidebar and email_ingest)
 // eslint-disable-next-line react-refresh/only-export-components
 export const DEFAULT_SETTINGS: Record<FeatureKey, boolean> = {
   show_documents_overview: true,
@@ -79,6 +82,9 @@ export const DEFAULT_SETTINGS: Record<FeatureKey, boolean> = {
   enable_ai_streaming: true,
   enable_ghostwriter: true,
   enable_ai_agent: true,
+  enable_onboarding_agent: true,
+  enable_email_ingest: false,
+  enable_bulk_operations: true,
   show_quick_templates: true,
   compact_sidebar: false,
 };
@@ -131,8 +137,9 @@ export function FeatureSettingsProvider({ children }: FeatureSettingsProviderPro
       setHasFetched(true);
     } catch {
       setError("Einstellungen konnten nicht geladen werden");
-      // Use defaults on error
+      // Use defaults on error — and mark as fetched to prevent retry-storm
       setSettings(DEFAULT_SETTINGS);
+      setHasFetched(true);
     } finally {
       setIsLoading(false);
     }

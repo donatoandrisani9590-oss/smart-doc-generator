@@ -460,3 +460,118 @@
 .document-editor-container:focus-within::before {
     opacity: 1;
 }
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   A4 Preview Component - Zoomable document preview
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+/* Container background - warm neutral surface */
+.a4-preview-bg {
+    background: hsl(33 15% 95%);
+}
+
+/* Paper - floating white page with subtle shadow */
+.a4-paper {
+    background: white;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    border-radius: 2px;
+    transform-origin: top center;
+    transition: transform 0.2s ease;
+}
+
+/* Inner content inherits document-preview typography */
+.document-preview-inner {
+    font-family: 'Arial', 'Inter', sans-serif;
+    font-size: 11pt;
+    line-height: 1.15;
+    color: #1D1D1F;
+}
+
+.document-preview-inner h1,
+.document-preview-inner h2 {
+    font-size: 11pt;
+    font-weight: bold;
+    text-align: center;
+    margin: 12pt 0 6pt 0;
+}
+
+.document-preview-inner p {
+    margin-bottom: 0.8em;
+    text-align: justify;
+}
+
+.document-preview-inner ul,
+.document-preview-inner ol {
+    margin-left: 2em;
+    margin-bottom: 0.8em;
+}
+
+.document-preview-inner .document-title {
+    text-align: center;
+    font-size: 16pt;
+    font-weight: bold;
+    margin: 15mm 0 8mm 0;
+    color: var(--primary-color, #243186);
+}
+
+.document-preview-inner .document-header {
+    text-align: right;
+    border-bottom: 2px solid var(--primary-color, #243186);
+    padding-bottom: 8mm;
+    margin-bottom: 10mm;
+}
+
+.document-preview-inner .signature-section {
+    margin-top: 20mm;
+    page-break-inside: avoid;
+}
+
+.document-preview-inner .signature-line {
+    border-top: 1px solid #333;
+    padding-top: 2mm;
+    margin-top: 15mm;
+    font-size: 10pt;
+}
+
+/* Page break indicator line */
+.a4-page-break {
+    border-top: 1px dashed hsl(33 12% 82%);
+    position: relative;
+    z-index: 1;
+}
+
+.a4-page-break::after {
+    content: attr(data-page);
+    position: absolute;
+    right: 12px;
+    top: -8px;
+    font-size: 10px;
+    color: hsl(33 12% 70%);
+    background: hsl(33 15% 95%);
+    padding: 0 6px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    letter-spacing: 0.02em;
+}
+
+/* Print: hide zoom controls and page break indicators */
+@media print {
+    .a4-preview-bg {
+        background: none;
+    }
+
+    .a4-paper {
+        box-shadow: none;
+        transform: none !important;
+        margin: 0;
+        padding: 0;
+        width: 100%;
+    }
+
+    .a4-page-break {
+        display: none;
+    }
+
+    .a4-preview-bg .sticky {
+        display: none !important;
+    }
+}

@@ -137,6 +137,12 @@ class Clause(Base):
     is_ai_generated = Column(Boolean, default=False)
     ai_generation_context = Column(Text, nullable=True)  # JSON: {prompt, applied_rules[], source_document_id}
 
+    # ══════════════════════════════════════════════════════════════════════════
+    # LEGAL WATCHDOG (Phase 6: Automatisierte Rechtsprüfung)
+    # ══════════════════════════════════════════════════════════════════════════
+    legal_status = Column(String(20), default="unchecked", index=True)  # "ok" | "warning" | "deprecated" | "unchecked"
+    last_audited_at = Column(DateTime(timezone=True), nullable=True)
+
 class DocumentTypeClause(Base):
     """
     Zuordnung von Textbausteine zu Dokumenttypen.

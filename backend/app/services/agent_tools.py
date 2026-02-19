@@ -284,6 +284,78 @@ AGENT_TOOLS = [
             },
         },
     },
+    {
+        "type": "function",
+        "function": {
+            "name": "request_user_input",
+            "description": (
+                "Zeige dem Anwender ein interaktives Widget zur Eingabe. "
+                "Verwende dies anstatt in Text nach Informationen zu fragen. "
+                "Der Anwender kann dann per Klick oder Eingabe antworten."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "widget_type": {
+                        "type": "string",
+                        "enum": ["chips", "input", "slider"],
+                        "description": "Art des Widgets: chips (Schnellauswahl), input (Freitext), slider (Bereichswahl)",
+                    },
+                    "field_key": {
+                        "type": "string",
+                        "description": "Formularfeld-Name (z.B. 'position', 'gehalt', 'eintrittsdatum')",
+                    },
+                    "label": {
+                        "type": "string",
+                        "description": "Frage oder Label für das Widget",
+                    },
+                    "options": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "value": {"type": "string"},
+                                "label": {"type": "string"},
+                                "is_default": {"type": "boolean"},
+                            },
+                            "required": ["value", "label"],
+                        },
+                        "description": "Optionen für chips Widget",
+                    },
+                    "placeholder": {
+                        "type": "string",
+                        "description": "Platzhaltertext für input Widget",
+                    },
+                    "input_type": {
+                        "type": "string",
+                        "enum": ["text", "date", "number", "currency"],
+                        "description": "Eingabetyp für input Widget",
+                    },
+                    "min": {
+                        "type": "number",
+                        "description": "Minimalwert für slider",
+                    },
+                    "max": {
+                        "type": "number",
+                        "description": "Maximalwert für slider",
+                    },
+                    "step": {
+                        "type": "number",
+                        "description": "Schrittweite für slider",
+                    },
+                    "unit": {
+                        "type": "string",
+                        "description": "Einheit für Anzeige (z.B. '€', 'Tage', 'Stunden')",
+                    },
+                    "hint": {
+                        "type": "string",
+                        "description": "Kontexthinweis (z.B. 'Dein Team zahlt typischerweise 55.000-75.000€')",
+                    },
+                },
+                "required": ["widget_type", "field_key", "label"],
+            },
+        },
+    },
 ]
 
 
@@ -315,6 +387,7 @@ async def execute_tool(
         "get_form_field_definitions": _exec_get_form_field_definitions,
         "update_package_draft": _exec_update_package_draft,
         "apply_to_all_drafts": _exec_apply_to_all_drafts,
+        "request_user_input": _exec_request_user_input,
     }
 
     executor = executors.get(tool_name)
@@ -714,4 +787,33 @@ async def _exec_apply_to_all_drafts(
         "job_id": job_id,
         "drafts_updated": updated_count,
         "fields_updated": len(field_updates),
+    }
+
+
+async def _exec_request_user_input(
+    args: dict, db: AsyncSession, user_id: int, country_code: str
+) -> dict:
+    """Return widget data to be rendered in the frontend chat."""
+    widget_type = args.get("widget_type", "chips")
+    field_key = args.get("field_key", "")
+    label = args.get("label", "")
+
+    if not field_key or not label:
+        return {"error": "field_key und label sind erforderlich"}
+
+    return {
+        "status": "ok",
+        "widget": {
+            "widget_type": widget_type,
+            "field_key": field_key,
+            "label": label,
+            "options": args.get("options"),
+            "placeholder": args.get("placeholder"),
+            "input_type": args.get("input_type"),
+            "min": args.get("min"),
+            "max": args.get("max"),
+            "step": args.get("step"),
+            "unit": args.get("unit"),
+            "hint": args.get("hint"),
+        },
     }

@@ -14,7 +14,7 @@
 
 import { useState, useMemo, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Save, FileText, FileType2, Loader2, CheckCircle2, Cloud, CloudOff, Download, ChevronDown } from "lucide-react";
+import { Save, FileText, FileType2, Loader2, CheckCircle2, Cloud, CloudOff, Download, ChevronDown, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
     DropdownMenu,
@@ -251,6 +251,7 @@ export const ActionBar = () => {
                                 variant="default"
                                 className="flex-1 gap-2"
                                 disabled={isAnyLoading}
+                                title="Exportiert das Dokument mit dem gewählten Briefpapier"
                             >
                                 {(isExportingPdf || isExportingDocx) ? (
                                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -269,6 +270,10 @@ export const ActionBar = () => {
                             <DropdownMenuItem onClick={() => handleOpenReview("docx")} className="gap-2 cursor-pointer">
                                 <FileType2 className="w-4 h-4 text-blue-500" />
                                 Als DOCX exportieren
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => window.print()} className="gap-2 cursor-pointer">
+                                <Printer className="w-4 h-4 text-muted-foreground" />
+                                Drucken
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>

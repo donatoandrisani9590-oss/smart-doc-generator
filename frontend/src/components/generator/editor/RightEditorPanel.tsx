@@ -29,6 +29,7 @@ import { useFeatureEnabled } from "@/hooks/useFeatureSettings";
 import { WorkflowStepper } from "../WorkflowStepper";
 import { ComplianceRiskBanner } from "../ComplianceRiskBanner";
 import { ConsistencyBanner } from "../ConsistencyBanner";
+import { GapAnalysisCard } from "../GapAnalysisCard";
 
 export const RightEditorPanel = () => {
     const { state, actions } = useWizardContext();
@@ -66,6 +67,7 @@ export const RightEditorPanel = () => {
         formData: (state.formData || {}) as unknown as Record<string, unknown>,
         countryCode: country,
         enabled: ghostwriterEnabled,
+        toneOfVoice: state.toneOfVoice,
     });
 
     // Quick comment popover state
@@ -185,6 +187,7 @@ export const RightEditorPanel = () => {
                         documentContext={state.documentTitle || undefined}
                         countryCode={country}
                         documentTypeId={state.documentTypeId}
+                        toneOfVoice={state.toneOfVoice}
                     />
 
                     {/* Toggle Chat-Assistent Sidebar */}
@@ -287,6 +290,22 @@ export const RightEditorPanel = () => {
                                 currentFormData={state.formData as unknown as Record<string, unknown>}
                                 countryCode={country}
                                 documentTypeId={state.documentTypeId ?? undefined}
+                                className="mb-4"
+                            />
+                        )}
+
+                        {/* Gap Analysis — proactive completeness check */}
+                        {hasFilledFields && state.documentTypeId && (
+                            <GapAnalysisCard
+                                documentTypeId={state.documentTypeId}
+                                countryCode={country}
+                                enabledClauseIds={state.documentClauses.filter(c => c.is_enabled).map(c => c.id)}
+                                formData={state.formData as unknown as Record<string, unknown>}
+                                documentTitle={state.documentTitle}
+                                onAddClause={(clauseId) => {
+                                    const clause = state.documentClauses.find(c => c.id === clauseId);
+                                    if (clause) actions.toggleClause(clause.unique_id);
+                                }}
                                 className="mb-4"
                             />
                         )}

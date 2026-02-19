@@ -53,14 +53,14 @@ from app.api.v1.endpoints.user import (
 from app.api.v1.endpoints.admin import (
     company_settings, logo, templates, attachments, audit,
     works_council, bulk, word_import, document_type_import, feature_settings,
-    llm_usage,
+    llm_usage, legal_audit,
 )
 
 # User Templates
 from app.api.v1.endpoints import user_templates
 
 # Smart UX
-from app.api.v1.endpoints.smart import composer, smart_mode, compliance, clause_ai_selection, refine, consistency, draft as smart_draft, wizard as smart_wizard, agent as smart_agent, autocomplete as smart_autocomplete, patterns as smart_patterns, onboarding as smart_onboarding
+from app.api.v1.endpoints.smart import composer, smart_mode, compliance, clause_ai_selection, refine, consistency, draft as smart_draft, wizard as smart_wizard, agent as smart_agent, autocomplete as smart_autocomplete, patterns as smart_patterns, onboarding as smart_onboarding, gap_analysis as smart_gap_analysis, magic_fill as smart_magic_fill, diff as smart_diff, email_ingest as smart_email_ingest, bulk_smart as smart_bulk
 
 # Integration (Copilot Studio, Power Platform)
 from app.api.v1.endpoints.integration import actions, webhooks, copilot_studio
@@ -112,6 +112,7 @@ class CSRFProtectionMiddleware(BaseHTTPMiddleware):
         f"{settings.API_V1_STR}/webhooks/",
         f"{settings.API_V1_STR}/copilot-studio/",
         f"{settings.API_V1_STR}/guest-review/",
+        f"{settings.API_V1_STR}/ingest/",
     )
 
     async def dispatch(self, request: Request, call_next: Callable):
@@ -291,7 +292,7 @@ async def lifespan(app: FastAPI):
     try:
         from app.db import engine, Base
         # Import all models to register them with Base
-        from app.models import core, documents, enterprise, collaboration, user_templates  # noqa: F401
+        from app.models import core, documents, enterprise, collaboration, user_templates, legal_audit  # noqa: F401
 
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
@@ -431,6 +432,48 @@ async def lifespan(app: FastAPI):
                     migrations_run += 1
                     logger.info(f"Migration: added column clauses.{col_name}")
 
+            # --- clauses table (Legal Watchdog Phase 6) ---
+            cl_legal_migrations = [
+                ("legal_status", "ALTER TABLE clauses ADD COLUMN legal_status VARCHAR(20) DEFAULT 'unchecked'"),
+                ("last_audited_at", "ALTER TABLE clauses ADD COLUMN last_audited_at TIMESTAMPTZ"),
+            ]
+            for col_name, sql in cl_legal_migrations:
+                if col_name not in cl_cols:
+                    await conn.execute(text(sql))
+                    migrations_run += 1
+                    logger.info(f"Migration: added column clauses.{col_name}")
+            if "legal_status" not in cl_cols:
+                await conn.execute(text(
+                    "CREATE INDEX IF NOT EXISTS ix_clauses_legal_status ON clauses (legal_status)"
+                ))
+
+            # --- clause_audit_results table (Legal Watchdog Phase 6) ---
+            if not await table_exists("clause_audit_results"):
+                await conn.execute(text("""
+                    CREATE TABLE clause_audit_results (
+                        id SERIAL PRIMARY KEY,
+                        clause_id INTEGER NOT NULL REFERENCES clauses(id) ON DELETE CASCADE,
+                        audited_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
+                        audited_by VARCHAR(100) NOT NULL,
+                        status VARCHAR(20) NOT NULL,
+                        risk_level VARCHAR(20) NOT NULL,
+                        reasoning TEXT,
+                        affected_law VARCHAR(200),
+                        suggestion TEXT,
+                        auto_fix_clause_id INTEGER REFERENCES clauses(id) ON DELETE SET NULL,
+                        is_resolved BOOLEAN DEFAULT FALSE,
+                        resolved_at TIMESTAMPTZ,
+                        resolved_by_id INTEGER REFERENCES users(id) ON DELETE SET NULL
+                    )
+                """))
+                await conn.execute(text("CREATE INDEX IF NOT EXISTS ix_clause_audit_results_clause_id ON clause_audit_results (clause_id)"))
+                await conn.execute(text("CREATE INDEX IF NOT EXISTS ix_clause_audit_results_status ON clause_audit_results (status)"))
+                await conn.execute(text("CREATE INDEX IF NOT EXISTS ix_clause_audit_results_is_resolved ON clause_audit_results (is_resolved)"))
+                await conn.execute(text("CREATE INDEX IF NOT EXISTS ix_clause_audit_results_risk_level ON clause_audit_results (risk_level)"))
+                await conn.execute(text("CREATE INDEX IF NOT EXISTS ix_clause_audit_results_audited_at ON clause_audit_results (audited_at)"))
+                migrations_run += 1
+                logger.info("Migration: created table clause_audit_results")
+
             # --- team_patterns table (Agent Infrastructure) ---
             if not await table_exists("team_patterns"):
                 await conn.execute(text("""
@@ -544,6 +587,70 @@ async def lifespan(app: FastAPI):
                 await conn.execute(text("CREATE INDEX IF NOT EXISTS ix_guest_review_comments_status ON guest_review_comments (status)"))
                 migrations_run += 1
                 logger.info("Migration: created table guest_review_comments")
+
+            # --- email_ingests table (Phase 8.1 — Email-to-Draft) ---
+            if not await table_exists("email_ingests"):
+                await conn.execute(text("""
+                    CREATE TABLE email_ingests (
+                        id SERIAL PRIMARY KEY,
+                        user_id INTEGER NOT NULL REFERENCES users(id),
+                        from_email VARCHAR(255) NOT NULL,
+                        subject VARCHAR(500),
+                        body_text TEXT NOT NULL,
+                        received_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+                        status VARCHAR(20) NOT NULL DEFAULT 'processing',
+                        extracted_data TEXT,
+                        draft_ids TEXT,
+                        error_message TEXT,
+                        created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+                    )
+                """))
+                await conn.execute(text("CREATE INDEX IF NOT EXISTS ix_email_ingests_user_id ON email_ingests (user_id)"))
+                await conn.execute(text("CREATE INDEX IF NOT EXISTS ix_email_ingests_status ON email_ingests (status)"))
+                migrations_run += 1
+                logger.info("Migration: created table email_ingests")
+
+            # --- user_feature_settings: enable_email_ingest (Phase 8.1) ---
+            if await table_exists("user_feature_settings"):
+                ufs_cols_email = await get_columns("user_feature_settings")
+                if "enable_email_ingest" not in ufs_cols_email:
+                    await conn.execute(text(
+                        "ALTER TABLE user_feature_settings ADD COLUMN enable_email_ingest BOOLEAN DEFAULT FALSE NOT NULL"
+                    ))
+                    migrations_run += 1
+                    logger.info("Migration: added column user_feature_settings.enable_email_ingest")
+
+            # --- bulk_jobs: Smart Bulk Operations columns (Phase 8.2) ---
+            bj_cols = await get_columns("bulk_jobs")
+            bj_migrations = [
+                ("document_type_id", "ALTER TABLE bulk_jobs ADD COLUMN document_type_id INTEGER REFERENCES document_types(id)"),
+                ("source_filename", "ALTER TABLE bulk_jobs ADD COLUMN source_filename VARCHAR(255)"),
+                ("column_mapping", "ALTER TABLE bulk_jobs ADD COLUMN column_mapping TEXT"),
+                ("successful_rows", "ALTER TABLE bulk_jobs ADD COLUMN successful_rows INTEGER DEFAULT 0"),
+                ("failed_rows", "ALTER TABLE bulk_jobs ADD COLUMN failed_rows INTEGER DEFAULT 0"),
+                ("draft_ids", "ALTER TABLE bulk_jobs ADD COLUMN draft_ids TEXT"),
+                ("errors", "ALTER TABLE bulk_jobs ADD COLUMN errors TEXT"),
+                ("completed_at", "ALTER TABLE bulk_jobs ADD COLUMN completed_at TIMESTAMPTZ"),
+            ]
+            for col_name, sql in bj_migrations:
+                if col_name not in bj_cols:
+                    await conn.execute(text(sql))
+                    migrations_run += 1
+                    logger.info(f"Migration: added column bulk_jobs.{col_name}")
+            if "document_type_id" not in bj_cols:
+                await conn.execute(text(
+                    "CREATE INDEX IF NOT EXISTS ix_bulk_jobs_document_type_id ON bulk_jobs (document_type_id)"
+                ))
+
+            # --- user_feature_settings: enable_bulk_operations (Phase 8.2) ---
+            if await table_exists("user_feature_settings"):
+                ufs_cols_bulk = await get_columns("user_feature_settings")
+                if "enable_bulk_operations" not in ufs_cols_bulk:
+                    await conn.execute(text(
+                        "ALTER TABLE user_feature_settings ADD COLUMN enable_bulk_operations BOOLEAN DEFAULT TRUE NOT NULL"
+                    ))
+                    migrations_run += 1
+                    logger.info("Migration: added column user_feature_settings.enable_bulk_operations")
 
             # --- Data fix: remove duplicate euro sign from AT-Vergütung clause ---
             result = await conn.execute(text("""
@@ -782,11 +889,29 @@ app.include_router(smart_autocomplete.router, tags=["smart-autocomplete"])
 # Team Patterns - Smart defaults from historical document analysis
 app.include_router(smart_patterns.router, tags=["smart-patterns"])
 
+# Gap Analysis - Proactive document completeness check
+app.include_router(smart_gap_analysis.router, prefix=f"{settings.API_V1_STR}", tags=["smart-gap-analysis"])
+
+# Magic Fill - RAG-based smart defaults from historical documents
+app.include_router(smart_magic_fill.router, tags=["smart-magic-fill"])
+
+# Text Diff - Word-level diff computation (Phase 6)
+app.include_router(smart_diff.router, prefix=f"{settings.API_V1_STR}", tags=["smart-diff"])
+
+# Email Ingest - E-Mail-to-Draft Pipeline (Phase 8.1)
+app.include_router(smart_email_ingest.router, prefix=f"{settings.API_V1_STR}/ingest/email", tags=["email-ingest"])
+
+# Smart Bulk Operations - KI-Mapping + SSE Progress (Phase 8.2)
+app.include_router(smart_bulk.router, prefix=f"{settings.API_V1_STR}/smart/bulk", tags=["smart-bulk"])
+
 # User Feature Settings (Toggles)
 app.include_router(feature_settings.router, prefix=f"{settings.API_V1_STR}/feature-settings", tags=["feature-settings"])
 
 # LLM Usage Observability
 app.include_router(llm_usage.router, prefix=f"{settings.API_V1_STR}", tags=["llm-usage"])
+
+# Legal Audit - Automated clause compliance checking (Phase 6: Legal Watchdog)
+app.include_router(legal_audit.router, prefix=f"{settings.API_V1_STR}", tags=["legal-audit"])
 
 # Document Upload with AI Extraction
 app.include_router(document_upload.router, prefix=f"{settings.API_V1_STR}/document-upload", tags=["document-upload"])

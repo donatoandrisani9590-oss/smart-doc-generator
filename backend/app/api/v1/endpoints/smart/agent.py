@@ -23,7 +23,7 @@ from typing import Optional
 import httpx
 from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db import get_db
@@ -45,6 +45,15 @@ MAX_CONV_MESSAGES = 50
 # Use a larger model for tool-calling quality (70B preferred, 8B fallback)
 AGENT_MODEL = os.getenv("AGENT_MODEL", "llama-3.3-70b-versatile")
 
+# ── Tone of Voice definitions ────────────────────────────────────────
+TONE_PROMPTS = {
+    1: "Verwende ausschließlich juristisch korrekte Formulierungen. Kein Smalltalk, keine emotionalen Ausdrücke. Passivkonstruktionen bevorzugt.",
+    2: "Verwende klare, professionelle Sprache. Höflich, aber sachlich.",
+    3: "Verwende professionelle, aber wertschätzende Sprache. Der Mitarbeiter soll sich willkommen fühlen.",
+    4: "Verwende eine warme, persönliche Ansprache. Zeige Wertschätzung und menschliche Nähe.",
+    5: "Verwende einfühlsame, verständnisvolle Sprache. Besonders geeignet für sensible Themen wie Kündigung oder Abmahnung.",
+}
+
 
 # ── Request / Response models ─────────────────────────────────────────
 
@@ -60,6 +69,7 @@ class AgentRequest(BaseModel):
     document_type_id: Optional[int] = None
     form_data: Optional[dict] = None
     session_id: Optional[str] = None  # For conversation memory
+    tone_of_voice: Optional[int] = Field(None, ge=1, le=5)
 
 
 # ── Conversation memory helpers ───────────────────────────────────────
@@ -97,6 +107,7 @@ def _build_system_prompt(
     instructions: str,
     form_data: Optional[dict] = None,
     document_type_id: Optional[int] = None,
+    tone_of_voice: int = 2,
 ) -> str:
     """Build a detailed agent system prompt for high-quality conversational UX."""
 
@@ -171,6 +182,14 @@ VERFÜGBARE AKTIONEN (Tools)
 💬 generate_text — Textabschnitt generieren
    → Für Einleitungen, Überleitungen oder individuelle Absätze
 
+🎯 request_user_input — Zeige dem Anwender ein interaktives Widget
+   → Verwende dies, um nach spezifischen Informationen zu fragen
+   → widget_type: "chips" (Schnellauswahl), "input" (Freitext/Datum/Zahl), "slider" (Bereichswahl)
+   → Beispiel: Position → chips mit ["Softwareentwickler", "Product Manager", "Designer"]
+   → Beispiel: Gehalt → slider mit min=40000, max=100000, step=5000
+   → Beispiel: Startdatum → input mit input_type="date"
+   → WICHTIG: Stelle die Frage im text_delta VOR dem Tool-Call!
+
 ═══════════════════════════════════════════════════
 FACHLICHE REGELN
 ═══════════════════════════════════════════════════
@@ -179,6 +198,21 @@ FACHLICHE REGELN
 • Halte dich an Unternehmens- und Dokumenttyp-Richtlinien.
 • KI-generierte Texte kennzeichnen.
 • Bei Unsicherheit: Frage den Anwender.
+
+═══════════════════════════════════════════════════
+DYNAMISCHER INTERVIEW-MODUS
+═══════════════════════════════════════════════════
+
+Wenn dir Informationen fehlen, verwende request_user_input statt reiner Textfragen!
+Regeln:
+• Frage NICHT alle fehlenden Felder auf einmal — priorisiere die 2-3 wichtigsten
+• Zuerst: Name, Dokumenttyp, Position (ohne diese kannst du nicht anfangen)
+• Dann: Gehalt, Startdatum (abhängig vom Dokumenttyp)
+• Danach: Optionale Details basierend auf den vorherigen Antworten
+• Bei "chips": Biete 3-5 häufige Optionen + "Andere..." als letzte Option
+• Bei "slider": Setze sinnvolle min/max basierend auf Team/Branche
+• Bei "input": Verwende den richtigen input_type (date/number/currency/text)
+• Kontexthinweis (hint): Wenn du Teamdaten kennst, zeige typische Werte
 """
 
     # ── Document type context ─────────────────────────────────────────
@@ -188,6 +222,10 @@ FACHLICHE REGELN
     # ── Company/team instructions ─────────────────────────────────────
     if instructions:
         base += f"\n═══ UNTERNEHMENS-/TEAM-ANWEISUNGEN ═══\n{instructions}\n"
+
+    # ── Tone of Voice ─────────────────────────────────────────────────
+    tone_text = TONE_PROMPTS.get(tone_of_voice, TONE_PROMPTS[2])
+    base += f"\n═══ TONALITÄT ═══\n{tone_text}\n"
 
     # ── Current form data ─────────────────────────────────────────────
     if form_data:
@@ -404,7 +442,124 @@ _INT_PARAMS = {
     "generate_text": {"max_sentences"},
     "update_package_draft": {"draft_id"},
     "apply_to_all_drafts": {"job_id"},
+    "request_user_input": {"min", "max", "step"},
 }
+
+
+def _generate_reasoning(tool_name: str, tool_input: dict, result: dict) -> Optional[dict]:
+    """Generate a reasoning event from tool execution context.
+
+    Returns a dict with 'content' and 'category' fields, or None to skip.
+    Categories: decision, warning, suggestion, context
+    """
+    # Skip reasoning for errored tool calls
+    if result.get("error"):
+        return None
+
+    if tool_name == "fill_form_fields":
+        fields = tool_input.get("fields", {})
+        field_list = ", ".join(fields.keys()) if fields else "–"
+        return {
+            "category": "decision",
+            "content": f"Felder gesetzt: {field_list}",
+        }
+
+    if tool_name == "select_clauses":
+        enable = tool_input.get("enable") or []
+        disable = tool_input.get("disable") or []
+        # Try to get names from the result's reason or fall back to IDs
+        if enable:
+            ids_str = ", ".join(str(cid) for cid in enable)
+            return {
+                "category": "decision",
+                "content": f"Textbausteine aktiviert: {ids_str}",
+            }
+        if disable:
+            ids_str = ", ".join(str(cid) for cid in disable)
+            return {
+                "category": "decision",
+                "content": f"Textbausteine deaktiviert: {ids_str}",
+            }
+        return None
+
+    if tool_name == "search_clauses":
+        count = result.get("count", 0)
+        query = tool_input.get("query", "")
+        return {
+            "category": "context",
+            "content": f"{count} Textbausteine gefunden für '{query}'",
+        }
+
+    if tool_name == "create_clause_draft":
+        title = tool_input.get("title", "Ohne Titel")
+        return {
+            "category": "suggestion",
+            "content": f"Neuer Textbaustein-Entwurf erstellt: '{title}'",
+        }
+
+    if tool_name == "search_employee_history":
+        count = result.get("count", 0)
+        employee_name = tool_input.get("employee_name", "unbekannt")
+        return {
+            "category": "context",
+            "content": f"{count} Dokumente gefunden für {employee_name}",
+        }
+
+    if tool_name == "run_compliance_check":
+        risk_count = result.get("risk_count", 0)
+        if risk_count > 0:
+            return {
+                "category": "warning",
+                "content": f"Compliance-Prüfung: {risk_count} Hinweise gefunden",
+            }
+        return {
+            "category": "decision",
+            "content": "Compliance-Prüfung bestanden",
+        }
+
+    if tool_name == "generate_text":
+        text = result.get("text", "")
+        length = len(text)
+        return {
+            "category": "decision",
+            "content": f"Text generiert ({length} Zeichen)",
+        }
+
+    if tool_name == "get_form_field_definitions":
+        field_count = result.get("field_count", 0)
+        doc_type = result.get("document_type", "")
+        return {
+            "category": "context",
+            "content": f"{field_count} Formularfelder für '{doc_type}' geladen",
+        }
+
+    if tool_name == "update_package_draft":
+        draft_name = result.get("draft_name", "")
+        fields_updated = result.get("fields_updated", 0)
+        label = f"'{draft_name}'" if draft_name else "Entwurf"
+        return {
+            "category": "decision",
+            "content": f"{label} aktualisiert ({fields_updated} Felder)",
+        }
+
+    if tool_name == "apply_to_all_drafts":
+        drafts_updated = result.get("drafts_updated", 0)
+        fields_updated = result.get("fields_updated", 0)
+        return {
+            "category": "decision",
+            "content": f"{drafts_updated} Entwürfe aktualisiert ({fields_updated} Felder)",
+        }
+
+    if tool_name == "request_user_input":
+        field_key = tool_input.get("field_key", "")
+        widget_type = tool_input.get("widget_type", "")
+        return {
+            "category": "context",
+            "content": f"Frage nach '{field_key}' gestellt (Widget: {widget_type})",
+        }
+
+    # Unknown tool — skip reasoning
+    return None
 
 
 def _coerce_tool_args(tool_name: str, args: dict) -> dict:
@@ -467,9 +622,11 @@ async def agent_chat_stream(
     - {"type": "text_delta", "content": "..."}
     - {"type": "tool_start", "tool": "...", "args": {...}}
     - {"type": "tool_result", "tool": "...", "result": {...}}
+    - {"type": "reasoning", "content": "...", "category": "decision|warning|suggestion|context"}
     - {"type": "form_update", "fields": {...}}
     - {"type": "clause_update", "enable": [...], "disable": [...]}
     - {"type": "clause_draft", "title": "...", "html": "...", "requires_confirmation": true}
+    - {"type": "widget", "widget_id": "...", "widget_type": "chips|input|slider", "field_key": "...", ...}
     - {"type": "done", "summary": "...", "latency_ms": int}
     - {"type": "error", "message": "..."}
     """
@@ -482,7 +639,8 @@ async def agent_chat_stream(
     )
 
     system_prompt = _build_system_prompt(
-        instructions, request.form_data, request.document_type_id
+        instructions, request.form_data, request.document_type_id,
+        tone_of_voice=request.tone_of_voice or 2,
     )
 
     # Session management
@@ -620,6 +778,15 @@ async def agent_chat_stream(
                         "result": result,
                     })
 
+                    # Emit reasoning event (deterministic, no LLM call)
+                    reasoning = _generate_reasoning(tool_name, tool_input, result)
+                    if reasoning:
+                        yield _sse({
+                            "type": "reasoning",
+                            "content": reasoning["content"],
+                            "category": reasoning["category"],
+                        })
+
                     # Emit semantic events based on tool type
                     if tool_name == "fill_form_fields" and result.get("status") == "ok":
                         yield _sse({
@@ -641,6 +808,25 @@ async def agent_chat_stream(
                             "title": draft.get("title", ""),
                             "html": draft.get("content", ""),
                             "requires_confirmation": True,
+                        })
+
+                    elif tool_name == "request_user_input" and result.get("status") == "ok":
+                        widget = result.get("widget", {})
+                        field_key = widget.get("field_key", "")
+                        yield _sse({
+                            "type": "widget",
+                            "widget_id": f"w_{field_key}_{uuid.uuid4().hex[:6]}",
+                            "widget_type": widget.get("widget_type", "chips"),
+                            "field_key": field_key,
+                            "label": widget.get("label", ""),
+                            "options": widget.get("options"),
+                            "placeholder": widget.get("placeholder"),
+                            "input_type": widget.get("input_type"),
+                            "min": widget.get("min"),
+                            "max": widget.get("max"),
+                            "step": widget.get("step"),
+                            "unit": widget.get("unit"),
+                            "hint": widget.get("hint"),
                         })
 
                     # Collect tool result for next API call (OpenAI format)
@@ -670,6 +856,14 @@ async def agent_chat_stream(
             await _save_conversation(user_id, session_id, conversation)
 
             latency_ms = int((time.time() - _start) * 1000)
+
+            # Final reasoning summary if tools were executed
+            if iteration > 1:
+                yield _sse({
+                    "type": "reasoning",
+                    "content": f"{iteration - 1} Werkzeuge ausgeführt, Dokument wird vorbereitet",
+                    "category": "context",
+                })
 
             # Done event
             yield _sse({

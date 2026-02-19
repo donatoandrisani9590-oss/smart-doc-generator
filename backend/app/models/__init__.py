@@ -44,6 +44,7 @@ from app.models.enterprise import (
     DocumentAction,
     GuestReviewLink,
     GuestReviewComment,
+    EmailIngest,
 )
 from app.models.composer import (
     DocumentClauseInstance,
@@ -61,6 +62,7 @@ from app.models.collaboration import (
     CommentReaction,
 )
 from app.models.user_templates import UserTemplate
+from app.models.legal_audit import ClauseAuditResult
 
 __all__ = [
     # Core
@@ -110,6 +112,7 @@ __all__ = [
     "DocumentAction",
     "GuestReviewLink",
     "GuestReviewComment",
+    "EmailIngest",
     # Composer (Smart UX)
     "DocumentClauseInstance",
     "ClauseOrigin",
@@ -124,4 +127,6 @@ __all__ = [
     "CommentReaction",
     # User Templates
     "UserTemplate",
+    # Legal Audit (Phase 6)
+    "ClauseAuditResult",
 ]
