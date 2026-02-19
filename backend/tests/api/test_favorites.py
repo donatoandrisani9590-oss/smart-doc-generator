@@ -23,7 +23,7 @@ class TestListFavorites:
     async def test_list_favorites(self, client: AsyncClient, test_user, test_favorite):
         """Should return user's favorites."""
         headers = make_auth_header(test_user.id)
-        response = await client.get("/api/v1/favorites/", headers=headers)
+        response = await client.get("/api/v1/favorites", headers=headers)
         assert response.status_code == 200
         data = response.json()
         assert len(data) >= 1
@@ -32,27 +32,27 @@ class TestListFavorites:
     async def test_list_favorites_empty(self, client: AsyncClient, test_admin):
         """Should return empty list for user without favorites."""
         headers = make_auth_header(test_admin.id)
-        response = await client.get("/api/v1/favorites/", headers=headers)
+        response = await client.get("/api/v1/favorites", headers=headers)
         assert response.status_code == 200
         assert response.json() == []
 
     async def test_list_favorites_unauthenticated(self, client: AsyncClient):
         """Should require authentication."""
-        response = await client.get("/api/v1/favorites/")
+        response = await client.get("/api/v1/favorites")
         assert response.status_code == 401
 
     async def test_list_favorites_filter_type(self, client: AsyncClient, test_user, test_favorite):
         """Should filter by favorite_type."""
         headers = make_auth_header(test_user.id)
         response = await client.get(
-            "/api/v1/favorites/?favorite_type=document_type", headers=headers
+            "/api/v1/favorites?favorite_type=document_type", headers=headers
         )
         assert response.status_code == 200
         assert len(response.json()) >= 1
 
         # Filter by a type with no entries
         response2 = await client.get(
-            "/api/v1/favorites/?favorite_type=document", headers=headers
+            "/api/v1/favorites?favorite_type=document", headers=headers
         )
         assert response2.status_code == 200
         assert len(response2.json()) == 0
@@ -67,7 +67,7 @@ class TestAddFavorite:
         """Should add a new favorite."""
         headers = make_auth_header(test_user.id)
         response = await client.post(
-            "/api/v1/favorites/",
+            "/api/v1/favorites",
             json={
                 "favorite_type": "document_type",
                 "document_type_id": test_document_type.id,
@@ -84,7 +84,7 @@ class TestAddFavorite:
         """Should reject duplicate favorites (409)."""
         headers = make_auth_header(test_user.id)
         response = await client.post(
-            "/api/v1/favorites/",
+            "/api/v1/favorites",
             json={
                 "favorite_type": "document_type",
                 "document_type_id": test_document_type.id,
@@ -97,7 +97,7 @@ class TestAddFavorite:
         """Should reject invalid favorite_type."""
         headers = make_auth_header(test_user.id)
         response = await client.post(
-            "/api/v1/favorites/",
+            "/api/v1/favorites",
             json={"favorite_type": "invalid", "document_type_id": 1},
             headers=headers,
         )
@@ -107,7 +107,7 @@ class TestAddFavorite:
         """Should reject document_type favorite without document_type_id."""
         headers = make_auth_header(test_user.id)
         response = await client.post(
-            "/api/v1/favorites/",
+            "/api/v1/favorites",
             json={"favorite_type": "document_type"},
             headers=headers,
         )

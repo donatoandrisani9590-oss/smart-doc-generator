@@ -16,7 +16,7 @@ class TestClauseList:
         self, client: AsyncClient, test_user, test_clause
     ):
         headers = make_auth_header(test_user.id)
-        response = await client.get("/api/v1/clauses/", headers=headers)
+        response = await client.get("/api/v1/clauses", headers=headers)
         assert response.status_code == 200
         data = response.json()
         assert isinstance(data, list)
@@ -24,7 +24,7 @@ class TestClauseList:
         assert data[0]["title"] == "Probezeit"
 
     async def test_list_clauses_unauthenticated(self, client: AsyncClient):
-        response = await client.get("/api/v1/clauses/")
+        response = await client.get("/api/v1/clauses")
         assert response.status_code == 401
 
     async def test_list_clauses_filter_country(
@@ -32,7 +32,7 @@ class TestClauseList:
     ):
         headers = make_auth_header(test_user.id)
         response = await client.get(
-            "/api/v1/clauses/?country_code=IT", headers=headers
+            "/api/v1/clauses?country_code=IT", headers=headers
         )
         assert response.status_code == 200
         data = response.json()
@@ -87,7 +87,7 @@ class TestClauseCreate:
     ):
         headers = make_auth_header(test_admin.id)
         response = await client.post(
-            "/api/v1/clauses/",
+            "/api/v1/clauses",
             json={
                 "title": "Kündigungsfrist",
                 "content_html": "<p>Die Kündigungsfrist beträgt 4 Wochen.</p>",
@@ -105,7 +105,7 @@ class TestClauseCreate:
     ):
         headers = make_auth_header(test_user.id)
         response = await client.post(
-            "/api/v1/clauses/",
+            "/api/v1/clauses",
             json={
                 "title": "Versuch",
                 "content_html": "<p>Test</p>",
@@ -119,7 +119,7 @@ class TestClauseCreate:
     ):
         headers = make_auth_header(test_admin.id)
         response = await client.post(
-            "/api/v1/clauses/",
+            "/api/v1/clauses",
             json={
                 "title": "XSS Test",
                 "content_html": '<p>Safe</p><script>alert("xss")</script>',
@@ -137,7 +137,7 @@ class TestClauseCreate:
     ):
         headers = make_auth_header(test_admin.id)
         response = await client.post(
-            "/api/v1/clauses/",
+            "/api/v1/clauses",
             json={"title": "", "content_html": "<p>Content</p>"},
             headers=headers,
         )

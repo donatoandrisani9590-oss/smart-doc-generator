@@ -492,7 +492,7 @@ async def lifespan(app: FastAPI):
                 migrations_run += 1
                 logger.info("Migration: created table team_patterns")
 
-            # --- user_feature_settings: enable_ai_agent ---
+            # --- user_feature_settings: enable_ai_agent + enable_onboarding_agent ---
             if await table_exists("user_feature_settings"):
                 ufs_cols_agent = await get_columns("user_feature_settings")
                 if "enable_ai_agent" not in ufs_cols_agent:
@@ -501,6 +501,12 @@ async def lifespan(app: FastAPI):
                     ))
                     migrations_run += 1
                     logger.info("Migration: added column user_feature_settings.enable_ai_agent")
+                if "enable_onboarding_agent" not in ufs_cols_agent:
+                    await conn.execute(text(
+                        "ALTER TABLE user_feature_settings ADD COLUMN enable_onboarding_agent BOOLEAN DEFAULT TRUE NOT NULL"
+                    ))
+                    migrations_run += 1
+                    logger.info("Migration: added column user_feature_settings.enable_onboarding_agent")
 
             # --- generated_documents: Document Lifecycle fields (Phase 3) ---
             gd_cols = await get_columns("generated_documents")

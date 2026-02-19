@@ -22,7 +22,7 @@ class TestListDocumentTypes:
     async def test_list_authenticated(self, client: AsyncClient, test_user, test_document_type):
         """Should return document types for authenticated user."""
         headers = make_auth_header(test_user.id)
-        response = await client.get("/api/v1/document-types/", headers=headers)
+        response = await client.get("/api/v1/document-types", headers=headers)
         assert response.status_code == 200
         data = response.json()
         assert len(data) >= 1
@@ -30,7 +30,7 @@ class TestListDocumentTypes:
 
     async def test_list_unauthenticated(self, client: AsyncClient):
         """Should require authentication."""
-        response = await client.get("/api/v1/document-types/")
+        response = await client.get("/api/v1/document-types")
         assert response.status_code == 401
 
     async def test_list_filter_by_country(self, client: AsyncClient, test_user, test_document_type):
@@ -39,14 +39,14 @@ class TestListDocumentTypes:
 
         # DE should have results
         resp_de = await client.get(
-            "/api/v1/document-types/?country_code=DE", headers=headers
+            "/api/v1/document-types?country_code=DE", headers=headers
         )
         assert resp_de.status_code == 200
         assert len(resp_de.json()) >= 1
 
         # IT should be empty (no IT document types created)
         resp_it = await client.get(
-            "/api/v1/document-types/?country_code=IT", headers=headers
+            "/api/v1/document-types?country_code=IT", headers=headers
         )
         assert resp_it.status_code == 200
         assert len(resp_it.json()) == 0
@@ -84,7 +84,7 @@ class TestCreateDocumentType:
         """Admin should be able to create a new document type."""
         headers = make_auth_header(test_admin.id)
         response = await client.post(
-            "/api/v1/document-types/",
+            "/api/v1/document-types",
             json={
                 "name": "Kündigung",
                 "country_code": "DE",
@@ -101,7 +101,7 @@ class TestCreateDocumentType:
         """Regular user should be forbidden from creating document types."""
         headers = make_auth_header(test_user.id)
         response = await client.post(
-            "/api/v1/document-types/",
+            "/api/v1/document-types",
             json={
                 "name": "Unauthorized Type",
                 "country_code": "DE",
