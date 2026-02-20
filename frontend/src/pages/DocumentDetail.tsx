@@ -17,6 +17,9 @@ import { DocumentApprovalPanel } from "@/components/documents/DocumentApprovalPa
 import { useFeatureEnabled } from "@/hooks/useFeatureSettings";
 import { useDocumentApproval, useApproveDocument } from "@/hooks/useDocumentApproval";
 import { Badge } from "@/components/ui/badge";
+import { FullDocumentPreview, type DocumentZones } from "@/components/editor/FullDocumentPreview";
+import { useDesignSettings } from "@/hooks/api/useDocumentTypeQueries";
+import { useCountry } from "@/hooks/useCountry";
 
 interface RelatedDocument {
     id: number;
@@ -145,6 +148,23 @@ export const DocumentDetailPage = () => {
     const { data: approval } = useDocumentApproval(docIdNum, { enabled: approvalEnabled });
     const approveMutation = useApproveDocument();
     const pendingApproval = approval?.status === "pending_approval";
+
+    // Design settings for full document preview with header/footer
+    const { country } = useCountry();
+    const { data: designSettings } = useDesignSettings(country);
+    const documentZones = useMemo((): DocumentZones | null => {
+        if (!designSettings) return null;
+        const ds = designSettings as Record<string, unknown>;
+        return {
+            logoUrl: ds.logo_path as string | undefined,
+            logoPosition: (ds.logo_position as "left" | "center" | "right") || "right",
+            logoWidthCm: (ds.logo_width_cm as string) || "5",
+            companyName: ds.company_name as string | undefined,
+            headerLines: [ds.header_line1, ds.header_line2, ds.header_line3] as (string | null)[],
+            footerLines: [ds.footer_line1, ds.footer_line2, ds.footer_line3] as (string | null)[],
+            primaryColor: ds.primary_color as string | undefined,
+        };
+    }, [designSettings]);
 
     const inlineComments = commentsData?.comments?.filter(
         (t) => t.root.selection_range != null
@@ -401,23 +421,45 @@ export const DocumentDetailPage = () => {
                         sidebarOpen ? "lg:flex-[3]" : ""
                     }`}
                 >
-                    <DocumentPreviewPanel
-                        contentHtml={document.content_html ?? null}
-                        documentTitle={document.title || document.document_type_name || "Dokument"}
-                        filePath={document.file_path}
-                        comments={inlineComments}
-                        onCreateInlineComment={(range) => {
-                            setPendingInlineSelection(range);
-                            setActiveTab("kommentare");
-                            setSidebarOpen(true);
-                        }}
-                        onHighlightClick={(commentId) => {
-                            setActiveCommentId(commentId);
-                            setActiveTab("kommentare");
-                            setSidebarOpen(true);
-                        }}
-                        activeCommentId={activeCommentId}
-                    />
+                    {documentZones ? (
+                        <FullDocumentPreview zones={documentZones} readOnly>
+                            <DocumentPreviewPanel
+                                contentHtml={document.content_html ?? null}
+                                documentTitle={document.title || document.document_type_name || "Dokument"}
+                                filePath={document.file_path}
+                                comments={inlineComments}
+                                onCreateInlineComment={(range) => {
+                                    setPendingInlineSelection(range);
+                                    setActiveTab("kommentare");
+                                    setSidebarOpen(true);
+                                }}
+                                onHighlightClick={(commentId) => {
+                                    setActiveCommentId(commentId);
+                                    setActiveTab("kommentare");
+                                    setSidebarOpen(true);
+                                }}
+                                activeCommentId={activeCommentId}
+                            />
+                        </FullDocumentPreview>
+                    ) : (
+                        <DocumentPreviewPanel
+                            contentHtml={document.content_html ?? null}
+                            documentTitle={document.title || document.document_type_name || "Dokument"}
+                            filePath={document.file_path}
+                            comments={inlineComments}
+                            onCreateInlineComment={(range) => {
+                                setPendingInlineSelection(range);
+                                setActiveTab("kommentare");
+                                setSidebarOpen(true);
+                            }}
+                            onHighlightClick={(commentId) => {
+                                setActiveCommentId(commentId);
+                                setActiveTab("kommentare");
+                                setSidebarOpen(true);
+                            }}
+                            activeCommentId={activeCommentId}
+                        />
+                    )}
                 </div>
 
                 {/* Right: Sidebar */}
