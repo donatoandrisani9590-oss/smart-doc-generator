@@ -29,7 +29,7 @@ import { ClauseSelectionSection } from "./ClauseSelectionSection";
 import { ActionBar } from "./ActionBar";
 import { AttachmentSelector } from "../AttachmentSelector";
 import { StationeryPicker } from "./StationeryPicker";
-import { ToneSlider } from "../ToneSlider";
+import { ToneCards } from "../ToneCards";
 import { DocumentStatusBadge, useDocumentStatus } from "@/components/documents/DocumentStatusBadge";
 import { useMagicFill } from "@/hooks/useMagicFill";
 
@@ -132,7 +132,7 @@ export const LeftControlPanel = ({ documentTypes }: LeftControlPanelProps) => {
 
             {/* Tonalität */}
             <div className="px-4 pb-3">
-                <ToneSlider
+                <ToneCards
                     value={state.toneOfVoice}
                     onChange={actions.setToneOfVoice}
                 />
