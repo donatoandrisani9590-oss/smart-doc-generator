@@ -1,33 +1,29 @@
 /**
- * StepDocumentType - Schritt 1: Dokumenttyp und Titel wählen
+ * StepDocumentType — Jony Ive Redesign
  *
- * Aufgeräumte Oberfläche mit:
- * 1. Suchfeld für Dokumenttypen (Typeahead)
- * 2. "Zuletzt verwendet" Sektion
- * 3. Kategorisierte Dokumenttyp-Liste
- * 4. Dokumenttitel-Eingabe
- * 
- * v4.2.1: Erweiterte Suchfunktion und Zuletzt-verwendet
+ * Card-grid with Progressive Disclosure:
+ * 1. Search bar + card grid (categories + recently used)
+ * 2. Click card → Dialog (title + optional template + CTA)
+ *
+ * v5.0: Complete visual redesign
  */
 
-import { useState, useMemo, useEffect } from "react";
-import { FileText, ArrowRight, Search, Clock, Star, X, Sparkles, LayoutTemplate, ChevronDown, Scale } from "lucide-react";
+import { useState, useMemo, useEffect, useCallback } from "react";
+import { Search, Clock, X, ArrowRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { useWizardContext } from "../WizardContext";
 import { SmartModeDialog } from "../SmartModeDialog";
-import { apiFetch } from "@/lib/api-client";
+import { TemplateCard } from "./TemplateCard";
+import { CreateDocumentDialog } from "./CreateDocumentDialog";
+import { translateCategory } from "./categoryIcons";
 
 interface DocumentType {
     id: number;
     name: string;
     category?: string;
+    description?: string | null;
     updated_at?: string | null;
 }
 
@@ -36,79 +32,27 @@ interface StepDocumentTypeProps {
     isLoading?: boolean;
 }
 
-// LocalStorage key für Nutzungshistorie
 const RECENT_TYPES_KEY = "sdg_recent_document_types";
 const MAX_RECENT = 5;
 
-interface UserTemplateOption {
-    id: number;
-    name: string;
-    has_logo: boolean;
-    has_header: boolean;
-    has_footer: boolean;
-    scope: string;
-    category: string | null;
-    is_own: boolean;
-}
-
-// Übersetzung der Kategorie-Labels (DB speichert englische Keys)
-const CATEGORY_LABELS: Record<string, string> = {
-    contract: "Vertrag",
-    letter: "Brief",
-    memo: "Mitteilung",
-    certificate: "Bescheinigung",
-    amendment: "Nachtrag",
-    default: "Allgemein",
-};
-
-function translateCategory(category: string): string {
-    const lower = category.toLowerCase();
-    return CATEGORY_LABELS[lower] || category;
-}
-
-/** Formatiert ein ISO-Datum als kurzen Rechtsstand-Text (z.B. "Stand: Feb 2025") */
-function formatRechtsstand(dateStr?: string | null): string | null {
-    if (!dateStr) return null;
-    try {
-        const date = new Date(dateStr);
-        if (isNaN(date.getTime())) return null;
-        return date.toLocaleDateString("de-DE", { month: "short", year: "numeric" });
-    } catch {
-        return null;
-    }
-}
-
 export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeProps) => {
-    const { state, actions } = useWizardContext();
+    const { actions } = useWizardContext();
     const [searchQuery, setSearchQuery] = useState("");
     const [recentTypeIds, setRecentTypeIds] = useState<number[]>([]);
+
+    // Dialog state
+    const [dialogOpen, setDialogOpen] = useState(false);
+    const [selectedType, setSelectedType] = useState<DocumentType | null>(null);
+
+    // SmartMode state
     const [isSmartModeOpen, setIsSmartModeOpen] = useState(false);
-    const [userTemplates, setUserTemplates] = useState<UserTemplateOption[]>([]);
-    const [templateSectionOpen, setTemplateSectionOpen] = useState(false);
-    const [showTypeList, setShowTypeList] = useState(true);
+    const [smartModeTitle, setSmartModeTitle] = useState("");
 
-    // Fetch user templates
-    useEffect(() => {
-        const fetchTemplates = async () => {
-            try {
-                const response = await apiFetch("/api/v1/user-templates");
-                if (response.ok) {
-                    const data = await response.json();
-                    setUserTemplates(data.items || []);
-                }
-            } catch {
-                // Silently ignore - templates are optional
-            }
-        };
-        fetchTemplates();
-    }, []);
-
-    // Lade Zuletzt-verwendet beim Mount
+    // Load recently used from localStorage
     useEffect(() => {
         try {
             const stored = localStorage.getItem(RECENT_TYPES_KEY);
             if (stored) {
-                // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: initialize state from localStorage on mount
                 setRecentTypeIds(JSON.parse(stored));
             }
         } catch {
@@ -116,28 +60,21 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
         }
     }, []);
 
-    // Speichere ausgewählten Typ in Zuletzt-verwendet
-    const saveRecentType = (typeId: number) => {
-        try {
-            const updated = [typeId, ...recentTypeIds.filter(id => id !== typeId)].slice(0, MAX_RECENT);
-            setRecentTypeIds(updated);
-            localStorage.setItem(RECENT_TYPES_KEY, JSON.stringify(updated));
-        } catch {
-            // Ignore localStorage errors
-        }
-    };
+    const saveRecentType = useCallback((typeId: number) => {
+        setRecentTypeIds((prev) => {
+            const updated = [typeId, ...prev.filter((id) => id !== typeId)].slice(0, MAX_RECENT);
+            try {
+                localStorage.setItem(RECENT_TYPES_KEY, JSON.stringify(updated));
+            } catch {
+                // Ignore
+            }
+            return updated;
+        });
+    }, []);
 
-    const handleDocumentTypeChange = (typeId: number) => {
-        actions.setDocumentType(typeId);
-        saveRecentType(typeId);
-        setShowTypeList(false);
-    };
-
-    // Gefilterte Dokumenttypen basierend auf Suche
+    // Filter by search query
     const filteredTypes = useMemo(() => {
-        if (!searchQuery.trim()) {
-            return documentTypes;
-        }
+        if (!searchQuery.trim()) return documentTypes;
         const query = searchQuery.toLowerCase();
         return documentTypes.filter(
             (type) =>
@@ -146,395 +83,172 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
         );
     }, [documentTypes, searchQuery]);
 
-    // Zuletzt verwendete Typen (nur die noch existierenden)
+    // Recently used types (only those that still exist)
     const recentTypes = useMemo(() => {
         return recentTypeIds
-            .map(id => documentTypes.find(t => t.id === id))
+            .map((id) => documentTypes.find((t) => t.id === id))
             .filter((t): t is DocumentType => t !== undefined);
     }, [recentTypeIds, documentTypes]);
 
-    // Gruppiere nach Kategorie
+    // Group by category, filter out empty groups
     const groupedTypes = useMemo(() => {
         const groups: Record<string, DocumentType[]> = {};
         for (const type of filteredTypes) {
             const category = type.category || "Sonstige";
-            if (!groups[category]) {
-                groups[category] = [];
-            }
+            if (!groups[category]) groups[category] = [];
             groups[category].push(type);
         }
-        return groups;
+        return Object.entries(groups).filter(([, types]) => types.length > 0);
     }, [filteredTypes]);
 
-    const canProceed = !!state.documentTypeId;
-    const selectedType = documentTypes.find(t => t.id === state.documentTypeId);
+    // Card click → open dialog
+    const handleCardClick = useCallback((type: DocumentType) => {
+        setSelectedType(type);
+        setDialogOpen(true);
+    }, []);
+
+    // Create manually
+    const handleCreateManual = useCallback(
+        (title: string, templateId: number | null) => {
+            if (!selectedType) return;
+            actions.setDocumentType(selectedType.id);
+            actions.setDocumentTitle(title);
+            saveRecentType(selectedType.id);
+            if (templateId) actions.setUserTemplateId(templateId);
+            setDialogOpen(false);
+            actions.enterSplitScreenMode();
+        },
+        [selectedType, actions, saveRecentType]
+    );
+
+    // Create with AI
+    const handleCreateWithAI = useCallback(
+        (title: string, templateId: number | null) => {
+            if (!selectedType) return;
+            actions.setDocumentType(selectedType.id);
+            actions.setDocumentTitle(title);
+            saveRecentType(selectedType.id);
+            if (templateId) actions.setUserTemplateId(templateId);
+            setSmartModeTitle(title);
+            setDialogOpen(false);
+            setIsSmartModeOpen(true);
+        },
+        [selectedType, actions, saveRecentType]
+    );
 
     return (
-        <div className="max-w-xl mx-auto space-y-6">
+        <div className="max-w-3xl mx-auto py-12 px-6">
             {/* Header */}
-            <div className="pb-4">
-                <h1 className="text-2xl font-semibold text-foreground tracking-tight">
-                    Neues Dokument erstellen
+            <div className="mb-8">
+                <h1 className="text-3xl font-semibold tracking-tight text-[#1D1D1F]">
+                    Neues Dokument
                 </h1>
-                <p className="text-[13px] text-muted-foreground/60 mt-1">
-                    Wähle eine Vorlage und gib dem Dokument einen Namen.
+                <p className="text-base text-[#86868B] mt-2">
+                    Wähle eine Vorlage und starte die Erstellung.
                 </p>
             </div>
 
-            {/* Dokumenttyp Auswahl */}
-            <div className="space-y-4">
-                {/* Suchfeld - Clean und prominent */}
-                <div className="relative">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/30" />
-                    <Input
-                        id="document-type-search"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="Dokumenttyp suchen..."
-                        className="h-11 pl-11 pr-10 border-0 shadow-[var(--shadow-elevated)] rounded-2xl bg-card focus:ring-0 focus:shadow-[var(--shadow-elevated-hover)]"
-                        disabled={isLoading}
-                    />
-                    {searchQuery && (
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 text-warm-400 hover:text-muted-foreground"
-                            onClick={() => setSearchQuery("")}
-                        >
-                            <X className="w-4 h-4" />
-                        </Button>
+            {/* Search Bar */}
+            <div className="relative mb-8">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-[#86868B]" />
+                <Input
+                    id="document-type-search"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Dokumenttyp suchen..."
+                    className={cn(
+                        "h-12 pl-11 pr-10 text-base rounded-xl",
+                        "border border-warm-200 bg-white",
+                        "placeholder:text-[#86868B]/60",
+                        "focus:ring-2 focus:ring-primary/20 focus:border-primary/40"
                     )}
-                </div>
-
-                {/* Ausgewählter Typ - Deutliche Hervorhebung */}
-                {selectedType && (() => {
-                    const rechtsstand = formatRechtsstand(selectedType.updated_at);
-                    return (
-                    <div className="flex items-center gap-3 p-3 bg-primary/5 ring-2 ring-primary/30 shadow-[var(--shadow-elevated)] rounded-xl">
-                        <Star className="w-4 h-4 text-primary fill-primary shrink-0" />
-                        <span className="font-medium text-foreground">{selectedType.name}</span>
-                        {selectedType.category && (
-                            <Badge variant="outline" className="text-xs bg-white">
-                                {translateCategory(selectedType.category)}
-                            </Badge>
-                        )}
-                        {rechtsstand && (
-                            <TooltipProvider>
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <Badge variant="outline" className="text-[10px] bg-white/80 text-muted-foreground gap-1 cursor-help">
-                                            <Scale className="w-3 h-3" />
-                                            Stand: {rechtsstand}
-                                        </Badge>
-                                    </TooltipTrigger>
-                                    <TooltipContent side="bottom" className="text-xs">
-                                        Letzte Aktualisierung der Vorlage
-                                    </TooltipContent>
-                                </Tooltip>
-                            </TooltipProvider>
-                        )}
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className="ml-auto h-6 w-6 text-warm-400 hover:text-muted-foreground"
-                            onClick={() => { actions.setDocumentType(0); setShowTypeList(true); }}
-                        >
-                            <X className="w-3 h-3" />
-                        </Button>
-                    </div>
-                    );
-                })()}
-
-                {/* Dokumenttyp-Liste - Saubere Gruppierung */}
-                {showTypeList && <div className="ive-card overflow-hidden">
-                    <ScrollArea className="h-[300px]">
-                        <div className="divide-y divide-warm-100">
-                            {/* Zuletzt verwendet */}
-                            {!searchQuery && recentTypes.length > 0 && (
-                                <div>
-                                    <div className="px-4 py-2.5">
-                                        <span className="ive-section-header flex items-center gap-1.5">
-                                            <Clock className="w-3 h-3" />
-                                            Zuletzt verwendet
-                                        </span>
-                                    </div>
-                                    <div>
-                                        {recentTypes.map((type) => (
-                                            <button
-                                                key={`recent-${type.id}`}
-                                                onClick={() => handleDocumentTypeChange(type.id)}
-                                                className={cn(
-                                                    "w-full flex items-center justify-between px-4 py-3 text-left transition-all border-b border-warm-50 last:border-b-0",
-                                                    state.documentTypeId === type.id
-                                                        ? "bg-primary/5 ring-2 ring-primary/30"
-                                                        : "hover:bg-warm-50"
-                                                )}
-                                            >
-                                                <div className="flex items-center gap-3">
-                                                    <FileText className={cn(
-                                                        "w-4 h-4 shrink-0",
-                                                        state.documentTypeId === type.id ? "text-primary" : "text-warm-400"
-                                                    )} />
-                                                    <span className={cn(
-                                                        "text-sm",
-                                                        state.documentTypeId === type.id ? "font-medium text-foreground" : "text-foreground"
-                                                    )}>{type.name}</span>
-                                                </div>
-                                                {type.category && (
-                                                    <span className="text-[11px] px-2 py-0.5 bg-warm-100 text-muted-foreground rounded">
-                                                        {translateCategory(type.category)}
-                                                    </span>
-                                                )}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Kategorisierte Liste */}
-                            {Object.entries(groupedTypes).map(([category, types]) => (
-                                <div key={category}>
-                                    <div className="px-4 py-2.5">
-                                        <span className="ive-section-header">
-                                            {translateCategory(category)}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        {types.map((type, idx) => {
-                                            const stand = formatRechtsstand(type.updated_at);
-                                            return (
-                                            <button
-                                                key={type.id}
-                                                onClick={() => handleDocumentTypeChange(type.id)}
-                                                className={cn(
-                                                    "w-full flex items-center gap-3 px-4 py-3 text-left transition-all",
-                                                    idx < types.length - 1 && "border-b border-warm-50",
-                                                    state.documentTypeId === type.id
-                                                        ? "bg-primary/5 ring-2 ring-primary/30"
-                                                        : "hover:bg-warm-50"
-                                                )}
-                                            >
-                                                <FileText className={cn(
-                                                    "w-4 h-4 shrink-0",
-                                                    state.documentTypeId === type.id ? "text-primary" : "text-warm-400"
-                                                )} />
-                                                <span className={cn(
-                                                    "text-sm flex-1",
-                                                    state.documentTypeId === type.id ? "font-medium text-foreground" : "text-foreground"
-                                                )}>{type.name}</span>
-                                                {stand && (
-                                                    <span className="text-[10px] text-muted-foreground/70 shrink-0">
-                                                        {stand}
-                                                    </span>
-                                                )}
-                                            </button>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-                            ))}
-
-                            {/* Keine Ergebnisse */}
-                            {filteredTypes.length === 0 && (
-                                <div className="text-center py-10 text-muted-foreground">
-                                    <Search className="w-8 h-8 mx-auto mb-2 text-warm-300" />
-                                    <p className="text-sm">Keine Ergebnisse für "{searchQuery}"</p>
-                                </div>
-                            )}
-                        </div>
-                    </ScrollArea>
-                </div>}
-
-                {/* Dokumenttitel */}
-                <div className="space-y-2 pt-4">
-                    <Label htmlFor="document-title" className="text-[13px] text-foreground/60">
-                        Dokumentname
-                    </Label>
-                    <Input
-                        id="document-title"
-                        value={state.documentTitle}
-                        onChange={(e) => actions.setDocumentTitle(e.target.value)}
-                        placeholder="z.B. Arbeitsvertrag Max Müller"
-                        className="h-11 ive-input"
-                    />
-                    <p className="text-xs text-muted-foreground">
-                        Dieser Name erscheint in deiner Dokumentübersicht.
-                    </p>
-                </div>
-
-                {/* Vorlage verwenden (optional, collapsible) */}
-                {userTemplates.length > 0 && (
-                    <Collapsible open={templateSectionOpen || !!state.userTemplateId} onOpenChange={setTemplateSectionOpen}>
-                        <CollapsibleTrigger className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors pt-2 group">
-                            <LayoutTemplate className="w-4 h-4" />
-                            <span>Vorlage verwenden</span>
-                            <ChevronDown className={cn(
-                                "w-3.5 h-3.5 transition-transform ml-auto",
-                                (templateSectionOpen || !!state.userTemplateId) && "rotate-180"
-                            )} />
-                        </CollapsibleTrigger>
-                        <CollapsibleContent className="pt-3 space-y-2">
-                            <p className="text-xs text-muted-foreground">
-                                Verwende eine DOCX-Vorlage als Layout-Basis (mit Logo, Kopf-/Fusszeile).
-                            </p>
-                            <div className="grid gap-2">
-                                {/* "Keine Vorlage" Option */}
-                                <button
-                                    onClick={() => actions.setUserTemplateId(null)}
-                                    className={cn(
-                                        "w-full text-left px-3 py-2.5 rounded-xl border-0 shadow-[var(--shadow-elevated)] transition-all text-sm",
-                                        !state.userTemplateId
-                                            ? "ring-2 ring-primary/30 bg-primary/5 text-foreground font-medium"
-                                            : "hover:shadow-[var(--shadow-elevated-hover)] text-muted-foreground"
-                                    )}
-                                >
-                                    Standard-Layout (ohne Vorlage)
-                                </button>
-
-                                {/* Own templates */}
-                                {userTemplates.filter(t => t.is_own).length > 0 && (
-                                    <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider pt-1">
-                                        Eigene Vorlagen
-                                    </div>
-                                )}
-                                {userTemplates.filter(t => t.is_own).map((template) => (
-                                    <button
-                                        key={template.id}
-                                        onClick={() => actions.setUserTemplateId(template.id)}
-                                        className={cn(
-                                            "w-full text-left px-3 py-2.5 rounded-xl border-0 shadow-[var(--shadow-elevated)] transition-all",
-                                            state.userTemplateId === template.id
-                                                ? "ring-2 ring-primary/30 bg-primary/5"
-                                                : "hover:shadow-[var(--shadow-elevated-hover)]"
-                                        )}
-                                    >
-                                        <div className="flex items-center gap-2">
-                                            <FileText className={cn(
-                                                "w-4 h-4 shrink-0",
-                                                state.userTemplateId === template.id ? "text-primary" : "text-warm-400"
-                                            )} />
-                                            <span className={cn(
-                                                "text-sm truncate",
-                                                state.userTemplateId === template.id ? "font-medium text-foreground" : "text-foreground"
-                                            )}>
-                                                {template.name}
-                                            </span>
-                                            <div className="flex gap-1 ml-auto shrink-0">
-                                                {template.has_logo && (
-                                                    <Badge variant="secondary" className="text-[9px] py-0 px-1">Logo</Badge>
-                                                )}
-                                                {template.has_header && (
-                                                    <Badge variant="secondary" className="text-[9px] py-0 px-1">Kopf</Badge>
-                                                )}
-                                                {template.has_footer && (
-                                                    <Badge variant="secondary" className="text-[9px] py-0 px-1">Fuss</Badge>
-                                                )}
-                                                {template.category && (
-                                                    <Badge variant="outline" className="text-[9px] py-0 px-1">{template.category}</Badge>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </button>
-                                ))}
-
-                                {/* Shared templates */}
-                                {userTemplates.filter(t => !t.is_own).length > 0 && (
-                                    <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider pt-1">
-                                        Geteilte Vorlagen
-                                    </div>
-                                )}
-                                {userTemplates.filter(t => !t.is_own).map((template) => (
-                                    <button
-                                        key={template.id}
-                                        onClick={() => actions.setUserTemplateId(template.id)}
-                                        className={cn(
-                                            "w-full text-left px-3 py-2.5 rounded-xl border-0 shadow-[var(--shadow-elevated)] transition-all",
-                                            state.userTemplateId === template.id
-                                                ? "ring-2 ring-primary/30 bg-primary/5"
-                                                : "hover:shadow-[var(--shadow-elevated-hover)]"
-                                        )}
-                                    >
-                                        <div className="flex items-center gap-2">
-                                            <FileText className={cn(
-                                                "w-4 h-4 shrink-0",
-                                                state.userTemplateId === template.id ? "text-primary" : "text-warm-400"
-                                            )} />
-                                            <span className={cn(
-                                                "text-sm truncate",
-                                                state.userTemplateId === template.id ? "font-medium text-foreground" : "text-foreground"
-                                            )}>
-                                                {template.name}
-                                            </span>
-                                            <div className="flex gap-1 ml-auto shrink-0">
-                                                {template.has_logo && (
-                                                    <Badge variant="secondary" className="text-[9px] py-0 px-1">Logo</Badge>
-                                                )}
-                                                {template.has_header && (
-                                                    <Badge variant="secondary" className="text-[9px] py-0 px-1">Kopf</Badge>
-                                                )}
-                                                {template.has_footer && (
-                                                    <Badge variant="secondary" className="text-[9px] py-0 px-1">Fuss</Badge>
-                                                )}
-                                                {template.category && (
-                                                    <Badge variant="outline" className="text-[9px] py-0 px-1">{template.category}</Badge>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </button>
-                                ))}
-                            </div>
-                        </CollapsibleContent>
-                    </Collapsible>
+                    disabled={isLoading}
+                />
+                {searchQuery && (
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 text-[#86868B] hover:text-[#1D1D1F]"
+                        onClick={() => setSearchQuery("")}
+                    >
+                        <X className="w-4 h-4" />
+                    </Button>
                 )}
             </div>
 
-            {/* Action Buttons */}
-            <div className="pt-6">
-                <TooltipProvider>
-                    <div className="flex items-center justify-center gap-3">
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <span className="inline-flex">
-                                    <Button
-                                        onClick={() => actions.enterSplitScreenMode()}
-                                        disabled={!canProceed}
-                                        className="h-11 px-6 rounded-xl shadow-[var(--shadow-elevated)] disabled:opacity-50 disabled:pointer-events-none"
-                                    >
-                                        Manuell erstellen
-                                        <ArrowRight className="w-4 h-4 ml-2" />
-                                    </Button>
-                                </span>
-                            </TooltipTrigger>
-                            {!canProceed && (
-                                <TooltipContent side="bottom">
-                                    Bitte zuerst einen Dokumenttyp auswählen
-                                </TooltipContent>
-                            )}
-                        </Tooltip>
-
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <span className="inline-flex">
-                                    <Button
-                                        variant="ghost"
-                                        onClick={() => setIsSmartModeOpen(true)}
-                                        disabled={!canProceed}
-                                        className="h-11 px-6 text-primary/70 hover:bg-primary/5 rounded-xl disabled:opacity-50 disabled:pointer-events-none"
-                                    >
-                                        <Sparkles className="w-4 h-4 mr-2" />
-                                        Mit KI erstellen
-                                    </Button>
-                                </span>
-                            </TooltipTrigger>
-                            {!canProceed && (
-                                <TooltipContent side="bottom">
-                                    Bitte zuerst einen Dokumenttyp auswählen
-                                </TooltipContent>
-                            )}
-                        </Tooltip>
+            {/* Recently Used (compact row) */}
+            {!searchQuery && recentTypes.length > 0 && (
+                <section className="mb-8" aria-labelledby="recent-heading">
+                    <h2
+                        id="recent-heading"
+                        className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-[#86868B] mb-3"
+                    >
+                        <Clock className="w-3 h-3" />
+                        Zuletzt verwendet
+                    </h2>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+                        {recentTypes.map((type) => (
+                            <TemplateCard
+                                key={`recent-${type.id}`}
+                                type={type}
+                                compact
+                                onClick={handleCardClick}
+                            />
+                        ))}
                     </div>
-                </TooltipProvider>
+                </section>
+            )}
+
+            {/* Category Grids */}
+            {groupedTypes.map(([category, types]) => (
+                <section key={category} className="mb-8" aria-labelledby={`cat-${category}`}>
+                    <h2
+                        id={`cat-${category}`}
+                        className="text-xs font-medium uppercase tracking-wider text-[#86868B] mb-3"
+                    >
+                        {translateCategory(category)}
+                    </h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {types.map((type) => (
+                            <TemplateCard
+                                key={type.id}
+                                type={type}
+                                onClick={handleCardClick}
+                            />
+                        ))}
+                    </div>
+                </section>
+            ))}
+
+            {/* No Results */}
+            {filteredTypes.length === 0 && (
+                <div className="text-center py-16">
+                    <Search className="w-8 h-8 mx-auto mb-3 text-[#86868B]/40" />
+                    <p className="text-sm text-[#86868B]">
+                        Keine Ergebnisse für &ldquo;{searchQuery}&rdquo;
+                    </p>
+                </div>
+            )}
+
+            {/* Footer Link */}
+            <div className="text-center pt-4">
+                <a
+                    href="/settings?tab=templates"
+                    className="text-xs text-[#86868B]/50 hover:text-[#86868B] transition-colors inline-flex items-center gap-1"
+                >
+                    Eigene Word-Vorlage importieren
+                    <ArrowRight className="w-3 h-3" />
+                </a>
             </div>
+
+            {/* Create Document Dialog */}
+            <CreateDocumentDialog
+                open={dialogOpen}
+                onOpenChange={setDialogOpen}
+                selectedType={selectedType}
+                onCreateManual={handleCreateManual}
+                onCreateWithAI={handleCreateWithAI}
+            />
 
             {/* Smart Mode Dialog */}
             {selectedType && (
@@ -544,51 +258,39 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
                     documentTypeId={selectedType.id}
                     documentTypeName={selectedType.name}
                     onComplete={(smartModeData, title) => {
-                        // Setze den Titel
-                        actions.setDocumentTitle(title);
+                        actions.setDocumentTitle(title || smartModeTitle);
 
-                        // Bekannte FormData-Felder
                         const knownFields = [
-                            'vorname', 'nachname', 'strasse', 'plz', 'ort', 'geburtsdatum',
-                            'position', 'gehalt', 'eintrittsdatum', 'wochenstunden', 'probezeit',
-                            'urlaubstage', 'firmenwagen', 'homeoffice', 'signatory_name'
+                            "vorname", "nachname", "strasse", "plz", "ort", "geburtsdatum",
+                            "position", "gehalt", "eintrittsdatum", "wochenstunden", "probezeit",
+                            "urlaubstage", "firmenwagen", "homeoffice", "signatory_name",
                         ];
 
-                        // Trenne bekannte und dynamische Felder
                         const formDataFields: Record<string, unknown> = {};
-
                         for (const [key, value] of Object.entries(smartModeData)) {
                             if (knownFields.includes(key)) {
                                 formDataFields[key] = value;
-                            } else {
-                                // Dynamische Felder einzeln setzen
-                                if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
-                                    actions.updateDynamicField(key, value);
-                                }
+                            } else if (
+                                typeof value === "string" ||
+                                typeof value === "number" ||
+                                typeof value === "boolean"
+                            ) {
+                                actions.updateDynamicField(key, value);
                             }
                         }
 
-                        // Setze bekannte FormData-Felder
                         if (Object.keys(formDataFields).length > 0) {
-                            actions.setFormData(formDataFields as Partial<import('../WizardContext').FormData>);
+                            actions.setFormData(
+                                formDataFields as Partial<
+                                    import("../WizardContext").FormData
+                                >
+                            );
                         }
 
-                        // Wechsle zum Editor
                         actions.enterSplitScreenMode();
                     }}
                 />
             )}
-
-            {/* Dezenter Tipp */}
-            <div className="text-center">
-                <a
-                    href="/settings?tab=templates"
-                    className="text-xs text-muted-foreground/50 hover:text-muted-foreground transition-colors inline-flex items-center gap-1"
-                >
-                    Eigene Word-Vorlage importieren
-                    <ArrowRight className="w-3 h-3" />
-                </a>
-            </div>
         </div>
     );
 };
