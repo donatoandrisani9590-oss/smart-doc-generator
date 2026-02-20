@@ -490,33 +490,50 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
 
             {/* Action Buttons */}
             <div className="pt-6">
-                <div className="flex items-center justify-center gap-3">
-                    <Button
-                        onClick={() => actions.enterSplitScreenMode()}
-                        disabled={!canProceed}
-                        className="h-11 px-6 rounded-xl shadow-[var(--shadow-elevated)] disabled:opacity-50"
-                    >
-                        Manuell erstellen
-                        <ArrowRight className="w-4 h-4 ml-2" />
-                    </Button>
+                <TooltipProvider>
+                    <div className="flex items-center justify-center gap-3">
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <span className="inline-flex">
+                                    <Button
+                                        onClick={() => actions.enterSplitScreenMode()}
+                                        disabled={!canProceed}
+                                        className="h-11 px-6 rounded-xl shadow-[var(--shadow-elevated)] disabled:opacity-50 disabled:pointer-events-none"
+                                    >
+                                        Manuell erstellen
+                                        <ArrowRight className="w-4 h-4 ml-2" />
+                                    </Button>
+                                </span>
+                            </TooltipTrigger>
+                            {!canProceed && (
+                                <TooltipContent side="bottom">
+                                    Bitte zuerst einen Dokumenttyp auswählen
+                                </TooltipContent>
+                            )}
+                        </Tooltip>
 
-                    <Button
-                        variant="ghost"
-                        onClick={() => setIsSmartModeOpen(true)}
-                        disabled={!canProceed}
-                        className="h-11 px-6 text-primary/70 hover:bg-primary/5 rounded-xl disabled:opacity-50"
-                    >
-                        <Sparkles className="w-4 h-4 mr-2" />
-                        Mit KI erstellen
-                    </Button>
-                </div>
-
-                {/* Hinweis wenn kein Dokumenttyp ausgewählt */}
-                {!canProceed && (
-                    <p className="text-center text-sm text-muted-foreground mt-4">
-                        Bitte wähle zuerst einen Dokumenttyp aus.
-                    </p>
-                )}
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <span className="inline-flex">
+                                    <Button
+                                        variant="ghost"
+                                        onClick={() => setIsSmartModeOpen(true)}
+                                        disabled={!canProceed}
+                                        className="h-11 px-6 text-primary/70 hover:bg-primary/5 rounded-xl disabled:opacity-50 disabled:pointer-events-none"
+                                    >
+                                        <Sparkles className="w-4 h-4 mr-2" />
+                                        Mit KI erstellen
+                                    </Button>
+                                </span>
+                            </TooltipTrigger>
+                            {!canProceed && (
+                                <TooltipContent side="bottom">
+                                    Bitte zuerst einen Dokumenttyp auswählen
+                                </TooltipContent>
+                            )}
+                        </Tooltip>
+                    </div>
+                </TooltipProvider>
             </div>
 
             {/* Smart Mode Dialog */}

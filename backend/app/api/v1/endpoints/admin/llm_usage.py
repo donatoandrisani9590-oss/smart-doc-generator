@@ -23,10 +23,20 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db import get_db
 from app.api.deps import get_current_user
 from app.models.enterprise import LLMCallLog
+from app.models import User
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/admin/llm-usage", tags=["llm-usage"])
+
+
+def _require_admin(current_user: User) -> None:
+    """Nur Admins dürfen auf LLM-Nutzungsdaten zugreifen."""
+    if current_user.role != "admin":
+        raise HTTPException(
+            status_code=403,
+            detail="Nur Administratoren können auf LLM-Nutzungsdaten zugreifen.",
+        )
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -98,7 +108,7 @@ class DailyStatsEntry(BaseModel):
 @router.get("/stats", response_model=LLMUsageStats)
 async def get_llm_stats(
     db: AsyncSession = Depends(get_db),
-    current_user=Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
     """
     Aggregierte LLM-Nutzungsstatistiken.
@@ -106,6 +116,7 @@ async def get_llm_stats(
     Liefert Gesamtzahlen, Aufschlüsselung nach Provider und Feature,
     sowie Fehlerrate und durchschnittliche Latenz.
     """
+    _require_admin(current_user)
     try:
         now = datetime.utcnow()
         today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
@@ -216,7 +227,7 @@ async def get_llm_logs(
     provider: Optional[str] = None,
     status: Optional[str] = None,
     db: AsyncSession = Depends(get_db),
-    current_user=Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
     """
     Paginierte Liste aller LLM-Aufrufe mit Filtern.
@@ -226,6 +237,7 @@ async def get_llm_logs(
     - provider: z.B. groq, mistral, ollama
     - status: success oder error
     """
+    _require_admin(current_user)
     try:
         query = select(LLMCallLog)
         count_query = select(func.count(LLMCallLog.id))
@@ -292,7 +304,7 @@ async def get_llm_logs(
 async def get_daily_stats(
     days: int = Query(30, ge=1, le=90),
     db: AsyncSession = Depends(get_db),
-    current_user=Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
     """
     Tägliche Aggregation für Diagramme.
@@ -300,6 +312,7 @@ async def get_daily_stats(
     Liefert pro Tag: Anzahl Aufrufe, Gesamttokens, durchschnittliche Latenz.
     Standard: letzte 30 Tage, maximal 90 Tage.
     """
+    _require_admin(current_user)
     try:
         cutoff = datetime.utcnow() - timedelta(days=days)
 

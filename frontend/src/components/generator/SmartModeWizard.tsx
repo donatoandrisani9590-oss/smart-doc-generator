@@ -422,10 +422,15 @@ export function SmartModeWizard({
             <p className="text-xs text-muted-foreground">Smart Mode</p>
           </div>
         </div>
-        <Badge variant="outline" className="gap-1">
-          <Sparkles className="w-3 h-3" />
-          {progress}% fertig
-        </Badge>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-muted-foreground">
+            Feld {Math.min(currentFieldIndex + 1, allFields.length)} von {allFields.length}
+          </span>
+          <Badge variant="outline" className="gap-1">
+            <Sparkles className="w-3 h-3" />
+            {progress}%
+          </Badge>
+        </div>
       </div>
 
       {/* Progress Bar */}
@@ -462,6 +467,13 @@ export function SmartModeWizard({
       {/* Input Area */}
       {!isComplete && currentField && (
         <div className="p-4 border-t bg-background space-y-3">
+          {/* Current field label */}
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <span className="font-medium">{currentField.label}</span>
+            {!currentField.required && (
+              <span className="text-muted-foreground/50">Optional</span>
+            )}
+          </div>
           {/* Field-specific input */}
           {currentField.field_type === "select" &&
           currentField.options.length > 0 ? (
