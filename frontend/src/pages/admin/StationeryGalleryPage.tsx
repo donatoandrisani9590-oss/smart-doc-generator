@@ -9,9 +9,7 @@
  */
 
 import { useState, useCallback, useEffect, useMemo } from "react";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -33,6 +31,7 @@ import {
 } from "lucide-react";
 import { apiFetch } from "@/lib/api-client";
 import { useToast } from "@/components/ui/toast";
+import { cn } from "@/lib/utils";
 import { StationeryCard } from "@/components/admin/StationeryCard";
 import { TemplateUploadDialog } from "@/components/admin/TemplateUploadDialog";
 import type { StationeryTemplate } from "@/components/admin/StationeryCard";
@@ -389,35 +388,27 @@ export function StationeryGalleryPage() {
                 </Button>
             </div>
 
-            {/* Country Filter Tabs */}
+            {/* Country Filter — ive-pill-tabs */}
             {uniqueCountries.length > 0 && (
-                <div className="flex gap-2 flex-wrap">
-                    <Button
-                        variant={activeCountryFilter === "all" ? "default" : "outline"}
-                        size="sm"
+                <div className="ive-pill-tabs">
+                    <button
+                        className={cn("ive-pill-tab", activeCountryFilter === "all" && "ive-pill-tab-active")}
                         onClick={() => setActiveCountryFilter("all")}
                     >
-                        Alle
-                        <Badge variant="secondary" className="ml-1.5 text-[10px] px-1.5 py-0">
-                            {templates.length}
-                        </Badge>
-                    </Button>
+                        Alle ({templates.length})
+                    </button>
                     {uniqueCountries.map((cc) => {
                         const count = templates.filter(
                             (t) => t.country_code?.toUpperCase() === cc
                         ).length;
                         return (
-                            <Button
+                            <button
                                 key={cc}
-                                variant={activeCountryFilter === cc ? "default" : "outline"}
-                                size="sm"
+                                className={cn("ive-pill-tab", activeCountryFilter === cc && "ive-pill-tab-active")}
                                 onClick={() => setActiveCountryFilter(cc)}
                             >
-                                {countryFlag(cc)} {cc}
-                                <Badge variant="secondary" className="ml-1.5 text-[10px] px-1.5 py-0">
-                                    {count}
-                                </Badge>
-                            </Button>
+                                {countryFlag(cc)} {cc} ({count})
+                            </button>
                         );
                     })}
                 </div>
@@ -429,26 +420,24 @@ export function StationeryGalleryPage() {
                     <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
                 </div>
             ) : filteredTemplates.length === 0 ? (
-                <Card className="border-dashed">
-                    <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-                        <Stamp className="w-12 h-12 text-muted-foreground/50 mb-4" />
-                        <h3 className="text-lg font-medium text-foreground mb-1">
-                            {activeCountryFilter !== "all"
-                                ? `Kein Briefpapier für ${countryFlag(activeCountryFilter)} ${activeCountryFilter}`
-                                : "Noch kein Briefpapier"}
-                        </h3>
-                        <p className="text-sm text-muted-foreground max-w-md mb-4">
-                            Lade eine DOCX-Datei mit deinem Firmen-Briefpapier hoch (Logo, Kopf-/Fusszeile),
-                            um dieses als Layout-Basis bei der Dokumentenerstellung zu verwenden.
-                        </p>
-                        <Button onClick={() => setUploadOpen(true)} variant="outline" className="gap-2">
-                            <Upload className="w-4 h-4" />
-                            Erstes Briefpapier hochladen
-                        </Button>
-                    </CardContent>
-                </Card>
+                <div className="widget-card flex flex-col items-center justify-center py-12 text-center">
+                    <Stamp className="w-10 h-10 text-muted-foreground/30 mb-4" />
+                    <h3 className="text-base font-medium text-foreground mb-1">
+                        {activeCountryFilter !== "all"
+                            ? `Kein Briefpapier für ${countryFlag(activeCountryFilter)} ${activeCountryFilter}`
+                            : "Noch kein Briefpapier"}
+                    </h3>
+                    <p className="text-sm text-muted-foreground max-w-md mb-4">
+                        Lade eine DOCX-Datei mit deinem Firmen-Briefpapier hoch (Logo, Kopf-/Fusszeile),
+                        um dieses als Layout-Basis bei der Dokumentenerstellung zu verwenden.
+                    </p>
+                    <Button onClick={() => setUploadOpen(true)} variant="outline" className="gap-2">
+                        <Upload className="w-4 h-4" />
+                        Erstes Briefpapier hochladen
+                    </Button>
+                </div>
             ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
                     {filteredTemplates.map((t) => (
                         <StationeryCard
                             key={t.id}
