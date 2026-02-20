@@ -32,10 +32,29 @@ import { ConsistencyBanner } from "../ConsistencyBanner";
 import { GapAnalysisCard } from "../GapAnalysisCard";
 import { TONE_LEVELS, type ToneLevel } from "../ToneCards";
 import { apiStreamSSE } from "@/lib/api-stream";
+import { FullDocumentPreview, type DocumentZones } from "@/components/editor/FullDocumentPreview";
+import { useDesignSettings } from "@/hooks/api/useDocumentTypeQueries";
 
 export const RightEditorPanel = () => {
     const { state, actions } = useWizardContext();
     const { country } = useCountry();
+    const { data: designSettings } = useDesignSettings(country);
+
+    // Build document zones from DesignSettings for header/footer preview
+    const documentZones = useMemo((): DocumentZones | null => {
+        if (!designSettings) return null;
+        const ds = designSettings as Record<string, unknown>;
+        return {
+            logoUrl: ds.logo_path as string | undefined,
+            logoPosition: (ds.logo_position as "left" | "center" | "right") || "right",
+            logoWidthCm: (ds.logo_width_cm as string) || "5",
+            companyName: ds.company_name as string | undefined,
+            headerLines: [ds.header_line1, ds.header_line2, ds.header_line3] as (string | null)[],
+            footerLines: [ds.footer_line1, ds.footer_line2, ds.footer_line3] as (string | null)[],
+            primaryColor: ds.primary_color as string | undefined,
+        };
+    }, [designSettings]);
+
     const {
         previewHtml,
         editorContent,
@@ -453,6 +472,18 @@ export const RightEditorPanel = () => {
                                 onEditorInit={handleEditorInit}
                                 isLoading={isPreviewLoading}
                             />
+                        ) : documentZones ? (
+                            <FullDocumentPreview zones={documentZones}>
+                                <DocumentEditor
+                                    value={effectiveDisplayContent}
+                                    onChange={handleEditorChange}
+                                    onUserEdit={handleUserEdit}
+                                    onEditorInit={handleEditorInit}
+                                    isLoading={isPreviewLoading}
+                                    className="split-screen-editor"
+                                    compact
+                                />
+                            </FullDocumentPreview>
                         ) : (
                             <div className="bg-white dark:bg-card rounded-2xl shadow-[var(--shadow-elevated)]">
                                 <DocumentEditor
