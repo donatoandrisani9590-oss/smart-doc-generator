@@ -1,26 +1,28 @@
 /**
- * StationeryCard - Visual card for a Briefpapier (letterhead) template
+ * StationeryCard - Ive-fidelity card for a Briefpapier (letterhead) template
  *
- * Displays a thumbnail preview (or placeholder icon) with metadata badges
- * and hover-action buttons for download, set-as-default, and delete.
+ * Compact card with mini-canvas A4 preview showing header/footer zone bands,
+ * metadata badges, and a DropdownMenu for all CRUD actions.
  */
 
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
-    FileText,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+    MoreVertical,
+    Pencil,
     Download,
     Star,
     Trash2,
-    Pencil,
-    Image,
-    PanelTop,
-    PanelBottom,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 // ═══════════════════════════════════════════════════════════════════════════
-// TYPES
+// TYPES (unchanged — same export contract)
 // ═══════════════════════════════════════════════════════════════════════════
 
 export interface StationeryTemplate {
@@ -54,115 +56,163 @@ interface StationeryCardProps {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// MINI-CANVAS — schematic A4 preview with header/footer zone bands
+// ═══════════════════════════════════════════════════════════════════════════
+
+function MiniCanvas({ template }: { template: StationeryTemplate }) {
+    return (
+        <div className="flex items-center justify-center p-5 bg-[var(--canvas-desk)]">
+            <div
+                className="relative w-full bg-white rounded-sm"
+                style={{
+                    aspectRatio: "210 / 297",
+                    boxShadow: "0 0 0 1px rgba(0,0,0,0.04), 0 1px 4px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04)",
+                }}
+            >
+                {/* Header zone band */}
+                {template.has_header && (
+                    <div className="absolute top-0 inset-x-0 h-[14%] bg-[var(--canvas-desk)] rounded-t-sm flex items-center justify-center">
+                        {template.has_logo && (
+                            <div className="w-6 h-2.5 rounded-[2px] bg-[#C8C8CC]" />
+                        )}
+                    </div>
+                )}
+
+                {/* Text line hints — centered body area */}
+                <div className="absolute inset-x-0 flex flex-col gap-[5px] px-[18%]" style={{ top: template.has_header ? "22%" : "12%" }}>
+                    <div className="h-[2px] rounded-full bg-[#E5E5EA] w-[70%]" />
+                    <div className="h-[2px] rounded-full bg-[#E5E5EA] w-full" />
+                    <div className="h-[2px] rounded-full bg-[#E5E5EA] w-[85%]" />
+                    <div className="h-[2px] rounded-full bg-[#E5E5EA] w-[60%]" />
+                </div>
+
+                {/* Footer zone band */}
+                {template.has_footer && (
+                    <div className="absolute bottom-0 inset-x-0 h-[10%] bg-[var(--canvas-desk)] rounded-b-sm" />
+                )}
+            </div>
+        </div>
+    );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // COMPONENT
 // ═══════════════════════════════════════════════════════════════════════════
 
 export function StationeryCard({ template, onSetDefault, onDelete, onDownload, onEdit }: StationeryCardProps) {
     return (
-        <Card className="group hover:shadow-md transition-all overflow-hidden">
-            {/* Thumbnail area - 3:4 aspect ratio */}
-            <div className="relative aspect-[3/4] bg-warm-50 border-b border-warm-200 overflow-hidden">
+        <div className="widget-card widget-card-interactive overflow-hidden !p-0">
+            {/* Canvas preview area */}
+            <div className="relative">
                 {template.thumbnail_url ? (
-                    <img
-                        src={template.thumbnail_url}
-                        alt={template.name}
-                        className="w-full h-full object-contain"
-                    />
+                    <div className="flex items-center justify-center p-5 bg-[var(--canvas-desk)]">
+                        <img
+                            src={template.thumbnail_url}
+                            alt={template.name}
+                            className="w-full rounded-sm object-contain"
+                            style={{
+                                aspectRatio: "210 / 297",
+                                boxShadow: "0 0 0 1px rgba(0,0,0,0.04), 0 1px 4px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04)",
+                            }}
+                        />
+                    </div>
                 ) : (
-                    /* Placeholder with document icon */
-                    <div className="w-full h-full flex items-center justify-center">
-                        <FileText className="w-16 h-16 text-warm-400" />
-                    </div>
+                    <MiniCanvas template={template} />
                 )}
 
-                {/* Default star badge - top right */}
+                {/* Standard badge — top right of canvas */}
                 {template.is_default && (
-                    <div className="absolute top-2 right-2">
-                        <Badge className="bg-yellow-100 text-yellow-700 border-yellow-300">
-                            <Star className="w-3 h-3 mr-1 fill-yellow-500" />
+                    <div className="absolute top-2.5 right-2.5">
+                        <span className="inline-flex items-center gap-1 text-[11px] font-medium bg-amber-50 text-amber-700 border border-amber-200/60 rounded-md px-2 py-0.5">
+                            <Star className="w-3 h-3 fill-amber-400 text-amber-500" />
                             Standard
-                        </Badge>
+                        </span>
                     </div>
                 )}
-
-                {/* Hover overlay with actions */}
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors flex items-end justify-center pb-3 opacity-0 group-hover:opacity-100">
-                    <div className="flex gap-1">
-                        {template.is_own && (
-                            <Button
-                                size="sm"
-                                variant="secondary"
-                                onClick={() => onEdit(template)}
-                                title="Bearbeiten"
-                            >
-                                <Pencil className="w-3.5 h-3.5" />
-                            </Button>
-                        )}
-                        <Button
-                            size="sm"
-                            variant="secondary"
-                            onClick={() => onDownload(template)}
-                            title="Herunterladen"
-                        >
-                            <Download className="w-3.5 h-3.5" />
-                        </Button>
-                        {!template.is_default && (
-                            <Button
-                                size="sm"
-                                variant="secondary"
-                                onClick={() => onSetDefault(template.id)}
-                                title="Als Standard setzen"
-                            >
-                                <Star className="w-3.5 h-3.5" />
-                            </Button>
-                        )}
-                        {template.is_own && (
-                            <Button
-                                size="sm"
-                                variant="secondary"
-                                className="text-destructive hover:text-destructive"
-                                onClick={() => onDelete(template)}
-                                title="Löschen"
-                            >
-                                <Trash2 className="w-3.5 h-3.5" />
-                            </Button>
-                        )}
-                    </div>
-                </div>
             </div>
 
-            {/* Info area */}
-            <CardContent className="p-3">
-                <h4 className="font-medium text-sm truncate" title={template.name}>
-                    {template.name}
-                </h4>
-                <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+            {/* Info section */}
+            <div className="px-4 py-3">
+                {/* Title row + dropdown trigger */}
+                <div className="flex items-center justify-between gap-2">
+                    <h4
+                        className="text-sm font-medium text-[var(--canvas-text)] truncate"
+                        title={template.name}
+                    >
+                        {template.name}
+                    </h4>
+
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <button
+                                className={cn(
+                                    "shrink-0 inline-flex items-center justify-center rounded-md",
+                                    "w-7 h-7 text-muted-foreground/60 hover:text-foreground",
+                                    "hover:bg-muted/50 transition-colors",
+                                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                )}
+                            >
+                                <MoreVertical className="w-4 h-4" />
+                            </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48">
+                            {template.is_own && (
+                                <DropdownMenuItem onClick={() => onEdit(template)}>
+                                    <Pencil className="w-4 h-4 mr-2" />
+                                    Bearbeiten
+                                </DropdownMenuItem>
+                            )}
+                            {!template.is_default && (
+                                <DropdownMenuItem onClick={() => onSetDefault(template.id)}>
+                                    <Star className="w-4 h-4 mr-2" />
+                                    Als Standard setzen
+                                </DropdownMenuItem>
+                            )}
+                            <DropdownMenuItem onClick={() => onDownload(template)}>
+                                <Download className="w-4 h-4 mr-2" />
+                                Herunterladen
+                            </DropdownMenuItem>
+                            {template.is_own && (
+                                <>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem
+                                        onClick={() => onDelete(template)}
+                                        className="text-red-600 focus:text-red-600 focus:bg-red-50"
+                                    >
+                                        <Trash2 className="w-4 h-4 mr-2" />
+                                        Löschen
+                                    </DropdownMenuItem>
+                                </>
+                            )}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
+
+                {/* Metadata badges */}
+                <div className="flex items-center gap-1.5 mt-2 flex-wrap">
                     {template.country_code && (
-                        <Badge variant="outline" className="text-[10px]">
+                        <span className="text-xs text-muted-foreground bg-muted/50 rounded-md px-2 py-0.5">
                             {template.country_code}
-                        </Badge>
-                    )}
-                    {template.has_logo && (
-                        <Badge variant="secondary" className="text-[10px] gap-1 py-0 px-1.5">
-                            <Image className="w-2.5 h-2.5" />
-                            Logo
-                        </Badge>
+                        </span>
                     )}
                     {template.has_header && (
-                        <Badge variant="secondary" className="text-[10px] gap-1 py-0 px-1.5">
-                            <PanelTop className="w-2.5 h-2.5" />
+                        <span className="text-xs text-muted-foreground bg-muted/50 rounded-md px-2 py-0.5">
                             Kopfzeile
-                        </Badge>
+                        </span>
                     )}
                     {template.has_footer && (
-                        <Badge variant="secondary" className="text-[10px] gap-1 py-0 px-1.5">
-                            <PanelBottom className="w-2.5 h-2.5" />
+                        <span className="text-xs text-muted-foreground bg-muted/50 rounded-md px-2 py-0.5">
                             Fusszeile
-                        </Badge>
+                        </span>
+                    )}
+                    {template.has_logo && (
+                        <span className="text-xs text-muted-foreground bg-muted/50 rounded-md px-2 py-0.5">
+                            Logo
+                        </span>
                     )}
                 </div>
-            </CardContent>
-        </Card>
+            </div>
+        </div>
     );
 }
 
