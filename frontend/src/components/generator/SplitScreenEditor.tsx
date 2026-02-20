@@ -163,7 +163,7 @@ export const SplitScreenEditor = ({ documentTypes }: SplitScreenEditorProps) => 
 
                 {/* Rechte Seite: Editor */}
                 <div
-                    className={`flex-1 bg-[hsl(220_10%_93%)] dark:bg-[hsl(225_14%_16%)] overflow-hidden min-w-0 min-h-0 lg:block ${mobileTab === "preview" ? "block" : "hidden lg:block"
+                    className={`flex-1 canvas-desk overflow-hidden min-w-0 min-h-0 lg:block ${mobileTab === "preview" ? "block" : "hidden lg:block"
                         }`}
                 >
                     <RightEditorPanel />
