@@ -62,22 +62,12 @@ interface DocumentEditorProps {
   onEditorInit?: (editor: TinyMCEEditor) => void;
 }
 
-// Compact single-line toolbar for split-screen mode
-const COMPACT_TOOLBAR = "undo redo | fontfamily fontsize | bold italic underline | bullist numlist | link table | removeformat";
-
-// Full two-line toolbar for standalone mode
-const FULL_TOOLBAR = [
-  "undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | forecolor backcolor",
-  "alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image table | charmap pagebreak | searchreplace fullscreen code | removeformat",
-];
-
 export const DocumentEditor = ({
   value,
   onChange,
   readOnly = false,
   isLoading = false,
   className,
-  compact = false,
   onUserEdit,
   onEditorInit,
 }: DocumentEditorProps) => {
@@ -206,9 +196,8 @@ export const DocumentEditor = ({
             "wordcount",
           ],
 
-          // === Toolbar Configuration ===
-          toolbar: compact ? COMPACT_TOOLBAR : FULL_TOOLBAR,
-          toolbar_mode: compact ? "scrolling" : "wrap",
+          // === Toolbar hidden — formatting via BubbleMenu ===
+          toolbar: false,
 
           // === Font Configuration (like Word) ===
           font_family_formats:

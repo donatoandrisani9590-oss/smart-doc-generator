@@ -276,7 +276,7 @@ export const RightEditorPanel = () => {
                                 />
                             </FullDocumentPreview>
                         ) : (
-                            <div className="bg-white dark:bg-card rounded-2xl shadow-[var(--shadow-elevated)]">
+                            <div className="canvas-paper">
                                 <DocumentEditor
                                     value={effectiveDisplayContent}
                                     onChange={handleEditorChange}

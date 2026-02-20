@@ -45,7 +45,7 @@ export const StationeryCanvas = ({
     const footerImages = Array.isArray(zones.footerImages) ? zones.footerImages : [];
 
     return (
-        <div className="bg-white rounded shadow-[0_2px_10px_rgba(0,0,0,0.15)]">
+        <div className="bg-[var(--canvas-paper)] rounded shadow-[var(--shadow-canvas-paper)]">
             {/* Header Zone - Gesperrt, aus Blanko-Vorlage */}
             {(headerImages.length > 0 || zones.headerText) && (
                 <TooltipProvider>

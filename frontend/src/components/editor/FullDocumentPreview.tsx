@@ -34,7 +34,7 @@ export function FullDocumentPreview({ zones, children, className }: FullDocument
     return (
         <div
             className={cn(
-                "mx-auto bg-white dark:bg-card rounded-2xl shadow-[var(--shadow-elevated)] overflow-hidden",
+                "mx-auto bg-[var(--canvas-paper)] rounded shadow-[var(--shadow-canvas-paper)] overflow-hidden",
                 className
             )}
             style={{ maxWidth: "min(210mm, 100%)" }}
@@ -47,7 +47,7 @@ export function FullDocumentPreview({ zones, children, className }: FullDocument
                         zones.logoPosition === "right" && "flex-row-reverse",
                         zones.logoPosition === "center" && "flex-col items-center"
                     )}>
-                        {zones.logoUrl && (
+                        {zones.logoUrl ? (
                             <img
                                 src={zones.logoUrl}
                                 alt="Firmenlogo"
@@ -57,6 +57,16 @@ export function FullDocumentPreview({ zones, children, className }: FullDocument
                                     maxHeight: "2.5cm",
                                 }}
                             />
+                        ) : (
+                            <div className="logo-skeleton" aria-label="Logo-Platzhalter">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                     strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
+                                     className="text-muted-foreground/30">
+                                    <rect x="3" y="3" width="18" height="18" rx="2" />
+                                    <circle cx="9" cy="9" r="2" />
+                                    <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
+                                </svg>
+                            </div>
                         )}
                         <div className={cn(
                             "flex-1 text-xs text-muted-foreground/60 leading-relaxed",
