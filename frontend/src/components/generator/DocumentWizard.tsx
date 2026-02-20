@@ -17,6 +17,7 @@ import { WizardProvider } from "./WizardContext";
 import { useDocumentWizard } from "@/hooks/useDocumentWizard";
 import { StepDocumentType } from "./steps/StepDocumentType";
 import { SplitScreenEditor } from "./SplitScreenEditor";
+import { useDocumentProjectStore } from "@/store/documentProjectStore";
 
 // ══════════════════════════════════════════════════════════════════════════════
 // HELPERS
@@ -48,6 +49,7 @@ function mapAIFieldToFormField(key: string): string {
 interface DocumentType {
     id: number;
     name: string;
+    description?: string | null;
     country_code?: string;
     category?: string;
 }
@@ -69,6 +71,7 @@ const WizardContent = ({ documentTypes }: DocumentWizardProps) => {
     const wizardContext = useDocumentWizard(draftId ? parseInt(draftId, 10) : undefined);
     const { state, actions } = wizardContext;
     const dataAppliedRef = useRef(false);
+    const projectStore = useDocumentProjectStore();
 
     // Warn user before leaving with unsaved changes
     useEffect(() => {
@@ -169,6 +172,63 @@ const WizardContent = ({ documentTypes }: DocumentWizardProps) => {
             }
         }
     }, [dataParam, state.documentTypeId, draftId, actions, documentTypes]);
+
+    // Apply initial data from DocumentProjectStore (Seamless A.I. transition)
+    useEffect(() => {
+        if (projectStore.projectId && !draftId && !dataAppliedRef.current) {
+            dataAppliedRef.current = true;
+
+            if (projectStore.templateType) {
+                const searchStr = projectStore.templateType;
+                const matched = documentTypes.find((t) => String(t.id) === searchStr);
+                if (matched) {
+                    actions.setDocumentType(matched.id);
+                }
+            }
+
+            if (Object.keys(projectStore.formData).length > 0) {
+                const initialData = projectStore.formData;
+                const knownFields = [
+                    "vorname", "nachname", "strasse", "plz", "ort", "geburtsdatum",
+                    "position", "gehalt", "eintrittsdatum", "wochenstunden", "probezeit",
+                    "urlaubstage", "firmenwagen", "homeoffice", "signatory_name",
+                    "entgeltgruppe", "kuendigungsfrist", "au_frist",
+                    "jahressonderzahlung", "urlaubsgeld_pro_tag", "vwl_betrag",
+                    "schichtzuschlaege", "arbeitszeitkonto", "vertragsstrafe",
+                ];
+
+                const formDataFields: Record<string, unknown> = {};
+                for (const [key, value] of Object.entries(initialData)) {
+                    const mappedKey = mapAIFieldToFormField(key);
+                    let transformedValue = value;
+                    if (mappedKey === "probezeit" && typeof value === "number") {
+                        transformedValue = value === 0 ? "Keine" : `${value} Monate`;
+                    }
+                    if (knownFields.includes(mappedKey)) {
+                        formDataFields[mappedKey] = transformedValue;
+                    } else if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+                        actions.updateDynamicField(mappedKey, value);
+                    }
+                }
+
+                if (Object.keys(formDataFields).length > 0) {
+                    actions.setFormData(formDataFields as Partial<import("./WizardContext").FormData>);
+                }
+
+                const name = [initialData.vorname || initialData.first_name, initialData.nachname || initialData.last_name]
+                    .filter(Boolean)
+                    .join(" ");
+                const typeName = documentTypes.find((t) => String(t.id) === projectStore.templateType)?.name;
+                if (name && typeName) {
+                    actions.setDocumentTitle(`${typeName} - ${name}`);
+                }
+            }
+
+            if (projectStore.currentStep === 'editor') {
+                actions.enterSplitScreenMode();
+            }
+        }
+    }, [projectStore.projectId, projectStore.templateType, projectStore.formData, projectStore.currentStep, actions, documentTypes, draftId]);
 
     // Loading state
     if (state.isLoading && !state.documentTypeId) {

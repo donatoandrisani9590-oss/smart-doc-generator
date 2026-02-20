@@ -70,6 +70,19 @@
     --shadow-inset-focus: inset 0 -2px 0 0 hsl(228 58% 33%);
     --shadow-up-subtle: 0 -1px 3px rgba(36,49,134,0.03);
 
+    /* True-Fidelity Canvas tokens */
+    --canvas-desk: #F5F5F7;
+    --canvas-paper: #FFFFFF;
+    --canvas-text: #1D1D1F;
+    --canvas-text-secondary: #86868B;
+    --canvas-input-fill: #F5F5F7;
+    --canvas-focus-ring: rgba(36, 49, 134, 0.08);
+    --shadow-canvas-paper:
+      0 0 0 1px rgba(0, 0, 0, 0.03),
+      0 1px 3px rgba(0, 0, 0, 0.04),
+      0 8px 24px rgba(0, 0, 0, 0.06),
+      0 24px 48px rgba(0, 0, 0, 0.04);
+
     /* Animation Durations */
     --duration-fast: 0.15s;
     --duration-normal: 0.25s;
@@ -125,6 +138,18 @@
     --shadow-inset-field: inset 0 -1px 0 0 hsl(225 14% 25%);
     --shadow-inset-focus: inset 0 -2px 0 0 hsl(228 58% 60%);
     --shadow-up-subtle: 0 -1px 3px rgba(0,0,0,0.15);
+
+    --canvas-desk: hsl(225 14% 12%);
+    --canvas-paper: hsl(225 14% 14%);
+    --canvas-text: hsl(220 10% 90%);
+    --canvas-text-secondary: hsl(220 8% 55%);
+    --canvas-input-fill: hsl(225 14% 18%);
+    --canvas-focus-ring: rgba(120, 140, 230, 0.12);
+    --shadow-canvas-paper:
+      0 0 0 1px rgba(255, 255, 255, 0.06),
+      0 1px 3px rgba(0, 0, 0, 0.2),
+      0 8px 24px rgba(0, 0, 0, 0.3),
+      0 24px 48px rgba(0, 0, 0, 0.2);
 
     color-scheme: dark;
   }
@@ -497,6 +522,27 @@
   .ive-card-interactive:hover {
     box-shadow: var(--shadow-elevated-hover);
     transform: translateY(-1px);
+  }
+
+  /* Widget card — Ive dashboard floating surface */
+  .widget-card {
+    background: hsl(var(--card));
+    border: none;
+    border-radius: 1.25rem; /* rounded-2xl = 20px */
+    padding: 1.5rem;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03), 0 12px 28px rgba(0,0,0,0.02);
+    transition: box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1), transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .widget-card-interactive:hover {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05), 0 8px 16px rgba(0,0,0,0.04), 0 16px 32px rgba(0,0,0,0.03);
+    transform: translateY(-1px);
+  }
+
+  .dark .widget-card {
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2), 0 4px 12px rgba(0,0,0,0.15), 0 12px 28px rgba(0,0,0,0.1);
+  }
+  .dark .widget-card-interactive:hover {
+    box-shadow: 0 2px 6px rgba(0,0,0,0.25), 0 8px 16px rgba(0,0,0,0.2), 0 16px 32px rgba(0,0,0,0.15);
   }
 
   /* Ive pill-based segmented control */
