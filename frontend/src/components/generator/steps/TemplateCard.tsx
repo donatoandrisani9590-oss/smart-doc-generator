@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/static-components -- Icon is a stable Lucide component reference from lookup table */
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { getCategoryIcon, translateCategory } from "./categoryIcons";

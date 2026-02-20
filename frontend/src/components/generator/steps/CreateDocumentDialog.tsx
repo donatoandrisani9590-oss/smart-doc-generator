@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/static-components -- Icon is a stable Lucide component reference from lookup table */
 import { useState, useEffect, useCallback } from "react";
 import { ArrowRight, Sparkles, LayoutTemplate, ChevronDown, FileText } from "lucide-react";
 import {
@@ -60,6 +61,7 @@ export function CreateDocumentDialog({
     // Reset state when dialog opens with a new type
     useEffect(() => {
         if (open) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: reset form state when dialog opens
             setTitle("");
             setSelectedTemplateId(null);
             setTemplateSectionOpen(false);

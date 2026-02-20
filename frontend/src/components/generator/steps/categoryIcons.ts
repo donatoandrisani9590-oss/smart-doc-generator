@@ -30,7 +30,6 @@ export function getCategoryIcon(category?: string): LucideIcon {
     return CATEGORY_ICON_MAP[category.toLowerCase()] ?? FileText;
 }
 
-// Re-export existing category label translation
 const CATEGORY_LABELS: Record<string, string> = {
     contract: "Vertrag",
     letter: "Brief",
