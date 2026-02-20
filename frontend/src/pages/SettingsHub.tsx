@@ -314,8 +314,8 @@ export default function SettingsHub() {
                                 className={cn(
                                     "flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-full whitespace-nowrap transition-colors",
                                     activeTab === item.id
-                                        ? "bg-muted/40 text-foreground font-medium"
-                                        : "text-muted-foreground/60 hover:bg-muted/20 hover:text-foreground"
+                                        ? "bg-muted/50 text-foreground font-medium"
+                                        : "text-muted-foreground hover:bg-muted/30 hover:text-foreground"
                                 )}
                             >
                                 <item.icon className="w-3.5 h-3.5" />
@@ -329,7 +329,7 @@ export default function SettingsHub() {
                 <nav className="hidden md:block w-[240px] shrink-0 overflow-y-auto scrollbar-hide py-3">
                     {filteredNav.map((group, groupIndex) => (
                         <div key={group.id} className={cn("pb-3", groupIndex > 0 && "pt-3 mx-3")}>
-                            <h3 className="px-4 py-1 text-[10px] font-medium text-muted-foreground/30 uppercase tracking-[0.12em]">
+                            <h3 className="px-4 py-1 text-[10px] font-medium text-muted-foreground/50 uppercase tracking-[0.12em]">
                                 {group.label}
                             </h3>
                             <div className="space-y-0.5 mt-0.5 px-1.5">
@@ -338,17 +338,17 @@ export default function SettingsHub() {
                                         key={item.id}
                                         onClick={() => setActiveTab(item.id)}
                                         className={cn(
-                                            "w-full flex items-center gap-2.5 px-2.5 py-1.5 text-[13px] rounded-md transition-all",
+                                            "w-full flex items-center gap-2.5 px-2.5 py-1.5 text-[13px] rounded-lg transition-all",
                                             activeTab === item.id
-                                                ? "bg-muted/40 text-foreground font-medium"
-                                                : "text-muted-foreground/70 hover:bg-muted/20 hover:text-foreground"
+                                                ? "bg-muted/50 text-foreground font-medium"
+                                                : "text-muted-foreground hover:bg-muted/30 hover:text-foreground"
                                         )}
                                     >
                                         <item.icon className={cn(
                                             "w-3.5 h-3.5 shrink-0 transition-colors",
                                             activeTab === item.id
-                                                ? "text-foreground/70"
-                                                : "text-muted-foreground/40"
+                                                ? "text-primary/70"
+                                                : "text-muted-foreground/50"
                                         )} />
                                         <span>{item.label}</span>
                                     </button>
@@ -358,8 +358,8 @@ export default function SettingsHub() {
                     ))}
                 </nav>
 
-                {/* Content Area */}
-                <div className="flex-1 min-w-0 p-6 lg:p-8 overflow-y-auto">
+                {/* Content Area — subtle gray bg for white-card-on-gray effect */}
+                <div className="flex-1 min-w-0 p-6 lg:p-8 overflow-y-auto bg-muted/30 border-l border-warm-100">
                     {ActiveComponent ? (
                         <Suspense fallback={<TabSkeleton />}>
                             <ActiveComponent />
