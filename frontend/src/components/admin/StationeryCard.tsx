@@ -156,12 +156,10 @@ export function StationeryCard({ template, onSetDefault, onDelete, onDownload, o
                             </button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-48">
-                            {template.is_own && (
-                                <DropdownMenuItem onClick={() => onEdit(template)}>
-                                    <Pencil className="w-4 h-4 mr-2" />
-                                    Bearbeiten
-                                </DropdownMenuItem>
-                            )}
+                            <DropdownMenuItem onClick={() => onEdit(template)}>
+                                <Pencil className="w-4 h-4 mr-2" />
+                                Bearbeiten
+                            </DropdownMenuItem>
                             {!template.is_default && (
                                 <DropdownMenuItem onClick={() => onSetDefault(template.id)}>
                                     <Star className="w-4 h-4 mr-2" />
@@ -172,18 +170,14 @@ export function StationeryCard({ template, onSetDefault, onDelete, onDownload, o
                                 <Download className="w-4 h-4 mr-2" />
                                 Herunterladen
                             </DropdownMenuItem>
-                            {template.is_own && (
-                                <>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem
-                                        onClick={() => onDelete(template)}
-                                        className="text-red-600 focus:text-red-600 focus:bg-red-50"
-                                    >
-                                        <Trash2 className="w-4 h-4 mr-2" />
-                                        Löschen
-                                    </DropdownMenuItem>
-                                </>
-                            )}
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                                onClick={() => onDelete(template)}
+                                className="text-red-600 focus:text-red-600 focus:bg-red-50"
+                            >
+                                <Trash2 className="w-4 h-4 mr-2" />
+                                Löschen
+                            </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>
