@@ -8,8 +8,8 @@
  * - Toolbar mit Word-ähnlichen Funktionen
  */
 
-import { useState, useCallback, useRef, useMemo } from "react";
-import { Loader2, MessageSquarePlus, MessagesSquare, AlertTriangle, Sparkles } from "lucide-react";
+import { useState, useCallback, useRef, useMemo, useEffect } from "react";
+import { Loader2, MessageSquarePlus, MessagesSquare, AlertTriangle, Sparkles, RefreshCw, Check, Undo2 } from "lucide-react";
 import type { Editor as TinyMCEEditor } from "tinymce";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -30,6 +30,8 @@ import { WorkflowStepper } from "../WorkflowStepper";
 import { ComplianceRiskBanner } from "../ComplianceRiskBanner";
 import { ConsistencyBanner } from "../ConsistencyBanner";
 import { GapAnalysisCard } from "../GapAnalysisCard";
+import { TONE_LEVELS, type ToneLevel } from "../ToneCards";
+import { apiStreamSSE } from "@/lib/api-stream";
 
 export const RightEditorPanel = () => {
     const { state, actions } = useWizardContext();
@@ -151,6 +153,87 @@ export const RightEditorPanel = () => {
             actions.toggleCommentSidebar();
         }
     }, [quickCommentText, actions, showCommentSidebar]);
+
+    // ── Tone Preview with AI Refine ──────────────────────────────────────
+    const [tonePreview, setTonePreview] = useState<{
+        originalContent: string;
+        previewContent: string;
+        tone: ToneLevel;
+        toneLabel: string;
+        isStreaming: boolean;
+    } | null>(null);
+    const toneAbortRef = useRef<AbortController | null>(null);
+
+    const handleTonePreview = useCallback(async (tone: ToneLevel) => {
+        const currentContent = editorContent || previewHtml;
+        if (!currentContent) return;
+
+        // Cancel any in-flight preview
+        toneAbortRef.current?.abort();
+        const controller = new AbortController();
+        toneAbortRef.current = controller;
+
+        const toneLabel = TONE_LEVELS[tone - 1].label;
+        setTonePreview({ originalContent: currentContent, previewContent: "", tone, toneLabel, isStreaming: true });
+
+        const tonePresets: Record<number, string> = {
+            1: "formal", 2: "concise", 3: "friendly", 4: "friendly", 5: "friendly"
+        };
+
+        try {
+            let accumulated = "";
+            for await (const event of apiStreamSSE(
+                "/api/v1/smart/refine/stream",
+                { text: currentContent, preset: tonePresets[tone], tone_of_voice: tone },
+                controller.signal
+            )) {
+                if (event.token) {
+                    accumulated += event.token;
+                    setTonePreview(prev => prev ? { ...prev, previewContent: accumulated } : null);
+                }
+                if (event.done) {
+                    setTonePreview(prev => prev ? { ...prev, isStreaming: false } : null);
+                }
+            }
+        } catch {
+            if (!controller.signal.aborted) {
+                setTonePreview(null);
+            }
+        }
+    }, [editorContent, previewHtml]);
+
+    const handleAcceptTonePreview = useCallback(() => {
+        if (tonePreview?.previewContent) {
+            actions.setEditorContent(tonePreview.previewContent, true);
+            actions.setToneOfVoice(tonePreview.tone);
+        }
+        setTonePreview(null);
+    }, [tonePreview, actions]);
+
+    const handleRevertTonePreview = useCallback(() => {
+        toneAbortRef.current?.abort();
+        if (tonePreview?.originalContent) {
+            actions.setEditorContent(tonePreview.originalContent, false);
+        }
+        setTonePreview(null);
+    }, [tonePreview, actions]);
+
+    // Cleanup abort controller on unmount
+    useEffect(() => {
+        return () => { toneAbortRef.current?.abort(); };
+    }, []);
+
+    // Auto-trigger tone preview when user changes tone (only if content exists)
+    const prevToneRef = useRef(state.toneOfVoice);
+    useEffect(() => {
+        if (state.toneOfVoice !== prevToneRef.current && displayContent) {
+            prevToneRef.current = state.toneOfVoice;
+            handleTonePreview(state.toneOfVoice);
+        }
+    }, [state.toneOfVoice, displayContent, handleTonePreview]);
+
+    // Show preview content in editor while preview is active
+    const effectiveDisplayContent = tonePreview?.previewContent || displayContent;
 
     return (
         <div className="h-full flex flex-col">
@@ -332,11 +415,39 @@ export const RightEditorPanel = () => {
                             />
                         )}
 
+                        {/* Tone Preview Banner */}
+                        {tonePreview && (
+                            <div className="flex items-center gap-2 p-3 rounded-xl bg-blue-50 border border-blue-200 text-xs mb-4">
+                                <RefreshCw className={`w-3.5 h-3.5 text-blue-600 shrink-0 ${tonePreview.isStreaming ? "animate-spin" : ""}`} />
+                                <span className="text-blue-700 flex-1">
+                                    Vorschau: „{tonePreview.toneLabel}" Tonalität
+                                </span>
+                                <Button
+                                    size="sm"
+                                    onClick={handleAcceptTonePreview}
+                                    disabled={tonePreview.isStreaming}
+                                    className="h-6 gap-1 text-[10px] bg-blue-600 hover:bg-blue-700"
+                                >
+                                    <Check className="w-3 h-3" />
+                                    Übernehmen
+                                </Button>
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={handleRevertTonePreview}
+                                    className="h-6 gap-1 text-[10px] border-blue-300 text-blue-700 hover:bg-blue-100"
+                                >
+                                    <Undo2 className="w-3 h-3" />
+                                    Original
+                                </Button>
+                            </div>
+                        )}
+
                         {/* A4 Paper Container with shadow */}
                         {userTemplateId && stationeryZones ? (
                             <StationeryCanvas
                                 zones={stationeryZones}
-                                value={displayContent}
+                                value={effectiveDisplayContent}
                                 onChange={handleEditorChange}
                                 onUserEdit={handleUserEdit}
                                 onEditorInit={handleEditorInit}
@@ -345,7 +456,7 @@ export const RightEditorPanel = () => {
                         ) : (
                             <div className="bg-white dark:bg-card rounded-2xl shadow-[var(--shadow-elevated)]">
                                 <DocumentEditor
-                                    value={displayContent}
+                                    value={effectiveDisplayContent}
                                     onChange={handleEditorChange}
                                     onUserEdit={handleUserEdit}
                                     onEditorInit={handleEditorInit}
