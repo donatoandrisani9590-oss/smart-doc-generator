@@ -7,7 +7,7 @@
  * - Einfache Suche
  */
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate, Link, Navigate } from "react-router-dom";
 // Card imports removed - using direct div styling for SimpleDocs design
@@ -108,13 +108,24 @@ export const RepositoryPage = () => {
         sort_by: "created_at",
         sort_order: "desc",
     });
-    const [showFilters, setShowFilters] = useState(false);
+    const [showFilters, setShowFilters] = useState(true);
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
     const [correctionDocId, setCorrectionDocId] = useState<number | null>(null);
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     const [pendingAction, setPendingAction] = useState<"delete" | "archive" | null>(null);
-    const [activeFilter, setActiveFilter] = useState<"all" | "draft" | "completed" | "corrections">("all");
+    const [activeFilter, setActiveFilter] = useState<"all" | "draft" | "completed" | "corrections" | "approval_pending">(() => {
+        const saved = localStorage.getItem("repo-active-filter");
+        if (saved && ["all", "draft", "completed", "corrections", "approval_pending"].includes(saved)) {
+            return saved as "all" | "draft" | "completed" | "corrections" | "approval_pending";
+        }
+        return "all";
+    });
     const [actionFilter, setActionFilter] = useState<string | null>(null);
+
+    // Persist filter selection
+    useEffect(() => {
+        localStorage.setItem("repo-active-filter", activeFilter);
+    }, [activeFilter]);
 
     // Merge actionFilter into API filters
     const effectiveFilters = useMemo((): RepositoryFilters => {
@@ -349,18 +360,29 @@ export const RepositoryPage = () => {
                     { key: "draft" as const, label: "Entwürfe", count: drafts?.length ?? 0 },
                     { key: "completed" as const, label: "Fertig", count: stats?.total_documents ?? 0 },
                     { key: "corrections" as const, label: "Korrekturen", count: stats?.documents_with_corrections ?? 0 },
+                    { key: "approval_pending" as const, label: "Freigabe offen" },
                 ].map(card => (
                     <button
                         key={card.key}
-                        onClick={() => setActiveFilter(card.key)}
+                        onClick={() => {
+                            setActiveFilter(card.key);
+                            // "Freigabe offen" tab uses the action filter mechanism
+                            if (card.key === "approval_pending") {
+                                setActionFilter("freigabe_offen");
+                            } else {
+                                setActionFilter(null);
+                            }
+                        }}
                         className={`ive-pill-tab ${activeFilter === card.key ? 'ive-pill-tab-active' : ''}`}
                     >
                         {card.label}
-                        <span className={`ml-1.5 text-[11px] ${
-                            activeFilter === card.key ? 'text-foreground/60' : 'text-muted-foreground/40'
-                        }`}>
-                            {card.count}
-                        </span>
+                        {"count" in card && (
+                            <span className={`ml-1.5 text-[11px] ${
+                                activeFilter === card.key ? 'text-foreground/60' : 'text-muted-foreground/40'
+                            }`}>
+                                {card.count}
+                            </span>
+                        )}
                     </button>
                 ))}
             </div>
