@@ -9,7 +9,8 @@
  */
 
 import { useState, useCallback, useRef, useMemo, useEffect } from "react";
-import { Loader2, MessageSquarePlus, MessagesSquare, AlertTriangle, Sparkles, RefreshCw, Check, Undo2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Loader2, MessageSquarePlus, MessagesSquare, AlertTriangle, Sparkles, RefreshCw, Check, Undo2, CheckCircle2, Download, Send, ArrowRight } from "lucide-react";
 import type { Editor as TinyMCEEditor } from "tinymce";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -38,6 +39,7 @@ import { useDesignSettings } from "@/hooks/api/useDocumentTypeQueries";
 export const RightEditorPanel = () => {
     const { state, actions } = useWizardContext();
     const { country } = useCountry();
+    const navigate = useNavigate();
     const { data: designSettings } = useDesignSettings(country);
 
     // Build document zones from DesignSettings for header/footer preview
@@ -432,6 +434,44 @@ export const RightEditorPanel = () => {
                                 onRegenerate={ghostwriter.regenerate}
                                 className="mb-4"
                             />
+                        )}
+
+                        {/* Post-Export Success Banner */}
+                        {state.hasExported && state.lastExportedDocumentId && (
+                            <div className="mb-4 p-4 rounded-xl bg-green-50 border border-green-200 space-y-3">
+                                <div className="flex items-center gap-2">
+                                    <CheckCircle2 className="w-5 h-5 text-green-600" />
+                                    <span className="font-medium text-green-900 text-sm">Dokument erfolgreich generiert!</span>
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="gap-1.5"
+                                        onClick={() => window.open(`/api/v1/repository/${state.lastExportedDocumentId}/download`, "_blank")}
+                                    >
+                                        <Download className="w-3.5 h-3.5" />
+                                        Herunterladen
+                                    </Button>
+                                    <Button
+                                        size="sm"
+                                        className="gap-1.5"
+                                        onClick={() => navigate(`/documents/${state.lastExportedDocumentId}?tab=freigabe`)}
+                                    >
+                                        <Send className="w-3.5 h-3.5" />
+                                        Zur Freigabe senden
+                                    </Button>
+                                    <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        className="gap-1.5 ml-auto"
+                                        onClick={() => navigate(`/documents/${state.lastExportedDocumentId}`)}
+                                    >
+                                        In Bibliothek öffnen
+                                        <ArrowRight className="w-3.5 h-3.5" />
+                                    </Button>
+                                </div>
+                            </div>
                         )}
 
                         {/* Tone Preview Banner */}
