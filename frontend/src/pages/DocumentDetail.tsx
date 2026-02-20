@@ -6,8 +6,8 @@
  * Top: Status action bar with document actions
  */
 
-import { useState, useEffect } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useState, useEffect, useMemo } from "react";
+import { useParams, useNavigate, Link, useSearchParams } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useRepositoryDocument } from "@/hooks/useApi";
@@ -15,6 +15,8 @@ import { apiFetch } from "@/lib/api-client";
 import { DocumentPreviewPanel } from "@/components/documents/DocumentPreviewPanel";
 import { DocumentApprovalPanel } from "@/components/documents/DocumentApprovalPanel";
 import { useFeatureEnabled } from "@/hooks/useFeatureSettings";
+import { useDocumentApproval, useApproveDocument } from "@/hooks/useDocumentApproval";
+import { Badge } from "@/components/ui/badge";
 
 interface RelatedDocument {
     id: number;
@@ -52,6 +54,10 @@ import {
     MessageSquare,
     Shield,
     ClipboardList,
+    Send,
+    CheckCircle2,
+    XCircle,
+    Mail,
 } from "lucide-react";
 
 // Deutsche Labels für Formulardaten-Anzeige
@@ -114,11 +120,19 @@ type SidebarTab = "details" | "verwaltung" | "verlauf" | "kommentare" | "freigab
 export const DocumentDetailPage = () => {
     const { documentId } = useParams<{ documentId: string }>();
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const [showCorrection, setShowCorrection] = useState(false);
     const [showShareDialog, setShowShareDialog] = useState(false);
     const [copied, setCopied] = useState(false);
     const [sidebarOpen, setSidebarOpen] = useState(true);
-    const [activeTab, setActiveTab] = useState<SidebarTab>("details");
+    const initialTab = useMemo(() => {
+        const tab = searchParams.get("tab");
+        if (tab && ["details", "verwaltung", "verlauf", "kommentare", "freigabe"].includes(tab)) {
+            return tab as SidebarTab;
+        }
+        return "details";
+    }, [searchParams]);
+    const [activeTab, setActiveTab] = useState<SidebarTab>(initialTab);
     const [activeCommentId, setActiveCommentId] = useState<number | null>(null);
     const [pendingInlineSelection, setPendingInlineSelection] = useState<SelectionRange | null>(null);
 
@@ -128,6 +142,9 @@ export const DocumentDetailPage = () => {
     const { unresolved: commentUnresolved } = useCommentCount("document", docIdNum);
     const { data: commentsData } = useComments("document", docIdNum);
     const approvalEnabled = useFeatureEnabled("enable_approval_workflow");
+    const { data: approval } = useDocumentApproval(docIdNum, { enabled: approvalEnabled });
+    const approveMutation = useApproveDocument();
+    const pendingApproval = approval?.status === "pending_approval";
 
     const inlineComments = commentsData?.comments?.filter(
         (t) => t.root.selection_range != null
@@ -278,6 +295,103 @@ export const DocumentDetailPage = () => {
             <div className="shrink-0 mx-1">
                 <DocumentLockBanner documentId={docIdNum} />
             </div>
+
+            {/* Prominent Status & Approval Bar */}
+            {approvalEnabled && (
+                <div className="shrink-0 mx-1 mb-3">
+                    <div className="card-soft p-4 space-y-3">
+                        {/* Current Status */}
+                        <div className="flex items-center gap-3">
+                            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Status:</span>
+                            <Badge variant="outline" className={
+                                pendingApproval
+                                    ? "border-amber-300 text-amber-700 bg-amber-50"
+                                    : approval?.status === "approved"
+                                    ? "border-green-300 text-green-700 bg-green-50"
+                                    : approval?.status === "rejected"
+                                    ? "border-red-300 text-red-700 bg-red-50"
+                                    : approval?.status === "changes_requested"
+                                    ? "border-orange-300 text-orange-700 bg-orange-50"
+                                    : "border-warm-300 text-muted-foreground"
+                            }>
+                                {pendingApproval ? "Freigabe ausstehend"
+                                    : approval?.status === "approved" ? "Freigegeben"
+                                    : approval?.status === "rejected" ? "Abgelehnt"
+                                    : approval?.status === "changes_requested" ? "Änderungen angefordert"
+                                    : "Kein Freigabe-Status"}
+                            </Badge>
+                        </div>
+
+                        {/* Primary Actions */}
+                        <div className="flex flex-wrap gap-2">
+                            {/* Send for approval if no pending approval */}
+                            {!pendingApproval && (
+                                <Button
+                                    size="sm"
+                                    className="gap-1.5"
+                                    onClick={() => { setActiveTab("freigabe"); setSidebarOpen(true); }}
+                                >
+                                    <Send className="w-3.5 h-3.5" />
+                                    Zur Freigabe senden
+                                </Button>
+                            )}
+
+                            {/* Approver actions if pending */}
+                            {pendingApproval && approval && (
+                                <>
+                                    <Button
+                                        size="sm"
+                                        className="gap-1.5 bg-green-600 hover:bg-green-700"
+                                        disabled={approveMutation.isPending}
+                                        onClick={() => approveMutation.mutate({ approvalId: approval.id })}
+                                    >
+                                        <CheckCircle2 className="w-3.5 h-3.5" />
+                                        Freigeben
+                                    </Button>
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="gap-1.5 border-orange-300 text-orange-700 hover:bg-orange-50"
+                                        onClick={() => { setActiveTab("freigabe"); setSidebarOpen(true); }}
+                                    >
+                                        <AlertCircle className="w-3.5 h-3.5" />
+                                        Änderungen anfordern
+                                    </Button>
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="gap-1.5 border-red-300 text-red-700 hover:bg-red-50"
+                                        onClick={() => { setActiveTab("freigabe"); setSidebarOpen(true); }}
+                                    >
+                                        <XCircle className="w-3.5 h-3.5" />
+                                        Ablehnen
+                                    </Button>
+                                </>
+                            )}
+
+                            {/* Secondary quick actions */}
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                className="gap-1.5"
+                                onClick={() => { setActiveTab("verwaltung"); setSidebarOpen(true); }}
+                            >
+                                <Mail className="w-3.5 h-3.5" />
+                                Versendet
+                            </Button>
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                className="gap-1.5"
+                                onClick={() => { setActiveTab("verwaltung"); setSidebarOpen(true); }}
+                            >
+                                <CheckCircle className="w-3.5 h-3.5" />
+                                Abschließen
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Split-Screen: Preview + Sidebar */}
             <div className="flex-1 flex gap-4 min-h-0 mx-1 pb-2">
