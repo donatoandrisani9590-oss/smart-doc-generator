@@ -525,6 +525,52 @@ async def lifespan(app: FastAPI):
                 await conn.execute(text("CREATE INDEX IF NOT EXISTS ix_generated_documents_has_open_actions ON generated_documents (has_open_actions)"))
                 await conn.execute(text("CREATE INDEX IF NOT EXISTS ix_generated_documents_next_due_date ON generated_documents (next_due_date)"))
 
+            # --- generated_documents: pipeline_stage (Kanban Board) ---
+            gd_cols = await get_columns("generated_documents")
+            if "pipeline_stage" not in gd_cols:
+                await conn.execute(text(
+                    "ALTER TABLE generated_documents ADD COLUMN pipeline_stage VARCHAR(30) DEFAULT 'entwurf' NOT NULL"
+                ))
+                await conn.execute(text(
+                    "CREATE INDEX IF NOT EXISTS ix_generated_documents_pipeline_stage ON generated_documents (pipeline_stage)"
+                ))
+                migrations_run += 1
+                logger.info("Migration: added column generated_documents.pipeline_stage")
+
+                # Backfill: derive pipeline_stage from existing events
+                # Archived → archiv
+                await conn.execute(text(
+                    "UPDATE generated_documents SET pipeline_stage = 'archiv' WHERE is_archived = TRUE"
+                ))
+                # workflow_status abgeschlossen → abgeschlossen
+                await conn.execute(text(
+                    "UPDATE generated_documents SET pipeline_stage = 'abgeschlossen' "
+                    "WHERE is_archived = FALSE AND workflow_status = 'abgeschlossen'"
+                ))
+                # Open return_pending → ruecklauf
+                if await table_exists("document_actions"):
+                    await conn.execute(text("""
+                        UPDATE generated_documents SET pipeline_stage = 'ruecklauf'
+                        WHERE pipeline_stage = 'entwurf' AND is_archived = FALSE
+                          AND id IN (SELECT DISTINCT document_id FROM document_actions
+                                     WHERE action_type = 'return_pending' AND is_completed = FALSE)
+                    """))
+                    # Sent → versendet
+                    await conn.execute(text("""
+                        UPDATE generated_documents SET pipeline_stage = 'versendet'
+                        WHERE pipeline_stage = 'entwurf' AND is_archived = FALSE
+                          AND id IN (SELECT DISTINCT document_id FROM document_actions
+                                     WHERE action_type = 'sent')
+                    """))
+                    # Open approval → freigabe
+                    await conn.execute(text("""
+                        UPDATE generated_documents SET pipeline_stage = 'freigabe'
+                        WHERE pipeline_stage = 'entwurf' AND is_archived = FALSE
+                          AND id IN (SELECT DISTINCT document_id FROM document_actions
+                                     WHERE action_type = 'approval_requested' AND is_completed = FALSE)
+                    """))
+                logger.info("Migration: backfilled pipeline_stage from event history")
+
             # --- document_actions table (Phase 3 — Lifecycle Events) ---
             if not await table_exists("document_actions"):
                 await conn.execute(text("""
@@ -658,6 +704,52 @@ async def lifespan(app: FastAPI):
                     migrations_run += 1
                     logger.info("Migration: added column user_feature_settings.enable_bulk_operations")
 
+            # --- approval_groups + approval_group_members tables (Deployment 4) ---
+            if not await table_exists("approval_groups"):
+                await conn.execute(text("""
+                    CREATE TABLE approval_groups (
+                        id SERIAL PRIMARY KEY,
+                        name VARCHAR(255) NOT NULL,
+                        description TEXT,
+                        country_code VARCHAR(2),
+                        is_active BOOLEAN DEFAULT TRUE,
+                        created_at TIMESTAMPTZ DEFAULT NOW(),
+                        updated_at TIMESTAMPTZ DEFAULT NOW(),
+                        created_by VARCHAR(255)
+                    )
+                """))
+                await conn.execute(text("CREATE INDEX IF NOT EXISTS ix_approval_groups_country_code ON approval_groups (country_code)"))
+                await conn.execute(text("CREATE INDEX IF NOT EXISTS ix_approval_groups_is_active ON approval_groups (is_active)"))
+                migrations_run += 1
+                logger.info("Migration: created table approval_groups")
+
+            if not await table_exists("approval_group_members"):
+                await conn.execute(text("""
+                    CREATE TABLE approval_group_members (
+                        id SERIAL PRIMARY KEY,
+                        group_id INTEGER NOT NULL REFERENCES approval_groups(id) ON DELETE CASCADE,
+                        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                        is_primary BOOLEAN DEFAULT FALSE,
+                        joined_at TIMESTAMPTZ DEFAULT NOW()
+                    )
+                """))
+                await conn.execute(text("CREATE INDEX IF NOT EXISTS ix_approval_group_members_group_id ON approval_group_members (group_id)"))
+                await conn.execute(text("CREATE INDEX IF NOT EXISTS ix_approval_group_members_user_id ON approval_group_members (user_id)"))
+                migrations_run += 1
+                logger.info("Migration: created table approval_group_members")
+
+            # --- document_approvals: approval_group_id column ---
+            da_cols = await get_columns("document_approvals")
+            if "approval_group_id" not in da_cols:
+                await conn.execute(text(
+                    "ALTER TABLE document_approvals ADD COLUMN approval_group_id INTEGER REFERENCES approval_groups(id) ON DELETE SET NULL"
+                ))
+                await conn.execute(text(
+                    "CREATE INDEX IF NOT EXISTS ix_document_approvals_approval_group_id ON document_approvals (approval_group_id)"
+                ))
+                migrations_run += 1
+                logger.info("Migration: added column document_approvals.approval_group_id")
+
             # --- Data fix: remove duplicate euro sign from AT-Vergütung clause ---
             result = await conn.execute(text("""
                 UPDATE clauses
@@ -680,10 +772,24 @@ async def lifespan(app: FastAPI):
         logger.error(f"Schema migration failed: {e}")
         # Don't fail startup
 
+    # Start background scheduler for overdue checks (reminders, returns, escalations)
+    try:
+        from app.services.scheduler import start_scheduler
+        await start_scheduler()
+    except Exception as e:
+        logger.error(f"Background-Scheduler konnte nicht gestartet werden: {e}")
+
     yield
 
     # Shutdown
     logger.info("Shutting down application...")
+
+    # Stop background scheduler
+    try:
+        from app.services.scheduler import stop_scheduler
+        stop_scheduler()
+    except Exception:
+        pass
 
 
 # ═══════════════════════════════════════════════════════════════════════════

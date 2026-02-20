@@ -1,36 +1,48 @@
 /**
- * WorkflowStepper - Dokumenten-Lifecycle Anzeige
+ * WorkflowStepper - Dual-Mode Dokumenten-Lifecycle Anzeige
  *
- * Zeigt dem User visuell, wo er im Prozess steht:
- * 1. Entwurf - Dokumenttyp gewählt, Felder werden ausgefüllt
- * 2. Inhalte - Textbausteine/Anlagen konfiguriert
- * 3. Prüfung - Dokument wird überprüft/bearbeitet
- * 4. Export - Bereit zum Export
+ * Pre-Export Mode (Formular-Fortschritt):
+ *  1. Entwurf - Dokumenttyp gewählt, Felder werden ausgefüllt
+ *  2. Inhalte - Textbausteine/Anlagen konfiguriert
+ *  3. Prüfung - Dokument wird überprüft/bearbeitet
+ *  4. Export - Bereit zum Export
+ *
+ * Post-Export Mode (Lifecycle-Fortschritt):
+ *  Exportiert ✓ → Freigabe → Versendet → Abgeschlossen
+ *  Switches when lastExportedDocumentId is set.
  *
  * DocuSign-inspiriert: Klare Prozess-Visualisierung
- * v1.0: Initial implementation
+ * v2.0: Dual-mode (pre-export + post-export lifecycle)
  */
 
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useWizardContext, type FormData as WizardFormData, type DocumentClause } from "./WizardContext";
 
+// ── Step definitions ─────────────────────────────────────────────────────
+
 interface WorkflowStep {
     id: string;
     label: string;
 }
 
-const WORKFLOW_STEPS: WorkflowStep[] = [
+const PRE_EXPORT_STEPS: WorkflowStep[] = [
     { id: "draft", label: "Entwurf" },
     { id: "content", label: "Inhalte" },
     { id: "review", label: "Prüfung" },
     { id: "export", label: "Export" },
 ];
 
-/**
- * Berechnet den aktuellen Workflow-Schritt basierend auf dem State
- */
-function calculateCurrentStep(state: {
+const POST_EXPORT_STEPS: WorkflowStep[] = [
+    { id: "exported", label: "Exportiert" },
+    { id: "freigabe", label: "Freigabe" },
+    { id: "versendet", label: "Versendet" },
+    { id: "abgeschlossen", label: "Abgeschlossen" },
+];
+
+// ── Pre-export step calculation ──────────────────────────────────────────
+
+function calculatePreExportStep(state: {
     documentTypeId: number | null;
     formData: WizardFormData;
     documentClauses: DocumentClause[];
@@ -66,6 +78,8 @@ function calculateCurrentStep(state: {
     return 3; // Export-bereit
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+
 interface WorkflowStepperProps {
     /** Compact mode: inline, no border/background — for embedding in toolbar */
     compact?: boolean;
@@ -74,19 +88,28 @@ interface WorkflowStepperProps {
 export const WorkflowStepper = ({ compact = false }: WorkflowStepperProps) => {
     const { state } = useWizardContext();
 
-    const currentStep = calculateCurrentStep({
-        documentTypeId: state.documentTypeId,
-        formData: state.formData,
-        documentClauses: state.documentClauses,
-        previewHtml: state.previewHtml,
-        hasLocalEdits: state.hasLocalEdits,
-    });
+    const isPostExport = !!state.lastExportedDocumentId;
+
+    // Determine which steps and current position to show
+    const steps = isPostExport ? POST_EXPORT_STEPS : PRE_EXPORT_STEPS;
+
+    // Post-export: step 0 ("Exportiert") is completed, current is step 1 ("Freigabe")
+    // This gives a clear visual cue that export is done and lifecycle actions are next.
+    const currentStep = isPostExport
+        ? 1
+        : calculatePreExportStep({
+              documentTypeId: state.documentTypeId,
+              formData: state.formData,
+              documentClauses: state.documentClauses,
+              previewHtml: state.previewHtml,
+              hasLocalEdits: state.hasLocalEdits,
+          });
 
     return (
         <div className={cn(
             compact ? "ive-pill-tabs" : "ive-pill-tabs mx-auto"
         )}>
-            {WORKFLOW_STEPS.map((step, index) => {
+            {steps.map((step, index) => {
                 const isCompleted = index < currentStep;
                 const isCurrent = index === currentStep;
 

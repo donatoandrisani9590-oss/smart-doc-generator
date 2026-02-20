@@ -31,6 +31,8 @@ export interface DocumentApproval {
     status: ApprovalStatus;
     approver_id?: number | null;
     approver_email?: string | null;
+    approval_group_id?: number | null;
+    approval_group_name?: string | null;
     requested_by_id?: number | null;
     requested_by_email?: string | null;
     requested_at?: string | null;
@@ -40,6 +42,20 @@ export interface DocumentApproval {
     due_date?: string | null;
 }
 
+export interface ApprovalGroup {
+    id: number;
+    name: string;
+    description?: string | null;
+    country_code?: string | null;
+    member_count: number;
+    is_active: boolean;
+}
+
+export interface ApprovalGroupListResponse {
+    groups: ApprovalGroup[];
+    total: number;
+}
+
 export interface DocumentApprovalListResponse {
     approvals: DocumentApproval[];
     total: number;
@@ -47,7 +63,8 @@ export interface DocumentApprovalListResponse {
 
 export interface RequestApprovalInput {
     document_id: number;
-    approver_id: number;
+    approver_id?: number;
+    approval_group_id?: number;
     priority?: ApprovalPriority;
     due_date?: string;
     comment?: string;
@@ -248,5 +265,25 @@ export function useResubmitApproval() {
                 queryKey: approvalKeys.all,
             });
         },
+    });
+}
+
+
+/**
+ * Listet verfügbare Genehmigungsgruppen
+ */
+export function useApprovalGroups(countryCode?: string) {
+    return useQuery({
+        queryKey: [...approvalKeys.all, "groups", countryCode],
+        queryFn: async (): Promise<ApprovalGroup[]> => {
+            const params: Record<string, string> = {};
+            if (countryCode) params.country_code = countryCode;
+            const response = await api.get<ApprovalGroupListResponse>(
+                "/api/v1/document-approvals/groups",
+                { params }
+            );
+            return response.data.groups;
+        },
+        staleTime: 5 * 60 * 1000, // 5 Minuten
     });
 }

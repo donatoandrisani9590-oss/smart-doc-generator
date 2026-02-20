@@ -10,23 +10,34 @@ State Machine:
 
 Ermöglicht:
 - Nutzer reicht Dokument aus "Meine Dokumente" zur Genehmigung ein
-- Genehmiger erhält Notification
+- Genehmiger erhält Notification (Einzelperson ODER Gruppe)
+- Bei Gruppenanfrage: Alle Mitglieder werden benachrichtigt, erster Reagierender übernimmt
 - Bei Ablehnung/Änderungsanforderung wird Dokument wieder editierbar
 - Unveränderliches Protokoll über AuditLog
+
+v2.0: + Genehmigungsgruppen (approval_group_id Alternative zu approver_id)
 """
 from __future__ import annotations
+
+import logging
 from typing import Any, List, Optional
 from datetime import datetime
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_, func
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
+
+import asyncio as _asyncio
 
 from app.db import get_db
 from app.api.deps import get_current_user
 from app.models.core import User
 from app.models.enterprise import GeneratedDocument, DocumentApproval, Notification, AuditLog
+from app.models.approval_groups import ApprovalGroup, ApprovalGroupMember
 from app.services.event_bus import publish_event
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -36,17 +47,57 @@ router = APIRouter()
 # ═══════════════════════════════════════════════════════════════════════════
 
 class RequestApprovalInput(BaseModel):
-    """Genehmigung für ein Dokument anfordern."""
+    """Genehmigung für ein Dokument anfordern (Einzelperson ODER Gruppe)."""
     document_id: int
-    approver_id: int = Field(..., description="User-ID des Genehmigers")
+    approver_id: Optional[int] = Field(None, description="User-ID des Genehmigers (Einzelperson)")
+    approval_group_id: Optional[int] = Field(None, description="Genehmigungsgruppen-ID (Gruppenanfrage)")
     priority: str = Field("normal", description="low, normal, high, urgent")
     due_date: Optional[datetime] = None
     comment: Optional[str] = Field(None, description="Optionaler Kommentar an den Genehmiger")
+
+    @model_validator(mode="after")
+    def validate_approver_or_group(self) -> "RequestApprovalInput":
+        """Genau einer von approver_id oder approval_group_id muss gesetzt sein."""
+        has_approver = self.approver_id is not None
+        has_group = self.approval_group_id is not None
+        if has_approver == has_group:
+            raise ValueError(
+                "Genau einer von 'approver_id' oder 'approval_group_id' muss angegeben werden"
+            )
+        return self
 
 
 class ApprovalDecisionInput(BaseModel):
     """Entscheidung des Genehmigers."""
     comment: Optional[str] = Field(None, description="Kommentar zur Entscheidung")
+
+
+class ApprovalGroupResponse(BaseModel):
+    """Genehmigungsgruppe in API-Responses."""
+    id: int
+    name: str
+    description: Optional[str] = None
+    country_code: Optional[str] = None
+    member_count: int = 0
+    is_active: bool = True
+
+    class Config:
+        from_attributes = True
+
+
+class ApprovalGroupMemberResponse(BaseModel):
+    id: int
+    user_id: int
+    email: Optional[str] = None
+    display_name: Optional[str] = None
+    is_primary: bool = False
+
+    class Config:
+        from_attributes = True
+
+
+class ApprovalGroupDetailResponse(ApprovalGroupResponse):
+    members: List[ApprovalGroupMemberResponse] = []
 
 
 class DocumentApprovalResponse(BaseModel):
@@ -55,6 +106,8 @@ class DocumentApprovalResponse(BaseModel):
     status: str
     approver_id: Optional[int] = None
     approver_email: Optional[str] = None
+    approval_group_id: Optional[int] = None
+    approval_group_name: Optional[str] = None
     requested_by_id: Optional[int] = None
     requested_by_email: Optional[str] = None
     requested_at: Optional[datetime] = None
@@ -72,6 +125,11 @@ class DocumentApprovalListResponse(BaseModel):
     total: int
 
 
+class ApprovalGroupListResponse(BaseModel):
+    groups: List[ApprovalGroupResponse]
+    total: int
+
+
 # ═══════════════════════════════════════════════════════════════════════════
 # HELPER FUNCTIONS
 # ═══════════════════════════════════════════════════════════════════════════
@@ -86,13 +144,38 @@ async def _get_approval_or_404(
     return approval
 
 
+async def _is_group_member(user_id: int, group_id: int, db: AsyncSession) -> bool:
+    """Prüft ob ein User Mitglied einer Genehmigungsgruppe ist."""
+    result = await db.execute(
+        select(ApprovalGroupMember).where(
+            and_(
+                ApprovalGroupMember.group_id == group_id,
+                ApprovalGroupMember.user_id == user_id,
+            )
+        )
+    )
+    return result.scalar_one_or_none() is not None
+
+
+async def _can_decide(approval: DocumentApproval, user: User, db: AsyncSession) -> bool:
+    """Prüft ob ein User die Entscheidung für diese Genehmigung treffen darf."""
+    if user.role == "admin":
+        return True
+    if approval.approver_id == user.id:
+        return True
+    if approval.approval_group_id:
+        return await _is_group_member(user.id, approval.approval_group_id, db)
+    return False
+
+
 async def _build_response(
     approval: DocumentApproval,
     db: AsyncSession,
 ) -> DocumentApprovalResponse:
-    """Build response with user emails resolved."""
+    """Build response with user emails and group name resolved."""
     approver_email = None
     requested_by_email = None
+    approval_group_name = None
 
     if approval.approver_id:
         approver = await db.get(User, approval.approver_id)
@@ -104,12 +187,19 @@ async def _build_response(
         if requester:
             requested_by_email = requester.email
 
+    if approval.approval_group_id:
+        group = await db.get(ApprovalGroup, approval.approval_group_id)
+        if group:
+            approval_group_name = group.name
+
     return DocumentApprovalResponse(
         id=approval.id,
         document_id=approval.document_id,
         status=approval.status,
         approver_id=approval.approver_id,
         approver_email=approver_email,
+        approval_group_id=approval.approval_group_id,
+        approval_group_name=approval_group_name,
         requested_by_id=approval.requested_by_id,
         requested_by_email=requested_by_email,
         requested_at=approval.requested_at,
@@ -145,6 +235,86 @@ async def _create_audit_entry(
     db.add(entry)
 
 
+async def _resolve_user_emails(user_ids: list[int], db: AsyncSession) -> dict[int, str]:
+    """User-IDs → E-Mail-Adressen auflösen."""
+    if not user_ids:
+        return {}
+    result = await db.execute(
+        select(User.id, User.email).where(User.id.in_(user_ids))
+    )
+    return {row[0]: row[1] for row in result.fetchall()}
+
+
+async def _dispatch_approval_email(
+    approval: DocumentApproval,
+    event: str,
+    actor: User,
+    doc_title: str,
+    recipient_ids: list[int],
+    recipient_emails: dict[int, str],
+    comment: Optional[str] = None,
+) -> None:
+    """
+    Fire-and-forget E-Mail-Dispatch für Approval-Events.
+
+    Events: "requested", "approved", "changes_requested", "rejected", "resubmitted"
+    """
+    try:
+        from app.services.email_templates import (
+            send_approval_requested_email,
+            send_approval_decided_email,
+        )
+        from app.db import async_session_factory
+
+        async with async_session_factory() as bg_db:
+            actor_name = actor.display_name or actor.email
+
+            if event == "requested":
+                for uid in recipient_ids:
+                    email = recipient_emails.get(uid)
+                    if email:
+                        await send_approval_requested_email(
+                            db=bg_db,
+                            approver_id=uid,
+                            approver_email=email,
+                            doc_title=doc_title,
+                            doc_id=approval.document_id,
+                            requester_name=actor_name,
+                            priority=approval.priority or "normal",
+                        )
+
+            elif event in ("approved", "changes_requested", "rejected"):
+                for uid in recipient_ids:
+                    email = recipient_emails.get(uid)
+                    if email:
+                        await send_approval_decided_email(
+                            db=bg_db,
+                            requester_id=uid,
+                            requester_email=email,
+                            doc_title=doc_title,
+                            doc_id=approval.document_id,
+                            decision=event,
+                            approver_name=actor_name,
+                            comment=comment,
+                        )
+
+            elif event == "resubmitted":
+                for uid in recipient_ids:
+                    email = recipient_emails.get(uid)
+                    if email:
+                        await send_approval_requested_email(
+                            db=bg_db,
+                            approver_id=uid,
+                            approver_email=email,
+                            doc_title=doc_title,
+                            doc_id=approval.document_id,
+                            requester_name=actor_name,
+                            priority=approval.priority or "normal",
+                        )
+    except Exception:
+        logger.exception("Fehler beim E-Mail-Dispatch für Approval-Event %s", event)
+
+
 async def _notify_user(
     db: AsyncSession,
     user_id: int,
@@ -169,8 +339,112 @@ async def _notify_user(
     db.add(notification)
 
 
+async def _get_group_member_ids(group_id: int, db: AsyncSession) -> list[int]:
+    """Alle aktiven Mitglieder-User-IDs einer Gruppe laden."""
+    result = await db.execute(
+        select(ApprovalGroupMember.user_id)
+        .join(User, User.id == ApprovalGroupMember.user_id)
+        .where(
+            and_(
+                ApprovalGroupMember.group_id == group_id,
+                User.is_active.is_(True),
+            )
+        )
+    )
+    return [row[0] for row in result.all()]
+
+
 # ═══════════════════════════════════════════════════════════════════════════
-# ENDPOINTS
+# APPROVAL GROUP ENDPOINTS
+# ═══════════════════════════════════════════════════════════════════════════
+
+@router.get("/groups", response_model=ApprovalGroupListResponse)
+async def list_approval_groups(
+    country_code: Optional[str] = Query(None, description="Filter nach Land (DE, IT)"),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> Any:
+    """Alle aktiven Genehmigungsgruppen auflisten."""
+    query = select(ApprovalGroup).where(ApprovalGroup.is_active.is_(True))
+    if country_code:
+        query = query.where(
+            (ApprovalGroup.country_code == country_code)
+            | (ApprovalGroup.country_code.is_(None))
+        )
+    query = query.order_by(ApprovalGroup.name)
+
+    result = await db.execute(query)
+    groups = result.scalars().all()
+
+    responses = []
+    for group in groups:
+        # Count active members
+        count_result = await db.execute(
+            select(func.count(ApprovalGroupMember.id))
+            .join(User, User.id == ApprovalGroupMember.user_id)
+            .where(
+                and_(
+                    ApprovalGroupMember.group_id == group.id,
+                    User.is_active.is_(True),
+                )
+            )
+        )
+        member_count = count_result.scalar() or 0
+        responses.append(ApprovalGroupResponse(
+            id=group.id,
+            name=group.name,
+            description=group.description,
+            country_code=group.country_code,
+            member_count=member_count,
+            is_active=group.is_active,
+        ))
+
+    return ApprovalGroupListResponse(groups=responses, total=len(responses))
+
+
+@router.get("/groups/{group_id}", response_model=ApprovalGroupDetailResponse)
+async def get_approval_group(
+    group_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> Any:
+    """Details einer Genehmigungsgruppe inkl. Mitglieder."""
+    group = await db.get(ApprovalGroup, group_id)
+    if not group:
+        raise HTTPException(status_code=404, detail="Genehmigungsgruppe nicht gefunden")
+
+    # Load members with user details
+    result = await db.execute(
+        select(ApprovalGroupMember, User)
+        .join(User, User.id == ApprovalGroupMember.user_id)
+        .where(ApprovalGroupMember.group_id == group_id)
+        .order_by(ApprovalGroupMember.is_primary.desc(), User.email)
+    )
+    rows = result.all()
+
+    members = []
+    for member, user in rows:
+        members.append(ApprovalGroupMemberResponse(
+            id=member.id,
+            user_id=member.user_id,
+            email=user.email,
+            display_name=user.display_name,
+            is_primary=member.is_primary,
+        ))
+
+    return ApprovalGroupDetailResponse(
+        id=group.id,
+        name=group.name,
+        description=group.description,
+        country_code=group.country_code,
+        member_count=len([m for m in members if True]),
+        is_active=group.is_active,
+        members=members,
+    )
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# APPROVAL ENDPOINTS
 # ═══════════════════════════════════════════════════════════════════════════
 
 @router.post("/request", response_model=DocumentApprovalResponse, status_code=status.HTTP_201_CREATED)
@@ -182,8 +456,8 @@ async def request_approval(
     """
     Genehmigung für ein Dokument anfordern.
 
-    Der Ersteller reicht ein Dokument aus "Meine Dokumente" zur Genehmigung ein.
-    Der angegebene Genehmiger erhält eine Notification.
+    Akzeptiert entweder approver_id (Einzelperson) oder approval_group_id (Gruppe).
+    Bei Gruppenanfrage werden alle aktiven Mitglieder benachrichtigt.
     """
     # Validate document exists and user owns it
     doc = await db.get(GeneratedDocument, data.document_id)
@@ -211,23 +485,49 @@ async def request_approval(
             detail="Es liegt bereits eine ausstehende Genehmigungsanfrage für dieses Dokument vor"
         )
 
-    # Validate approver exists
-    approver = await db.get(User, data.approver_id)
-    if not approver:
-        raise HTTPException(status_code=404, detail="Genehmiger nicht gefunden")
-
-    if not approver.is_active:
-        raise HTTPException(status_code=400, detail="Genehmiger ist nicht aktiv")
-
     # Validate priority
     if data.priority not in ("low", "normal", "high", "urgent"):
         raise HTTPException(status_code=400, detail="Ungültige Priorität")
+
+    doc_title = doc.title or f"Dokument #{doc.id}"
+    notify_user_ids: list[int] = []
+    audit_target = ""
+
+    if data.approver_id:
+        # ── Einzelperson-Modus ────────────────────────────────────────
+        approver = await db.get(User, data.approver_id)
+        if not approver:
+            raise HTTPException(status_code=404, detail="Genehmiger nicht gefunden")
+        if not approver.is_active:
+            raise HTTPException(status_code=400, detail="Genehmiger ist nicht aktiv")
+
+        notify_user_ids = [data.approver_id]
+        audit_target = approver.email
+
+    elif data.approval_group_id:
+        # ── Gruppen-Modus ─────────────────────────────────────────────
+        group = await db.get(ApprovalGroup, data.approval_group_id)
+        if not group:
+            raise HTTPException(status_code=404, detail="Genehmigungsgruppe nicht gefunden")
+        if not group.is_active:
+            raise HTTPException(status_code=400, detail="Genehmigungsgruppe ist nicht aktiv")
+
+        member_ids = await _get_group_member_ids(data.approval_group_id, db)
+        if not member_ids:
+            raise HTTPException(
+                status_code=400,
+                detail="Genehmigungsgruppe hat keine aktiven Mitglieder"
+            )
+
+        notify_user_ids = member_ids
+        audit_target = f'Gruppe "{group.name}" ({len(member_ids)} Mitglieder)'
 
     # Create approval request
     approval = DocumentApproval(
         document_id=data.document_id,
         status="pending_approval",
         approver_id=data.approver_id,
+        approval_group_id=data.approval_group_id,
         requested_by_id=current_user.id,
         priority=data.priority,
         due_date=data.due_date,
@@ -236,18 +536,18 @@ async def request_approval(
     db.add(approval)
     await db.flush()
 
-    # Notify approver
-    doc_title = doc.title or f"Dokument #{doc.id}"
-    await _notify_user(
-        db=db,
-        user_id=data.approver_id,
-        notification_type="approval_required",
-        title="Genehmigung erforderlich",
-        message=f'{current_user.email} bittet um Genehmigung für "{doc_title}".',
-        entity_id=approval.id,
-        priority=data.priority,
-        action_url=f"/documents/{approval.document_id}",
-    )
+    # Notify all relevant users
+    for uid in notify_user_ids:
+        await _notify_user(
+            db=db,
+            user_id=uid,
+            notification_type="approval_required",
+            title="Genehmigung erforderlich",
+            message=f'{current_user.email} bittet um Genehmigung für "{doc_title}".',
+            entity_id=approval.id,
+            priority=data.priority,
+            action_url=f"/documents/{approval.document_id}",
+        )
 
     # Audit log
     await _create_audit_entry(
@@ -255,7 +555,7 @@ async def request_approval(
         user=current_user,
         action="document.approval_requested",
         entity_id=approval.id,
-        description=f'Genehmigung angefordert für "{doc_title}" an {approver.email}',
+        description=f'Genehmigung angefordert für "{doc_title}" an {audit_target}',
         new_value="pending_approval",
     )
 
@@ -263,17 +563,25 @@ async def request_approval(
     await db.refresh(approval)
 
     # SSE: Events NACH Commit pushen
-    await publish_event(str(data.approver_id), "approval:update", {
-        "approval_id": approval.id,
-        "document_id": approval.document_id,
-        "status": approval.status,
-    })
-    await publish_event(str(data.approver_id), "notification:new", {
-        "notification_type": "approval_required",
-        "title": "Genehmigung erforderlich",
-        "entity_type": "document_approval",
-        "entity_id": approval.id,
-    })
+    for uid in notify_user_ids:
+        await publish_event(str(uid), "approval:update", {
+            "approval_id": approval.id,
+            "document_id": approval.document_id,
+            "status": approval.status,
+        })
+        await publish_event(str(uid), "notification:new", {
+            "notification_type": "approval_required",
+            "title": "Genehmigung erforderlich",
+            "entity_type": "document_approval",
+            "entity_id": approval.id,
+        })
+
+    # E-Mail-Benachrichtigung (fire-and-forget)
+    emails = await _resolve_user_emails(notify_user_ids, db)
+    _asyncio.create_task(_dispatch_approval_email(
+        approval=approval, event="requested", actor=current_user,
+        doc_title=doc_title, recipient_ids=notify_user_ids, recipient_emails=emails,
+    ))
 
     return await _build_response(approval, db)
 
@@ -287,26 +595,58 @@ async def list_pending_approvals(
     """
     Liste der ausstehenden Genehmigungen.
 
-    - role=approver: Dokumente, die ich genehmigen soll
+    - role=approver: Dokumente, die ich genehmigen soll (inkl. Gruppen-Mitgliedschaften)
     - role=requester: Dokumente, die ich zur Genehmigung eingereicht habe
     """
     if role == "approver":
-        query = select(DocumentApproval).where(
+        # Find groups where user is a member
+        group_result = await db.execute(
+            select(ApprovalGroupMember.group_id).where(
+                ApprovalGroupMember.user_id == current_user.id
+            )
+        )
+        user_group_ids = [row[0] for row in group_result.all()]
+
+        # Direct assignment OR group membership
+        conditions = [
             and_(
                 DocumentApproval.approver_id == current_user.id,
                 DocumentApproval.status == "pending_approval",
             )
-        )
+        ]
+        if user_group_ids:
+            conditions.append(
+                and_(
+                    DocumentApproval.approval_group_id.in_(user_group_ids),
+                    DocumentApproval.status == "pending_approval",
+                )
+            )
+        from sqlalchemy import or_
+        query = select(DocumentApproval).where(or_(*conditions))
+
     elif role == "requester":
         query = select(DocumentApproval).where(
             DocumentApproval.requested_by_id == current_user.id,
         )
     elif role == "all":
-        # Alle Genehmigungen, bei denen der User beteiligt ist (als Approver oder Requester)
-        query = select(DocumentApproval).where(
-            (DocumentApproval.approver_id == current_user.id)
-            | (DocumentApproval.requested_by_id == current_user.id)
+        # Find user's groups
+        group_result = await db.execute(
+            select(ApprovalGroupMember.group_id).where(
+                ApprovalGroupMember.user_id == current_user.id
+            )
         )
+        user_group_ids = [row[0] for row in group_result.all()]
+
+        from sqlalchemy import or_
+        conditions = [
+            DocumentApproval.approver_id == current_user.id,
+            DocumentApproval.requested_by_id == current_user.id,
+        ]
+        if user_group_ids:
+            conditions.append(
+                DocumentApproval.approval_group_id.in_(user_group_ids)
+            )
+        query = select(DocumentApproval).where(or_(*conditions))
     else:
         raise HTTPException(status_code=400, detail="role muss 'approver', 'requester' oder 'all' sein")
 
@@ -332,12 +672,16 @@ async def get_approval_status(
     """
     approval = await _get_approval_or_404(approval_id, db)
 
-    # Access check: requester, approver, or admin
-    if (
-        approval.requested_by_id != current_user.id
-        and approval.approver_id != current_user.id
-        and current_user.role != "admin"
-    ):
+    # Access check: requester, approver, group member, or admin
+    has_access = (
+        approval.requested_by_id == current_user.id
+        or approval.approver_id == current_user.id
+        or current_user.role == "admin"
+    )
+    if not has_access and approval.approval_group_id:
+        has_access = await _is_group_member(current_user.id, approval.approval_group_id, db)
+
+    if not has_access:
         raise HTTPException(status_code=403, detail="Kein Zugriff auf diese Genehmigungsanfrage")
 
     return await _build_response(approval, db)
@@ -355,12 +699,13 @@ async def approve_document(
 
     Status: PENDING_APPROVAL -> APPROVED
 
-    Nur der zugewiesene Genehmiger oder Admins können genehmigen.
+    Berechtigte: Zugewiesener Genehmiger, Gruppenmitglied (bei Gruppenanfrage), oder Admin.
+    Bei Gruppenanfrage wird der erste Reagierende als approver_id eingetragen.
     """
     approval = await _get_approval_or_404(approval_id, db)
 
-    if approval.approver_id != current_user.id and current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="Nur der zugewiesene Genehmiger kann dieses Dokument genehmigen")
+    if not await _can_decide(approval, current_user, db):
+        raise HTTPException(status_code=403, detail="Keine Berechtigung für diese Genehmigung")
 
     if approval.status != "pending_approval":
         raise HTTPException(
@@ -373,6 +718,10 @@ async def approve_document(
     approval.decided_at = datetime.utcnow()
     if data and data.comment:
         approval.decision_comment = data.comment
+
+    # Bei Gruppenanfrage: Reagierenden als approver_id setzen
+    if approval.approval_group_id and not approval.approver_id:
+        approval.approver_id = current_user.id
 
     # Notify requester
     await _notify_user(
@@ -411,6 +760,17 @@ async def approve_document(
             "entity_id": approval.document_id,
         })
 
+    # E-Mail-Benachrichtigung (fire-and-forget)
+    if approval.requested_by_id:
+        doc = await db.get(GeneratedDocument, approval.document_id)
+        _doc_title = (doc.title or doc.employee_name or f"Dokument #{approval.document_id}") if doc else f"Dokument #{approval.document_id}"
+        emails = await _resolve_user_emails([approval.requested_by_id], db)
+        _asyncio.create_task(_dispatch_approval_email(
+            approval=approval, event="approved", actor=current_user,
+            doc_title=_doc_title, recipient_ids=[approval.requested_by_id],
+            recipient_emails=emails, comment=approval.decision_comment,
+        ))
+
     return await _build_response(approval, db)
 
 
@@ -431,8 +791,8 @@ async def request_changes(
     """
     approval = await _get_approval_or_404(approval_id, db)
 
-    if approval.approver_id != current_user.id and current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="Nur der zugewiesene Genehmiger kann Änderungen anfordern")
+    if not await _can_decide(approval, current_user, db):
+        raise HTTPException(status_code=403, detail="Keine Berechtigung für diese Genehmigung")
 
     if approval.status != "pending_approval":
         raise HTTPException(
@@ -447,6 +807,10 @@ async def request_changes(
     approval.status = "changes_requested"
     approval.decided_at = datetime.utcnow()
     approval.decision_comment = data.comment
+
+    # Bei Gruppenanfrage: Reagierenden als approver_id setzen
+    if approval.approval_group_id and not approval.approver_id:
+        approval.approver_id = current_user.id
 
     # Notify requester that changes are needed
     await _notify_user(
@@ -485,6 +849,17 @@ async def request_changes(
             "entity_id": approval.document_id,
         })
 
+    # E-Mail-Benachrichtigung (fire-and-forget)
+    if approval.requested_by_id:
+        doc = await db.get(GeneratedDocument, approval.document_id)
+        _doc_title = (doc.title or doc.employee_name or f"Dokument #{approval.document_id}") if doc else f"Dokument #{approval.document_id}"
+        emails = await _resolve_user_emails([approval.requested_by_id], db)
+        _asyncio.create_task(_dispatch_approval_email(
+            approval=approval, event="changes_requested", actor=current_user,
+            doc_title=_doc_title, recipient_ids=[approval.requested_by_id],
+            recipient_emails=emails, comment=data.comment,
+        ))
+
     return await _build_response(approval, db)
 
 
@@ -504,8 +879,8 @@ async def reject_document(
     """
     approval = await _get_approval_or_404(approval_id, db)
 
-    if approval.approver_id != current_user.id and current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="Nur der zugewiesene Genehmiger kann dieses Dokument ablehnen")
+    if not await _can_decide(approval, current_user, db):
+        raise HTTPException(status_code=403, detail="Keine Berechtigung für diese Genehmigung")
 
     if approval.status != "pending_approval":
         raise HTTPException(
@@ -520,6 +895,10 @@ async def reject_document(
     approval.status = "rejected"
     approval.decided_at = datetime.utcnow()
     approval.decision_comment = data.comment
+
+    # Bei Gruppenanfrage: Reagierenden als approver_id setzen
+    if approval.approval_group_id and not approval.approver_id:
+        approval.approver_id = current_user.id
 
     # Notify requester about rejection
     await _notify_user(
@@ -558,6 +937,17 @@ async def reject_document(
             "entity_id": approval.document_id,
         })
 
+    # E-Mail-Benachrichtigung (fire-and-forget)
+    if approval.requested_by_id:
+        doc = await db.get(GeneratedDocument, approval.document_id)
+        _doc_title = (doc.title or doc.employee_name or f"Dokument #{approval.document_id}") if doc else f"Dokument #{approval.document_id}"
+        emails = await _resolve_user_emails([approval.requested_by_id], db)
+        _asyncio.create_task(_dispatch_approval_email(
+            approval=approval, event="rejected", actor=current_user,
+            doc_title=_doc_title, recipient_ids=[approval.requested_by_id],
+            recipient_emails=emails, comment=data.comment,
+        ))
+
     return await _build_response(approval, db)
 
 
@@ -592,17 +982,26 @@ async def resubmit_for_approval(
     approval.decision_comment = data.comment if data and data.comment else None
     approval.requested_at = datetime.utcnow()
 
-    # Notify approver about resubmission
-    await _notify_user(
-        db=db,
-        user_id=approval.approver_id,
-        notification_type="approval_required",
-        title="Dokument erneut eingereicht",
-        message=f"{current_user.email} hat das Dokument nach Änderungen erneut zur Genehmigung eingereicht.",
-        entity_id=approval.id,
-        priority=approval.priority,
-        action_url=f"/documents/{approval.document_id}",
-    )
+    # Determine who to notify
+    notify_user_ids: list[int] = []
+    if approval.approver_id:
+        notify_user_ids = [approval.approver_id]
+    elif approval.approval_group_id:
+        notify_user_ids = await _get_group_member_ids(approval.approval_group_id, db)
+        # Reset approver_id so group can reassign
+        approval.approver_id = None
+
+    for uid in notify_user_ids:
+        await _notify_user(
+            db=db,
+            user_id=uid,
+            notification_type="approval_required",
+            title="Dokument erneut eingereicht",
+            message=f"{current_user.email} hat das Dokument nach Änderungen erneut zur Genehmigung eingereicht.",
+            entity_id=approval.id,
+            priority=approval.priority,
+            action_url=f"/documents/{approval.document_id}",
+        )
 
     # Audit log
     await _create_audit_entry(
@@ -619,15 +1018,26 @@ async def resubmit_for_approval(
     await db.refresh(approval)
 
     # SSE: Events NACH Commit pushen
-    if approval.approver_id:
-        await publish_event(str(approval.approver_id), "approval:update", {
+    for uid in notify_user_ids:
+        await publish_event(str(uid), "approval:update", {
             "approval_id": approval.id, "document_id": approval.document_id, "status": approval.status,
         })
-        await publish_event(str(approval.approver_id), "notification:new", {
+        await publish_event(str(uid), "notification:new", {
             "notification_type": "approval_required",
             "title": "Dokument erneut eingereicht",
             "entity_type": "document_approval",
             "entity_id": approval.id,
         })
+
+    # E-Mail-Benachrichtigung (fire-and-forget)
+    if notify_user_ids:
+        doc = await db.get(GeneratedDocument, approval.document_id)
+        _doc_title = (doc.title or doc.employee_name or f"Dokument #{approval.document_id}") if doc else f"Dokument #{approval.document_id}"
+        emails = await _resolve_user_emails(notify_user_ids, db)
+        _asyncio.create_task(_dispatch_approval_email(
+            approval=approval, event="resubmitted", actor=current_user,
+            doc_title=_doc_title, recipient_ids=notify_user_ids,
+            recipient_emails=emails,
+        ))
 
     return await _build_response(approval, db)

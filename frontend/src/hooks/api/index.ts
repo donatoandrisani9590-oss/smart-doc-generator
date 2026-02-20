@@ -9,3 +9,4 @@ export * from "./useDraftQueries";
 export * from "./useDocumentQueries";
 export * from "./useTeamQueries";
 export * from "./useDashboardQueries";
+export * from "./useKanbanQueries";

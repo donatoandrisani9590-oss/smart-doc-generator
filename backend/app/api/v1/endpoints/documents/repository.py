@@ -9,12 +9,14 @@ Central repository for all generated documents with:
 """
 
 from __future__ import annotations
+import json
+import logging
 from typing import Any, Annotated, Optional, List
 from fastapi import APIRouter, Depends, HTTPException, status, Query
+from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_, or_, desc, asc, func
 from sqlalchemy.orm import joinedload
-from pydantic import BaseModel
 from datetime import datetime, timedelta
 
 from app.db import get_db
@@ -22,7 +24,9 @@ from app.api import deps
 from app.models import core as core_models
 from app.models import enterprise as models
 from app.models.documents import DocumentType
-from app.models.enterprise import DocumentAction
+from app.models.enterprise import DocumentAction, DocumentApproval
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -47,6 +51,9 @@ class DocumentListItem(BaseModel):
     retention_date: Optional[str] = None
     has_versions: bool = False
     version_count: int = 1
+    pipeline_stage: Optional[str] = None
+    has_open_actions: bool = False
+    next_due_date: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -72,6 +79,42 @@ class DocumentStats(BaseModel):
 class BulkActionRequest(BaseModel):
     document_ids: List[int]
     action: str  # "delete", "archive", "export"
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# KANBAN SCHEMAS
+# ═══════════════════════════════════════════════════════════════════════════
+
+class KanbanCardItem(BaseModel):
+    id: int
+    title: Optional[str] = None
+    document_type_name: Optional[str] = None
+    employee_name: Optional[str] = None
+    pipeline_stage: str
+    created_at: Optional[str] = None
+    next_due_date: Optional[str] = None
+    has_open_actions: bool = False
+
+    class Config:
+        from_attributes = True
+
+
+class KanbanColumn(BaseModel):
+    stage: str
+    label: str
+    count: int
+    documents: List[KanbanCardItem]
+
+
+class KanbanBoardResponse(BaseModel):
+    columns: List[KanbanColumn]
+    total: int
+
+
+class StageChangeRequest(BaseModel):
+    target_stage: str = Field(..., description="Ziel-Stage (entwurf, freigabe, versendet, ruecklauf, abgeschlossen, archiv)")
+    note: Optional[str] = Field(None, max_length=2000, description="Optionaler Kommentar zum Wechsel")
+    metadata: Optional[dict] = Field(None, description="Zusätzliche Metadaten (z.B. Versandart, Frist)")
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -303,6 +346,9 @@ async def list_documents(
             retention_date=doc.retention_date.isoformat() if doc.retention_date else None,
             has_versions=version_count > 0,
             version_count=max(version_count, 1),
+            pipeline_stage=doc.pipeline_stage or "entwurf",
+            has_open_actions=doc.has_open_actions or False,
+            next_due_date=doc.next_due_date.isoformat() if doc.next_due_date else None,
         ))
 
     total_pages = (total + page_size - 1) // page_size
@@ -491,12 +537,296 @@ async def get_action_summary(
     )
     entwuerfe_ablaufend = ablauf_q.scalar() or 0
 
+    # 6) ruecksendung_ueberfaellig — return_pending mit due_date in der Vergangenheit
+    rueck_ueberf_q = await db.execute(
+        select(func.count(func.distinct(DocumentAction.document_id))).where(
+            and_(
+                DocumentAction.action_type == "return_pending",
+                DocumentAction.is_completed == False,  # noqa: E712
+                DocumentAction.due_date.isnot(None),
+                DocumentAction.due_date < now,
+                DocumentAction.document_id.in_(
+                    select(models.GeneratedDocument.id).where(and_(*base_filters))
+                ),
+            )
+        )
+    )
+    ruecksendung_ueberfaellig = rueck_ueberf_q.scalar() or 0
+
+    # 7) freigabe_ueberfaellig — pending_approval mit due_date in der Vergangenheit
+    freigabe_ueberf_q = await db.execute(
+        select(func.count(func.distinct(DocumentApproval.document_id))).where(
+            and_(
+                DocumentApproval.status == "pending_approval",
+                DocumentApproval.due_date.isnot(None),
+                DocumentApproval.due_date < now,
+                DocumentApproval.document_id.in_(
+                    select(models.GeneratedDocument.id).where(and_(*base_filters))
+                ),
+            )
+        )
+    )
+    freigabe_ueberfaellig = freigabe_ueberf_q.scalar() or 0
+
     return {
         "ohne_versand": ohne_versand,
         "ruecksendung_ausstehend": ruecksendung_ausstehend,
         "wiedervorlage_faellig": wiedervorlage_faellig,
         "freigabe_offen": freigabe_offen,
         "entwuerfe_ablaufend": entwuerfe_ablaufend,
+        "ruecksendung_ueberfaellig": ruecksendung_ueberfaellig,
+        "freigabe_ueberfaellig": freigabe_ueberfaellig,
+    }
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# KANBAN ENDPOINTS
+# ═══════════════════════════════════════════════════════════════════════════
+
+PIPELINE_STAGE_LABELS = {
+    "entwurf": "Entwurf",
+    "freigabe": "Freigabe",
+    "versendet": "Versendet",
+    "ruecklauf": "Rücklauf",
+    "abgeschlossen": "Abgeschlossen",
+    "archiv": "Archiv",
+}
+
+# Ordered stages for Kanban columns
+PIPELINE_STAGE_ORDER = ["entwurf", "freigabe", "versendet", "ruecklauf", "abgeschlossen", "archiv"]
+
+
+@router.get("/kanban", response_model=KanbanBoardResponse, summary="Kanban-Board laden")
+async def get_kanban_board(
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[core_models.User, Depends(deps.get_current_user)],
+    per_column: int = Query(20, ge=1, le=100, description="Dokumente pro Spalte"),
+    search: Optional[str] = None,
+    document_type_id: Optional[int] = None,
+    country_code: Optional[str] = None,
+    include_archived: bool = False,
+) -> Any:
+    """
+    Dokumente gruppiert nach pipeline_stage für das Kanban-Board.
+
+    Jede Spalte enthält bis zu `per_column` Dokumente (neueste zuerst)
+    und die Gesamtzahl pro Stage.
+    """
+    is_admin = getattr(current_user, "role", "user") == "admin"
+
+    # Basis-Filter
+    base_filters = [models.GeneratedDocument.is_deleted == False]  # noqa: E712
+    if not is_admin:
+        base_filters.append(models.GeneratedDocument.created_by_id == current_user.id)
+    if not include_archived:
+        base_filters.append(models.GeneratedDocument.is_archived == False)  # noqa: E712
+
+    # Optionale Filter
+    if search:
+        search_term = f"%{search}%"
+        base_filters.append(
+            or_(
+                models.GeneratedDocument.title.ilike(search_term),
+                models.GeneratedDocument.employee_name.ilike(search_term),
+                models.GeneratedDocument.employee_id.ilike(search_term),
+            )
+        )
+    if document_type_id:
+        base_filters.append(models.GeneratedDocument.document_type_id == document_type_id)
+    if country_code:
+        base_filters.append(models.GeneratedDocument.country_code == country_code)
+
+    # Zähler pro Stage (eine einzige Abfrage)
+    count_result = await db.execute(
+        select(
+            models.GeneratedDocument.pipeline_stage,
+            func.count(models.GeneratedDocument.id).label("cnt"),
+        )
+        .where(and_(*base_filters))
+        .group_by(models.GeneratedDocument.pipeline_stage)
+    )
+    stage_counts = {row.pipeline_stage: row.cnt for row in count_result}
+
+    # Dokument-IDs für alle Stages sammeln (batch-laden statt N Queries)
+    # Lade alle passenden Dokumente mit pipeline_stage
+    all_docs_result = await db.execute(
+        select(models.GeneratedDocument)
+        .where(and_(*base_filters))
+        .order_by(
+            models.GeneratedDocument.pipeline_stage,
+            desc(models.GeneratedDocument.created_at),
+        )
+    )
+    all_docs = all_docs_result.scalars().all()
+
+    # Dokumenttyp-Namen batch-laden
+    doc_type_ids = list(set(d.document_type_id for d in all_docs if d.document_type_id))
+    doc_types: dict[int, str] = {}
+    if doc_type_ids:
+        dt_result = await db.execute(
+            select(DocumentType).where(DocumentType.id.in_(doc_type_ids))
+        )
+        doc_types = {dt.id: dt.name for dt in dt_result.scalars().all()}
+
+    # Gruppieren und limitieren
+    stage_docs: dict[str, list[models.GeneratedDocument]] = {s: [] for s in PIPELINE_STAGE_ORDER}
+    for doc in all_docs:
+        stage = doc.pipeline_stage or "entwurf"
+        if stage in stage_docs and len(stage_docs[stage]) < per_column:
+            stage_docs[stage].append(doc)
+
+    # Response bauen
+    columns = []
+    total = 0
+    for stage in PIPELINE_STAGE_ORDER:
+        count = stage_counts.get(stage, 0)
+        total += count
+        cards = [
+            KanbanCardItem(
+                id=doc.id,
+                title=doc.title,
+                document_type_name=doc_types.get(doc.document_type_id),
+                employee_name=doc.employee_name,
+                pipeline_stage=stage,
+                created_at=doc.created_at.isoformat() if doc.created_at else None,
+                next_due_date=doc.next_due_date.isoformat() if doc.next_due_date else None,
+                has_open_actions=doc.has_open_actions or False,
+            )
+            for doc in stage_docs[stage]
+        ]
+        columns.append(KanbanColumn(
+            stage=stage,
+            label=PIPELINE_STAGE_LABELS.get(stage, stage),
+            count=count,
+            documents=cards,
+        ))
+
+    return KanbanBoardResponse(columns=columns, total=total)
+
+
+@router.patch(
+    "/{document_id}/stage",
+    summary="Pipeline-Stage wechseln (Drag-and-Drop)",
+)
+async def change_document_stage(
+    document_id: int,
+    body: StageChangeRequest,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[core_models.User, Depends(deps.get_current_user)],
+) -> Any:
+    """
+    Ändert die Pipeline-Stage eines Dokuments.
+
+    Erzeugt ein DocumentAction-Event 'stage_changed' und
+    aktualisiert die denormalisierte pipeline_stage auf dem Dokument.
+    Unterstützt flexible Transitions (Stages können übersprungen werden).
+    """
+    from app.api.v1.endpoints.documents.document_actions import (
+        VALID_PIPELINE_STAGES,
+        STAGE_TRANSITIONS,
+        recalculate_document_lifecycle,
+    )
+
+    # Validierung: Ziel-Stage
+    if body.target_stage not in VALID_PIPELINE_STAGES:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Ungültige Stage '{body.target_stage}'. "
+                   f"Erlaubt: {', '.join(sorted(VALID_PIPELINE_STAGES))}",
+        )
+
+    # Dokument laden
+    result = await db.execute(
+        select(models.GeneratedDocument).where(
+            and_(
+                models.GeneratedDocument.id == document_id,
+                models.GeneratedDocument.is_deleted == False,  # noqa: E712
+            )
+        )
+    )
+    doc = result.scalar_one_or_none()
+    if not doc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Dokument nicht gefunden",
+        )
+
+    current_stage = doc.pipeline_stage or "entwurf"
+
+    # Gleiche Stage → kein Wechsel nötig
+    if current_stage == body.target_stage:
+        return {
+            "id": doc.id,
+            "pipeline_stage": current_stage,
+            "message": "Keine Änderung",
+        }
+
+    # Transition validieren
+    allowed = STAGE_TRANSITIONS.get(current_stage, frozenset())
+    if body.target_stage not in allowed:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Wechsel von '{current_stage}' nach '{body.target_stage}' "
+                   f"ist nicht erlaubt. Erlaubt: {', '.join(sorted(allowed))}",
+        )
+
+    # Sonderfälle: Archivieren / Entarchivieren
+    if body.target_stage == "archiv":
+        doc.is_archived = True
+        doc.archived_at = datetime.utcnow()
+        doc.archived_by = str(current_user.id)
+    elif current_stage == "archiv" and body.target_stage != "archiv":
+        doc.is_archived = False
+        doc.archived_at = None
+        doc.archived_by = None
+
+    # Metadaten für das Event
+    event_metadata = {
+        "from_stage": current_stage,
+        "to_stage": body.target_stage,
+    }
+    if body.metadata:
+        event_metadata.update(body.metadata)
+
+    # DocumentAction Event erzeugen
+    performer_name = current_user.display_name or current_user.email
+    action = DocumentAction(
+        document_id=doc.id,
+        action_type="stage_changed",
+        performed_by_id=current_user.id,
+        performed_by_name=performer_name,
+        note=body.note,
+        metadata_json=json.dumps(event_metadata, ensure_ascii=False, default=str),
+        is_completed=False,
+    )
+    db.add(action)
+    await db.flush()
+
+    # Pipeline-Stage direkt setzen (Priorität: expliziter Wechsel)
+    doc.pipeline_stage = body.target_stage
+
+    # Lifecycle-Felder neu berechnen
+    await recalculate_document_lifecycle(db, doc.id)
+
+    # Falls recalculate die Stage überschrieben hat (z.B. durch Events),
+    # den expliziten Wechsel bevorzugen
+    doc.pipeline_stage = body.target_stage
+
+    await db.commit()
+
+    logger.info(
+        "Pipeline-Stage geändert: document_id=%d, %s → %s, user=%s",
+        doc.id,
+        current_stage,
+        body.target_stage,
+        current_user.email,
+    )
+
+    return {
+        "id": doc.id,
+        "pipeline_stage": body.target_stage,
+        "previous_stage": current_stage,
+        "message": f"Stage geändert: {PIPELINE_STAGE_LABELS.get(current_stage, current_stage)} → {PIPELINE_STAGE_LABELS.get(body.target_stage, body.target_stage)}",
     }
 
 
@@ -538,7 +868,6 @@ async def get_document_detail(
     versions = versions_result.scalars().all()
 
     # Parse form data
-    import json
     form_data = None
     if document.form_data:
         try:
@@ -560,6 +889,7 @@ async def get_document_detail(
         "created_at": document.created_at.isoformat() if document.created_at else None,
         "created_by_id": document.created_by_id,
         "retention_date": document.retention_date.isoformat() if document.retention_date else None,
+        "pipeline_stage": document.pipeline_stage or "entwurf",
         "content_html": document.content_html,
         "form_data": form_data,
         "versions": [

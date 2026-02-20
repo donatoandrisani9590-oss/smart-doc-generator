@@ -63,6 +63,7 @@ from app.models.collaboration import (
 )
 from app.models.user_templates import UserTemplate
 from app.models.legal_audit import ClauseAuditResult
+from app.models.approval_groups import ApprovalGroup, ApprovalGroupMember
 
 __all__ = [
     # Core
@@ -129,4 +130,7 @@ __all__ = [
     "UserTemplate",
     # Legal Audit (Phase 6)
     "ClauseAuditResult",
+    # Approval Groups
+    "ApprovalGroup",
+    "ApprovalGroupMember",
 ]

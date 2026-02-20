@@ -15,7 +15,7 @@ import { apiFetch } from "@/lib/api-client";
 import { DocumentPreviewPanel } from "@/components/documents/DocumentPreviewPanel";
 import { DocumentApprovalPanel } from "@/components/documents/DocumentApprovalPanel";
 import { useFeatureEnabled } from "@/hooks/useFeatureSettings";
-import { useDocumentApproval, useApproveDocument } from "@/hooks/useDocumentApproval";
+import { useDocumentApproval, useApproveDocument, useRequestChanges } from "@/hooks/useDocumentApproval";
 import { Badge } from "@/components/ui/badge";
 import { FullDocumentPreview, type DocumentZones } from "@/components/editor/FullDocumentPreview";
 import { useDesignSettings } from "@/hooks/api/useDocumentTypeQueries";
@@ -138,6 +138,8 @@ export const DocumentDetailPage = () => {
     const [activeTab, setActiveTab] = useState<SidebarTab>(initialTab);
     const [activeCommentId, setActiveCommentId] = useState<number | null>(null);
     const [pendingInlineSelection, setPendingInlineSelection] = useState<SelectionRange | null>(null);
+    // Review mode: Approver is in "Änderungen anfordern" flow — must add comments first
+    const [reviewMode, setReviewMode] = useState(false);
 
     const docIdNum = documentId ? parseInt(documentId, 10) : 0;
     const { data: document, isLoading, error, refetch } = useRepositoryDocument(docIdNum);
@@ -147,6 +149,7 @@ export const DocumentDetailPage = () => {
     const approvalEnabled = useFeatureEnabled("enable_approval_workflow");
     const { data: approval } = useDocumentApproval(docIdNum, { enabled: approvalEnabled });
     const approveMutation = useApproveDocument();
+    const requestChangesMutation = useRequestChanges();
     const pendingApproval = approval?.status === "pending_approval";
 
     // Design settings for full document preview with header/footer
@@ -380,7 +383,12 @@ export const DocumentDetailPage = () => {
                                         size="sm"
                                         variant="outline"
                                         className="gap-1.5 border-orange-300 text-orange-700 hover:bg-orange-50"
-                                        onClick={() => { setActiveTab("freigabe"); setSidebarOpen(true); }}
+                                        onClick={() => {
+                                            // Activate review mode: switch to comments tab first
+                                            setReviewMode(true);
+                                            setActiveTab("kommentare");
+                                            setSidebarOpen(true);
+                                        }}
                                     >
                                         <AlertCircle className="w-3.5 h-3.5" />
                                         Änderungen anfordern
@@ -681,7 +689,23 @@ export const DocumentDetailPage = () => {
 
                             {activeTab === "kommentare" && (
                                 <>
-                                {pendingApproval && (
+                                {reviewMode ? (
+                                    <div className="p-3 mb-3 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-800">
+                                        <p className="font-medium flex items-center gap-1.5">
+                                            <AlertCircle className="w-3.5 h-3.5" />
+                                            Änderungen anfordern — Prüfmodus
+                                        </p>
+                                        <p className="mt-1 text-amber-700">
+                                            Markieren Sie Textstellen im Dokument und fügen Sie Kommentare hinzu,
+                                            die beschreiben, was geändert werden soll.
+                                        </p>
+                                        {commentUnresolved === 0 && (
+                                            <p className="mt-1.5 text-amber-600 font-medium">
+                                                Mindestens ein Kommentar ist erforderlich, um Änderungen abzusenden.
+                                            </p>
+                                        )}
+                                    </div>
+                                ) : pendingApproval ? (
                                     <div className="p-3 mb-3 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-800">
                                         <p className="font-medium">Freigabe-Prüfung</p>
                                         <p className="mt-1 text-amber-700">
@@ -689,7 +713,7 @@ export const DocumentDetailPage = () => {
                                             Nutzen Sie die Aktionen oben, um das Dokument freizugeben oder Änderungen anzufordern.
                                         </p>
                                     </div>
-                                )}
+                                ) : null}
                                 <CommentThread
                                     anchorType="document"
                                     anchorId={document.id}
@@ -699,6 +723,51 @@ export const DocumentDetailPage = () => {
                                     onNavigateToHighlight={(commentId) => setActiveCommentId(commentId)}
                                     activeCommentId={activeCommentId}
                                 />
+                                {reviewMode && (
+                                    <div className="mt-3 flex gap-2">
+                                        <Button
+                                            size="sm"
+                                            className="flex-1 gap-1.5"
+                                            disabled={commentUnresolved === 0 || requestChangesMutation.isPending}
+                                            onClick={() => {
+                                                if (!approval?.id) return;
+                                                requestChangesMutation.mutate(
+                                                    {
+                                                        approvalId: approval.id,
+                                                        comment: `${commentUnresolved} Kommentar(e) mit Änderungswünschen hinzugefügt.`,
+                                                    },
+                                                    {
+                                                        onSuccess: () => {
+                                                            setReviewMode(false);
+                                                            refetch();
+                                                        },
+                                                    }
+                                                );
+                                            }}
+                                        >
+                                            {requestChangesMutation.isPending ? (
+                                                "Wird gesendet…"
+                                            ) : (
+                                                <>
+                                                    <AlertCircle className="w-3.5 h-3.5" />
+                                                    Änderungen absenden
+                                                    {commentUnresolved > 0 && (
+                                                        <Badge variant="secondary" className="ml-1 text-[10px] h-4 px-1">
+                                                            {commentUnresolved}
+                                                        </Badge>
+                                                    )}
+                                                </>
+                                            )}
+                                        </Button>
+                                        <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            onClick={() => setReviewMode(false)}
+                                        >
+                                            Abbrechen
+                                        </Button>
+                                    </div>
+                                )}
                                 </>
                             )}
 

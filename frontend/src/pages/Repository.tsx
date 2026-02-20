@@ -38,17 +38,20 @@ import {
     Edit3,
     X,
     PlusCircle,
-    FileCheck,
     AlertTriangle,
     Play,
     ArrowUpDown,
     ArrowUp,
     ArrowDown,
+    LayoutGrid,
+    List,
 } from "lucide-react";
 import { ActionSummaryCards } from "@/components/documents/ActionSummaryCards";
 import { QuickStatusDropdown } from "@/components/documents/QuickStatusDropdown";
 import { QuickApprovalButton } from "@/components/documents/QuickApprovalButton";
+import { PipelineStageBadge, PipelineStageIcon } from "@/components/documents/PipelineStageBadge";
 import { DocumentCorrectionDialog } from "@/components/documents/DocumentCorrectionDialog";
+import { KanbanBoard } from "@/components/documents/KanbanBoard";
 import { useFeatureEnabled } from "@/hooks/useFeatureSettings";
 import {
     Dialog,
@@ -62,6 +65,9 @@ import { useToast } from "@/components/ui/toast";
 import { useUndo } from "@/hooks/useUndo";
 import { formatDistanceToNow } from "@/lib/dateUtils";
 import { MotionContainer, MotionListItem } from "@/components/ui/motion";
+
+// ── View mode type ────────────────────────────────────────────────────────
+type ViewMode = "kanban" | "list";
 
 // ── Dokumenttyp-Farbkodierung (Corporate Palette) ─────────────────────
 // Inline-Styles statt dynamischer Tailwind-Klassen (JIT kann dynamische Klassen nicht generieren)
@@ -91,8 +97,10 @@ const getDocTypeColor = (typeName?: string | null) => {
 const ACTION_FILTER_LABELS: Record<string, string> = {
     ohne_versand: "Ohne Versand",
     ruecksendung_ausstehend: "Rücksendung ausstehend",
+    ruecksendung_ueberfaellig: "Rücksendung überfällig",
     wiedervorlage_faellig: "Wiedervorlage fällig",
     freigabe_offen: "Freigabe offen",
+    freigabe_ueberfaellig: "Freigabe überfällig",
     entwuerfe_ablaufend: "Entwürfe ablaufend",
 };
 
@@ -124,10 +132,20 @@ export const RepositoryPage = () => {
     });
     const [actionFilter, setActionFilter] = useState<string | null>(null);
 
+    // ── View Mode (Kanban | Liste) ───────────────────────────────────────
+    const [viewMode, setViewMode] = useState<ViewMode>(() => {
+        const saved = localStorage.getItem("repo-view-mode");
+        return saved === "list" ? "list" : "kanban"; // Default: Kanban
+    });
+
     // Persist filter selection
     useEffect(() => {
         localStorage.setItem("repo-active-filter", activeFilter);
     }, [activeFilter]);
+
+    useEffect(() => {
+        localStorage.setItem("repo-view-mode", viewMode);
+    }, [viewMode]);
 
     // Merge actionFilter into API filters
     const effectiveFilters = useMemo((): RepositoryFilters => {
@@ -158,6 +176,9 @@ export const RepositoryPage = () => {
         is_correctable?: boolean;
         version_count?: number;
         current_version?: number;
+        pipeline_stage?: string;
+        has_open_actions?: boolean;
+        next_due_date?: string | null;
     };
 
     const unifiedItems = useMemo((): UnifiedItem[] => {
@@ -190,6 +211,9 @@ export const RepositoryPage = () => {
                 is_correctable: doc.is_correctable,
                 version_count: doc.version_count,
                 current_version: doc.current_version,
+                pipeline_stage: doc.pipeline_stage || "entwurf",
+                has_open_actions: doc.has_open_actions,
+                next_due_date: doc.next_due_date,
             });
         });
 
@@ -347,12 +371,41 @@ export const RepositoryPage = () => {
                         {stats ? `${stats.total_documents} fertige Dokumente` : "Alle deine Dokumente"}
                     </p>
                 </div>
-                <Link to="/generate" className="flex-shrink-0">
-                    <Button className="h-9 gap-2 btn-primary-soft">
-                        <PlusCircle className="w-4 h-4" />
-                        <span className="hidden sm:inline">Neues Dokument</span>
-                    </Button>
-                </Link>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                    {/* View Toggle */}
+                    <div className="flex bg-muted rounded-lg p-0.5">
+                        <button
+                            onClick={() => setViewMode("kanban")}
+                            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                                viewMode === "kanban"
+                                    ? "bg-background text-foreground shadow-sm"
+                                    : "text-muted-foreground hover:text-foreground"
+                            }`}
+                            title="Kanban-Ansicht"
+                        >
+                            <LayoutGrid className="w-3.5 h-3.5" />
+                            <span className="hidden sm:inline">Kanban</span>
+                        </button>
+                        <button
+                            onClick={() => setViewMode("list")}
+                            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                                viewMode === "list"
+                                    ? "bg-background text-foreground shadow-sm"
+                                    : "text-muted-foreground hover:text-foreground"
+                            }`}
+                            title="Listen-Ansicht"
+                        >
+                            <List className="w-3.5 h-3.5" />
+                            <span className="hidden sm:inline">Liste</span>
+                        </button>
+                    </div>
+                    <Link to="/generate">
+                        <Button className="h-9 gap-2 btn-primary-soft">
+                            <PlusCircle className="w-4 h-4" />
+                            <span className="hidden sm:inline">Neues Dokument</span>
+                        </Button>
+                    </Link>
+                </div>
             </div>
 
             {/* Status Filter - Segmented Control */}
@@ -511,8 +564,24 @@ export const RepositoryPage = () => {
                 )}
             </div>
 
-            {/* Bulk Actions - SimpleDocs Style */}
-            {selectedIds.length > 0 && (
+            {/* ═══════════════════════════════════════════════════════════ */}
+            {/* KANBAN VIEW                                                  */}
+            {/* ═══════════════════════════════════════════════════════════ */}
+            {viewMode === "kanban" && (
+                <KanbanBoard
+                    filters={{
+                        search: filters.search,
+                        document_type_id: filters.document_type_id,
+                        include_archived: true,
+                    }}
+                    onCardClick={(id) => navigate(`/documents/${id}`)}
+                />
+            )}
+
+            {/* ═══════════════════════════════════════════════════════════ */}
+            {/* LIST VIEW                                                    */}
+            {/* ═══════════════════════════════════════════════════════════ */}
+            {viewMode === "list" && selectedIds.length > 0 && (
                 <div className="bg-primary/5 rounded-xl px-4 py-3 shadow-[var(--shadow-elevated)] animate-in fade-in slide-in-from-bottom-2">
                     <div className="flex items-center justify-between">
                         <span className="text-sm font-medium text-foreground">
@@ -554,8 +623,8 @@ export const RepositoryPage = () => {
                 </div>
             )}
 
-            {/* Document List - SimpleDocs Style */}
-            <div className="card-soft">
+            {/* Document List - SimpleDocs Style (List View only) */}
+            {viewMode === "list" && <div className="card-soft">
                 <div className="flex items-center justify-between px-4 py-3 info-card-header">
                     <h3 className="font-medium text-foreground">
                         {filteredItems.length} Einträge
@@ -682,28 +751,31 @@ export const RepositoryPage = () => {
                                         <div className="w-5" /> // Platzhalter für Alignment
                                     )}
 
-                                    {/* Status-Icon */}
-                                    <div className={`p-2 rounded-lg transition-colors ${item.type === "draft"
-                                            ? "bg-amber-100 dark:bg-amber-900/40 group-hover:bg-amber-200 dark:group-hover:bg-amber-900/60"
-                                            : "bg-green-50 dark:bg-green-950/30 group-hover:bg-green-100 dark:group-hover:bg-green-900/40"
-                                        }`}>
-                                        {item.type === "draft" ? (
-                                            <Edit3 className="w-5 h-5 text-amber-600" />
-                                        ) : (
-                                            <FileCheck className="w-5 h-5 text-green-600 dark:text-green-400" />
+                                    {/* Status-Icon — Pipeline Stage */}
+                                    <div className="relative">
+                                        <PipelineStageIcon
+                                            stage={item.type === "draft" ? "entwurf" : (item.pipeline_stage || "entwurf")}
+                                            className="group-hover:opacity-90"
+                                        />
+                                        {/* Handlungsbedarf-Indikator */}
+                                        {item.type === "document" && item.next_due_date && new Date(item.next_due_date) < new Date() && (
+                                            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-red-500 ring-2 ring-white" title="Überfällig" />
+                                        )}
+                                        {item.type === "document" && item.pipeline_stage === "freigabe" && (
+                                            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-purple-500 ring-2 ring-white" title="Freigabe ausstehend" />
+                                        )}
+                                        {item.type === "document" && item.pipeline_stage === "ruecklauf" && !(item.next_due_date && new Date(item.next_due_date) < new Date()) && (
+                                            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-amber-500 ring-2 ring-white" title="Rücksendung ausstehend" />
                                         )}
                                     </div>
 
                                     {/* Info */}
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-2">
-                                            {/* Status Badge */}
-                                            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${item.type === "draft"
-                                                    ? "bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300"
-                                                    : "bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300"
-                                                }`}>
-                                                {item.type === "draft" ? "Entwurf" : "Fertig"}
-                                            </span>
+                                            {/* Pipeline Stage Badge */}
+                                            <PipelineStageBadge
+                                                stage={item.type === "draft" ? "entwurf" : (item.pipeline_stage || "entwurf")}
+                                            />
                                             <p className="font-medium truncate" title={item.name}>{item.name}</p>
                                             {item.version_count && item.version_count > 1 && (
                                                 <span className="text-xs bg-warm-100 text-warm-600 px-2 py-0.5 rounded-full">
@@ -765,7 +837,7 @@ export const RepositoryPage = () => {
                                             </Button>
                                         ) : (
                                             <>
-                                                <QuickStatusDropdown documentId={item.id} />
+                                                <QuickStatusDropdown documentId={item.id} currentStage={item.pipeline_stage} />
                                                 <QuickApprovalButton documentId={item.id} />
                                                 <Button
                                                     size="sm"
@@ -821,7 +893,7 @@ export const RepositoryPage = () => {
                         </div>
                     )}
                 </div>
-            </div>
+            </div>}
 
             {/* Correction Dialog */}
             {correctionDocId && (

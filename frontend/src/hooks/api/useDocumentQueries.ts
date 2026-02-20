@@ -470,6 +470,9 @@ export interface RepositoryDocument {
     retention_date: string | null;
     has_versions: boolean;
     version_count: number;
+    pipeline_stage?: string | null;
+    has_open_actions?: boolean;
+    next_due_date?: string | null;
 }
 
 export interface RepositoryDocumentDetail extends RepositoryDocument {

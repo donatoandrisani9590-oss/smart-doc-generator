@@ -25,6 +25,7 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api-client";
 import { useToast } from "@/components/ui/toast";
 
@@ -83,6 +84,7 @@ export const ExportSuccessModal = ({
     const [completedActions, setCompletedActions] = useState<Set<QuickActionKey>>(new Set());
     const [loadingAction, setLoadingAction] = useState<QuickActionKey | null>(null);
     const toast = useToast();
+    const queryClient = useQueryClient();
 
     useEffect(() => {
         if (isOpen) {
@@ -112,6 +114,11 @@ export const ExportSuccessModal = ({
             }
 
             await api.post(`/api/v1/documents/${documentId}/actions`, payload);
+
+            // Invalidate Kanban + repository caches so board reflects the new stage
+            queryClient.invalidateQueries({ queryKey: ["kanban"] });
+            queryClient.invalidateQueries({ queryKey: ["repository"] });
+            queryClient.invalidateQueries({ queryKey: ["repository-stats"] });
 
             setCompletedActions(prev => new Set(prev).add(action.key));
             toast.success("Aktion gespeichert", action.label);

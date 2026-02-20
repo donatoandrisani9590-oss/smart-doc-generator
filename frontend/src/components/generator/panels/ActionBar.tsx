@@ -10,6 +10,7 @@
  *
  * Zeigt Loading-States während Export/Speichern.
  * v5.1: Draft-Speichern ohne vollständige Validierung, Auto-Save Status
+ * v6.0: PostExportActions (Lifecycle-Aktionen nach erstem Export)
  */
 
 import { useState, useMemo, useCallback, useRef } from "react";
@@ -27,6 +28,7 @@ import { useWizardContext } from "../WizardContext";
 import { ValidationProgress, type ValidationState, type ValidationIssue } from "../ValidationProgress";
 import { ExportSuccessModal } from "../ExportSuccessModal";
 import { ExportReviewModal } from "../ExportReviewModal";
+import { PostExportActions } from "./PostExportActions";
 
 // Pflichtfelder Definition
 const REQUIRED_FIELDS = [
@@ -279,6 +281,11 @@ export const ActionBar = () => {
                     </DropdownMenu>
                 )}
             </div>
+
+            {/* Post-Export Lifecycle Actions (visible after first export) */}
+            {lastExportedDocumentId && (
+                <PostExportActions documentId={lastExportedDocumentId} />
+            )}
 
             {/* Export Review Modal (Zusammenfassung vor Export) */}
             <ExportReviewModal

@@ -36,6 +36,7 @@ import {
     Send,
     RotateCcw,
     User,
+    Users,
     Loader2,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
@@ -51,8 +52,10 @@ import {
     useRejectDocument,
     useRequestChanges,
     useResubmitApproval,
+    useApprovalGroups,
 } from "@/hooks/useDocumentApproval";
-import type { ApprovalPriority, ApprovalStatus } from "@/hooks/useDocumentApproval";
+import type { ApprovalPriority, ApprovalStatus, ApprovalGroup } from "@/hooks/useDocumentApproval";
+import { useCountry } from "@/hooks/useCountry";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // STATUS CONFIG
@@ -129,30 +132,42 @@ export const DocumentApprovalPanel = ({ documentId }: DocumentApprovalPanelProps
         enabled: approverQuery.length >= 1,
     });
 
-    // Berechtigungen
-    const isApprover = approval && user && approval.approver_id === user.id;
+    // Gruppen-Auswahl
+    const [assignMode, setAssignMode] = useState<"individual" | "group">("individual");
+    const [selectedGroup, setSelectedGroup] = useState<ApprovalGroup | null>(null);
+    const { country } = useCountry();
+    const { data: approvalGroups = [] } = useApprovalGroups(country);
+
+    // Berechtigungen – auch Gruppenmitglieder dürfen entscheiden (Backend prüft)
+    const isApprover = approval && user && (
+        approval.approver_id === user.id ||
+        (approval.approval_group_id && !approval.approver_id) // Gruppe zugewiesen, noch kein Anspruch
+    );
     const isRequester = approval && user && approval.requested_by_id === user.id;
 
     // ── Request Approval ────────────────────────────────────────────────
 
     const handleRequestApproval = useCallback(async () => {
-        if (!selectedApprover) return;
+        // Validierung: Entweder Einzelperson oder Gruppe muss gewählt sein
+        if (assignMode === "individual" && !selectedApprover) return;
+        if (assignMode === "group" && !selectedGroup) return;
 
         try {
             await requestApproval.mutateAsync({
                 document_id: documentId,
-                approver_id: selectedApprover.id,
+                ...(assignMode === "individual"
+                    ? { approver_id: selectedApprover!.id }
+                    : { approval_group_id: selectedGroup!.id }),
                 priority,
                 comment: comment || undefined,
             });
             toast.success("Freigabe angefordert");
             setShowRequestDialog(false);
-            // eslint-disable-next-line react-hooks/immutability -- variable referenced in callback, not during render
             resetDialogState();
         } catch {
             toast.error("Freigabe-Anfrage fehlgeschlagen");
         }
-    }, [selectedApprover, documentId, priority, comment, requestApproval]);
+    }, [assignMode, selectedApprover, selectedGroup, documentId, priority, comment, requestApproval]);
 
     // ── Decision Handlers ───────────────────────────────────────────────
 
@@ -212,6 +227,8 @@ export const DocumentApprovalPanel = ({ documentId }: DocumentApprovalPanelProps
         setPriority("normal");
         setApproverQuery("");
         setSelectedApprover(null);
+        setSelectedGroup(null);
+        setAssignMode("individual");
     };
 
     const isMutating =
@@ -264,11 +281,16 @@ export const DocumentApprovalPanel = ({ documentId }: DocumentApprovalPanelProps
                         setShowRequestDialog(open);
                         if (!open) resetDialogState();
                     }}
+                    assignMode={assignMode}
+                    onAssignModeChange={setAssignMode}
                     approverQuery={approverQuery}
                     onApproverQueryChange={setApproverQuery}
                     approverSuggestions={approverSuggestions}
                     selectedApprover={selectedApprover}
                     onSelectApprover={setSelectedApprover}
+                    approvalGroups={approvalGroups}
+                    selectedGroup={selectedGroup}
+                    onSelectGroup={setSelectedGroup}
                     priority={priority}
                     onPriorityChange={setPriority}
                     comment={comment}
@@ -315,10 +337,21 @@ export const DocumentApprovalPanel = ({ documentId }: DocumentApprovalPanelProps
 
                     {/* Details */}
                     <div className="space-y-2 text-sm">
+                        {approval.approval_group_name && (
+                            <div className="flex items-center gap-2">
+                                <Users className="w-3.5 h-3.5 text-muted-foreground" />
+                                <span className="text-muted-foreground">Gruppe:</span>
+                                <span className="font-medium">
+                                    {approval.approval_group_name}
+                                </span>
+                            </div>
+                        )}
                         {approval.approver_email && (
                             <div className="flex items-center gap-2">
                                 <User className="w-3.5 h-3.5 text-muted-foreground" />
-                                <span className="text-muted-foreground">Prüfer:</span>
+                                <span className="text-muted-foreground">
+                                    {approval.approval_group_name ? "Bearbeiter:" : "Prüfer:"}
+                                </span>
                                 <span className="font-medium">
                                     {approval.approver_email}
                                 </span>
@@ -445,11 +478,16 @@ export const DocumentApprovalPanel = ({ documentId }: DocumentApprovalPanelProps
 interface RequestApprovalDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
+    assignMode: "individual" | "group";
+    onAssignModeChange: (mode: "individual" | "group") => void;
     approverQuery: string;
     onApproverQueryChange: (query: string) => void;
     approverSuggestions: UserSuggestion[];
     selectedApprover: UserSuggestion | null;
     onSelectApprover: (user: UserSuggestion | null) => void;
+    approvalGroups: ApprovalGroup[];
+    selectedGroup: ApprovalGroup | null;
+    onSelectGroup: (group: ApprovalGroup | null) => void;
     priority: ApprovalPriority;
     onPriorityChange: (priority: ApprovalPriority) => void;
     comment: string;
@@ -461,11 +499,16 @@ interface RequestApprovalDialogProps {
 function RequestApprovalDialog({
     open,
     onOpenChange,
+    assignMode,
+    onAssignModeChange,
     approverQuery,
     onApproverQueryChange,
     approverSuggestions,
     selectedApprover,
     onSelectApprover,
+    approvalGroups,
+    selectedGroup,
+    onSelectGroup,
     priority,
     onPriorityChange,
     comment,
@@ -473,73 +516,159 @@ function RequestApprovalDialog({
     onSubmit,
     isSubmitting,
 }: RequestApprovalDialogProps) {
+    const canSubmit =
+        assignMode === "individual" ? !!selectedApprover : !!selectedGroup;
+
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-md">
                 <DialogHeader>
                     <DialogTitle>Freigabe anfordern</DialogTitle>
                     <DialogDescription>
-                        Wähle einen Prüfer, der dieses Dokument freigeben soll.
+                        Wähle einen Prüfer oder eine Gruppe, die dieses Dokument freigeben soll.
                     </DialogDescription>
                 </DialogHeader>
 
                 <div className="space-y-4 py-2">
-                    {/* Approver Selection */}
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium">Prüfer *</label>
-                        {selectedApprover ? (
-                            <div className="flex items-center gap-2 p-2 bg-warm-50 rounded-lg border border-warm-200/50">
-                                <User className="w-4 h-4 text-primary" />
-                                <span className="text-sm font-medium flex-1">
-                                    {selectedApprover.name || selectedApprover.email}
-                                </span>
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-6 px-2 text-xs"
-                                    onClick={() => onSelectApprover(null)}
-                                >
-                                    Ändern
-                                </Button>
-                            </div>
-                        ) : (
-                            <div className="relative">
-                                <input
-                                    type="text"
-                                    className="w-full px-3 py-2 text-sm border border-warm-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                                    placeholder="Name oder E-Mail eingeben..."
-                                    value={approverQuery}
-                                    onChange={(e) => onApproverQueryChange(e.target.value)}
-                                />
-                                {approverSuggestions.length > 0 && approverQuery.length >= 1 && (
-                                    <div className="absolute z-10 w-full mt-1 bg-white border border-warm-200 rounded-lg shadow-lg max-h-40 overflow-y-auto">
-                                        {approverSuggestions.map((suggestion) => (
-                                            <button
-                                                key={suggestion.id}
-                                                className="w-full text-left px-3 py-2 text-sm hover:bg-warm-50 flex items-center gap-2"
-                                                onClick={() => {
-                                                    onSelectApprover(suggestion);
-                                                    onApproverQueryChange("");
-                                                }}
-                                            >
-                                                <User className="w-3.5 h-3.5 text-muted-foreground" />
-                                                <div>
-                                                    {suggestion.name && (
-                                                        <span className="font-medium">
-                                                            {suggestion.name}
-                                                        </span>
-                                                    )}
-                                                    <span className="text-muted-foreground ml-1">
-                                                        {suggestion.email}
-                                                    </span>
-                                                </div>
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        )}
+                    {/* Mode Toggle: Einzelperson / Gruppe */}
+                    <div className="flex rounded-lg border border-warm-200 overflow-hidden">
+                        <button
+                            type="button"
+                            className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-medium transition-colors ${
+                                assignMode === "individual"
+                                    ? "bg-primary text-white"
+                                    : "bg-warm-50 text-muted-foreground hover:bg-warm-100"
+                            }`}
+                            onClick={() => onAssignModeChange("individual")}
+                        >
+                            <User className="w-3.5 h-3.5" />
+                            Einzelperson
+                        </button>
+                        <button
+                            type="button"
+                            className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-medium transition-colors ${
+                                assignMode === "group"
+                                    ? "bg-primary text-white"
+                                    : "bg-warm-50 text-muted-foreground hover:bg-warm-100"
+                            }`}
+                            onClick={() => onAssignModeChange("group")}
+                        >
+                            <Users className="w-3.5 h-3.5" />
+                            Gruppe
+                        </button>
                     </div>
+
+                    {/* Individual Approver Selection */}
+                    {assignMode === "individual" && (
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">Prüfer *</label>
+                            {selectedApprover ? (
+                                <div className="flex items-center gap-2 p-2 bg-warm-50 rounded-lg border border-warm-200/50">
+                                    <User className="w-4 h-4 text-primary" />
+                                    <span className="text-sm font-medium flex-1">
+                                        {selectedApprover.name || selectedApprover.email}
+                                    </span>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-6 px-2 text-xs"
+                                        onClick={() => onSelectApprover(null)}
+                                    >
+                                        Ändern
+                                    </Button>
+                                </div>
+                            ) : (
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        className="w-full px-3 py-2 text-sm border border-warm-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                                        placeholder="Name oder E-Mail eingeben..."
+                                        value={approverQuery}
+                                        onChange={(e) => onApproverQueryChange(e.target.value)}
+                                    />
+                                    {approverSuggestions.length > 0 && approverQuery.length >= 1 && (
+                                        <div className="absolute z-10 w-full mt-1 bg-white border border-warm-200 rounded-lg shadow-lg max-h-40 overflow-y-auto">
+                                            {approverSuggestions.map((suggestion) => (
+                                                <button
+                                                    key={suggestion.id}
+                                                    className="w-full text-left px-3 py-2 text-sm hover:bg-warm-50 flex items-center gap-2"
+                                                    onClick={() => {
+                                                        onSelectApprover(suggestion);
+                                                        onApproverQueryChange("");
+                                                    }}
+                                                >
+                                                    <User className="w-3.5 h-3.5 text-muted-foreground" />
+                                                    <div>
+                                                        {suggestion.name && (
+                                                            <span className="font-medium">
+                                                                {suggestion.name}
+                                                            </span>
+                                                        )}
+                                                        <span className="text-muted-foreground ml-1">
+                                                            {suggestion.email}
+                                                        </span>
+                                                    </div>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Group Selection */}
+                    {assignMode === "group" && (
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">Genehmigungsgruppe *</label>
+                            {selectedGroup ? (
+                                <div className="flex items-center gap-2 p-2 bg-warm-50 rounded-lg border border-warm-200/50">
+                                    <Users className="w-4 h-4 text-primary" />
+                                    <div className="flex-1">
+                                        <span className="text-sm font-medium">{selectedGroup.name}</span>
+                                        <span className="text-xs text-muted-foreground ml-2">
+                                            ({selectedGroup.member_count} Mitglieder)
+                                        </span>
+                                    </div>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-6 px-2 text-xs"
+                                        onClick={() => onSelectGroup(null)}
+                                    >
+                                        Ändern
+                                    </Button>
+                                </div>
+                            ) : approvalGroups.length === 0 ? (
+                                <p className="text-sm text-muted-foreground p-3 bg-warm-50 rounded-lg border border-warm-200/50 text-center">
+                                    Keine Gruppen verfügbar
+                                </p>
+                            ) : (
+                                <div className="space-y-1 max-h-40 overflow-y-auto">
+                                    {approvalGroups.map((group) => (
+                                        <button
+                                            key={group.id}
+                                            className="w-full text-left px-3 py-2.5 text-sm hover:bg-warm-50 rounded-lg border border-warm-200/50 flex items-center gap-2 transition-colors"
+                                            onClick={() => onSelectGroup(group)}
+                                        >
+                                            <Users className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+                                            <div className="flex-1 min-w-0">
+                                                <span className="font-medium block truncate">{group.name}</span>
+                                                {group.description && (
+                                                    <span className="text-xs text-muted-foreground block truncate">
+                                                        {group.description}
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <Badge variant="secondary" className="text-[10px] h-5 px-1.5 flex-shrink-0">
+                                                {group.member_count}
+                                            </Badge>
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
 
                     {/* Priority */}
                     <div className="space-y-2">
@@ -561,7 +690,11 @@ function RequestApprovalDialog({
                     <div className="space-y-2">
                         <label className="text-sm font-medium">Nachricht (optional)</label>
                         <Textarea
-                            placeholder="Nachricht an den Prüfer..."
+                            placeholder={
+                                assignMode === "group"
+                                    ? "Nachricht an die Gruppe..."
+                                    : "Nachricht an den Prüfer..."
+                            }
                             value={comment}
                             onChange={(e) => onCommentChange(e.target.value)}
                             rows={3}
@@ -579,7 +712,7 @@ function RequestApprovalDialog({
                     </Button>
                     <Button
                         onClick={onSubmit}
-                        disabled={!selectedApprover || isSubmitting}
+                        disabled={!canSubmit || isSubmitting}
                     >
                         {isSubmitting ? (
                             <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />

@@ -38,6 +38,10 @@ class GeneratedDocument(Base):
     has_open_actions = Column(Boolean, default=False, index=True)
     next_due_date = Column(DateTime(timezone=True), nullable=True, index=True)
 
+    # Pipeline Stage (Kanban — granulare Lifecycle-Stage für Board-Ansicht)
+    pipeline_stage = Column(String(30), default="entwurf", nullable=False, index=True)
+    # Erlaubte Werte: entwurf, freigabe, versendet, ruecklauf, abgeschlossen, archiv
+
 class DocumentLock(Base):
     """
     Pessimistic locking for documents during editing/correction.
@@ -146,8 +150,9 @@ class DocumentApproval(Base):
     status = Column(String(30), default="pending_approval", nullable=False, index=True)
     # Erlaubte Werte: pending_approval, approved, changes_requested, rejected
 
-    # Wer soll genehmigen?
+    # Wer soll genehmigen? (Einzelperson ODER Gruppe)
     approver_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
+    approval_group_id = Column(Integer, ForeignKey("approval_groups.id", ondelete="SET NULL"), nullable=True, index=True)
 
     # Wer hat eingereicht?
     requested_by_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)

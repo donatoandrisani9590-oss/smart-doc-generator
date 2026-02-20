@@ -33,6 +33,8 @@ from app.api.deps import get_current_user
 from app.models.core import User
 from app.models.enterprise import GeneratedDocument, DocumentAction
 
+import asyncio as _asyncio
+
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
@@ -54,7 +56,29 @@ VALID_ACTION_TYPES = frozenset({
     "completed",
     "reminder_set",
     "reminder_done",
+    "stage_changed",
+    "escalated",
 })
+
+# Pipeline stages for Kanban board (ordered by lifecycle progression)
+VALID_PIPELINE_STAGES = frozenset({
+    "entwurf",
+    "freigabe",
+    "versendet",
+    "ruecklauf",
+    "abgeschlossen",
+    "archiv",
+})
+
+# Allowed stage transitions (flexible — stages can be skipped)
+STAGE_TRANSITIONS: dict[str, frozenset[str]] = {
+    "entwurf": frozenset({"freigabe", "versendet", "ruecklauf", "abgeschlossen"}),
+    "freigabe": frozenset({"entwurf", "versendet", "abgeschlossen"}),
+    "versendet": frozenset({"ruecklauf", "abgeschlossen"}),
+    "ruecklauf": frozenset({"abgeschlossen", "versendet"}),
+    "abgeschlossen": frozenset({"archiv"}),
+    "archiv": frozenset({"abgeschlossen"}),
+}
 
 # Action types that represent the final lifecycle state
 _COMPLETED_ACTIONS = frozenset({"completed", "returned"})
@@ -209,6 +233,7 @@ async def recalculate_document_lifecycle(
       - workflow_status: erstellt | in_bearbeitung | abgeschlossen
       - has_open_actions: Gibt es offene Wiedervorlagen / ausstehende Rücksendungen?
       - next_due_date: Frühestes offenes Fälligkeitsdatum
+      - pipeline_stage: entwurf | freigabe | versendet | ruecklauf | abgeschlossen | archiv
     """
     doc = await db.get(GeneratedDocument, document_id)
     if not doc:
@@ -226,6 +251,7 @@ async def recalculate_document_lifecycle(
         doc.workflow_status = "erstellt"
         doc.has_open_actions = False
         doc.next_due_date = None
+        doc.pipeline_stage = "entwurf"
         await db.flush()
         return
 
@@ -251,10 +277,147 @@ async def recalculate_document_lifecycle(
                 if earliest_due is None or action.due_date < earliest_due:
                     earliest_due = action.due_date
 
+    # --- pipeline_stage (Prioritäts-Logik, höchste zuerst) ---
+    pipeline_stage = _derive_pipeline_stage(doc, actions)
+
     doc.workflow_status = workflow_status
     doc.has_open_actions = has_open
     doc.next_due_date = earliest_due
+    doc.pipeline_stage = pipeline_stage
     await db.flush()
+
+
+def _derive_pipeline_stage(
+    doc: GeneratedDocument,
+    actions: list[DocumentAction],
+) -> str:
+    """
+    Leitet die pipeline_stage aus dem Event-Log ab.
+
+    Prioritäts-Logik (höchste zuerst):
+    1. is_archived → archiv
+    2. Letzte Aktion completed oder returned → abgeschlossen
+    3. Offene return_pending Aktion → ruecklauf
+    4. sent Aktion vorhanden (keine return_pending/completed danach) → versendet
+    5. Offene approval_requested → freigabe
+    6. Expliziter stage_changed Event → dessen Ziel-Stage
+    7. Sonst → entwurf
+    """
+    # 1. Archived
+    if doc.is_archived:
+        return "archiv"
+
+    # 2. Completed/Returned (letzte Aktion)
+    latest = actions[-1]
+    if latest.action_type in ("completed", "returned"):
+        return "abgeschlossen"
+
+    # 3. Open return_pending
+    has_open_return = any(
+        a.action_type == "return_pending" and not a.is_completed
+        for a in actions
+    )
+    if has_open_return:
+        return "ruecklauf"
+
+    # 4. Sent (keine offene return_pending, kein completed danach)
+    sent_indices = [i for i, a in enumerate(actions) if a.action_type == "sent"]
+    if sent_indices:
+        last_sent_idx = sent_indices[-1]
+        # Prüfe ob nach dem letzten sent ein completed/returned kam
+        has_terminal_after_sent = any(
+            a.action_type in ("completed", "returned")
+            for a in actions[last_sent_idx + 1:]
+        )
+        if not has_terminal_after_sent:
+            return "versendet"
+
+    # 5. Open approval_requested
+    has_open_approval = any(
+        a.action_type == "approval_requested" and not a.is_completed
+        for a in actions
+    )
+    if has_open_approval:
+        return "freigabe"
+
+    # 6. Explicit stage_changed event (last one wins)
+    stage_events = [a for a in actions if a.action_type == "stage_changed"]
+    if stage_events:
+        last_stage_event = stage_events[-1]
+        if last_stage_event.metadata_json:
+            try:
+                import json
+                meta = json.loads(last_stage_event.metadata_json)
+                target = meta.get("to_stage", "entwurf")
+                if target in VALID_PIPELINE_STAGES:
+                    return target
+            except (json.JSONDecodeError, TypeError):
+                pass
+
+    # 7. Default
+    return "entwurf"
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# EMAIL DISPATCH (fire-and-forget nach Action-Erstellung)
+# ═══════════════════════════════════════════════════════════════════════════
+
+async def _dispatch_action_email(
+    db: AsyncSession,
+    doc: GeneratedDocument,
+    action: DocumentAction,
+    actor: User,
+) -> None:
+    """
+    Sendet E-Mails basierend auf dem action_type — fire-and-forget.
+
+    Approval-bezogene E-Mails (approval_requested, approved, rejected)
+    werden bereits in approvals.py gehandhabt und hier bewusst übersprungen.
+    """
+    try:
+        from app.services.email_templates import (
+            send_reminder_due_email,
+            send_return_overdue_email,
+        )
+        from app.db import async_session_factory
+
+        doc_title = doc.title or doc.employee_name or f"Dokument #{doc.id}"
+
+        # Neuer DB-Session für den Background-Task (Hauptsession wird geschlossen)
+        async with async_session_factory() as bg_db:
+            # Nur für bestimmte Aktionstypen E-Mails senden
+            if action.action_type == "reminder_set" and action.due_date:
+                # Wiedervorlage gesetzt — E-Mail nur wenn Frist JETZT bereits fällig
+                from datetime import datetime, timezone
+                now = datetime.now(timezone.utc)
+                if action.due_date <= now:
+                    due_str = action.due_date.strftime("%d.%m.%Y")
+                    await send_reminder_due_email(
+                        db=bg_db,
+                        user_id=actor.id,
+                        user_email=actor.email,
+                        doc_title=doc_title,
+                        doc_id=doc.id,
+                        due_date_str=due_str,
+                    )
+
+            elif action.action_type == "return_pending" and action.due_date:
+                # Rücksendung erwartet — E-Mail nur wenn Frist bereits überschritten
+                from datetime import datetime, timezone
+                now = datetime.now(timezone.utc)
+                if action.due_date <= now:
+                    due_str = action.due_date.strftime("%d.%m.%Y")
+                    await send_return_overdue_email(
+                        db=bg_db,
+                        user_id=actor.id,
+                        user_email=actor.email,
+                        doc_title=doc_title,
+                        doc_id=doc.id,
+                        due_date_str=due_str,
+                    )
+
+    except Exception:
+        logger.exception("Fehler beim E-Mail-Dispatch für Aktion %s", action.action_type)
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -309,6 +472,11 @@ async def create_document_action(
         doc.id,
         body.action_type,
         current_user.email,
+    )
+
+    # Fire-and-forget: E-Mail-Benachrichtigung basierend auf action_type
+    _asyncio.create_task(
+        _dispatch_action_email(db, doc, action, current_user)
     )
 
     return _action_to_response(action)

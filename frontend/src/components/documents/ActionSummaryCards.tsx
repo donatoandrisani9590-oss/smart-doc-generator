@@ -27,6 +27,8 @@ interface ActionSummaryResponse {
   wiedervorlage_faellig: number;
   freigabe_offen: number;
   entwuerfe_ablaufend: number;
+  ruecksendung_ueberfaellig?: number;
+  freigabe_ueberfaellig?: number;
 }
 
 export interface ActionSummaryCardsProps {
@@ -43,6 +45,7 @@ interface CardDef {
   icon: LucideIcon;
   color: string;
   bgColor: string;
+  overdueKey?: keyof ActionSummaryResponse;
 }
 
 const CARDS: CardDef[] = [
@@ -59,6 +62,7 @@ const CARDS: CardDef[] = [
     icon: RotateCcw,
     color: "text-blue-600",
     bgColor: "bg-blue-500/10",
+    overdueKey: "ruecksendung_ueberfaellig",
   },
   {
     key: "wiedervorlage_faellig",
@@ -73,6 +77,7 @@ const CARDS: CardDef[] = [
     icon: ShieldCheck,
     color: "text-purple-600",
     bgColor: "bg-purple-500/10",
+    overdueKey: "freigabe_ueberfaellig",
   },
   {
     key: "entwuerfe_ablaufend",
@@ -150,7 +155,8 @@ export function ActionSummaryCards({
       )}
     >
       {CARDS.map((card) => {
-        const count = data[card.key];
+        const count = data[card.key] ?? 0;
+        const overdueCount = card.overdueKey ? (data[card.overdueKey] ?? 0) : 0;
         const isActive = activeFilter === card.key;
         const hasItems = count > 0;
         const Icon = card.icon;
@@ -161,7 +167,7 @@ export function ActionSummaryCards({
             type="button"
             onClick={() => handleCardClick(card.key)}
             className={cn(
-              "flex items-center gap-2 rounded-xl px-3 py-2 transition-all",
+              "relative flex items-center gap-2 rounded-xl px-3 py-2 transition-all",
               "min-w-fit cursor-pointer select-none",
               // Base state
               "hover:bg-warm-50",
@@ -170,9 +176,16 @@ export function ActionSummaryCards({
               // Muted when count is zero and not active
               !hasItems && !isActive && "opacity-50"
             )}
-            aria-label={`${card.label}: ${count}`}
+            aria-label={`${card.label}: ${count}${overdueCount > 0 ? ` (${overdueCount} überfällig)` : ""}`}
             aria-pressed={isActive}
           >
+            {/* Overdue badge */}
+            {overdueCount > 0 && (
+              <span className="absolute -top-1.5 -right-1 flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold text-white bg-red-500 rounded-full ring-2 ring-white">
+                {overdueCount}
+              </span>
+            )}
+
             {/* Icon circle */}
             <span
               className={cn(
