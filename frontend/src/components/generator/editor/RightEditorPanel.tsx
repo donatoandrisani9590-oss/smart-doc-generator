@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { DocumentEditor } from "@/components/editor/DocumentEditor";
 import { StationeryCanvas } from "./StationeryCanvas";
 import { AIToolbar } from "./AIToolbar";
+import { BubbleMenu } from "./BubbleMenu";
 import { useWizardContext } from "../WizardContext";
 import { useCountry } from "@/hooks/useCountry";
 import { TONE_LEVELS, type ToneLevel } from "../ToneCards";
@@ -48,58 +49,13 @@ export const RightEditorPanel = () => {
         stationeryZones,
     } = state;
 
-    // Editor reference for AI toolbar text selection
+    // Editor reference — BubbleMenu handles selection tracking
     const editorRef = useRef<TinyMCEEditor | null>(null);
+    const [showAIPopover, setShowAIPopover] = useState(false);
 
-    // Floating toolbar state
-    const [floatingPos, setFloatingPos] = useState<{ top: number; left: number } | null>(null);
-
-    // Callback to capture editor instance from DocumentEditor
     const handleEditorInit = useCallback((editor: TinyMCEEditor) => {
         editorRef.current = editor;
-
-        editor.on("selectionchange NodeChange mouseup keyup", () => {
-            const selection = editor.selection;
-            if (selection.isCollapsed() || !selection.getContent({ format: 'text' }).trim()) {
-                setFloatingPos(null);
-            } else {
-                try {
-                    const rng = selection.getRng();
-                    const rect = rng.getBoundingClientRect();
-                    const iframe = editor.getContentAreaContainer().querySelector('iframe');
-
-                    if (iframe && rect.width > 0 && rect.height > 0) {
-                        const iframeRect = iframe.getBoundingClientRect();
-                        setFloatingPos({
-                            top: iframeRect.top + rect.top - 45,
-                            left: iframeRect.left + rect.left + (rect.width / 2) - 20,
-                        });
-                    }
-                } catch {
-                    setFloatingPos(null);
-                }
-            }
-        });
     }, []);
-
-    // AI Toolbar callbacks
-    const getSelectedText = useCallback(() => {
-        if (!editorRef.current) return "";
-        return editorRef.current.selection.getContent({ format: "html" }) ||
-            editorRef.current.selection.getContent({ format: "text" }) || "";
-    }, []);
-
-    const replaceSelectedText = useCallback((newText: string) => {
-        if (!editorRef.current) return;
-        const currentSelection = editorRef.current.selection.getContent({ format: "text" });
-        if (!currentSelection) {
-            editorRef.current.insertContent(newText);
-        } else {
-            editorRef.current.selection.setContent(newText);
-        }
-        const content = editorRef.current.getContent();
-        actions.setEditorContent(content, true);
-    }, [actions]);
 
     const displayContent = editorContent || previewHtml || "";
 
@@ -291,26 +247,27 @@ export const RightEditorPanel = () => {
                     </div>
                 )}
 
-                {/* Floating AI Toolbar */}
-                {floatingPos && !isPreviewLoading && (
-                    <div
-                        className="fixed z-50 animate-in fade-in zoom-in-95 duration-200"
-                        style={{
-                            top: `${floatingPos.top}px`,
-                            left: `${floatingPos.left}px`,
-                            boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                            borderRadius: "var(--radius)"
+                {/* BubbleMenu — appears on text selection */}
+                <BubbleMenu
+                    editorRef={editorRef}
+                    onAIClick={() => setShowAIPopover(true)}
+                />
+
+                {/* AI Refinement popover — triggered from BubbleMenu sparkle */}
+                {showAIPopover && (
+                    <AIToolbar
+                        getSelectedText={() => editorRef.current?.selection.getContent({ format: "text" }) || ""}
+                        replaceSelectedText={(html) => {
+                            editorRef.current?.selection.setContent(html);
+                            const newContent = editorRef.current?.getContent() || "";
+                            actions.setEditorContent(newContent, true);
+                            setShowAIPopover(false);
                         }}
-                    >
-                        <AIToolbar
-                            getSelectedText={getSelectedText}
-                            replaceSelectedText={replaceSelectedText}
-                            documentContext={state.documentTitle || undefined}
-                            countryCode={country}
-                            documentTypeId={state.documentTypeId}
-                            toneOfVoice={state.toneOfVoice}
-                        />
-                    </div>
+                        documentContext={state.documentTitle || undefined}
+                        countryCode={country}
+                        documentTypeId={state.documentTypeId}
+                        toneOfVoice={state.toneOfVoice}
+                    />
                 )}
             </div>
         </div>
