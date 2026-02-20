@@ -203,6 +203,14 @@ export const DocumentDetailPage = () => {
         };
     }, [documentId]);
 
+    // Auto-open comment sidebar when document has pending approval
+    useEffect(() => {
+        if (pendingApproval) {
+            setActiveTab("kommentare");
+            setSidebarOpen(true);
+        }
+    }, [pendingApproval]);
+
     const handleCopyLink = () => {
         navigator.clipboard.writeText(window.location.href);
         setCopied(true);
@@ -672,6 +680,16 @@ export const DocumentDetailPage = () => {
                             )}
 
                             {activeTab === "kommentare" && (
+                                <>
+                                {pendingApproval && (
+                                    <div className="p-3 mb-3 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-800">
+                                        <p className="font-medium">Freigabe-Prüfung</p>
+                                        <p className="mt-1 text-amber-700">
+                                            Markieren Sie Text im Dokument, um Kommentare hinzuzufügen.
+                                            Nutzen Sie die Aktionen oben, um das Dokument freizugeben oder Änderungen anzufordern.
+                                        </p>
+                                    </div>
+                                )}
                                 <CommentThread
                                     anchorType="document"
                                     anchorId={document.id}
@@ -681,6 +699,7 @@ export const DocumentDetailPage = () => {
                                     onNavigateToHighlight={(commentId) => setActiveCommentId(commentId)}
                                     activeCommentId={activeCommentId}
                                 />
+                                </>
                             )}
 
                             {activeTab === "freigabe" && approvalEnabled && (
