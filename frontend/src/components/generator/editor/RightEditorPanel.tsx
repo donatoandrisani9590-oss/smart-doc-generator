@@ -1,15 +1,12 @@
 /**
- * RightEditorPanel - Rechte Seite des Split-Screen Editors
+ * RightEditorPanel - True-Fidelity Canvas
  *
- * Enthält den TinyMCE WYSIWYG Editor mit:
- * - A4-Papier Styling (wie Microsoft Word)
- * - Live-Aktualisierung aus dem Preview
- * - Direkte Bearbeitung möglich (Fett, Listen, etc.)
- * - Toolbar mit Word-ähnlichen Funktionen
+ * Pure desk + paper surface. No toolbar, no banners.
+ * All chrome lives in LeftControlPanel.
  */
 
 import { useState, useCallback, useRef, useMemo, useEffect } from "react";
-import { Loader2, MessagesSquare, Sparkles } from "lucide-react";
+import { Loader2, MessagesSquare, Sparkles, RefreshCw, Check, Undo2 } from "lucide-react";
 import type { Editor as TinyMCEEditor } from "tinymce";
 import { Button } from "@/components/ui/button";
 import { DocumentEditor } from "@/components/editor/DocumentEditor";
@@ -61,7 +58,6 @@ export const RightEditorPanel = () => {
     const handleEditorInit = useCallback((editor: TinyMCEEditor) => {
         editorRef.current = editor;
 
-        // Listen for selections to show floating AI toolbar
         editor.on("selectionchange NodeChange mouseup keyup", () => {
             const selection = editor.selection;
             if (selection.isCollapsed() || !selection.getContent({ format: 'text' }).trim()) {
@@ -74,13 +70,12 @@ export const RightEditorPanel = () => {
 
                     if (iframe && rect.width > 0 && rect.height > 0) {
                         const iframeRect = iframe.getBoundingClientRect();
-                        // Position above the selection, centered
                         setFloatingPos({
                             top: iframeRect.top + rect.top - 45,
-                            left: iframeRect.left + rect.left + (rect.width / 2) - 20, // offset half button width
+                            left: iframeRect.left + rect.left + (rect.width / 2) - 20,
                         });
                     }
-                } catch (e) {
+                } catch {
                     setFloatingPos(null);
                 }
             }
@@ -96,43 +91,30 @@ export const RightEditorPanel = () => {
 
     const replaceSelectedText = useCallback((newText: string) => {
         if (!editorRef.current) return;
-        // Verify there's actually a selection to replace
         const currentSelection = editorRef.current.selection.getContent({ format: "text" });
         if (!currentSelection) {
-            // No selection — insert at cursor position instead
             editorRef.current.insertContent(newText);
         } else {
             editorRef.current.selection.setContent(newText);
         }
-        // Trigger content change
         const content = editorRef.current.getContent();
         actions.setEditorContent(content, true);
     }, [actions]);
 
-    // Content to display: use editorContent if available, otherwise previewHtml
     const displayContent = editorContent || previewHtml || "";
 
-    // Handle all editor content changes (for tracking content state)
-    // This is called for both programmatic and user-initiated changes
     const handleEditorChange = useCallback((content: string) => {
-        // Just update the content without marking as manual edit
-        // This keeps the content in sync but doesn't trigger the banner
         actions.setEditorContent(content, false);
     }, [actions]);
 
-    // Handle user-initiated edits specifically
-    // This is only called when user types, pastes, or uses toolbar
     const handleUserEdit = useCallback((content: string) => {
-        // This is a genuine user edit - mark it as such
         actions.setEditorContent(content, true);
     }, [actions]);
 
-    // Toggle comment sidebar
     const handleToggleComments = useCallback(() => {
         actions.toggleCommentSidebar();
     }, [actions]);
 
-    // Toggle chat sidebar
     const handleToggleChat = useCallback(() => {
         actions.toggleChatSidebar();
     }, [actions]);
@@ -151,7 +133,6 @@ export const RightEditorPanel = () => {
         const currentContent = editorContent || previewHtml;
         if (!currentContent) return;
 
-        // Cancel any in-flight preview
         toneAbortRef.current?.abort();
         const controller = new AbortController();
         toneAbortRef.current = controller;
@@ -185,12 +166,26 @@ export const RightEditorPanel = () => {
         }
     }, [editorContent, previewHtml]);
 
-    // Cleanup abort controller on unmount
+    const handleAcceptTonePreview = useCallback(() => {
+        if (tonePreview?.previewContent) {
+            actions.setEditorContent(tonePreview.previewContent, true);
+            actions.setToneOfVoice(tonePreview.tone);
+        }
+        setTonePreview(null);
+    }, [tonePreview, actions]);
+
+    const handleRevertTonePreview = useCallback(() => {
+        toneAbortRef.current?.abort();
+        if (tonePreview?.originalContent) {
+            actions.setEditorContent(tonePreview.originalContent, false);
+        }
+        setTonePreview(null);
+    }, [tonePreview, actions]);
+
     useEffect(() => {
         return () => { toneAbortRef.current?.abort(); };
     }, []);
 
-    // Auto-trigger tone preview when user changes tone (only if content exists)
     const prevToneRef = useRef(state.toneOfVoice);
     useEffect(() => {
         if (state.toneOfVoice !== prevToneRef.current && displayContent) {
@@ -199,7 +194,6 @@ export const RightEditorPanel = () => {
         }
     }, [state.toneOfVoice, displayContent, handleTonePreview]);
 
-    // Show preview content in editor while preview is active
     const effectiveDisplayContent = tonePreview?.previewContent || displayContent;
 
     return (
@@ -219,6 +213,34 @@ export const RightEditorPanel = () => {
                     <MessagesSquare className="h-4 w-4" />
                 </Button>
             </div>
+
+            {/* Tone Preview Floating Banner */}
+            {tonePreview && (
+                <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2 px-3 py-2 rounded-full bg-white/90 dark:bg-card/90 backdrop-blur-sm shadow-sm text-xs">
+                    <RefreshCw className={`w-3.5 h-3.5 text-primary shrink-0 ${tonePreview.isStreaming ? "animate-spin" : ""}`} />
+                    <span className="text-muted-foreground">
+                        &bdquo;{tonePreview.toneLabel}&ldquo;
+                    </span>
+                    <Button
+                        size="sm"
+                        onClick={handleAcceptTonePreview}
+                        disabled={tonePreview.isStreaming}
+                        className="h-6 gap-1 text-[10px]"
+                    >
+                        <Check className="w-3 h-3" />
+                        Übernehmen
+                    </Button>
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={handleRevertTonePreview}
+                        className="h-6 gap-1 text-[10px]"
+                    >
+                        <Undo2 className="w-3 h-3" />
+                        Original
+                    </Button>
+                </div>
+            )}
 
             {/* Editor Container - A4 Paper on clean desk */}
             <div className="flex-1 overflow-auto bg-transparent p-4 md:p-6 lg:p-8 pb-10 md:pb-12 lg:pb-16">
