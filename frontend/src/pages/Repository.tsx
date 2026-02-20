@@ -46,6 +46,8 @@ import {
     ArrowDown,
 } from "lucide-react";
 import { ActionSummaryCards } from "@/components/documents/ActionSummaryCards";
+import { QuickStatusDropdown } from "@/components/documents/QuickStatusDropdown";
+import { QuickApprovalButton } from "@/components/documents/QuickApprovalButton";
 import { DocumentCorrectionDialog } from "@/components/documents/DocumentCorrectionDialog";
 import { useFeatureEnabled } from "@/hooks/useFeatureSettings";
 import {
@@ -763,9 +765,12 @@ export const RepositoryPage = () => {
                                             </Button>
                                         ) : (
                                             <>
+                                                <QuickStatusDropdown documentId={item.id} />
+                                                <QuickApprovalButton documentId={item.id} />
                                                 <Button
                                                     size="sm"
                                                     variant="ghost"
+                                                    className="h-7"
                                                     onClick={() => item.file_path && window.open(item.file_path, "_blank")}
                                                 >
                                                     <Download className="w-4 h-4" />
@@ -774,6 +779,7 @@ export const RepositoryPage = () => {
                                                     <Button
                                                         size="sm"
                                                         variant="ghost"
+                                                        className="h-7"
                                                         onClick={() => setCorrectionDocId(item.id)}
                                                     >
                                                         <Edit3 className="w-4 h-4" />
