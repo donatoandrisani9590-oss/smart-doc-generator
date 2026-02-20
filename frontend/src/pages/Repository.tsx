@@ -118,7 +118,7 @@ export const RepositoryPage = () => {
         sort_by: "created_at",
         sort_order: "desc",
     });
-    const [showFilters, setShowFilters] = useState(true);
+    const [showFilters, setShowFilters] = useState(false);
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
     const [correctionDocId, setCorrectionDocId] = useState<number | null>(null);
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -499,7 +499,7 @@ export const RepositoryPage = () => {
 
                 {/* Erweiterte Filter */}
                 {showFilters && (
-                    <div className="mt-4 pt-4 grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div className={`mt-4 pt-4 grid grid-cols-1 gap-4 ${viewMode === "kanban" ? "md:grid-cols-1" : "md:grid-cols-4"}`}>
                         <div>
                             <label className="text-[13px] font-medium text-foreground/60 mb-1 block">
                                 Dokumenttyp
@@ -522,44 +522,49 @@ export const RepositoryPage = () => {
                                 ))}
                             </select>
                         </div>
-                        <div>
-                            <label className="text-[13px] font-medium text-foreground/60 mb-1 block">
-                                Von Datum
-                            </label>
-                            <Input
-                                type="date"
-                                value={filters.date_from || ""}
-                                onChange={(e) =>
-                                    updateFilter("date_from", e.target.value || undefined)
-                                }
-                            />
-                        </div>
-                        <div>
-                            <label className="text-[13px] font-medium text-foreground/60 mb-1 block">
-                                Bis Datum
-                            </label>
-                            <Input
-                                type="date"
-                                value={filters.date_to || ""}
-                                onChange={(e) =>
-                                    updateFilter("date_to", e.target.value || undefined)
-                                }
-                            />
-                        </div>
-                        <div className="flex items-end">
-                            <label className="flex items-center gap-2 cursor-pointer">
-                                <Checkbox
-                                    checked={filters.has_corrections === true}
-                                    onCheckedChange={(checked) =>
-                                        updateFilter(
-                                            "has_corrections",
-                                            checked ? true : undefined
-                                        )
-                                    }
-                                />
-                                <span className="text-sm">Nur mit Korrekturen</span>
-                            </label>
-                        </div>
+                        {/* Datums- und Korrektur-Filter nur in Listen-Ansicht (Kanban nutzt keine Datumsfilter) */}
+                        {viewMode === "list" && (
+                            <>
+                                <div>
+                                    <label className="text-[13px] font-medium text-foreground/60 mb-1 block">
+                                        Von Datum
+                                    </label>
+                                    <Input
+                                        type="date"
+                                        value={filters.date_from || ""}
+                                        onChange={(e) =>
+                                            updateFilter("date_from", e.target.value || undefined)
+                                        }
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-[13px] font-medium text-foreground/60 mb-1 block">
+                                        Bis Datum
+                                    </label>
+                                    <Input
+                                        type="date"
+                                        value={filters.date_to || ""}
+                                        onChange={(e) =>
+                                            updateFilter("date_to", e.target.value || undefined)
+                                        }
+                                    />
+                                </div>
+                                <div className="flex items-end">
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                        <Checkbox
+                                            checked={filters.has_corrections === true}
+                                            onCheckedChange={(checked) =>
+                                                updateFilter(
+                                                    "has_corrections",
+                                                    checked ? true : undefined
+                                                )
+                                            }
+                                        />
+                                        <span className="text-sm">Nur mit Korrekturen</span>
+                                    </label>
+                                </div>
+                            </>
+                        )}
                     </div>
                 )}
             </div>

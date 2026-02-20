@@ -76,7 +76,7 @@ export function QuickStatusDropdown({ documentId, currentStage }: QuickStatusDro
     // Stage change mutation
     const stageChange = useMutation({
         mutationFn: async ({ target, note, metadata }: { target: string; note?: string; metadata?: Record<string, string> }) => {
-            return api.post(`/api/v1/repository/${documentId}/stage`, {
+            return api.patch(`/api/v1/repository/${documentId}/stage`, {
                 target_stage: target,
                 note: note || undefined,
                 metadata: metadata || undefined,
