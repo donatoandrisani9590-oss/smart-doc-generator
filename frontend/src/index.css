@@ -502,6 +502,174 @@
     color: hsl(var(--muted-foreground) / 0.3);
   }
 
+  /* ── True-Fidelity Canvas: Filled Inputs ── */
+  .canvas-input {
+    border: 1.5px solid transparent !important;
+    border-radius: 8px !important;
+    background: var(--canvas-input-fill) !important;
+    padding: 10px 14px !important;
+    color: var(--canvas-text) !important;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    width: 100%;
+  }
+  .canvas-input:focus,
+  .canvas-input:focus-visible {
+    border-color: hsl(228 58% 33%) !important;
+    background: var(--canvas-paper) !important;
+    box-shadow: 0 0 0 3px var(--canvas-focus-ring) !important;
+    outline: none !important;
+  }
+  .canvas-input::placeholder {
+    color: var(--canvas-text-secondary);
+  }
+
+  /* Select trigger variant */
+  .canvas-select-trigger {
+    border: 1.5px solid transparent !important;
+    border-radius: 8px !important;
+    background: var(--canvas-input-fill) !important;
+    color: var(--canvas-text) !important;
+    font-size: 14px;
+    transition: all 0.2s ease;
+  }
+  .canvas-select-trigger:focus,
+  .canvas-select-trigger[data-state="open"] {
+    border-color: hsl(228 58% 33%) !important;
+    background: var(--canvas-paper) !important;
+    box-shadow: 0 0 0 3px var(--canvas-focus-ring) !important;
+  }
+
+  /* ── True-Fidelity Canvas: Paper & Desk ── */
+  .canvas-desk {
+    background: var(--canvas-desk);
+  }
+
+  .canvas-paper {
+    width: 210mm;
+    min-height: 297mm;
+    padding: 25mm 20mm;
+    background: var(--canvas-paper);
+    border-radius: 4px;
+    box-shadow: var(--shadow-canvas-paper);
+    margin: 2rem auto;
+    color: var(--canvas-text);
+    font-family: Arial, sans-serif;
+    font-size: 11pt;
+    line-height: 1.15;
+  }
+
+  /* Responsive: narrow screens */
+  @media (max-width: 900px) {
+    .canvas-paper {
+      max-width: 100%;
+      padding: 15mm 12mm;
+      margin: 1rem auto;
+    }
+  }
+
+  /* Template placeholders for unfilled fields */
+  .template-placeholder {
+    color: var(--canvas-text-secondary);
+    background: var(--canvas-input-fill);
+    border-radius: 3px;
+    padding: 0 4px;
+    font-style: italic;
+    display: inline;
+  }
+
+  /* Logo skeleton when company logo not uploaded */
+  .logo-skeleton {
+    width: 120px;
+    height: 48px;
+    background: linear-gradient(135deg, #F5F5F7 0%, #EBEBED 100%);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .dark .logo-skeleton {
+    background: linear-gradient(135deg, hsl(225 14% 18%) 0%, hsl(225 14% 22%) 100%);
+  }
+
+  /* ── True-Fidelity Canvas: Floating Bubble Menu ── */
+  .bubble-menu {
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(20px) saturate(1.8);
+    -webkit-backdrop-filter: blur(20px) saturate(1.8);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 12px;
+    padding: 4px 6px;
+    box-shadow:
+      0 2px 8px rgba(0, 0, 0, 0.08),
+      0 12px 32px rgba(0, 0, 0, 0.06);
+    animation: bubble-appear 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    position: fixed;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+  .dark .bubble-menu {
+    background: rgba(30, 33, 48, 0.92);
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow:
+      0 2px 8px rgba(0, 0, 0, 0.2),
+      0 12px 32px rgba(0, 0, 0, 0.15);
+  }
+
+  @keyframes bubble-appear {
+    from {
+      opacity: 0;
+      transform: translateY(4px) scale(0.96);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  .bubble-tool {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--canvas-text);
+    cursor: pointer;
+    transition: background 0.15s ease;
+    border: none;
+    background: transparent;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .bubble-tool:hover {
+    background: rgba(0, 0, 0, 0.06);
+  }
+  .dark .bubble-tool:hover {
+    background: rgba(255, 255, 255, 0.08);
+  }
+  .bubble-tool.active {
+    background: rgba(36, 49, 134, 0.1);
+    color: hsl(228 58% 33%);
+  }
+  .dark .bubble-tool.active {
+    background: rgba(120, 140, 230, 0.15);
+    color: hsl(228 70% 70%);
+  }
+
+  .bubble-separator {
+    width: 1px;
+    height: 20px;
+    background: rgba(0, 0, 0, 0.1);
+    margin: 0 2px;
+    flex-shrink: 0;
+  }
+  .dark .bubble-separator {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
   /* Ive section header — quiet uppercase label */
   .ive-section-header {
     font-size: 11px;

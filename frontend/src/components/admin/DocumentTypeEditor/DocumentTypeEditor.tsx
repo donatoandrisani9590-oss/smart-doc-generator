@@ -138,6 +138,7 @@ export const DocumentTypeEditor = ({
                                     addClause={editor.addClause}
                                     removeClause={editor.removeClause}
                                     toggleMandatory={editor.toggleMandatory}
+                                    setClauseCondition={editor.setClauseCondition}
                                     reorderClauses={editor.reorderClauses}
                                     selectedVariantGroups={editor.selectedVariantGroups}
                                     unselectedVariantGroups={editor.unselectedVariantGroups}

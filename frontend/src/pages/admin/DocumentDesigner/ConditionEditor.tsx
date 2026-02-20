@@ -12,12 +12,19 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { CheckCircle } from "lucide-react";
-import type { AssignedClause, ClauseCondition } from "./types";
+import type { AssignedClause } from "./types";
+
+/** Simple condition format used by this legacy editor */
+interface SimpleConditionValue {
+    field: string;
+    operator: "=" | "!=" | ">" | "<" | "contains";
+    value: string;
+}
 
 interface ConditionEditorProps {
     clause: AssignedClause;
     placeholders: string[];
-    onSave: (condition: ClauseCondition | null) => void;
+    onSave: (condition: SimpleConditionValue | null) => void;
     onCancel: () => void;
 }
 
@@ -28,13 +35,15 @@ export const ConditionEditor = ({
     onSave,
     onCancel,
 }: ConditionEditorProps) => {
+    // Cast condition to simple format for this legacy editor
+    const simpleCondition = clause.condition as SimpleConditionValue | null | undefined;
     const [enabled, setEnabled] = useState(!!clause.condition);
-    const [field, setField] = useState(clause.condition?.field || "");
-    const [operator, setOperator] = useState<ClauseCondition["operator"]>(
-        clause.condition?.operator || "="
+    const [field, setField] = useState(simpleCondition?.field || "");
+    const [operator, setOperator] = useState<SimpleConditionValue["operator"]>(
+        simpleCondition?.operator || "="
     );
     const [value, setValue] = useState<string>(
-        String(clause.condition?.value || "")
+        String(simpleCondition?.value || "")
     );
 
     const handleSave = () => {
@@ -74,7 +83,7 @@ export const ConditionEditor = ({
                         <Label>Operator</Label>
                         <Select
                             value={operator}
-                            onValueChange={(v) => setOperator(v as ClauseCondition["operator"])}
+                            onValueChange={(v) => setOperator(v as SimpleConditionValue["operator"])}
                         >
                             <SelectTrigger>
                                 <SelectValue />

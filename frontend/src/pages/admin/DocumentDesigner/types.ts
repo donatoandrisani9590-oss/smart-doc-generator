@@ -1,6 +1,7 @@
 // Types for DocumentDesigner
 
 import type { ClauseCondition } from "@/components/admin/ConditionBuilder/types";
+export type { ClauseCondition };
 
 export interface Clause {
     id: number;
