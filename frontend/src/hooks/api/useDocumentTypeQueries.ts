@@ -48,6 +48,7 @@ export interface DocumentTypeClauseLink {
     clause_id: number;
     display_order: number;
     is_mandatory: boolean;
+    condition?: string | null;
 }
 
 export interface DocumentTypeCreateRequest {

@@ -70,14 +70,10 @@ VALID_PIPELINE_STAGES = frozenset({
     "archiv",
 })
 
-# Allowed stage transitions (flexible — stages can be skipped)
+# Allowed stage transitions (flexible — stages can be skipped and reverted)
 STAGE_TRANSITIONS: dict[str, frozenset[str]] = {
-    "entwurf": frozenset({"freigabe", "versendet", "ruecklauf", "abgeschlossen"}),
-    "freigabe": frozenset({"entwurf", "versendet", "abgeschlossen"}),
-    "versendet": frozenset({"ruecklauf", "abgeschlossen"}),
-    "ruecklauf": frozenset({"abgeschlossen", "versendet"}),
-    "abgeschlossen": frozenset({"archiv"}),
-    "archiv": frozenset({"abgeschlossen"}),
+    stage: VALID_PIPELINE_STAGES - {stage}
+    for stage in VALID_PIPELINE_STAGES
 }
 
 # Action types that represent the final lifecycle state

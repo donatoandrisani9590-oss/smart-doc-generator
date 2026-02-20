@@ -1,5 +1,7 @@
 // Types for DocumentDesigner
 
+import type { ClauseCondition } from "@/components/admin/ConditionBuilder/types";
+
 export interface Clause {
     id: number;
     title: string;
@@ -9,12 +11,6 @@ export interface Clause {
     version?: string;
     placeholders?: string[];
     isMandatory?: boolean;
-}
-
-export interface ClauseCondition {
-    field: string;
-    operator: "=" | "!=" | ">" | "<" | "contains";
-    value: string | number | boolean;
 }
 
 export interface AssignedClause extends Clause {

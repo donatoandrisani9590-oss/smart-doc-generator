@@ -137,6 +137,7 @@ async def list_documents(
     date_to: Optional[str] = None,
     has_corrections: Optional[bool] = None,
     include_archived: bool = False,  # By default, hide archived docs
+    ownership: Optional[str] = Query(None, pattern="^(owned|shared)$"),
     action_filter: Optional[str] = Query(
         None,
         pattern="^(ohne_versand|ruecksendung_ausstehend|wiedervorlage_faellig|freigabe_offen|entwuerfe_ablaufend)$",
@@ -150,10 +151,31 @@ async def list_documents(
 
     This is the main endpoint for the document repository/DMS.
     """
+    is_admin = getattr(current_user, "role", "user") == "admin"
+
     # Base query - exclude deleted, optionally exclude archived
     base_conditions = [models.GeneratedDocument.is_deleted == False]
     if not include_archived:
         base_conditions.append(models.GeneratedDocument.is_archived == False)
+
+    if ownership == "owned" or (not ownership and not is_admin):
+        # Wenn 'owned' oder kein expliziter Filter (und kein Admin), zeige nur eigene Dokumente
+        base_conditions.append(models.GeneratedDocument.created_by_id == current_user.id)
+    elif ownership == "shared":
+        # Zeige nur Dokumente, die mit dem Nutzer (über Teams) geteilt wurden, aber nicht ihm gehören
+        team_ids_sub = select(models.TeamMember.team_id).where(models.TeamMember.user_id == str(current_user.id))
+        shared_doc_ids_sub = select(models.TeamDocumentShare.document_id).where(
+            and_(
+                models.TeamDocumentShare.team_id.in_(team_ids_sub),
+                models.TeamDocumentShare.document_id.isnot(None)
+            )
+        )
+        base_conditions.append(
+            and_(
+                models.GeneratedDocument.created_by_id != current_user.id,
+                models.GeneratedDocument.id.in_(shared_doc_ids_sub)
+            )
+        )
 
     query = select(models.GeneratedDocument).where(and_(*base_conditions))
 
@@ -605,6 +627,7 @@ async def get_kanban_board(
     document_type_id: Optional[int] = None,
     country_code: Optional[str] = None,
     include_archived: bool = False,
+    ownership: Optional[str] = Query(None, pattern="^(owned|shared)$"),
 ) -> Any:
     """
     Dokumente gruppiert nach pipeline_stage für das Kanban-Board.
@@ -616,10 +639,25 @@ async def get_kanban_board(
 
     # Basis-Filter
     base_filters = [models.GeneratedDocument.is_deleted == False]  # noqa: E712
-    if not is_admin:
-        base_filters.append(models.GeneratedDocument.created_by_id == current_user.id)
     if not include_archived:
         base_filters.append(models.GeneratedDocument.is_archived == False)  # noqa: E712
+
+    if ownership == "owned" or (not ownership and not is_admin):
+        base_filters.append(models.GeneratedDocument.created_by_id == current_user.id)
+    elif ownership == "shared":
+        team_ids_sub = select(models.TeamMember.team_id).where(models.TeamMember.user_id == str(current_user.id))
+        shared_doc_ids_sub = select(models.TeamDocumentShare.document_id).where(
+            and_(
+                models.TeamDocumentShare.team_id.in_(team_ids_sub),
+                models.TeamDocumentShare.document_id.isnot(None)
+            )
+        )
+        base_filters.append(
+            and_(
+                models.GeneratedDocument.created_by_id != current_user.id,
+                models.GeneratedDocument.id.in_(shared_doc_ids_sub)
+            )
+        )
 
     # Optionale Filter
     if search:

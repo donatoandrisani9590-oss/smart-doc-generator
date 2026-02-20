@@ -1,60 +1,40 @@
 /**
- * Protected Route Component
+ * ProtectedRoute – Redirects unauthenticated users to /login.
  *
- * Schützt Routen vor nicht-authentifizierten Benutzern.
- * Leitet zur Login-Seite weiter, wenn nicht eingeloggt.
+ * Wraps around routes that require a logged-in user.
+ * While auth state is loading it shows a minimal spinner.
  */
 
-import React from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { Loader2 } from "lucide-react";
 
 interface ProtectedRouteProps {
-  children: React.ReactNode;
-  /** Erfordert Admin-Rolle */
-  requireAdmin?: boolean;
+    children: React.ReactNode;
+    requireAdmin?: boolean;
 }
 
-export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
-  children,
-  requireAdmin = false,
-}) => {
-  const { isAuthenticated, isLoading, user } = useAuth();
-  const location = useLocation();
+export const ProtectedRoute = ({ children, requireAdmin }: ProtectedRouteProps) => {
+    const { user, isAuthenticated, isLoading } = useAuth();
+    const location = useLocation();
 
-  // Show loading state while checking auth
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-sm text-muted-foreground">Authentifizierung wird geprüft...</p>
-        </div>
-      </div>
-    );
-  }
+    // Still checking token – show spinner
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+            </div>
+        );
+    }
 
-  // Redirect to login if not authenticated
-  if (!isAuthenticated) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
-  }
+    // Not authenticated – redirect to login
+    if (!isAuthenticated) {
+        return <Navigate to="/login" state={{ from: location }} replace />;
+    }
 
-  // Check admin requirement
-  if (requireAdmin && user?.role !== "admin") {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-destructive mb-2">Zugriff verweigert</h1>
-          <p className="text-muted-foreground">
-            Du hast keine Berechtigung für diese Seite.
-          </p>
-        </div>
-      </div>
-    );
-  }
+    // Admin-only route check
+    if (requireAdmin && user?.role !== "admin") {
+        return <Navigate to="/" replace />;
+    }
 
-  return <>{children}</>;
+    return <>{children}</>;
 };
-
-export default ProtectedRoute;

@@ -27,10 +27,9 @@ interface WorkflowStep {
 }
 
 const PRE_EXPORT_STEPS: WorkflowStep[] = [
-    { id: "draft", label: "Entwurf" },
-    { id: "content", label: "Inhalte" },
-    { id: "review", label: "Prüfung" },
-    { id: "export", label: "Export" },
+    { id: "setup", label: "1. Setup" },
+    { id: "edit", label: "2. Edit" },
+    { id: "export", label: "3. Export" },
 ];
 
 const POST_EXPORT_STEPS: WorkflowStep[] = [
@@ -51,31 +50,29 @@ function calculatePreExportStep(state: {
 }): number {
     const { documentTypeId, formData, documentClauses, previewHtml, hasLocalEdits } = state;
 
-    // Schritt 0: Entwurf - Dokumenttyp gewählt, Felder werden ausgefüllt
+    // Step 0: Setup - Selecting document type and filling initial fields (via Agent or Wizard)
     if (!documentTypeId) return 0;
 
-    // Prüfe ob Pflichtfelder ausgefüllt sind
     const requiredFields: (keyof WizardFormData)[] = ["vorname", "nachname", "position", "gehalt", "eintrittsdatum"];
     const filledFields = requiredFields.filter(
         (field) => formData[field] !== undefined && formData[field] !== ""
     );
-    const hasRequiredFields = filledFields.length >= 3; // Mindestens 3 von 5
+    const hasRequiredFields = filledFields.length >= 3;
 
-    // Schritt 1: Inhalte - Textbausteine konfiguriert
-    const hasEnabledClauses = documentClauses.some((c) => c.is_enabled);
+    // If not basic requirements met, still in Setup
+    if (!hasRequiredFields) return 0;
 
-    // Schritt 2: Prüfung - Vorschau generiert, möglicherweise bearbeitet
-    const hasPreview = previewHtml && previewHtml.length > 100;
-
-    // Schritt 3: Export - Alle Felder ausgefüllt, bereit zum Export
+    // Step 2: Export - Ready when all required fields are filled and no un-saved edits exist
     const allFieldsFilled = filledFields.length === requiredFields.length;
+    const hasEnabledClauses = documentClauses.some((c) => c.is_enabled);
+    const hasPreview = previewHtml && previewHtml.length > 50;
 
-    // Logik für Schritt-Berechnung
-    if (!hasRequiredFields) return 0; // Noch im Entwurf
-    if (!hasEnabledClauses && documentClauses.length > 0) return 1; // Inhalte konfigurieren
-    if (!hasPreview) return 1; // Noch bei Inhalten
-    if (hasLocalEdits || !allFieldsFilled) return 2; // In Prüfung
-    return 3; // Export-bereit
+    if (allFieldsFilled && hasPreview && !hasLocalEdits && hasEnabledClauses) {
+        return 2; // Export
+    }
+
+    // Step 1: Edit - We have required fields, are configuring clauses, and reviewing the preview
+    return 1; // Edit
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -98,12 +95,12 @@ export const WorkflowStepper = ({ compact = false }: WorkflowStepperProps) => {
     const currentStep = isPostExport
         ? 1
         : calculatePreExportStep({
-              documentTypeId: state.documentTypeId,
-              formData: state.formData,
-              documentClauses: state.documentClauses,
-              previewHtml: state.previewHtml,
-              hasLocalEdits: state.hasLocalEdits,
-          });
+            documentTypeId: state.documentTypeId,
+            formData: state.formData,
+            documentClauses: state.documentClauses,
+            previewHtml: state.previewHtml,
+            hasLocalEdits: state.hasLocalEdits,
+        });
 
     return (
         <div className={cn(

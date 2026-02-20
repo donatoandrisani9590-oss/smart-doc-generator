@@ -6,6 +6,7 @@ class DocumentTypeClauseLink(BaseModel):
     clause_id: int
     display_order: int
     is_mandatory: bool = True
+    condition: Optional[str] = None
 
 
 # ══════════════════════════════════════════════════════════════════════════════

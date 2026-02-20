@@ -44,6 +44,7 @@ export interface KanbanFilters {
     document_type_id?: number;
     country_code?: string;
     include_archived?: boolean;
+    ownership?: "owned" | "shared";
 }
 
 export interface StageChangeResult {
@@ -78,12 +79,12 @@ export const STAGE_LABELS: Record<PipelineStage, string> = {
 };
 
 export const STAGE_COLORS: Record<PipelineStage, { bg: string; text: string; border: string; icon: string }> = {
-    entwurf:        { bg: "bg-amber-50 dark:bg-amber-950/30",   text: "text-amber-700 dark:text-amber-400",   border: "border-amber-200 dark:border-amber-800",   icon: "text-amber-500" },
-    freigabe:       { bg: "bg-purple-50 dark:bg-purple-950/30", text: "text-purple-700 dark:text-purple-400", border: "border-purple-200 dark:border-purple-800", icon: "text-purple-500" },
-    versendet:      { bg: "bg-blue-50 dark:bg-blue-950/30",     text: "text-blue-700 dark:text-blue-400",     border: "border-blue-200 dark:border-blue-800",     icon: "text-blue-500" },
-    ruecklauf:      { bg: "bg-orange-50 dark:bg-orange-950/30", text: "text-orange-700 dark:text-orange-400", border: "border-orange-200 dark:border-orange-800", icon: "text-orange-500" },
-    abgeschlossen:  { bg: "bg-green-50 dark:bg-green-950/30",   text: "text-green-700 dark:text-green-400",   border: "border-green-200 dark:border-green-800",   icon: "text-green-500" },
-    archiv:         { bg: "bg-warm-50 dark:bg-warm-800/30",     text: "text-warm-600 dark:text-warm-400",     border: "border-warm-200 dark:border-warm-700",     icon: "text-warm-400" },
+    entwurf: { bg: "bg-amber-50 dark:bg-amber-950/30", text: "text-amber-700 dark:text-amber-400", border: "border-amber-200 dark:border-amber-800", icon: "text-amber-500" },
+    freigabe: { bg: "bg-purple-50 dark:bg-purple-950/30", text: "text-purple-700 dark:text-purple-400", border: "border-purple-200 dark:border-purple-800", icon: "text-purple-500" },
+    versendet: { bg: "bg-blue-50 dark:bg-blue-950/30", text: "text-blue-700 dark:text-blue-400", border: "border-blue-200 dark:border-blue-800", icon: "text-blue-500" },
+    ruecklauf: { bg: "bg-orange-50 dark:bg-orange-950/30", text: "text-orange-700 dark:text-orange-400", border: "border-orange-200 dark:border-orange-800", icon: "text-orange-500" },
+    abgeschlossen: { bg: "bg-green-50 dark:bg-green-950/30", text: "text-green-700 dark:text-green-400", border: "border-green-200 dark:border-green-800", icon: "text-green-500" },
+    archiv: { bg: "bg-warm-50 dark:bg-warm-800/30", text: "text-warm-600 dark:text-warm-400", border: "border-warm-200 dark:border-warm-700", icon: "text-warm-400" },
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -101,6 +102,7 @@ export const useKanbanBoard = (filters: KanbanFilters = {}) => {
             if (filters.document_type_id) params.append("document_type_id", String(filters.document_type_id));
             if (filters.country_code) params.append("country_code", filters.country_code);
             if (filters.include_archived) params.append("include_archived", "true");
+            if (filters.ownership) params.append("ownership", filters.ownership);
 
             const res = await fetch(`${API_BASE}/repository/kanban?${params}`);
             if (!res.ok) throw new Error("Kanban-Daten konnten nicht geladen werden");

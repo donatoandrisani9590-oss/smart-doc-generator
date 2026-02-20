@@ -32,6 +32,7 @@ export interface ClauseResponse {
     has_paragraph_number?: boolean;
     variant_group_id?: number;
     variant_group_name?: string;
+    condition?: string | null;
 }
 
 export interface DraftResponse {

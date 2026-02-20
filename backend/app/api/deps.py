@@ -26,10 +26,10 @@ oauth2_scheme = OAuth2PasswordBearer(
 
 
 class MockUser:
-    """Mock user for local development only — never admin by default."""
+    """Mock user for local development."""
     id = 1
     email = "dev@example.com"
-    role = "user"
+    role = "admin"
     country_code = "DE"
     is_active = True
     totp_enabled = False

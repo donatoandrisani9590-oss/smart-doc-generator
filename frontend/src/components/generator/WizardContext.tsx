@@ -6,6 +6,7 @@
  */
 
 import { createContext, useContext, type ReactNode } from "react";
+import type { ClauseCondition } from "@/components/admin/ConditionBuilder/types";
 
 // ══════════════════════════════════════════════════════════════════════════════
 // TYPE DEFINITIONS
@@ -63,6 +64,7 @@ export interface DocumentClause {
     has_variants: boolean;
     has_paragraph_number?: boolean;
     variant_group_id?: number;
+    condition?: ClauseCondition | null;
 }
 
 export interface SelectedVariant {

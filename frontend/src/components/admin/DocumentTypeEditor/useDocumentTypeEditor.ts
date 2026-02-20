@@ -100,11 +100,12 @@ export function useDocumentTypeEditor({
             setAiInstructions(existingDocType.ai_instructions ?? "");
 
             if (existingDocType.clauses) {
-                const clauseLinks: ClauseSelection[] = existingDocType.clauses.map((c: Clause, idx: number) => ({
+                const clauseLinks: ClauseSelection[] = existingDocType.clauses.map((c: any, idx: number) => ({
                     clause_id: c.id,
                     display_order: idx + 1,
-                    is_mandatory: true,
-                    clause: c,
+                    is_mandatory: c.is_mandatory !== false,
+                    condition: typeof c.condition === "string" ? JSON.parse(c.condition) : c.condition || null,
+                    clause: c as Clause,
                 }));
                 setSelectedClauses(clauseLinks);
             }
@@ -174,6 +175,7 @@ export function useDocumentTypeEditor({
                     clause_id: clause.id,
                     display_order: prev.length + 1,
                     is_mandatory: true,
+                    condition: null,
                     clause,
                 },
             ];
@@ -193,6 +195,16 @@ export function useDocumentTypeEditor({
             prev.map(sc =>
                 sc.clause_id === clauseId
                     ? { ...sc, is_mandatory: !sc.is_mandatory }
+                    : sc
+            )
+        );
+    }, []);
+
+    const setClauseCondition = useCallback((clauseId: number, condition: string | null) => {
+        setSelectedClauses((prev) =>
+            prev.map(sc =>
+                sc.clause_id === clauseId
+                    ? { ...sc, condition }
                     : sc
             )
         );
@@ -285,6 +297,7 @@ export function useDocumentTypeEditor({
                 clause_id: sc.clause_id,
                 display_order: idx + 1,
                 is_mandatory: sc.is_mandatory,
+                condition: sc.condition ? (typeof sc.condition === "string" ? sc.condition : JSON.stringify(sc.condition)) : null,
             })),
             variant_groups: selectedVariantGroups.map((vg, idx) => ({
                 variant_group_id: vg.variant_group_id,
@@ -399,6 +412,7 @@ export function useDocumentTypeEditor({
         addClause,
         removeClause,
         toggleMandatory,
+        setClauseCondition,
         reorderClauses,
 
         // Variant groups

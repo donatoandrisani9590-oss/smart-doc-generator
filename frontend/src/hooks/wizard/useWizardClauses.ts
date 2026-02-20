@@ -11,6 +11,7 @@ import { api } from "@/lib/api-client";
 import { logError } from "@/lib/logger";
 import type { DocumentClause, VariantGroup, FormData } from "@/components/generator/WizardContext";
 import type { ClauseResponse } from "./types";
+import { evaluateShowCondition } from "@/lib/condition-evaluator";
 
 // ══════════════════════════════════════════════════════════════════════════════
 // API RESPONSE TYPE for variant-groups endpoint
@@ -132,6 +133,7 @@ export function useWizardClauses({ documentTypeId, formData, markUnsaved }: UseW
                         has_variants: false,
                         has_paragraph_number: clause.has_paragraph_number ?? true,
                         variant_group_id: clause.variant_group_id,
+                        condition: clause.condition ? JSON.parse(clause.condition) : null,
                     })));
             } catch (error) {
                 logError("Failed to load clauses", { error: error as unknown as Record<string, unknown> });
@@ -183,6 +185,52 @@ export function useWizardClauses({ documentTypeId, formData, markUnsaved }: UseW
             return hasChanges ? { ...prev, ...newSelections } : prev;
         });
     }, [formData.vertragsart, variantGroups]);
+
+    // ── Evaluate clause conditions dynamically ──────────────────────────────
+
+    useEffect(() => {
+        setDocumentClauses(prev => {
+            if (!prev.length) return prev;
+
+            let hasChanges = false;
+
+            // Context needs the currently enabled clauses to evaluate conditions that depend on other clauses.
+            const enabledClauseIds = prev.filter(c => c.is_enabled).map(c => c.id);
+            const selectedVariantIds = Object.values(selectedVariants).map(v => v.variantId);
+
+            const newClauses = prev.map((clause) => {
+                // Mandatory clauses are always enabled
+                if (clause.is_required) return clause;
+
+                // If no condition, leave it as is
+                if (!clause.condition) return clause;
+
+                const context = {
+                    formData: formData as unknown as Record<string, string | number | boolean>,
+                    enabledClauseIds,
+                    selectedVariantIds
+                };
+
+                // The evaluateShowCondition takes a string, but we parsed it into an object on load
+                // So we stringify it back for the evaluator helper which handles both syntax versions safely
+                const conditionStr = JSON.stringify(clause.condition);
+                const isEnabledByCondition = evaluateShowCondition(conditionStr, context);
+
+                if (clause.is_enabled !== isEnabledByCondition) {
+                    hasChanges = true;
+                    return { ...clause, is_enabled: isEnabledByCondition };
+                }
+                return clause;
+            });
+
+            if (hasChanges && markUnsaved) {
+                // Deferring execution slightly so it doesn't trigger nested state updates synchronously
+                setTimeout(() => markUnsaved(), 0);
+            }
+
+            return hasChanges ? newClauses : prev;
+        });
+    }, [formData, selectedVariants]);
 
     // ── Clause Actions ──────────────────────────────────────────────────────
 

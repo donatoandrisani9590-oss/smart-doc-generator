@@ -223,7 +223,8 @@ async def create_document_type(
                 document_type_id=doc.id,
                 clause_id=link.clause_id,
                 display_order=link.display_order,
-                is_mandatory=link.is_mandatory
+                is_mandatory=link.is_mandatory,
+                condition=link.condition
             )
             db.add(db_link)
         await db.commit()
@@ -350,7 +351,8 @@ async def duplicate_document_type(
                 document_type_id=new_doc_type.id,
                 clause_id=link.clause_id,
                 display_order=link.display_order,
-                is_mandatory=link.is_mandatory
+                is_mandatory=link.is_mandatory,
+                condition=link.condition
             )
             db.add(new_link)
             clauses_copied += 1
@@ -481,7 +483,8 @@ async def update_document_type(
                 document_type_id=document_type_id,
                 clause_id=link["clause_id"],
                 display_order=link["display_order"],
-                is_mandatory=link.get("is_mandatory", True)
+                is_mandatory=link.get("is_mandatory", True),
+                condition=link.get("condition")
             )
             db.add(db_link)
 
@@ -551,6 +554,7 @@ async def get_document_type_clauses(
             "title": clause.title,
             "display_order": link.display_order,
             "is_mandatory": link.is_mandatory,
+            "condition": link.condition if hasattr(link, 'condition') else None,
             "is_default_selected": link.is_default_selected if hasattr(link, 'is_default_selected') else True,
             "clause_type": link.clause_type if hasattr(link, 'clause_type') else "standard",
             "is_order_locked": link.is_order_locked if hasattr(link, 'is_order_locked') else False,

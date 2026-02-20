@@ -100,16 +100,44 @@ export const RightEditorPanel = () => {
     // Editor reference for AI toolbar text selection
     const editorRef = useRef<TinyMCEEditor | null>(null);
 
+    // Floating toolbar state
+    const [floatingPos, setFloatingPos] = useState<{ top: number; left: number } | null>(null);
+
     // Callback to capture editor instance from DocumentEditor
     const handleEditorInit = useCallback((editor: TinyMCEEditor) => {
         editorRef.current = editor;
+
+        // Listen for selections to show floating AI toolbar
+        editor.on("selectionchange NodeChange mouseup keyup", () => {
+            const selection = editor.selection;
+            if (selection.isCollapsed() || !selection.getContent({ format: 'text' }).trim()) {
+                setFloatingPos(null);
+            } else {
+                try {
+                    const rng = selection.getRng();
+                    const rect = rng.getBoundingClientRect();
+                    const iframe = editor.getContentAreaContainer().querySelector('iframe');
+
+                    if (iframe && rect.width > 0 && rect.height > 0) {
+                        const iframeRect = iframe.getBoundingClientRect();
+                        // Position above the selection, centered
+                        setFloatingPos({
+                            top: iframeRect.top + rect.top - 45,
+                            left: iframeRect.left + rect.left + (rect.width / 2) - 20, // offset half button width
+                        });
+                    }
+                } catch (e) {
+                    setFloatingPos(null);
+                }
+            }
+        });
     }, []);
 
     // AI Toolbar callbacks
     const getSelectedText = useCallback(() => {
         if (!editorRef.current) return "";
         return editorRef.current.selection.getContent({ format: "html" }) ||
-               editorRef.current.selection.getContent({ format: "text" }) || "";
+            editorRef.current.selection.getContent({ format: "text" }) || "";
     }, []);
 
     const replaceSelectedText = useCallback((newText: string) => {
@@ -284,15 +312,9 @@ export const RightEditorPanel = () => {
                 </div>
 
                 <div className="flex items-center gap-1">
-                    {/* AI Refinement Toolbar */}
-                    <AIToolbar
-                        getSelectedText={getSelectedText}
-                        replaceSelectedText={replaceSelectedText}
-                        documentContext={state.documentTitle || undefined}
-                        countryCode={country}
-                        documentTypeId={state.documentTypeId}
-                        toneOfVoice={state.toneOfVoice}
-                    />
+                    <div className="hidden">
+                        {/* Hidden in header, now we show it as floating or keep it here as fallback? Let's just remove from header or keep it hidden. */}
+                    </div>
 
                     {/* Toggle Chat-Assistent Sidebar */}
                     <Button
@@ -537,6 +559,28 @@ export const RightEditorPanel = () => {
                                 />
                             </div>
                         )}
+                    </div>
+                )}
+
+                {/* Floating AI Toolbar */}
+                {floatingPos && !isPreviewLoading && (
+                    <div
+                        className="fixed z-50 animate-in fade-in zoom-in-95 duration-200"
+                        style={{
+                            top: `${floatingPos.top}px`,
+                            left: `${floatingPos.left}px`,
+                            boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                            borderRadius: "var(--radius)"
+                        }}
+                    >
+                        <AIToolbar
+                            getSelectedText={getSelectedText}
+                            replaceSelectedText={replaceSelectedText}
+                            documentContext={state.documentTitle || undefined}
+                            countryCode={country}
+                            documentTypeId={state.documentTypeId}
+                            toneOfVoice={state.toneOfVoice}
+                        />
                     </div>
                 )}
             </div>

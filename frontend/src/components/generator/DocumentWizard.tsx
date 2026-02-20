@@ -250,11 +250,7 @@ const WizardContent = ({ documentTypes }: DocumentWizardProps) => {
         }
 
         // Wizard Mode (Standard): Dokumenttyp-Auswahl
-        return (
-            <div className="max-w-4xl mx-auto py-8 px-4">
-                <StepDocumentType documentTypes={documentTypes} />
-            </div>
-        );
+        return <StepDocumentType documentTypes={documentTypes} />;
     };
 
     return (

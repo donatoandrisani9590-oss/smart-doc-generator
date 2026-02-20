@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import {
     SortableList,
@@ -13,6 +14,15 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import {
+    Dialog,
+    DialogContent,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
+import { ConditionBuilder } from "@/components/admin/ConditionBuilder";
+import type { ClauseCondition as BuilderCondition } from "@/components/admin/ConditionBuilder/types";
 import { cn } from "@/lib/utils";
 import type { Clause } from "@/hooks/useApi";
 import {
@@ -43,6 +53,7 @@ interface ClauseSelectionStepProps {
     addClause: (clause: Clause) => void;
     removeClause: (clauseId: number) => void;
     toggleMandatory: (clauseId: number) => void;
+    setClauseCondition: (clauseId: number, condition: string | null) => void;
     reorderClauses: (newOrder: Array<ClauseSelection & { id: number | string }>) => void;
 
     // Variant groups
@@ -78,6 +89,7 @@ export const ClauseSelectionStep = ({
     addClause,
     removeClause,
     toggleMandatory,
+    setClauseCondition,
     reorderClauses,
     selectedVariantGroups,
     unselectedVariantGroups,
@@ -88,6 +100,30 @@ export const ClauseSelectionStep = ({
     setVariantGroupDefault,
     setShowClauseCreator,
 }: ClauseSelectionStepProps) => {
+    const [conditionDialogOpen, setConditionDialogOpen] = useState(false);
+    const [editingConditionForId, setEditingConditionForId] = useState<number | null>(null);
+    const [editingCondition, setEditingCondition] = useState<BuilderCondition | null>(null);
+
+    // Collect all placeholders from selected clauses to use as fields in ConditionBuilder
+    const allPlaceholders = [
+        ...new Set(selectedClauses.flatMap((sc) => sc.clause?.placeholders || [])),
+    ];
+
+    const handleOpenConditionEditor = (clauseId: number, currentCondition: any) => {
+        setEditingConditionForId(clauseId);
+        setEditingCondition(currentCondition ? JSON.parse(JSON.stringify(currentCondition)) : null);
+        setConditionDialogOpen(true);
+    };
+
+    const handleSaveCondition = () => {
+        if (editingConditionForId !== null) {
+            setClauseCondition(editingConditionForId, editingCondition as unknown as string);
+        }
+        setConditionDialogOpen(false);
+        setEditingConditionForId(null);
+        setEditingCondition(null);
+    };
+
     return (
         <motion.div
             key="step2"
@@ -241,6 +277,15 @@ export const ClauseSelectionStep = ({
                                                 >
                                                     {item.is_mandatory ? "Pflicht" : "Optional"}
                                                 </button>
+                                                <Button
+                                                    size="sm"
+                                                    variant="ghost"
+                                                    onClick={() => handleOpenConditionEditor(item.clause_id, item.condition)}
+                                                    className={cn("px-2 py-1 h-7 text-xs rounded transition-colors", item.condition ? "bg-blue-100 text-blue-700" : "text-muted-foreground")}
+                                                    title="Bedingung hinzufügen"
+                                                >
+                                                    {item.condition ? "Bedingt" : "Bedingung"}
+                                                </Button>
                                                 <Button
                                                     size="sm"
                                                     variant="ghost"
@@ -410,6 +455,41 @@ export const ClauseSelectionStep = ({
                     </Card>
                 </div>
             </div>
+
+            {/* Condition Dialog */}
+            <Dialog open={conditionDialogOpen} onOpenChange={setConditionDialogOpen}>
+                <DialogContent className="max-w-3xl max-h-[85vh] overflow-hidden flex flex-col">
+                    <DialogHeader>
+                        <DialogTitle>Bedingung für Textbaustein</DialogTitle>
+                    </DialogHeader>
+
+                    <div className="flex-1 overflow-y-auto py-2">
+                        <ConditionBuilder
+                            condition={editingCondition as BuilderCondition}
+                            onChange={setEditingCondition}
+                            fields={allPlaceholders.map(p => ({
+                                name: p,
+                                label: p,
+                                category: "Platzhalter",
+                                type: "text"
+                            }))}
+                        />
+                    </div>
+
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => {
+                            setConditionDialogOpen(false);
+                            setEditingCondition(null);
+                            setEditingConditionForId(null);
+                        }}>
+                            Abbrechen
+                        </Button>
+                        <Button onClick={handleSaveCondition}>
+                            Übernehmen
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </motion.div>
     );
 };

@@ -74,10 +74,11 @@ import "@/styles/preview.css";
 import { RefreshCw, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 
-import type { Clause, ClauseCondition, AssignedClause, Attachment, AssignedAttachment } from "./types";
+import type { Clause, AssignedClause, Attachment, AssignedAttachment } from "./types";
 import { listItemVariants, listTransition } from "./constants";
 import { SortableClause } from "./SortableClause";
-import { ConditionEditor } from "./ConditionEditor";
+import { ConditionBuilder } from "@/components/admin/ConditionBuilder";
+import type { ClauseCondition as BuilderCondition } from "@/components/admin/ConditionBuilder/types";
 
 export const DocumentDesigner = () => {
     const { id } = useParams<{ id: string }>();
@@ -129,6 +130,7 @@ export const DocumentDesigner = () => {
     const [activeId, setActiveId] = useState<string | null>(null);
     const [conditionDialogOpen, setConditionDialogOpen] = useState(false);
     const [editingClause, setEditingClause] = useState<AssignedClause | null>(null);
+    const [editingCondition, setEditingCondition] = useState<BuilderCondition | null>(null);
     const [isSaving, setIsSaving] = useState(false);
     const [isLoading, setIsLoading] = useState(!isNewDocument);
     const [libraryTab, setLibraryTab] = useState<"clauses" | "variants">("clauses");
@@ -251,20 +253,22 @@ export const DocumentDesigner = () => {
     // Edit condition
     const handleEditCondition = (clause: AssignedClause) => {
         setEditingClause(clause);
+        setEditingCondition(clause.condition || null);
         setConditionDialogOpen(true);
     };
 
     // Save condition
-    const handleSaveCondition = (condition: ClauseCondition | null) => {
+    const handleSaveCondition = () => {
         if (!editingClause) return;
 
         setAssignedClauses((items) =>
             items.map((item) =>
-                item.uniqueId === editingClause.uniqueId ? { ...item, condition } : item
+                item.uniqueId === editingClause.uniqueId ? { ...item, condition: editingCondition } : item
             )
         );
         setConditionDialogOpen(false);
         setEditingClause(null);
+        setEditingCondition(null);
     };
 
     // Add variant group (as a clause with variant selection)
@@ -594,11 +598,10 @@ export const DocumentDesigner = () => {
                                                         whileHover={!isAssigned ? "hover" : undefined}
                                                         whileTap={!isAssigned ? "tap" : undefined}
                                                         transition={{ ...listTransition, delay: index * 0.02 }}
-                                                        className={`flex items-center gap-3 p-3 rounded-lg border ${
-                                                            isAssigned
-                                                                ? "bg-secondary/10 border-secondary/30"
-                                                                : "bg-muted/30 border-border cursor-pointer"
-                                                        }`}
+                                                        className={`flex items-center gap-3 p-3 rounded-lg border ${isAssigned
+                                                            ? "bg-secondary/10 border-secondary/30"
+                                                            : "bg-muted/30 border-border cursor-pointer"
+                                                            }`}
                                                         onClick={() => !isAssigned && handleAddClause(clause)}
                                                     >
                                                         <motion.div
@@ -677,11 +680,10 @@ export const DocumentDesigner = () => {
                                                             whileHover={!isAssigned ? "hover" : undefined}
                                                             whileTap={!isAssigned ? "tap" : undefined}
                                                             transition={{ ...listTransition, delay: index * 0.02 }}
-                                                            className={`p-3 rounded-lg border ${
-                                                                isAssigned
-                                                                    ? "bg-purple-50 border-purple-200"
-                                                                    : "bg-muted/30 border-border cursor-pointer hover:border-primary/50"
-                                                            }`}
+                                                            className={`p-3 rounded-lg border ${isAssigned
+                                                                ? "bg-purple-50 border-purple-200"
+                                                                : "bg-muted/30 border-border cursor-pointer hover:border-primary/50"
+                                                                }`}
                                                             onClick={() => !isAssigned && handleAddVariantGroup(group)}
                                                         >
                                                             <div className="flex items-start gap-3">
@@ -706,11 +708,10 @@ export const DocumentDesigner = () => {
                                                                         {group.variants.slice(0, 3).map((v) => (
                                                                             <span
                                                                                 key={v.id}
-                                                                                className={`text-xs px-2 py-0.5 rounded-full ${
-                                                                                    v.is_default
-                                                                                        ? "bg-green-100 text-green-700"
-                                                                                        : "bg-warm-100 text-muted-foreground"
-                                                                                }`}
+                                                                                className={`text-xs px-2 py-0.5 rounded-full ${v.is_default
+                                                                                    ? "bg-green-100 text-green-700"
+                                                                                    : "bg-warm-100 text-muted-foreground"
+                                                                                    }`}
                                                                             >
                                                                                 {v.variant_name}
                                                                                 {v.is_default && " ★"}
@@ -773,19 +774,17 @@ export const DocumentDesigner = () => {
                                             whileHover="hover"
                                             whileTap="tap"
                                             transition={{ ...listTransition, delay: index * 0.02 }}
-                                            className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer ${
-                                                isAssigned
-                                                    ? "bg-secondary/10 border-secondary/30"
-                                                    : "bg-muted/30 border-border"
-                                            }`}
+                                            className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer ${isAssigned
+                                                ? "bg-secondary/10 border-secondary/30"
+                                                : "bg-muted/30 border-border"
+                                                }`}
                                             onClick={() => handleToggleAttachment(attachment)}
                                         >
                                             <motion.div
-                                                className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
-                                                    isAssigned
-                                                        ? "bg-secondary border-secondary text-white"
-                                                        : "border-border"
-                                                }`}
+                                                className={`w-5 h-5 rounded border-2 flex items-center justify-center ${isAssigned
+                                                    ? "bg-secondary border-secondary text-white"
+                                                    : "border-border"
+                                                    }`}
                                                 animate={isAssigned ? { scale: [1, 1.2, 1] } : {}}
                                                 transition={{ duration: 0.2 }}
                                             >
@@ -982,12 +981,30 @@ export const DocumentDesigner = () => {
                     </DialogHeader>
 
                     {editingClause && (
-                        <ConditionEditor
-                            clause={editingClause}
-                            placeholders={allPlaceholders}
-                            onSave={handleSaveCondition}
-                            onCancel={() => setConditionDialogOpen(false)}
-                        />
+                        <div className="space-y-4">
+                            <ConditionBuilder
+                                condition={editingCondition}
+                                onChange={setEditingCondition}
+                                fields={allPlaceholders.map(p => ({
+                                    name: p,
+                                    label: p,
+                                    category: "Platzhalter",
+                                    type: "text"
+                                }))}
+                            />
+                            <DialogFooter>
+                                <Button variant="outline" onClick={() => {
+                                    setConditionDialogOpen(false);
+                                    setEditingCondition(null);
+                                }}>
+                                    Abbrechen
+                                </Button>
+                                <Button onClick={handleSaveCondition}>
+                                    <Check className="w-4 h-4 mr-2" />
+                                    Speichern
+                                </Button>
+                            </DialogFooter>
+                        </div>
                     )}
                 </DialogContent>
             </Dialog>

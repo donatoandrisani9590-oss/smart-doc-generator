@@ -508,6 +508,7 @@ export interface RepositoryFilters {
     date_from?: string;
     date_to?: string;
     has_corrections?: boolean;
+    ownership?: "owned" | "shared";
     action_filter?: string;
     sort_by?: "created_at" | "employee_name" | "document_type" | "title";
     sort_order?: "asc" | "desc";
@@ -536,6 +537,7 @@ export const useRepository = (filters: RepositoryFilters = {}) => {
             if (filters.date_from) params.append("date_from", filters.date_from);
             if (filters.date_to) params.append("date_to", filters.date_to);
             if (filters.has_corrections !== undefined) params.append("has_corrections", String(filters.has_corrections));
+            if (filters.ownership) params.append("ownership", filters.ownership);
             if (filters.action_filter) params.append("action_filter", filters.action_filter);
             if (filters.sort_by) params.append("sort_by", filters.sort_by);
             if (filters.sort_order) params.append("sort_order", filters.sort_order);

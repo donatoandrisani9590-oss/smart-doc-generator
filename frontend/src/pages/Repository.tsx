@@ -72,10 +72,10 @@ type ViewMode = "kanban" | "list";
 // ── Dokumenttyp-Farbkodierung (Corporate Palette) ─────────────────────
 // Inline-Styles statt dynamischer Tailwind-Klassen (JIT kann dynamische Klassen nicht generieren)
 const DOC_TYPE_COLORS = [
-    { border: "#243186", badgeBg: "rgba(36,49,134,0.08)",  badgeText: "#243186", darkBadgeBg: "rgba(36,49,134,0.15)",  darkBadgeText: "#94A3D8" },  // Primary
+    { border: "#243186", badgeBg: "rgba(36,49,134,0.08)", badgeText: "#243186", darkBadgeBg: "rgba(36,49,134,0.15)", darkBadgeText: "#94A3D8" },  // Primary
     { border: "#6EBD84", badgeBg: "rgba(110,189,132,0.10)", badgeText: "#6EBD84", darkBadgeBg: "rgba(110,189,132,0.15)", darkBadgeText: "#A8E8B8" }, // Secondary
     { border: "#A8A2A0", badgeBg: "rgba(168,162,160,0.12)", badgeText: "#736B67", darkBadgeBg: "rgba(168,162,160,0.15)", darkBadgeText: "#C5BFBD" }, // Warm
-    { border: "#4A5EB0", badgeBg: "rgba(74,94,176,0.08)",  badgeText: "#4A5EB0", darkBadgeBg: "rgba(74,94,176,0.15)",  darkBadgeText: "#94A3D8" },  // Indigo-ish
+    { border: "#4A5EB0", badgeBg: "rgba(74,94,176,0.08)", badgeText: "#4A5EB0", darkBadgeBg: "rgba(74,94,176,0.15)", darkBadgeText: "#94A3D8" },  // Indigo-ish
     { border: "#8B6EBD", badgeBg: "rgba(139,110,189,0.08)", badgeText: "#8B6EBD", darkBadgeBg: "rgba(139,110,189,0.15)", darkBadgeText: "#C4A8E8" }, // Purple
     { border: "#BD6E6E", badgeBg: "rgba(189,110,110,0.08)", badgeText: "#BD6E6E", darkBadgeBg: "rgba(189,110,110,0.15)", darkBadgeText: "#E8A8A8" }, // Red-ish
 ] as const;
@@ -131,6 +131,7 @@ export const RepositoryPage = () => {
         return "all";
     });
     const [actionFilter, setActionFilter] = useState<string | null>(null);
+    const [ownershipTab, setOwnershipTab] = useState<"owned" | "shared">("owned");
 
     // ── View Mode (Kanban | Liste) ───────────────────────────────────────
     const [viewMode, setViewMode] = useState<ViewMode>(() => {
@@ -147,11 +148,14 @@ export const RepositoryPage = () => {
         localStorage.setItem("repo-view-mode", viewMode);
     }, [viewMode]);
 
-    // Merge actionFilter into API filters
+    // Merge actionFilter and ownershipTab into API filters
     const effectiveFilters = useMemo((): RepositoryFilters => {
-        if (!actionFilter) return filters;
-        return { ...filters, action_filter: actionFilter, page: 1 };
-    }, [filters, actionFilter]);
+        let finalFilters = { ...filters, ownership: ownershipTab };
+        if (actionFilter) {
+            finalFilters = { ...finalFilters, action_filter: actionFilter, page: 1 };
+        }
+        return finalFilters;
+    }, [filters, actionFilter, ownershipTab]);
 
     const { data: repository, isLoading: loadingDocs, refetch } = useRepository(effectiveFilters);
     const { data: stats } = useRepositoryStats();
@@ -376,11 +380,10 @@ export const RepositoryPage = () => {
                     <div className="flex bg-muted rounded-lg p-0.5">
                         <button
                             onClick={() => setViewMode("kanban")}
-                            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                                viewMode === "kanban"
-                                    ? "bg-background text-foreground shadow-sm"
-                                    : "text-muted-foreground hover:text-foreground"
-                            }`}
+                            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors ${viewMode === "kanban"
+                                ? "bg-background text-foreground shadow-sm"
+                                : "text-muted-foreground hover:text-foreground"
+                                }`}
                             title="Kanban-Ansicht"
                         >
                             <LayoutGrid className="w-3.5 h-3.5" />
@@ -388,11 +391,10 @@ export const RepositoryPage = () => {
                         </button>
                         <button
                             onClick={() => setViewMode("list")}
-                            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                                viewMode === "list"
-                                    ? "bg-background text-foreground shadow-sm"
-                                    : "text-muted-foreground hover:text-foreground"
-                            }`}
+                            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors ${viewMode === "list"
+                                ? "bg-background text-foreground shadow-sm"
+                                : "text-muted-foreground hover:text-foreground"
+                                }`}
                             title="Listen-Ansicht"
                         >
                             <List className="w-3.5 h-3.5" />
@@ -406,6 +408,28 @@ export const RepositoryPage = () => {
                         </Button>
                     </Link>
                 </div>
+            </div>
+
+            {/* Ownership Tabs */}
+            <div className="flex border-b border-border/40">
+                <button
+                    onClick={() => { setOwnershipTab("owned"); setActionFilter(null); setActiveFilter("all"); }}
+                    className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${ownershipTab === "owned"
+                        ? "border-primary text-primary"
+                        : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
+                        }`}
+                >
+                    Meine Dokumente
+                </button>
+                <button
+                    onClick={() => { setOwnershipTab("shared"); setActionFilter(null); setActiveFilter("all"); }}
+                    className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${ownershipTab === "shared"
+                        ? "border-primary text-primary"
+                        : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
+                        }`}
+                >
+                    Mit mir geteilt
+                </button>
             </div>
 
             {/* Status Filter - Segmented Control */}
@@ -432,9 +456,8 @@ export const RepositoryPage = () => {
                     >
                         {card.label}
                         {"count" in card && (
-                            <span className={`ml-1.5 text-[11px] ${
-                                activeFilter === card.key ? 'text-foreground/60' : 'text-muted-foreground/40'
-                            }`}>
+                            <span className={`ml-1.5 text-[11px] ${activeFilter === card.key ? 'text-foreground/60' : 'text-muted-foreground/40'
+                                }`}>
                                 {card.count}
                             </span>
                         )}
@@ -578,6 +601,7 @@ export const RepositoryPage = () => {
                         search: filters.search,
                         document_type_id: filters.document_type_id,
                         include_archived: true,
+                        ownership: ownershipTab,
                     }}
                     onCardClick={(id) => navigate(`/documents/${id}`)}
                 />
@@ -732,140 +756,140 @@ export const RepositoryPage = () => {
                             {filteredItems.map((item, index) => {
                                 const typeColor = getDocTypeColor(item.document_type_name);
                                 return (
-                                <MotionListItem
-                                    key={`${item.type}-${item.id}`}
-                                    index={index}
-                                    disableInteraction
-                                    className="flex items-center gap-4 px-4 py-3.5 transition-colors cursor-pointer group hover:bg-warm-100/60 dark:hover:bg-warm-800/50"
-                                    style={{ borderLeft: `4px solid ${typeColor.border}` }}
-                                    onClick={() =>
-                                        item.type === "draft"
-                                            ? navigate(`/generate?draft=${item.id}`)
-                                            : navigate(`/documents/${item.id}`)
-                                    }
-                                >
-                                    {/* Checkbox - nur für fertige Dokumente */}
-                                    {item.type === "document" ? (
-                                        <div onClick={(e) => e.stopPropagation()}>
-                                            <Checkbox
-                                                checked={selectedIds.includes(item.id)}
-                                                onCheckedChange={() => toggleSelect(item.id)}
-                                            />
-                                        </div>
-                                    ) : (
-                                        <div className="w-5" /> // Platzhalter für Alignment
-                                    )}
-
-                                    {/* Status-Icon — Pipeline Stage */}
-                                    <div className="relative">
-                                        <PipelineStageIcon
-                                            stage={item.type === "draft" ? "entwurf" : (item.pipeline_stage || "entwurf")}
-                                            className="group-hover:opacity-90"
-                                        />
-                                        {/* Handlungsbedarf-Indikator */}
-                                        {item.type === "document" && item.next_due_date && new Date(item.next_due_date) < new Date() && (
-                                            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-red-500 ring-2 ring-white" title="Überfällig" />
-                                        )}
-                                        {item.type === "document" && item.pipeline_stage === "freigabe" && (
-                                            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-purple-500 ring-2 ring-white" title="Freigabe ausstehend" />
-                                        )}
-                                        {item.type === "document" && item.pipeline_stage === "ruecklauf" && !(item.next_due_date && new Date(item.next_due_date) < new Date()) && (
-                                            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-amber-500 ring-2 ring-white" title="Rücksendung ausstehend" />
-                                        )}
-                                    </div>
-
-                                    {/* Info */}
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-2">
-                                            {/* Pipeline Stage Badge */}
-                                            <PipelineStageBadge
-                                                stage={item.type === "draft" ? "entwurf" : (item.pipeline_stage || "entwurf")}
-                                            />
-                                            <p className="font-medium truncate" title={item.name}>{item.name}</p>
-                                            {item.version_count && item.version_count > 1 && (
-                                                <span className="text-xs bg-warm-100 text-warm-600 px-2 py-0.5 rounded-full">
-                                                    v{item.current_version}
-                                                </span>
-                                            )}
-                                        </div>
-                                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                                            {item.document_type_name && (
-                                                <span
-                                                    className="text-xs font-medium px-1.5 py-0.5 rounded doc-type-badge"
-                                                    style={{
-                                                        "--dtb-bg": typeColor.badgeBg,
-                                                        "--dtb-text": typeColor.badgeText,
-                                                        "--dtb-dark-bg": typeColor.darkBadgeBg,
-                                                        "--dtb-dark-text": typeColor.darkBadgeText,
-                                                    } as React.CSSProperties}
-                                                >
-                                                    {item.document_type_name}
-                                                </span>
-                                            )}
-                                            {item.employee_name && (
-                                                <span className="flex items-center gap-1">
-                                                    <User className="w-3 h-3" />
-                                                    {item.employee_name}
-                                                </span>
-                                            )}
-                                            <span className="flex items-center gap-1">
-                                                <Clock className="w-3 h-3" />
-                                                {item.type === "draft" && item.updated_at
-                                                    ? formatDistanceToNow(item.updated_at)
-                                                    : item.created_at
-                                                        ? formatDistanceToNow(item.created_at)
-                                                        : ""}
-                                            </span>
-                                            {/* TTL-Warnung für Entwürfe */}
-                                            {item.type === "draft" && item.days_remaining !== undefined && item.days_remaining <= 7 && (
-                                                <span className="flex items-center gap-1 text-amber-600 font-medium">
-                                                    <AlertTriangle className="w-3 h-3" />
-                                                    {item.days_remaining === 0
-                                                        ? "Läuft heute ab!"
-                                                        : `Noch ${item.days_remaining} Tage`}
-                                                </span>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    {/* Actions */}
-                                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
-                                        {item.type === "draft" ? (
-                                            <Button
-                                                size="sm"
-                                                variant="outline"
-                                                className="gap-1"
-                                                onClick={() => navigate(`/generate?draft=${item.id}`)}
-                                            >
-                                                <Play className="w-4 h-4" />
-                                                Fortsetzen
-                                            </Button>
+                                    <MotionListItem
+                                        key={`${item.type}-${item.id}`}
+                                        index={index}
+                                        disableInteraction
+                                        className="flex items-center gap-4 px-4 py-3.5 transition-colors cursor-pointer group hover:bg-warm-100/60 dark:hover:bg-warm-800/50"
+                                        style={{ borderLeft: `4px solid ${typeColor.border}` }}
+                                        onClick={() =>
+                                            item.type === "draft"
+                                                ? navigate(`/generate?draft=${item.id}`)
+                                                : navigate(`/documents/${item.id}`)
+                                        }
+                                    >
+                                        {/* Checkbox - nur für fertige Dokumente */}
+                                        {item.type === "document" ? (
+                                            <div onClick={(e) => e.stopPropagation()}>
+                                                <Checkbox
+                                                    checked={selectedIds.includes(item.id)}
+                                                    onCheckedChange={() => toggleSelect(item.id)}
+                                                />
+                                            </div>
                                         ) : (
-                                            <>
-                                                <QuickStatusDropdown documentId={item.id} currentStage={item.pipeline_stage} />
-                                                <QuickApprovalButton documentId={item.id} />
+                                            <div className="w-5" /> // Platzhalter für Alignment
+                                        )}
+
+                                        {/* Status-Icon — Pipeline Stage */}
+                                        <div className="relative">
+                                            <PipelineStageIcon
+                                                stage={item.type === "draft" ? "entwurf" : (item.pipeline_stage || "entwurf")}
+                                                className="group-hover:opacity-90"
+                                            />
+                                            {/* Handlungsbedarf-Indikator */}
+                                            {item.type === "document" && item.next_due_date && new Date(item.next_due_date) < new Date() && (
+                                                <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-red-500 ring-2 ring-white" title="Überfällig" />
+                                            )}
+                                            {item.type === "document" && item.pipeline_stage === "freigabe" && (
+                                                <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-purple-500 ring-2 ring-white" title="Freigabe ausstehend" />
+                                            )}
+                                            {item.type === "document" && item.pipeline_stage === "ruecklauf" && !(item.next_due_date && new Date(item.next_due_date) < new Date()) && (
+                                                <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-amber-500 ring-2 ring-white" title="Rücksendung ausstehend" />
+                                            )}
+                                        </div>
+
+                                        {/* Info */}
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center gap-2">
+                                                {/* Pipeline Stage Badge */}
+                                                <PipelineStageBadge
+                                                    stage={item.type === "draft" ? "entwurf" : (item.pipeline_stage || "entwurf")}
+                                                />
+                                                <p className="font-medium truncate" title={item.name}>{item.name}</p>
+                                                {item.version_count && item.version_count > 1 && (
+                                                    <span className="text-xs bg-warm-100 text-warm-600 px-2 py-0.5 rounded-full">
+                                                        v{item.current_version}
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                                                {item.document_type_name && (
+                                                    <span
+                                                        className="text-xs font-medium px-1.5 py-0.5 rounded doc-type-badge"
+                                                        style={{
+                                                            "--dtb-bg": typeColor.badgeBg,
+                                                            "--dtb-text": typeColor.badgeText,
+                                                            "--dtb-dark-bg": typeColor.darkBadgeBg,
+                                                            "--dtb-dark-text": typeColor.darkBadgeText,
+                                                        } as React.CSSProperties}
+                                                    >
+                                                        {item.document_type_name}
+                                                    </span>
+                                                )}
+                                                {item.employee_name && (
+                                                    <span className="flex items-center gap-1">
+                                                        <User className="w-3 h-3" />
+                                                        {item.employee_name}
+                                                    </span>
+                                                )}
+                                                <span className="flex items-center gap-1">
+                                                    <Clock className="w-3 h-3" />
+                                                    {item.type === "draft" && item.updated_at
+                                                        ? formatDistanceToNow(item.updated_at)
+                                                        : item.created_at
+                                                            ? formatDistanceToNow(item.created_at)
+                                                            : ""}
+                                                </span>
+                                                {/* TTL-Warnung für Entwürfe */}
+                                                {item.type === "draft" && item.days_remaining !== undefined && item.days_remaining <= 7 && (
+                                                    <span className="flex items-center gap-1 text-amber-600 font-medium">
+                                                        <AlertTriangle className="w-3 h-3" />
+                                                        {item.days_remaining === 0
+                                                            ? "Läuft heute ab!"
+                                                            : `Noch ${item.days_remaining} Tage`}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Actions */}
+                                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
+                                            {item.type === "draft" ? (
                                                 <Button
                                                     size="sm"
-                                                    variant="ghost"
-                                                    className="h-7"
-                                                    onClick={() => item.file_path && window.open(item.file_path, "_blank")}
+                                                    variant="outline"
+                                                    className="gap-1"
+                                                    onClick={() => navigate(`/generate?draft=${item.id}`)}
                                                 >
-                                                    <Download className="w-4 h-4" />
+                                                    <Play className="w-4 h-4" />
+                                                    Fortsetzen
                                                 </Button>
-                                                {item.is_correctable && (
+                                            ) : (
+                                                <>
+                                                    <QuickStatusDropdown documentId={item.id} currentStage={item.pipeline_stage} />
+                                                    <QuickApprovalButton documentId={item.id} />
                                                     <Button
                                                         size="sm"
                                                         variant="ghost"
                                                         className="h-7"
-                                                        onClick={() => setCorrectionDocId(item.id)}
+                                                        onClick={() => item.file_path && window.open(item.file_path, "_blank")}
                                                     >
-                                                        <Edit3 className="w-4 h-4" />
+                                                        <Download className="w-4 h-4" />
                                                     </Button>
-                                                )}
-                                            </>
-                                        )}
-                                    </div>
-                                </MotionListItem>
+                                                    {item.is_correctable && (
+                                                        <Button
+                                                            size="sm"
+                                                            variant="ghost"
+                                                            className="h-7"
+                                                            onClick={() => setCorrectionDocId(item.id)}
+                                                        >
+                                                            <Edit3 className="w-4 h-4" />
+                                                        </Button>
+                                                    )}
+                                                </>
+                                            )}
+                                        </div>
+                                    </MotionListItem>
                                 );
                             })}
                         </MotionContainer>

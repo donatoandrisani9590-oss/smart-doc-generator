@@ -25,6 +25,7 @@ interface DocumentTypeResponse {
     name: string;
     country_code: string;
     category?: string;
+    description?: string | null;
     is_active: boolean;
 }
 
@@ -99,6 +100,7 @@ export const DocumentGenerator = () => {
             documentTypes={documentTypes.map(t => ({
                 id: t.id,
                 name: t.name,
+                description: t.description,
                 country_code: t.country_code,
                 category: t.category,
             }))}
