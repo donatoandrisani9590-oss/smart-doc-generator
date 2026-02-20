@@ -42,6 +42,7 @@ import { useDocumentTypes } from "@/hooks/api/useDocumentTypeQueries";
 import { useMyTeams } from "@/hooks/api/useTeamQueries";
 import { useEmployeeAutocomplete } from "@/hooks/useEmployeeAutocomplete";
 import { useSmartDefaults } from "@/hooks/useSmartDefaults";
+import { useDocumentProjectStore } from "@/store/documentProjectStore";
 import { cn } from "@/lib/utils";
 
 export default function AgentPage() {
@@ -98,13 +99,19 @@ export default function AgentPage() {
   }, [defaults]);
 
   // Switch to manual mode
+  const { startProject, updateFormData, setStep, addChatMessage } = useDocumentProjectStore();
+
+  const handleMessage = useCallback((role: "user" | "assistant", content: string) => {
+    addChatMessage({ role, content });
+  }, [addChatMessage]);
+
   const switchToManual = () => {
-    const params = new URLSearchParams();
-    if (selectedDocTypeId) params.set("type", String(selectedDocTypeId));
+    startProject(selectedDocTypeId ? String(selectedDocTypeId) : undefined);
     if (Object.keys(formFields).length > 0) {
-      params.set("data", JSON.stringify(formFields));
+      updateFormData(formFields);
     }
-    navigate(`/generate?${params.toString()}`);
+    setStep('editor');
+    navigate(`/generate`);
   };
 
   // Computed
@@ -198,6 +205,7 @@ export default function AgentPage() {
             onClauseUpdate={handleClauseUpdate}
             onClauseDraft={handleClauseDraft}
             onSessionCreated={setSessionId}
+            onMessage={handleMessage}
           />
         </div>
 

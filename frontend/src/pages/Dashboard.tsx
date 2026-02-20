@@ -11,13 +11,11 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
     Sparkles,
-    AlertTriangle,
     Search,
     ChevronRight,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import { useDashboardStats, useMyActivity, useClauses, useDocumentTypes } from "@/hooks/useApi";
-import { formatDistanceToNow } from "@/lib/dateUtils";
+import { useDashboardStats, useClauses, useDocumentTypes } from "@/hooks/useApi";
 import { DocumentWizardDialog } from "@/components/dashboard/DocumentWizardDialog";
 import { QuickTemplates } from "@/components/dashboard/QuickTemplates";
 import { DocumentWizardChat } from "@/components/chat/DocumentWizardChat";
@@ -28,7 +26,7 @@ import { ActionSummaryCards } from "@/components/documents/ActionSummaryCards";
 
 import { OnboardingBanner } from "@/components/dashboard/OnboardingBanner";
 
-import { MotionContainer, MotionListItem } from "@/components/ui/motion";
+
 import { useAuth } from "@/contexts/AuthContext";
 import { useFeatureEnabled } from "@/hooks/useFeatureSettings";
 import { api } from "@/lib/api-client";
@@ -54,7 +52,6 @@ const getFirstName = (email: string): string | null => {
 export const Dashboard = () => {
     const { user } = useAuth();
     const { data: stats, isLoading: statsLoading } = useDashboardStats();
-    const { data: activity, isLoading: activityLoading } = useMyActivity(5);
     const { data: clauses } = useClauses();
     const { data: documentTypes } = useDocumentTypes();
     const [searchQuery, setSearchQuery] = useState("");
@@ -81,7 +78,7 @@ export const Dashboard = () => {
             .catch(() => {});
     }, []);
 
-    const isLoading = statsLoading || activityLoading;
+    const isLoading = statsLoading;
     const openDrafts = stats?.open_drafts ?? 0;
     const totalOpenTasks = openDrafts + pendingApprovals + overdueDeadlines;
     const hasPendingTasks = totalOpenTasks > 0;
@@ -100,11 +97,6 @@ export const Dashboard = () => {
             navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
         }
     };
-
-    // Determine which document list to show
-    const hasDrafts = activity?.recent_drafts && activity.recent_drafts.length > 0;
-    const hasRecentDocs = activity?.recent_documents && activity.recent_documents.length > 0;
-    const showDocumentSection = !isLoading && (hasDrafts || hasRecentDocs);
 
     return (
         <div className="space-y-8 animate-enter">
@@ -271,110 +263,6 @@ export const Dashboard = () => {
                 {/* Email-to-Draft Widget - only when feature is enabled */}
                 {emailIngestEnabled && <EmailDraftsWidget />}
 
-                {/* Combined Document Section */}
-                {showDocumentSection && (
-                    <div className="ive-card p-0 overflow-hidden">
-                        <div className="flex items-center justify-between px-6 py-4">
-                            <div className="flex items-center gap-3">
-                                {hasDrafts ? (
-                                    <>
-                                        <h3 className="font-medium text-foreground">Offene Entwürfe</h3>
-                                        {(stats?.open_drafts ?? 0) > 0 && (
-                                            <span className="text-[11px] text-muted-foreground font-normal tabular-nums">
-                                                {stats?.open_drafts}
-                                            </span>
-                                        )}
-                                    </>
-                                ) : (
-                                    <h3 className="font-medium text-foreground">Zuletzt erstellt</h3>
-                                )}
-                            </div>
-                            <Link to="/documents" className="text-xs font-medium text-primary hover:underline">
-                                Alle anzeigen
-                            </Link>
-                        </div>
-                        <div className="p-2">
-                            {hasDrafts ? (
-                                <MotionContainer className="divide-y divide-border/10">
-                                    {activity!.recent_drafts.slice(0, 3).map((draft, index) => {
-                                        const daysRemaining = (draft as typeof draft & { days_remaining?: number }).days_remaining ?? 30;
-                                        const isExpiringSoon = daysRemaining <= 7;
-                                        // Employee name from form_data extraction (backend sends it as `name`)
-                                        const employeeName = draft.name && draft.name !== "Unbekannt" ? draft.name : null;
-
-                                        return (
-                                            <MotionListItem key={draft.id} index={index} disableInteraction>
-                                            <Link
-                                                to={`/generate?draft=${draft.id}`}
-                                                className="flex items-center gap-4 px-5 py-3.5 hover:bg-warm-50/60 dark:hover:bg-white/[0.03] transition-colors group"
-                                            >
-                                                {/* Left accent — subtle vertical bar instead of loud icon box */}
-                                                <div className={`w-0.5 self-stretch rounded-full ${
-                                                    isExpiringSoon
-                                                        ? "bg-amber-400"
-                                                        : "bg-primary/20 group-hover:bg-primary/40"
-                                                } transition-colors`} />
-
-                                                {/* Content */}
-                                                <div className="flex-1 min-w-0">
-                                                    <div className="flex items-baseline gap-2">
-                                                        <p className="text-sm font-medium text-foreground truncate group-hover:text-primary transition-colors">
-                                                            {draft.document_type_name || "Entwurf"}
-                                                        </p>
-                                                        {isExpiringSoon && (
-                                                            <span className="text-[10px] text-amber-600 dark:text-amber-400 font-medium whitespace-nowrap flex items-center gap-0.5">
-                                                                <AlertTriangle className="w-3 h-3" />
-                                                                {daysRemaining === 0 ? "Läuft heute ab" : `${daysRemaining} Tage`}
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                    <p className="text-xs text-muted-foreground/40 mt-0.5 truncate">
-                                                        {employeeName && <span className="text-foreground/70">{employeeName}</span>}
-                                                        {employeeName && draft.updated_at && <span className="mx-1.5 text-border">·</span>}
-                                                        {draft.updated_at && formatDistanceToNow(draft.updated_at)}
-                                                    </p>
-                                                </div>
-
-                                                {/* Subtle arrow — only visible on hover */}
-                                                <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/0 group-hover:text-muted-foreground/60 transition-all -translate-x-1 group-hover:translate-x-0" />
-                                            </Link>
-                                            </MotionListItem>
-                                        );
-                                    })}
-                                </MotionContainer>
-                            ) : hasRecentDocs ? (
-                                <MotionContainer className="divide-y divide-border/10">
-                                    {activity!.recent_documents.slice(0, 3).map((doc, index) => (
-                                        <MotionListItem key={doc.id} index={index} disableInteraction>
-                                        <Link
-                                            to={`/documents/${doc.id}`}
-                                            className="flex items-center gap-4 px-5 py-3.5 hover:bg-warm-50/60 dark:hover:bg-white/[0.03] transition-colors group"
-                                        >
-                                            {/* Left accent — green for completed docs */}
-                                            <div className="w-0.5 self-stretch rounded-full bg-green-400/40 group-hover:bg-green-400/70 transition-colors" />
-
-                                            {/* Content */}
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-sm font-medium text-foreground truncate group-hover:text-primary transition-colors">
-                                                    {doc.document_type_name}
-                                                </p>
-                                                <p className="text-xs text-muted-foreground/40 mt-0.5 truncate">
-                                                    {doc.employee_name && <span className="text-foreground/70">{doc.employee_name}</span>}
-                                                    {doc.employee_name && doc.created_at && <span className="mx-1.5 text-border">·</span>}
-                                                    {doc.created_at && formatDistanceToNow(doc.created_at)}
-                                                </p>
-                                            </div>
-
-                                            {/* Subtle arrow — only visible on hover */}
-                                            <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/0 group-hover:text-muted-foreground/60 transition-all -translate-x-1 group-hover:translate-x-0" />
-                                        </Link>
-                                        </MotionListItem>
-                                    ))}
-                                </MotionContainer>
-                            ) : null}
-                        </div>
-                    </div>
-                )}
             </div>
 
             <DocumentWizardDialog open={wizardOpen} onOpenChange={setWizardOpen} />

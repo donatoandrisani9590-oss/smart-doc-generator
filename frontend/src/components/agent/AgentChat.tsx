@@ -65,6 +65,8 @@ interface AgentChatProps {
   onClauseUpdate?: (enable: number[], disable: number[]) => void;
   onClauseDraft?: (title: string, html: string) => void;
   onSessionCreated?: (sessionId: string) => void;
+  /** Called after each completed message (user send + assistant reply) for external persistence */
+  onMessage?: (role: "user" | "assistant", content: string) => void;
 }
 
 // Tool display configuration
@@ -107,6 +109,7 @@ export function AgentChat({
   onClauseUpdate,
   onClauseDraft,
   onSessionCreated,
+  onMessage,
 }: AgentChatProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
@@ -153,6 +156,7 @@ export function AgentChat({
     const allMessages = [...messages, userMsg];
     setMessages(allMessages);
     setInput("");
+    onMessage?.("user", messageText);
 
     const controller = new AbortController();
     abortRef.current = controller;
@@ -255,12 +259,14 @@ export function AgentChat({
       setError("Verbindungsfehler. Bitte versuchen Sie es erneut.");
       setMessages(prev => prev.filter((_, i) => i < prev.length - 1));
     } finally {
+      // Persist assistant reply after success OR abort — ensures user message in store is never orphaned
+      if (fullText) onMessage?.("assistant", fullText);
       abortRef.current = null;
       setIsStreaming(false);
       scrollRef.current?.scrollIntoView({ behavior: "smooth" });
       inputRef.current?.focus();
     }
-  }, [input, isStreaming, messages, countryCode, teamId, documentTypeId, formData, toneOfVoice, sessionId, onFormUpdate, onClauseUpdate, onClauseDraft, onSessionCreated]);
+  }, [input, isStreaming, messages, countryCode, teamId, documentTypeId, formData, toneOfVoice, sessionId, onFormUpdate, onClauseUpdate, onClauseDraft, onSessionCreated, onMessage]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {

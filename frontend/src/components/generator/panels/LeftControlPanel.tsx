@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/dialog";
 import { useWizardContext } from "../WizardContext";
 import { FormFieldsSection } from "./FormFieldsSection";
+import { DynamicFieldsSection } from "./DynamicFieldsSection";
 import { ClauseSelectionSection } from "./ClauseSelectionSection";
 import { ActionBar } from "./ActionBar";
 import { AttachmentSelector } from "../AttachmentSelector";
@@ -155,6 +156,14 @@ export const LeftControlPanel = ({ documentTypes }: LeftControlPanelProps) => {
                             onMagicFillApplyAll={handleMagicFillApplyAll}
                             onMagicFillDismiss={handleMagicFillDismiss}
                         />
+
+                        {/* Dokumenttyp-spezifische Zusatzfelder */}
+                        {selectedDocumentType && (
+                            <DynamicFieldsSection
+                                documentTypeName={selectedDocumentType.name}
+                                countryCode={documentCountryCode}
+                            />
+                        )}
                     </div>
 
                     {/* Textbausteine - Kompakter Link mit Modal */}
