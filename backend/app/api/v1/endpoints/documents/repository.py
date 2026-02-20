@@ -94,6 +94,10 @@ async def list_documents(
     date_to: Optional[str] = None,
     has_corrections: Optional[bool] = None,
     include_archived: bool = False,  # By default, hide archived docs
+    action_filter: Optional[str] = Query(
+        None,
+        pattern="^(ohne_versand|ruecksendung_ausstehend|wiedervorlage_faellig|freigabe_offen|entwuerfe_ablaufend)$",
+    ),
     # Sorting
     sort_by: str = Query("created_at", pattern="^(created_at|employee_name|document_type|title)$"),
     sort_order: str = Query("desc", pattern="^(asc|desc)$"),
@@ -180,6 +184,59 @@ async def list_documents(
                 )
             )
         filters_applied["has_corrections"] = has_corrections
+
+    # Action-based filtering (Handlungsbedarf-Karten)
+    if action_filter:
+        now = datetime.utcnow()
+        if action_filter == "ohne_versand":
+            action_cond = models.GeneratedDocument.workflow_status == "erstellt"
+            query = query.where(action_cond)
+            count_query = count_query.where(action_cond)
+        elif action_filter == "ruecksendung_ausstehend":
+            doc_ids_sub = select(DocumentAction.document_id).where(
+                and_(
+                    DocumentAction.action_type == "return_pending",
+                    DocumentAction.is_completed == False,  # noqa: E712
+                )
+            )
+            query = query.where(models.GeneratedDocument.id.in_(doc_ids_sub))
+            count_query = count_query.where(models.GeneratedDocument.id.in_(doc_ids_sub))
+        elif action_filter == "wiedervorlage_faellig":
+            doc_ids_sub = select(DocumentAction.document_id).where(
+                and_(
+                    DocumentAction.action_type == "reminder_set",
+                    DocumentAction.is_completed == False,  # noqa: E712
+                    DocumentAction.due_date <= now,
+                )
+            )
+            query = query.where(models.GeneratedDocument.id.in_(doc_ids_sub))
+            count_query = count_query.where(models.GeneratedDocument.id.in_(doc_ids_sub))
+        elif action_filter == "freigabe_offen":
+            doc_ids_sub = select(DocumentAction.document_id).where(
+                and_(
+                    DocumentAction.action_type == "approval_requested",
+                    DocumentAction.is_completed == False,  # noqa: E712
+                )
+            )
+            query = query.where(models.GeneratedDocument.id.in_(doc_ids_sub))
+            count_query = count_query.where(models.GeneratedDocument.id.in_(doc_ids_sub))
+        elif action_filter == "entwuerfe_ablaufend":
+            threshold = now + timedelta(days=30)
+            query = query.where(
+                and_(
+                    models.GeneratedDocument.retention_date.isnot(None),
+                    models.GeneratedDocument.retention_date <= threshold,
+                    models.GeneratedDocument.retention_date > now,
+                )
+            )
+            count_query = count_query.where(
+                and_(
+                    models.GeneratedDocument.retention_date.isnot(None),
+                    models.GeneratedDocument.retention_date <= threshold,
+                    models.GeneratedDocument.retention_date > now,
+                )
+            )
+        filters_applied["action_filter"] = action_filter
 
     # Apply sorting
     sort_column = {

@@ -85,6 +85,15 @@ const getDocTypeColor = (typeName?: string | null) => {
     return DOC_TYPE_COLORS[getDocTypeColorIndex(typeName)];
 };
 
+// Labels für die Handlungsbedarf-Filterkarten
+const ACTION_FILTER_LABELS: Record<string, string> = {
+    ohne_versand: "Ohne Versand",
+    ruecksendung_ausstehend: "Rücksendung ausstehend",
+    wiedervorlage_faellig: "Wiedervorlage fällig",
+    freigabe_offen: "Freigabe offen",
+    entwuerfe_ablaufend: "Entwürfe ablaufend",
+};
+
 export const RepositoryPage = () => {
     const navigate = useNavigate();
     const toast = useToast();
@@ -107,7 +116,13 @@ export const RepositoryPage = () => {
     const [activeFilter, setActiveFilter] = useState<"all" | "draft" | "completed" | "corrections">("all");
     const [actionFilter, setActionFilter] = useState<string | null>(null);
 
-    const { data: repository, isLoading: loadingDocs, refetch } = useRepository(filters);
+    // Merge actionFilter into API filters
+    const effectiveFilters = useMemo((): RepositoryFilters => {
+        if (!actionFilter) return filters;
+        return { ...filters, action_filter: actionFilter, page: 1 };
+    }, [filters, actionFilter]);
+
+    const { data: repository, isLoading: loadingDocs, refetch } = useRepository(effectiveFilters);
     const { data: stats } = useRepositoryStats();
     const { data: documentTypes } = useDocumentTypes();
     const { data: drafts, isLoading: loadingDrafts } = useDrafts();
@@ -170,13 +185,18 @@ export const RepositoryPage = () => {
 
     // Filter by active status card
     const filteredItems = useMemo(() => {
+        // When an action filter is active, only show documents (not drafts)
+        // because action filters apply to workflow-tracked documents only
+        if (actionFilter) {
+            return unifiedItems.filter(i => i.type === "document");
+        }
         switch (activeFilter) {
             case "draft": return unifiedItems.filter(i => i.type === "draft");
             case "completed": return unifiedItems.filter(i => i.type === "document");
             case "corrections": return unifiedItems.filter(i => i.type === "document" && i.is_correctable);
             default: return unifiedItems;
         }
-    }, [unifiedItems, activeFilter]);
+    }, [unifiedItems, activeFilter, actionFilter]);
 
     // Toggle selection
     const toggleSelect = (id: number) => {
@@ -211,6 +231,7 @@ export const RepositoryPage = () => {
             sort_by: "created_at",
             sort_order: "desc",
         });
+        setActionFilter(null);
         setSelectedIds([]);
     };
 
@@ -293,7 +314,8 @@ export const RepositoryPage = () => {
         filters.employee_name ||
         filters.date_from ||
         filters.date_to ||
-        filters.has_corrections !== undefined
+        filters.has_corrections !== undefined ||
+        actionFilter
     );
 
     // Feature disabled state - redirect to dashboard
@@ -346,8 +368,29 @@ export const RepositoryPage = () => {
             {/* Action Summary Cards (Phase 3 — Handlungsbedarf) */}
             <ActionSummaryCards
                 activeFilter={actionFilter}
-                onFilterChange={setActionFilter}
+                onFilterChange={(filter) => {
+                    setActionFilter(filter);
+                    // Reset tab filter — action filters apply across all docs
+                    if (filter) setActiveFilter("all");
+                }}
             />
+
+            {/* Active Action-Filter Banner */}
+            {actionFilter && (
+                <div className="flex items-center gap-3 px-4 py-2.5 bg-primary/5 rounded-xl shadow-[var(--shadow-soft)] animate-in fade-in slide-in-from-top-1">
+                    <Filter className="w-4 h-4 text-primary shrink-0" />
+                    <span className="text-sm text-foreground">
+                        Gefiltert nach: <strong>{ACTION_FILTER_LABELS[actionFilter] ?? actionFilter}</strong>
+                    </span>
+                    <button
+                        onClick={() => setActionFilter(null)}
+                        className="ml-auto flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                        <X className="w-3.5 h-3.5" />
+                        Filter entfernen
+                    </button>
+                </div>
+            )}
 
             {/* Search - SimpleDocs Style */}
             <div className="card-soft p-4">
