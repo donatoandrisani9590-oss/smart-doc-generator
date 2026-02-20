@@ -1,272 +1,210 @@
 /**
- * Dashboard - Clean & Focused Design
+ * Dashboard — Ive-Inspired Widget Grid
  *
- * - Hero Banner with greeting, stats, search & primary actions
- * - Single-column layout for clarity
- * - Widgets only shown when they have data
+ * Breathing light-gray canvas (#F5F5F7) with floating white widget cards.
+ * No hero banner. Pure typography greeting. Conditional action stats.
+ * Grid: 1 col mobile → 3 col tablet → 4 col desktop.
  */
 
 import { useState, useEffect } from "react";
-import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
+import { useNavigate } from "react-router-dom";
 import {
-    Sparkles,
-    Search,
-    ChevronRight,
+  FileBarChart,
+  FileStack,
+  Files,
+  MailX,
+  RotateCcw,
+  CalendarClock,
+  ShieldCheck,
+  Timer,
 } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
-import { useDashboardStats, useClauses, useDocumentTypes } from "@/hooks/useApi";
-import { DocumentWizardDialog } from "@/components/dashboard/DocumentWizardDialog";
-import { QuickTemplates } from "@/components/dashboard/QuickTemplates";
-import { DocumentWizardChat } from "@/components/chat/DocumentWizardChat";
-import { DeadlinesWidget } from "@/components/dashboard/DeadlinesWidget";
-import { ApprovalRequestsWidget } from "@/components/dashboard/ApprovalRequestsWidget";
-import { EmailDraftsWidget } from "@/components/dashboard/EmailDraftsWidget";
-import { ActionSummaryCards } from "@/components/documents/ActionSummaryCards";
-
-import { OnboardingBanner } from "@/components/dashboard/OnboardingBanner";
-
-
 import { useAuth } from "@/contexts/AuthContext";
-import { useFeatureEnabled } from "@/hooks/useFeatureSettings";
+import { useDashboardStats, useDocumentTypes } from "@/hooks/useApi";
+import { useClauses } from "@/hooks/useApi";
 import { api } from "@/lib/api-client";
+import { CommandCenter } from "@/components/dashboard/CommandCenter";
+import { StatWidget } from "@/components/dashboard/StatWidget";
+import { ActionStatWidget } from "@/components/dashboard/ActionStatWidget";
+import { OnboardingRing } from "@/components/dashboard/OnboardingRing";
+import { QuickTemplatesGrid } from "@/components/dashboard/QuickTemplatesGrid";
+import { RecentDrafts } from "@/components/dashboard/RecentDrafts";
 
-// Greeting based on time of day
+// ── Helpers (unchanged from original) ────────────────────────────────────
+
 const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return "Guten Morgen";
-    if (hour < 18) return "Guten Tag";
-    return "Guten Abend";
+  const hour = new Date().getHours();
+  if (hour < 12) return "Guten Morgen";
+  if (hour < 18) return "Guten Tag";
+  return "Guten Abend";
 };
 
-// Extract first name from email (e.g. "donato.andrisani@..." → "Donato")
 const getFirstName = (email: string): string | null => {
-    const name = email.split("@")[0];
-    const parts = name.split(/[._-]/);
-    if (parts.length > 0 && parts[0].length > 1) {
-        return parts[0].charAt(0).toUpperCase() + parts[0].slice(1);
-    }
-    return null;
+  const name = email.split("@")[0];
+  const parts = name.split(/[._-]/);
+  if (parts.length > 0 && parts[0].length > 1) {
+    return parts[0].charAt(0).toUpperCase() + parts[0].slice(1);
+  }
+  return null;
 };
+
+// ── Action Summary Types ─────────────────────────────────────────────────
+
+interface ActionSummaryResponse {
+  ohne_versand: number;
+  ruecksendung_ausstehend: number;
+  wiedervorlage_faellig: number;
+  freigabe_offen: number;
+  entwuerfe_ablaufend: number;
+}
+
+const ACTION_STATS = [
+  { key: "ohne_versand" as const, label: "Ohne Versand", icon: MailX, accent: "bg-amber-500" },
+  { key: "ruecksendung_ausstehend" as const, label: "Rücksendung ausstehend", icon: RotateCcw, accent: "bg-blue-500" },
+  { key: "wiedervorlage_faellig" as const, label: "Wiedervorlage fällig", icon: CalendarClock, accent: "bg-red-500" },
+  { key: "freigabe_offen" as const, label: "Freigabe offen", icon: ShieldCheck, accent: "bg-purple-500" },
+  { key: "entwuerfe_ablaufend" as const, label: "Entwürfe ablaufend", icon: Timer, accent: "bg-warm-400" },
+];
+
+// ── Component ────────────────────────────────────────────────────────────
 
 export const Dashboard = () => {
-    const { user } = useAuth();
-    const { data: stats, isLoading: statsLoading } = useDashboardStats();
-    const { data: clauses } = useClauses();
-    const { data: documentTypes } = useDocumentTypes();
-    const [searchQuery, setSearchQuery] = useState("");
-    const [wizardOpen, setWizardOpen] = useState(false);
-    const [pendingApprovals, setPendingApprovals] = useState(0);
-    const [overdueDeadlines, setOverdueDeadlines] = useState(0);
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { data: stats, isLoading: statsLoading } = useDashboardStats();
+  const { data: clauses } = useClauses();
+  const { data: documentTypes } = useDocumentTypes();
 
-    const emailIngestEnabled = useFeatureEnabled("enable_email_ingest");
+  const [actionSummary, setActionSummary] = useState<ActionSummaryResponse | null>(null);
+  const [onboardingDismissed, setOnboardingDismissed] = useState(
+    () => localStorage.getItem("onboarding-dismissed") === "true"
+  );
 
-    const [onboardingDismissed, setOnboardingDismissed] = useState(() =>
-        localStorage.getItem("onboarding-dismissed") === "true"
-    );
-    const navigate = useNavigate();
+  const firstName = user ? getFirstName(user.email) : null;
 
-    const firstName = user ? getFirstName(user.email) : null;
+  // Fetch action summary for conditional stat cards
+  useEffect(() => {
+    api.get<ActionSummaryResponse>("/api/v1/repository/action-summary")
+      .then(({ data }) => setActionSummary(data))
+      .catch(() => {});
+  }, []);
 
-    // Fetch lightweight counts for greeting subtitle
-    useEffect(() => {
-        api.get<{ clauses: unknown[]; total: number }>("/api/v1/clause-approval/pending")
-            .then(({ data }) => setPendingApprovals(data.total))
-            .catch(() => {});
-        api.get<{ overdue_count: number }>("/api/v1/deadlines/summary")
-            .then(({ data }) => setOverdueDeadlines(data.overdue_count))
-            .catch(() => {});
-    }, []);
+  const handleDismissOnboarding = () => {
+    setOnboardingDismissed(true);
+    localStorage.setItem("onboarding-dismissed", "true");
+  };
 
-    const isLoading = statsLoading;
-    const openDrafts = stats?.open_drafts ?? 0;
-    const totalOpenTasks = openDrafts + pendingApprovals + overdueDeadlines;
-    const hasPendingTasks = totalOpenTasks > 0;
-    const hasNoDocumentTypes = !isLoading && (documentTypes?.length ?? 0) === 0;
+  const showOnboarding = !onboardingDismissed && !statsLoading;
+  const hasDocTypes = (documentTypes?.length ?? 0) > 0;
 
-    // Onboarding: Prüfe ob Ersteinrichtung abgeschlossen
-    const showOnboarding = !onboardingDismissed && !isLoading;
-    const handleDismissOnboarding = () => {
-        setOnboardingDismissed(true);
-        localStorage.setItem("onboarding-dismissed", "true");
-    };
+  // Compute greeting subtitle
+  const openDrafts = stats?.open_drafts ?? 0;
+  const subtitle = !hasDocTypes
+    ? "Richte deine erste Dokumentvorlage ein"
+    : openDrafts > 0
+      ? `Du hast ${openDrafts} offene ${openDrafts === 1 ? "Entwurf" : "Entwürfe"}`
+      : "Alles erledigt — Zeit für neue Projekte!";
 
-    const handleSearch = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (searchQuery.trim()) {
-            navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
-        }
-    };
+  return (
+    <div className="animate-enter">
+      {/* ── Canvas Container ── */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 py-8 space-y-8">
 
-    return (
-        <div className="space-y-8 animate-enter">
-            {/* ── Hero Banner ── */}
-            <div className="bg-hero-gradient rounded-2xl px-8 py-6 text-white relative overflow-hidden shadow-hero">
-                {/* Decorative overlay */}
-                <div
-                    className="absolute inset-0 opacity-10 pointer-events-none"
-                    style={{
-                        backgroundImage:
-                            "radial-gradient(circle at 20% 50%, rgba(255,255,255,0.3) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(110,189,132,0.3) 0%, transparent 50%)",
-                    }}
-                />
-                <div className="relative z-10">
-                    <div>
-                        <h1 className="text-3xl font-semibold tracking-tight text-white">
-                            {getGreeting()}{firstName ? `, ${firstName}` : ""}
-                        </h1>
-                        <p className="text-white/70 mt-2 text-lg font-light">
-                            {hasNoDocumentTypes
-                                ? "Richte deine erste Dokumentvorlage ein"
-                                : hasPendingTasks
-                                ? `Du hast ${totalOpenTasks} offene ${totalOpenTasks === 1 ? "Aufgabe" : "Aufgaben"}`
-                                : "Alles erledigt \u2014 Zeit für neue Projekte!"}
-                        </p>
-                        {/* Quick inline stats */}
-                        <div className="flex gap-8 mt-5">
-                            <div>
-                                {isLoading ? (
-                                    <Skeleton className="h-8 w-10 bg-white/20 rounded" />
-                                ) : (
-                                    <p className="text-3xl font-light tracking-tight">
-                                        {stats?.documents_this_month ?? 0}
-                                    </p>
-                                )}
-                                <p className="text-[11px] text-white/50 uppercase tracking-wider mt-1">
-                                    Diesen Monat
-                                </p>
-                            </div>
-                            <div>
-                                {isLoading ? (
-                                    <Skeleton className="h-8 w-10 bg-white/20 rounded" />
-                                ) : (
-                                    <p className="text-3xl font-light tracking-tight">
-                                        {stats?.open_drafts ?? 0}
-                                    </p>
-                                )}
-                                <p className="text-[11px] text-white/50 uppercase tracking-wider mt-1">
-                                    Offen
-                                </p>
-                            </div>
-                            <div>
-                                {isLoading ? (
-                                    <Skeleton className="h-8 w-10 bg-white/20 rounded" />
-                                ) : (
-                                    <p className="text-3xl font-light tracking-tight">
-                                        {stats?.documents_total ?? 0}
-                                    </p>
-                                )}
-                                <p className="text-[11px] text-white/50 uppercase tracking-wider mt-1">
-                                    Gesamt
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Search Bar inside Hero */}
-                    <form onSubmit={handleSearch} className="mt-6">
-                        <div className="relative group max-w-2xl">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-white/70 group-focus-within:text-white/90 transition-colors" />
-                            <Input
-                                type="text"
-                                placeholder="Dokumente, Vorlagen oder Personen suchen..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="pl-11 h-11 bg-white/10 text-white placeholder:text-white/40 focus-visible:!shadow-[inset_0_-2px_0_0_rgba(255,255,255,0.5)] shadow-[inset_0_-1px_0_0_rgba(255,255,255,0.2)] transition-all rounded-xl text-sm"
-                                data-global-search
-                            />
-                            {searchQuery.trim() && (
-                                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-white/70 bg-white/10 px-2 py-0.5 rounded">
-                                    Enter ↵
-                                </span>
-                            )}
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            {/* ── Onboarding Banner ── */}
-            {showOnboarding && (
-                <OnboardingBanner
-                    clauseCount={clauses?.length ?? 0}
-                    documentTypeCount={documentTypes?.length ?? 0}
-                    hasCompanyData={(stats?.documents_total ?? 0) > 0 || (documentTypes?.length ?? 0) > 0}
-                    hasLogo={false}
-                    onDismiss={handleDismissOnboarding}
-                />
-            )}
-
-            {/* ── Main Content (single column) ── */}
-            <div className="space-y-8">
-                {/* Quick Templates - nur anzeigen wenn Dokumenttypen vorhanden */}
-                {!hasNoDocumentTypes && <QuickTemplates />}
-
-                {/* AI Document Creation - nur anzeigen wenn Dokumenttypen vorhanden */}
-                {!hasNoDocumentTypes && (
-                <div className="ive-card p-6 relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none group-hover:opacity-10 transition-opacity">
-                        <Sparkles className="w-32 h-32" />
-                    </div>
-                    <div className="flex items-center gap-4 mb-4 relative z-10">
-                        <div className="p-3 bg-primary/10 rounded-xl">
-                            <Sparkles className="w-6 h-6 text-primary" />
-                        </div>
-                        <div className="flex-1">
-                            <h2 className="text-xl font-semibold tracking-tight text-foreground">KI-Dokumentassistent</h2>
-                            <p className="text-sm text-muted-foreground">
-                                Beschreibe, welches Dokument du benötigst — die KI führt dich durch den Prozess.
-                            </p>
-                        </div>
-                        <Link
-                            to="/agent"
-                            className="flex items-center gap-1.5 text-xs text-primary hover:underline font-medium"
-                        >
-                            Vollansicht
-                            <ChevronRight className="w-3 h-3" />
-                        </Link>
-                    </div>
-                    <div className="relative z-10">
-                        <DocumentWizardChat
-                            compact
-                            onCreateDocument={(docType, initialData) => {
-                                const params = new URLSearchParams();
-                                params.set("type", docType);
-                                if (Object.keys(initialData).length > 0) {
-                                    params.set("data", JSON.stringify(initialData));
-                                }
-                                navigate(`/generate?${params.toString()}`);
-                            }}
-                        />
-                    </div>
-                </div>
-                )}
-
-                {/* Action Summary — Handlungsbedarf auf einen Blick */}
-                {!hasNoDocumentTypes && (
-                    <ActionSummaryCards
-                        onFilterChange={(filter) => {
-                            if (filter) {
-                                navigate(`/documents?action=${filter}`);
-                            } else {
-                                navigate("/documents");
-                            }
-                        }}
-                    />
-                )}
-
-                {/* Widgets Row - only renders when widgets have data */}
-                <div className="grid gap-6 md:grid-cols-2">
-                    <DeadlinesWidget limit={4} showStats={true} />
-                    <ApprovalRequestsWidget limit={3} />
-                </div>
-
-                {/* Email-to-Draft Widget - only when feature is enabled */}
-                {emailIngestEnabled && <EmailDraftsWidget />}
-
-            </div>
-
-            <DocumentWizardDialog open={wizardOpen} onOpenChange={setWizardOpen} />
-
+        {/* ── Greeting (no card, pure typography) ── */}
+        <div>
+          <h1 className="text-3xl font-semibold tracking-tight text-[#1D1D1F] dark:text-foreground">
+            {getGreeting()}{firstName ? `, ${firstName}` : ""}
+          </h1>
+          <p className="text-base text-[#86868B] dark:text-muted-foreground mt-1">
+            {subtitle}
+          </p>
         </div>
-    );
+
+        {/* ── Widget Grid ── */}
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-5">
+
+          {/* Command Center — full width */}
+          <div className="col-span-1 md:col-span-3 lg:col-span-4">
+            <CommandCenter />
+          </div>
+
+          {/* Base Stats — always visible */}
+          <StatWidget
+            value={stats?.documents_this_month ?? 0}
+            label="Diesen Monat"
+            icon={FileBarChart}
+            loading={statsLoading}
+          />
+          <StatWidget
+            value={stats?.open_drafts ?? 0}
+            label="Offen"
+            icon={FileStack}
+            loading={statsLoading}
+            onClick={() => navigate("/documents?status=draft")}
+          />
+          <StatWidget
+            value={stats?.documents_total ?? 0}
+            label="Gesamt"
+            icon={Files}
+            loading={statsLoading}
+            onClick={() => navigate("/documents")}
+          />
+
+          {/* Onboarding OR 4th stat fills the remaining column */}
+          {showOnboarding ? (
+            <OnboardingRing
+              clauseCount={clauses?.length ?? 0}
+              documentTypeCount={documentTypes?.length ?? 0}
+              hasCompanyData={(stats?.documents_total ?? 0) > 0 || (documentTypes?.length ?? 0) > 0}
+              hasLogo={false}
+              onDismiss={handleDismissOnboarding}
+            />
+          ) : (
+            // If no onboarding, render the first non-zero action stat here (if any)
+            actionSummary && (() => {
+              const first = ACTION_STATS.find((a) => (actionSummary[a.key] ?? 0) > 0);
+              if (!first) return null;
+              return (
+                <ActionStatWidget
+                  value={actionSummary[first.key]}
+                  label={first.label}
+                  icon={first.icon}
+                  accentColor={first.accent}
+                  onClick={() => navigate(`/documents?action=${first.key}`)}
+                />
+              );
+            })()
+          )}
+
+          {/* Remaining action stats (skip the one already placed above) */}
+          {actionSummary && ACTION_STATS
+            .filter((a) => (actionSummary[a.key] ?? 0) > 0)
+            .filter((_, i) => showOnboarding || i > 0) // skip first if used above
+            .map((a) => (
+              <ActionStatWidget
+                key={a.key}
+                value={actionSummary[a.key]}
+                label={a.label}
+                icon={a.icon}
+                accentColor={a.accent}
+                onClick={() => navigate(`/documents?action=${a.key}`)}
+              />
+            ))
+          }
+
+          {/* Quick Templates — 2 cols */}
+          {hasDocTypes && (
+            <div className="col-span-1 md:col-span-2 lg:col-span-2">
+              <QuickTemplatesGrid />
+            </div>
+          )}
+
+          {/* Recent Drafts — 2 cols */}
+          <div className="col-span-1 md:col-span-1 lg:col-span-2">
+            <RecentDrafts />
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
 };
