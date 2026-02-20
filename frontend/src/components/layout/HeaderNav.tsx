@@ -94,8 +94,13 @@ export const HeaderNav = () => {
                     {/* New Document CTA */}
                     <Button
                         size="sm"
-                        className="hidden sm:flex gap-2 rounded-full px-4 h-8 text-[12px] shadow-[var(--shadow-elevated)]"
+                        className={cn(
+                            "hidden sm:flex gap-2 rounded-full px-4 h-8 text-[12px] shadow-[var(--shadow-elevated)]",
+                            pathname === "/generate" && "opacity-50 cursor-not-allowed pointer-events-none"
+                        )}
                         onClick={() => navigate("/generate")}
+                        disabled={pathname === "/generate"}
+                        aria-disabled={pathname === "/generate"}
                     >
                         <PlusCircle className="w-3.5 h-3.5" />
                         <span className="hidden md:inline">Neues Dokument</span>
@@ -158,7 +163,13 @@ export const HeaderNav = () => {
                             <Link
                                 to="/generate"
                                 onClick={() => setMobileMenuOpen(false)}
-                                className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-primary"
+                                className={cn(
+                                    "flex items-center gap-2 px-4 py-3 text-sm font-medium",
+                                    pathname === "/generate"
+                                        ? "text-primary/40 pointer-events-none"
+                                        : "text-primary"
+                                )}
+                                aria-disabled={pathname === "/generate"}
                             >
                                 <PlusCircle className="w-4 h-4" />
                                 Neues Dokument
