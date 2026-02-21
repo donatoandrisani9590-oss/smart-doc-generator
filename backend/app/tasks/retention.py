@@ -8,7 +8,7 @@ Implementiert gemäß v4.2 Spezifikation:
 import asyncio
 import os
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from sqlalchemy import select, delete
 from app.db import async_session_factory
 from app.models.enterprise import GeneratedDocument, RetentionPolicy, DocumentDraft
@@ -23,7 +23,7 @@ DEFAULT_DRAFT_TTL_DAYS = 30
 async def _run_retention_logic():
     async with async_session_factory() as db:
         # 1. Find documents past retention date that are not yet deleted
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         stmt = select(GeneratedDocument).where(
             GeneratedDocument.retention_date < now,
             GeneratedDocument.is_deleted == False
@@ -76,7 +76,7 @@ async def _run_draft_cleanup(ttl_days: int = DEFAULT_DRAFT_TTL_DAYS):
     - Automatische Bereinigung ohne Benutzerinteraktion
     """
     async with async_session_factory() as db:
-        cutoff_date = datetime.utcnow() - timedelta(days=ttl_days)
+        cutoff_date = datetime.now(timezone.utc) - timedelta(days=ttl_days)
 
         # Finde alle Drafts, die seit TTL nicht aktualisiert wurden
         stmt = select(DocumentDraft).where(
@@ -157,7 +157,7 @@ def run_all_cleanup_tasks():
     results = {
         "retention": None,
         "drafts": None,
-        "timestamp": datetime.utcnow().isoformat()
+        "timestamp": datetime.now(timezone.utc).isoformat()
     }
 
     # Retention Policies

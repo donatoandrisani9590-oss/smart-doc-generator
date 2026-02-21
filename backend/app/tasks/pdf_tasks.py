@@ -11,7 +11,7 @@ import os
 import subprocess
 import logging
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timezone
 import json
 
 logger = logging.getLogger(__name__)
@@ -46,7 +46,7 @@ def update_pdf_job_status(
         redis_client = get_redis_client()
         job_data = {
             "status": status,
-            "updated_at": datetime.utcnow().isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat(),
         }
         if output_path:
             job_data["output_path"] = output_path
