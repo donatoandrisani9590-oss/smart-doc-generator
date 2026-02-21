@@ -542,7 +542,12 @@
 
   /* ── True-Fidelity Canvas: Paper & Desk ── */
   .canvas-desk {
-    background: var(--canvas-desk);
+    background-color: var(--canvas-desk);
+    background-image: radial-gradient(
+      ellipse at 50% 40%,
+      rgba(255, 255, 255, 0.4) 0%,
+      transparent 70%
+    );
   }
 
   .canvas-paper {
@@ -550,8 +555,9 @@
     min-height: 297mm;
     padding: 25mm 20mm;
     background: var(--canvas-paper);
-    border-radius: 4px;
+    border-radius: 0.5rem;
     box-shadow: var(--shadow-canvas-paper);
+    outline: 1px solid rgba(0, 0, 0, 0.02);
     margin: 2rem auto;
     color: var(--canvas-text);
     font-family: Arial, sans-serif;
@@ -673,6 +679,20 @@
   }
   .dark .bubble-separator {
     background: rgba(255, 255, 255, 0.1);
+  }
+
+  /* Floating panel shadow — elevated FAB-style depth */
+  .shadow-float {
+    box-shadow:
+      0 0 0 0.5px rgba(0, 0, 0, 0.04),
+      0 4px 12px rgba(0, 0, 0, 0.06),
+      0 12px 32px rgba(0, 0, 0, 0.08);
+  }
+  .dark .shadow-float {
+    box-shadow:
+      0 0 0 0.5px rgba(255, 255, 255, 0.06),
+      0 4px 12px rgba(0, 0, 0, 0.2),
+      0 12px 32px rgba(0, 0, 0, 0.25);
   }
 
   /* Ive section header — quiet uppercase label */

@@ -174,7 +174,7 @@ export const RightEditorPanel = () => {
             )}
 
             {/* Editor Container - A4 Paper on clean desk */}
-            <div className="flex-1 overflow-auto bg-transparent p-4 md:p-6 lg:p-8 pb-10 md:pb-12 lg:pb-16">
+            <div className="flex-1 overflow-auto bg-transparent p-6 md:p-8 lg:p-12 pb-24 md:pb-28 lg:pb-32">
                 {isPreviewLoading && !displayContent ? (
                     <div className="flex items-center justify-center h-full">
                         <div className="text-center space-y-3">
