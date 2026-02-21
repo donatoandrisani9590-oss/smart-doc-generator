@@ -19,6 +19,7 @@ import { TONE_LEVELS, type ToneLevel } from "../ToneCards";
 import { apiStreamSSE } from "@/lib/api-stream";
 import { FullDocumentPreview, type DocumentZones } from "@/components/editor/FullDocumentPreview";
 import { useDesignSettings } from "@/hooks/api/useDocumentTypeQueries";
+import { EditorActionPanel } from "./EditorActionPanel";
 
 export const RightEditorPanel = () => {
     const { state, actions } = useWizardContext();
@@ -245,6 +246,9 @@ export const RightEditorPanel = () => {
                     />
                 )}
             </div>
+
+            {/* Floating Action Panel */}
+            <EditorActionPanel />
         </div>
     );
 };
