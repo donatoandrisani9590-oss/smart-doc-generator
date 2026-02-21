@@ -123,6 +123,63 @@ async def get_document_type(
     return doc_type
 
 
+@router.get("/{document_type_id}/template")
+async def get_document_type_template(
+    document_type_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[models.Base, Depends(deps.get_current_user)],
+) -> Any:
+    """
+    Return raw HTML template with {{mustache}} placeholders for client-side rendering.
+
+    Assembles all active clauses (ordered by display_order) into a single
+    HTML template WITHOUT replacing placeholders, so the frontend can use
+    Mustache.js for instant form-to-document binding.
+    """
+    # Load document type with clause assignments
+    query = select(models.DocumentType).options(
+        selectinload(models.DocumentType.clauses)
+    ).where(models.DocumentType.id == document_type_id)
+
+    result = await db.execute(query)
+    doc_type = result.scalar_one_or_none()
+
+    if not doc_type:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Dokumenttyp nicht gefunden"
+        )
+
+    # Load full clause data for each assignment
+    clause_refs = sorted(doc_type.clauses, key=lambda c: c.display_order)
+    clause_templates = {}
+    assembled_html_parts = []
+
+    for ref in clause_refs:
+        clause = await db.get(models.Clause, ref.clause_id)
+        if not clause or not clause.is_active or not clause.content_html:
+            continue
+
+        clause_templates[ref.clause_id] = {
+            "html": clause.content_html,
+            "title": clause.title,
+            "clause_type": ref.clause_type,
+            "is_mandatory": ref.is_mandatory,
+            "is_default_selected": ref.is_default_selected,
+            "condition": json.loads(ref.condition) if ref.condition else None,
+            "display_order": ref.display_order,
+        }
+        assembled_html_parts.append(clause.content_html)
+
+    return {
+        "html_template": "\n".join(assembled_html_parts),
+        "clause_templates": clause_templates,
+        "document_type_name": doc_type.name,
+        "category": doc_type.category,
+        "country_code": doc_type.country_code,
+    }
+
+
 @router.get("/{document_type_id}/with-variant-groups")
 async def get_document_type_with_variant_groups(
     document_type_id: int,

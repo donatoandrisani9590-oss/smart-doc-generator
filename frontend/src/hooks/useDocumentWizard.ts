@@ -27,6 +27,7 @@ import {
     useWizardComments,
     useWizardExport,
 } from "./wizard";
+import { useClientRenderer } from "./wizard/useClientRenderer";
 import { useAuth } from "@/contexts/AuthContext";
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -77,6 +78,28 @@ export function useDocumentWizard(initialDraftId?: number): WizardContextValue {
         documentClauses: clauses.documentClauses,
         selectedVariants: clauses.selectedVariants,
     });
+
+    // ── 5b. Client-Side Template Renderer ──────────────────────────────────
+
+    const clientRenderer = useClientRenderer();
+
+    // Fetch template when document type changes
+    useEffect(() => {
+        if (!form.documentTypeId) return;
+        const fetchTemplate = async () => {
+            try {
+                const response = await apiFetch(`/api/v1/document-types/${form.documentTypeId}/template`);
+                if (response.ok) {
+                    const data = await response.json();
+                    clientRenderer.setTemplateData(data);
+                }
+            } catch {
+                // Fall back to server preview if template endpoint fails
+            }
+        };
+        fetchTemplate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only refetch on documentTypeId change
+    }, [form.documentTypeId]);
 
     // ── 6. Drafts + Auto-Save ───────────────────────────────────────────────
 
@@ -207,12 +230,31 @@ export function useDocumentWizard(initialDraftId?: number): WizardContextValue {
         setHasLocalEdits(false);
     }, [form.formData.vertragsart]);
 
-    // Sync previewHtml -> editorContent when no manual edits
+    // Client-side rendering: instant form-to-editor sync
     useEffect(() => {
-        if (preview.previewHtml && !hasLocalEdits) {
+        if (hasLocalEdits) return;
+
+        if (clientRenderer.isReady) {
+            // Instant client-side render
+            const html = clientRenderer.renderWithPlaceholders(
+                form.formData as unknown as Record<string, unknown>,
+                clauses.documentClauses,
+                form.dynamicFormValues,
+            );
+            if (html) {
+                setEditorContentState(html);
+            }
+        } else if (preview.previewHtml) {
+            // Fallback to server preview
             setEditorContentState(preview.previewHtml);
         }
-    }, [preview.previewHtml, hasLocalEdits]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional deps for client rendering
+    }, [
+        form.formData, form.dynamicFormValues,
+        clauses.documentClauses,
+        clientRenderer.isReady, clientRenderer.renderWithPlaceholders,
+        preview.previewHtml, hasLocalEdits,
+    ]);
 
     const toggleCommentSidebar = useCallback(() => {
         setShowCommentSidebar(prev => !prev);
