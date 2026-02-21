@@ -91,34 +91,43 @@ async def get_dashboard_stats(
     month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
     last_month_start = (month_start - timedelta(days=1)).replace(day=1)
 
-    # Use user's country_code if not specified
+    # Use user's country_code if explicitly specified
     if not country_code:
-        country_code = getattr(current_user, 'country_code', 'DE')
+        country_code = getattr(current_user, 'country_code', None)
+
+    user_id_str = str(current_user.id)
+    is_admin = getattr(current_user, "role", "user") == "admin"
+
+    # Base filters for the user's own documents (consistent with action-summary)
+    base_doc_filters = [
+        models.GeneratedDocument.is_deleted == False,
+        models.GeneratedDocument.is_archived == False,
+    ]
+    if not is_admin:
+        base_doc_filters.append(models.GeneratedDocument.created_by_id == current_user.id)
+    if country_code:
+        base_doc_filters.append(models.GeneratedDocument.country_code == country_code)
 
     # ═══════════════════════════════════════════════════════════════════════════
     # DOCUMENT COUNTS
     # ═══════════════════════════════════════════════════════════════════════════
 
-    # Documents this month (exclude deleted and archived)
+    # Documents this month (user's own, exclude deleted and archived)
     docs_this_month_query = select(func.count(models.GeneratedDocument.id)).where(
         and_(
-            models.GeneratedDocument.country_code == country_code,
+            *base_doc_filters,
             models.GeneratedDocument.created_at >= month_start,
-            models.GeneratedDocument.is_deleted == False,
-            models.GeneratedDocument.is_archived == False,
         )
     )
     docs_this_month_result = await db.execute(docs_this_month_query)
     documents_this_month = docs_this_month_result.scalar() or 0
 
-    # Documents last month (for comparison, exclude deleted and archived)
+    # Documents last month (for comparison)
     docs_last_month_query = select(func.count(models.GeneratedDocument.id)).where(
         and_(
-            models.GeneratedDocument.country_code == country_code,
+            *base_doc_filters,
             models.GeneratedDocument.created_at >= last_month_start,
             models.GeneratedDocument.created_at < month_start,
-            models.GeneratedDocument.is_deleted == False,
-            models.GeneratedDocument.is_archived == False,
         )
     )
     docs_last_month_result = await db.execute(docs_last_month_query)
@@ -130,25 +139,27 @@ async def get_dashboard_stats(
     else:
         change_percent = 100.0 if documents_this_month > 0 else 0.0
 
-    # Total documents (exclude deleted)
+    # Total documents (user's own, exclude deleted — include archived)
+    total_doc_filters = [
+        models.GeneratedDocument.is_deleted == False,
+    ]
+    if not is_admin:
+        total_doc_filters.append(models.GeneratedDocument.created_by_id == current_user.id)
+    if country_code:
+        total_doc_filters.append(models.GeneratedDocument.country_code == country_code)
+
     total_docs_query = select(func.count(models.GeneratedDocument.id)).where(
-        and_(
-            models.GeneratedDocument.country_code == country_code,
-            models.GeneratedDocument.is_deleted == False,
-        )
+        and_(*total_doc_filters)
     )
     total_docs_result = await db.execute(total_docs_query)
     documents_total = total_docs_result.scalar() or 0
 
     # ═══════════════════════════════════════════════════════════════════════════
-    # DRAFTS
+    # DRAFTS (no country_code filter — consistent with my-activity endpoint)
     # ═══════════════════════════════════════════════════════════════════════════
 
     drafts_query = select(func.count(models.DocumentDraft.id)).where(
-        and_(
-            models.DocumentDraft.country_code == country_code,
-            models.DocumentDraft.user_id == str(current_user.id),
-        )
+        models.DocumentDraft.user_id == user_id_str,
     )
     drafts_result = await db.execute(drafts_query)
     open_drafts = drafts_result.scalar() or 0
@@ -174,6 +185,16 @@ async def get_dashboard_stats(
 
     thirty_days_ago = now - timedelta(days=30)
 
+    top_types_filters = [
+        models.GeneratedDocument.created_at >= thirty_days_ago,
+        models.GeneratedDocument.is_deleted == False,
+        models.GeneratedDocument.is_archived == False,
+    ]
+    if not is_admin:
+        top_types_filters.append(models.GeneratedDocument.created_by_id == current_user.id)
+    if country_code:
+        top_types_filters.append(models.GeneratedDocument.country_code == country_code)
+
     top_types_query = (
         select(
             models.GeneratedDocument.document_type_id,
@@ -181,14 +202,7 @@ async def get_dashboard_stats(
             func.count(models.GeneratedDocument.id).label('count')
         )
         .join(models.DocumentType, models.GeneratedDocument.document_type_id == models.DocumentType.id)
-        .where(
-            and_(
-                models.GeneratedDocument.country_code == country_code,
-                models.GeneratedDocument.created_at >= thirty_days_ago,
-                models.GeneratedDocument.is_deleted == False,
-                models.GeneratedDocument.is_archived == False,
-            )
-        )
+        .where(and_(*top_types_filters))
         .group_by(models.GeneratedDocument.document_type_id, models.DocumentType.name)
         .order_by(func.count(models.GeneratedDocument.id).desc())
         .limit(5)
@@ -217,11 +231,11 @@ async def get_dashboard_stats(
     ninety_days_ago = now - timedelta(days=90)
 
     # Get all active clauses
+    clause_filters = [models.Clause.is_active == True]
+    if country_code:
+        clause_filters.append(models.Clause.country_code == country_code)
     all_clauses_query = select(func.count(models.Clause.id)).where(
-        and_(
-            models.Clause.country_code == country_code,
-            models.Clause.is_active == True,
-        )
+        and_(*clause_filters)
     )
     all_clauses_result = await db.execute(all_clauses_query)
     all_clauses_count = all_clauses_result.scalar() or 0
@@ -250,9 +264,6 @@ async def get_dashboard_stats(
     team_document_count = None
     team_draft_count = None
     team_members = None
-
-    # Prüfen ob der User Team-Owner oder Admin ist
-    user_id_str = str(current_user.id)
 
     # Teams finden wo der User Owner oder Admin ist
     team_leader_query = (
