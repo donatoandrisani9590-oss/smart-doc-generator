@@ -137,7 +137,7 @@ function StatCard({
         <Card>
             <CardContent className="p-4">
                 <div className="flex items-center justify-between mb-2">
-                    <span className="text-[12px] font-medium text-muted-foreground/60 uppercase tracking-wider">
+                    <span className="text-xs font-medium text-muted-foreground/60 uppercase tracking-wider">
                         {label}
                     </span>
                     <Icon className="w-4 h-4 text-muted-foreground/40" />
@@ -442,7 +442,7 @@ export function LegalAuditPage() {
                                                                         config.dot
                                                                     )}
                                                                 />
-                                                                <span className="text-[13px] font-medium text-foreground max-w-[200px] truncate">
+                                                                <span className="text-sm font-medium text-foreground max-w-[200px] truncate">
                                                                     {item.clause_title}
                                                                 </span>
                                                             </div>
@@ -452,7 +452,7 @@ export function LegalAuditPage() {
                                                         <td className="p-3">
                                                             <Badge
                                                                 variant="outline"
-                                                                className={cn("text-[11px]", config.badge)}
+                                                                className={cn("text-xs", config.badge)}
                                                             >
                                                                 {config.label}
                                                             </Badge>
@@ -463,12 +463,12 @@ export function LegalAuditPage() {
                                                             {item.risk_level ? (
                                                                 <Badge
                                                                     variant="outline"
-                                                                    className={cn("text-[11px]", riskClass)}
+                                                                    className={cn("text-xs", riskClass)}
                                                                 >
                                                                     {riskLabels[item.risk_level] ?? item.risk_level}
                                                                 </Badge>
                                                             ) : (
-                                                                <span className="text-[12px] text-muted-foreground/40">
+                                                                <span className="text-xs text-muted-foreground/40">
                                                                     --
                                                                 </span>
                                                             )}
@@ -476,14 +476,14 @@ export function LegalAuditPage() {
 
                                                         {/* Affected law */}
                                                         <td className="p-3">
-                                                            <span className="text-[12px] text-muted-foreground max-w-[180px] truncate block">
+                                                            <span className="text-xs text-muted-foreground max-w-[180px] truncate block">
                                                                 {item.affected_law || "--"}
                                                             </span>
                                                         </td>
 
                                                         {/* Recommendation */}
                                                         <td className="p-3">
-                                                            <span className="text-[12px] text-foreground/60 max-w-[200px] truncate block">
+                                                            <span className="text-xs text-foreground/60 max-w-[200px] truncate block">
                                                                 {item.suggestion || item.reasoning || "--"}
                                                             </span>
                                                         </td>
@@ -495,7 +495,7 @@ export function LegalAuditPage() {
                                                                     <Button
                                                                         variant="ghost"
                                                                         size="sm"
-                                                                        className="h-7 px-2 text-[11px] gap-1"
+                                                                        className="h-7 px-2 text-xs gap-1"
                                                                         onClick={() => handleAutoFix(item.id)}
                                                                         disabled={fixingId === item.id}
                                                                     >
@@ -511,7 +511,7 @@ export function LegalAuditPage() {
                                                                     <Button
                                                                         variant="ghost"
                                                                         size="sm"
-                                                                        className="h-7 px-2 text-[11px] gap-1 text-green-700/70 hover:text-green-700"
+                                                                        className="h-7 px-2 text-xs gap-1 text-green-700/70 hover:text-green-700"
                                                                         onClick={() => handleMarkResolved(item.id)}
                                                                     >
                                                                         <CheckCircle2 className="w-3 h-3" />

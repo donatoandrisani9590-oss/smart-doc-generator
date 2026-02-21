@@ -283,7 +283,7 @@ export default function SettingsHub() {
             <div className="flex items-start justify-between mb-6">
                 <div>
                     <h1 className="text-2xl font-semibold tracking-tight text-foreground">Einstellungen</h1>
-                    <p className="text-[13px] text-muted-foreground/60 mt-1">
+                    <p className="text-sm text-muted-foreground/60 mt-1">
                         Firmendaten, Design, Vorlagen und Verwaltung
                     </p>
                 </div>
@@ -294,8 +294,8 @@ export default function SettingsHub() {
                     className="gap-2 h-9 bg-muted/20 hover:bg-muted/40 rounded-full px-4"
                 >
                     <Search className="h-3.5 w-3.5 text-muted-foreground/40" />
-                    <span className="hidden sm:inline text-muted-foreground/50 text-[12px]">Suchen</span>
-                    <kbd className="pointer-events-none hidden sm:inline-flex h-5 select-none items-center gap-1 rounded-full bg-muted/30 px-1.5 font-mono text-[10px] font-medium text-muted-foreground/40 ml-2">
+                    <span className="hidden sm:inline text-muted-foreground/50 text-xs">Suchen</span>
+                    <kbd className="pointer-events-none hidden sm:inline-flex h-5 select-none items-center gap-1 rounded-full bg-muted/30 px-1.5 font-mono text-2xs font-medium text-muted-foreground/40 ml-2">
                         {navigator.platform.includes("Mac") ? "Cmd" : "Ctrl"}+K
                     </kbd>
                 </Button>
@@ -329,7 +329,7 @@ export default function SettingsHub() {
                 <nav className="hidden md:block w-[240px] shrink-0 overflow-y-auto scrollbar-hide py-3">
                     {filteredNav.map((group, groupIndex) => (
                         <div key={group.id} className={cn("pb-3", groupIndex > 0 && "pt-3 mx-3")}>
-                            <h3 className="px-4 py-1 text-[10px] font-medium text-muted-foreground/50 uppercase tracking-[0.12em]">
+                            <h3 className="px-4 py-1 text-2xs font-medium text-muted-foreground/50 uppercase tracking-[0.12em]">
                                 {group.label}
                             </h3>
                             <div className="space-y-0.5 mt-0.5 px-1.5">
@@ -338,7 +338,7 @@ export default function SettingsHub() {
                                         key={item.id}
                                         onClick={() => setActiveTab(item.id)}
                                         className={cn(
-                                            "w-full flex items-center gap-2.5 px-2.5 py-1.5 text-[13px] rounded-lg transition-all",
+                                            "w-full flex items-center gap-2.5 px-2.5 py-1.5 text-sm rounded-lg transition-all",
                                             activeTab === item.id
                                                 ? "bg-muted/50 text-foreground font-medium"
                                                 : "text-muted-foreground hover:bg-muted/30 hover:text-foreground"

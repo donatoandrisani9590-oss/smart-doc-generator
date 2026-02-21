@@ -456,7 +456,7 @@ export const RepositoryPage = () => {
                     >
                         {card.label}
                         {"count" in card && (
-                            <span className={`ml-1.5 text-[11px] ${activeFilter === card.key ? 'text-foreground/60' : 'text-muted-foreground/40'
+                            <span className={`ml-1.5 text-xs ${activeFilter === card.key ? 'text-foreground/60' : 'text-muted-foreground/40'
                                 }`}>
                                 {card.count}
                             </span>
@@ -524,7 +524,7 @@ export const RepositoryPage = () => {
                 {showFilters && (
                     <div className={`mt-4 pt-4 grid grid-cols-1 gap-4 ${viewMode === "kanban" ? "md:grid-cols-1" : "md:grid-cols-4"}`}>
                         <div>
-                            <label className="text-[13px] font-medium text-foreground/60 mb-1 block">
+                            <label className="text-sm font-medium text-foreground/60 mb-1 block">
                                 Dokumenttyp
                             </label>
                             <select
@@ -549,7 +549,7 @@ export const RepositoryPage = () => {
                         {viewMode === "list" && (
                             <>
                                 <div>
-                                    <label className="text-[13px] font-medium text-foreground/60 mb-1 block">
+                                    <label className="text-sm font-medium text-foreground/60 mb-1 block">
                                         Von Datum
                                     </label>
                                     <Input
@@ -561,7 +561,7 @@ export const RepositoryPage = () => {
                                     />
                                 </div>
                                 <div>
-                                    <label className="text-[13px] font-medium text-foreground/60 mb-1 block">
+                                    <label className="text-sm font-medium text-foreground/60 mb-1 block">
                                         Bis Datum
                                     </label>
                                     <Input

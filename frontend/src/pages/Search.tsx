@@ -196,7 +196,7 @@ export const SearchPage = () => {
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                             {/* Document Type */}
                             <div>
-                                <label className="text-[13px] font-medium text-foreground/60 mb-1 block">
+                                <label className="text-sm font-medium text-foreground/60 mb-1 block">
                                     Dokumenttyp
                                 </label>
                                 <Select
@@ -219,7 +219,7 @@ export const SearchPage = () => {
 
                             {/* Date From */}
                             <div>
-                                <label className="text-[13px] font-medium text-foreground/60 mb-1 block">
+                                <label className="text-sm font-medium text-foreground/60 mb-1 block">
                                     Von Datum
                                 </label>
                                 <Input
@@ -231,7 +231,7 @@ export const SearchPage = () => {
 
                             {/* Date To */}
                             <div>
-                                <label className="text-[13px] font-medium text-foreground/60 mb-1 block">
+                                <label className="text-sm font-medium text-foreground/60 mb-1 block">
                                     Bis Datum
                                 </label>
                                 <Input
@@ -243,7 +243,7 @@ export const SearchPage = () => {
 
                             {/* Sort */}
                             <div>
-                                <label className="text-[13px] font-medium text-foreground/60 mb-1 block">
+                                <label className="text-sm font-medium text-foreground/60 mb-1 block">
                                     Sortierung
                                 </label>
                                 <Select value={sortBy} onValueChange={setSortBy}>

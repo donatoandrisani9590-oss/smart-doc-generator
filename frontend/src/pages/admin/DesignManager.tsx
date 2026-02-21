@@ -681,13 +681,13 @@ export const DesignManager = () => {
                                                     style={{ width: `${parseFloat(designSettings.logo_width_cm || "5.0") * 10}px`, maxHeight: "40px", objectFit: "contain" }}
                                                 />
                                             ) : (
-                                                <div className="bg-warm-100 rounded px-3 py-1.5 text-[10px] text-muted-foreground font-medium">
+                                                <div className="bg-warm-100 rounded px-3 py-1.5 text-2xs text-muted-foreground font-medium">
                                                     Logo
                                                 </div>
                                             )}
                                         </div>
-                                        <div className="text-right text-[10px] leading-snug text-muted-foreground">
-                                            <div className="font-semibold text-foreground text-[11px]">{designSettings.company_name || "Firmenname"}</div>
+                                        <div className="text-right text-2xs leading-snug text-muted-foreground">
+                                            <div className="font-semibold text-foreground text-xs">{designSettings.company_name || "Firmenname"}</div>
                                             <div>{designSettings.header_line1 || "Adresszeile 1"}</div>
                                             <div>{designSettings.header_line2 || "Adresszeile 2"}</div>
                                             <div>{designSettings.header_line3 || "PLZ Ort"}</div>
@@ -695,14 +695,14 @@ export const DesignManager = () => {
                                     </div>
 
                                     {/* Recipient */}
-                                    <div className="mb-4 text-[10px] text-foreground/70 leading-snug">
+                                    <div className="mb-4 text-2xs text-foreground/70 leading-snug">
                                         <div>Max Mustermann</div>
                                         <div>Musterstraße 42</div>
                                         <div>80333 München</div>
                                     </div>
 
                                     {/* Date */}
-                                    <div className="text-right text-[10px] text-muted-foreground mb-4">
+                                    <div className="text-right text-2xs text-muted-foreground mb-4">
                                         München, den 18.02.2026
                                     </div>
 
@@ -711,7 +711,7 @@ export const DesignManager = () => {
                                         <h3 style={{ color: designSettings.primary_color || "#243186", fontSize: "12px", fontWeight: 600 }}>
                                             Arbeitsvertrag
                                         </h3>
-                                        <div className="text-[10px] text-foreground/80 space-y-2 leading-relaxed">
+                                        <div className="text-2xs text-foreground/80 space-y-2 leading-relaxed">
                                             <p>Zwischen der {designSettings.company_name || "Firma"} und Herrn Max Mustermann wird folgender Arbeitsvertrag geschlossen:</p>
                                             <p className="font-semibold text-foreground">§ 1 Vertragsgegenstand</p>
                                             <p>Der Arbeitnehmer wird ab dem 01.04.2026 als Software-Entwickler in Vollzeit eingestellt. Der Arbeitsort ist München.</p>
@@ -721,13 +721,13 @@ export const DesignManager = () => {
                                     </div>
 
                                     {/* Footer */}
-                                    <div className="pt-2 border-t text-[9px] text-muted-foreground leading-snug space-y-0.5">
+                                    <div className="pt-2 border-t text-2xs text-muted-foreground leading-snug space-y-0.5">
                                         <div>{designSettings.footer_line1 || "Geschäftsführer: Hans Niederwieser"}</div>
                                         <div>{designSettings.footer_line2 || "HRB 12345 · Amtsgericht München"} | {designSettings.footer_line3 || "USt-IdNr: DE123456789"}</div>
                                     </div>
                                 </div>
                             </div>
-                            <p className="text-[11px] text-muted-foreground mt-3 text-center">
+                            <p className="text-xs text-muted-foreground mt-3 text-center">
                                 Echtzeit-Vorschau deiner Einstellungen
                             </p>
                         </CardContent>
