@@ -183,11 +183,22 @@ async def invalidate_clauses(document_type_id: int = None):
         await cache.delete_pattern("clauses:*")
 
 
+def variant_groups_key(document_type_id: int) -> str:
+    """Cache key for variant groups by document type."""
+    return f"preview:variant_groups:{document_type_id}"
+
+
+async def invalidate_variant_groups(document_type_id: int) -> None:
+    """Invalidate variant groups cache for a document type."""
+    await cache.delete(variant_groups_key(document_type_id))
+
+
 async def invalidate_document_type(document_type_id: int):
     """Invalidate document type cache."""
     await cache.delete(document_type_key(document_type_id))
     await cache.delete(clauses_key(document_type_id))
     await cache.delete(form_fields_key(document_type_id))
+    await cache.delete(variant_groups_key(document_type_id))
 
 
 async def invalidate_all():

@@ -803,4 +803,4 @@ async def log_llm_call(
             await session.commit()
 
     except Exception as e:
-        logger.debug(f"LLM call logging failed (non-critical): {e}")
+        logger.warning("LLM call logging failed (non-critical): %s", e)

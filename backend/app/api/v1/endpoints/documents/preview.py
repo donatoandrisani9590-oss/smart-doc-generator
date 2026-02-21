@@ -212,53 +212,60 @@ async def generate_preview(
         # Cache for 2 minutes
         await cache.set(clauses_cache_key, clauses, ttl=120)
     
-    # 3b. Load variant groups for this document type
-    variant_groups_data = None
-    vg_result = await db.execute(
-        select(DocumentTypeVariantGroup)
-        .where(DocumentTypeVariantGroup.document_type_id == request.document_type_id)
-        .order_by(DocumentTypeVariantGroup.display_order)
-    )
-    dtvgs = vg_result.scalars().all()
+    # 3b. Load variant groups for this document type (cached)
+    vg_cache_key = f"preview:variant_groups:{request.document_type_id}"
+    variant_groups_data = await cache.get(vg_cache_key)
 
-    if dtvgs:
-        variant_groups_data = []
-        for dtvg in dtvgs:
-            group = await db.get(ClauseVariantGroup, dtvg.variant_group_id)
-            if group and group.is_active:
-                variants_result = await db.execute(
-                    select(ClauseVariant)
-                    .where(ClauseVariant.group_id == group.id)
-                    .where(ClauseVariant.is_active == True)
-                    .order_by(ClauseVariant.sort_order)
-                )
-                variants = variants_result.scalars().all()
+    if variant_groups_data is None:
+        vg_result = await db.execute(
+            select(DocumentTypeVariantGroup)
+            .where(DocumentTypeVariantGroup.document_type_id == request.document_type_id)
+            .order_by(DocumentTypeVariantGroup.display_order)
+        )
+        dtvgs = vg_result.scalars().all()
 
-                variant_list = []
-                for v in variants:
-                    vc = await db.get(Clause, v.clause_id)
-                    condition = None
-                    if v.auto_select_condition:
-                        try:
-                            condition = json.loads(v.auto_select_condition) if isinstance(v.auto_select_condition, str) else v.auto_select_condition
-                        except (json.JSONDecodeError, TypeError):
-                            condition = None
+        if dtvgs:
+            variant_groups_data = []
+            for dtvg in dtvgs:
+                group = await db.get(ClauseVariantGroup, dtvg.variant_group_id)
+                if group and group.is_active:
+                    variants_result = await db.execute(
+                        select(ClauseVariant)
+                        .where(ClauseVariant.group_id == group.id)
+                        .where(ClauseVariant.is_active == True)
+                        .order_by(ClauseVariant.sort_order)
+                    )
+                    variants = variants_result.scalars().all()
 
-                    variant_list.append({
-                        "id": v.id,
-                        "variant_name": v.variant_name,
-                        "variant_code": v.variant_code,
-                        "is_default": v.is_default,
-                        "auto_select_condition": condition,
-                        "clause_title": vc.title if vc else "",
-                        "clause_content": vc.content_html if vc else "",
+                    variant_list = []
+                    for v in variants:
+                        vc = await db.get(Clause, v.clause_id)
+                        condition = None
+                        if v.auto_select_condition:
+                            try:
+                                condition = json.loads(v.auto_select_condition) if isinstance(v.auto_select_condition, str) else v.auto_select_condition
+                            except (json.JSONDecodeError, TypeError):
+                                condition = None
+
+                        variant_list.append({
+                            "id": v.id,
+                            "variant_name": v.variant_name,
+                            "variant_code": v.variant_code,
+                            "is_default": v.is_default,
+                            "auto_select_condition": condition,
+                            "clause_title": vc.title if vc else "",
+                            "clause_content": vc.content_html if vc else "",
+                        })
+
+                    variant_groups_data.append({
+                        "id": group.id,
+                        "name": group.name,
+                        "variants": variant_list,
                     })
 
-                variant_groups_data.append({
-                    "id": group.id,
-                    "name": group.name,
-                    "variants": variant_list,
-                })
+        # Cache for 2 minutes (same TTL as clauses)
+        if variant_groups_data is not None:
+            await cache.set(vg_cache_key, variant_groups_data, ttl=120)
 
     # 4. Assemble HTML
     html = assemble_html_preview(
