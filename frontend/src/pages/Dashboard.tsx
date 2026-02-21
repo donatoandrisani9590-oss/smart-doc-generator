@@ -20,12 +20,10 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useDashboardStats, useDocumentTypes } from "@/hooks/useApi";
-import { useClauses } from "@/hooks/useApi";
 import { api } from "@/lib/api-client";
 import { CommandCenter } from "@/components/dashboard/CommandCenter";
 import { StatWidget } from "@/components/dashboard/StatWidget";
 import { ActionStatWidget } from "@/components/dashboard/ActionStatWidget";
-import { OnboardingRing } from "@/components/dashboard/OnboardingRing";
 import { QuickTemplatesGrid } from "@/components/dashboard/QuickTemplatesGrid";
 import { RecentDrafts } from "@/components/dashboard/RecentDrafts";
 
@@ -71,13 +69,9 @@ export const Dashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { data: stats, isLoading: statsLoading } = useDashboardStats();
-  const { data: clauses } = useClauses();
   const { data: documentTypes } = useDocumentTypes();
 
   const [actionSummary, setActionSummary] = useState<ActionSummaryResponse | null>(null);
-  const [onboardingDismissed, setOnboardingDismissed] = useState(
-    () => localStorage.getItem("onboarding-dismissed") === "true"
-  );
 
   const firstName = user ? getFirstName(user.email) : null;
 
@@ -88,12 +82,6 @@ export const Dashboard = () => {
       .catch(() => {});
   }, []);
 
-  const handleDismissOnboarding = () => {
-    setOnboardingDismissed(true);
-    localStorage.setItem("onboarding-dismissed", "true");
-  };
-
-  const showOnboarding = !onboardingDismissed && !statsLoading;
   const hasDocTypes = (documentTypes?.length ?? 0) > 0;
 
   // Compute greeting subtitle
@@ -149,36 +137,9 @@ export const Dashboard = () => {
             onClick={() => navigate("/documents")}
           />
 
-          {/* Onboarding OR 4th stat fills the remaining column */}
-          {showOnboarding ? (
-            <OnboardingRing
-              clauseCount={clauses?.length ?? 0}
-              documentTypeCount={documentTypes?.length ?? 0}
-              hasCompanyData={(stats?.documents_total ?? 0) > 0 || (documentTypes?.length ?? 0) > 0}
-              hasLogo={false}
-              onDismiss={handleDismissOnboarding}
-            />
-          ) : (
-            // If no onboarding, render the first non-zero action stat here (if any)
-            actionSummary && (() => {
-              const first = ACTION_STATS.find((a) => (actionSummary[a.key] ?? 0) > 0);
-              if (!first) return null;
-              return (
-                <ActionStatWidget
-                  value={actionSummary[first.key]}
-                  label={first.label}
-                  icon={first.icon}
-                  accentColor={first.accent}
-                  onClick={() => navigate(`/documents?action=${first.key}`)}
-                />
-              );
-            })()
-          )}
-
-          {/* Remaining action stats (skip the one already placed above) */}
+          {/* Action stats — only non-zero values render */}
           {actionSummary && ACTION_STATS
             .filter((a) => (actionSummary[a.key] ?? 0) > 0)
-            .filter((_, i) => showOnboarding || i > 0) // skip first if used above
             .map((a) => (
               <ActionStatWidget
                 key={a.key}
