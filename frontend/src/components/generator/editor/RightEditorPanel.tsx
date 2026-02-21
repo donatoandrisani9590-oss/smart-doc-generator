@@ -6,7 +6,7 @@
  */
 
 import { useState, useCallback, useRef, useMemo, useEffect } from "react";
-import { Loader2, MessagesSquare, Sparkles, RefreshCw, Check, Undo2 } from "lucide-react";
+import { Loader2, RefreshCw, Check, Undo2 } from "lucide-react";
 import type { Editor as TinyMCEEditor } from "tinymce";
 import { Button } from "@/components/ui/button";
 import { DocumentEditor } from "@/components/editor/DocumentEditor";
@@ -44,7 +44,6 @@ export const RightEditorPanel = () => {
         previewHtml,
         editorContent,
         isPreviewLoading,
-        showCommentSidebar,
         userTemplateId,
         stationeryZones,
     } = state;
@@ -65,14 +64,6 @@ export const RightEditorPanel = () => {
 
     const handleUserEdit = useCallback((content: string) => {
         actions.setEditorContent(content, true);
-    }, [actions]);
-
-    const handleToggleComments = useCallback(() => {
-        actions.toggleCommentSidebar();
-    }, [actions]);
-
-    const handleToggleChat = useCallback(() => {
-        actions.toggleChatSidebar();
     }, [actions]);
 
     // ── Tone Preview with AI Refine ──────────────────────────────────────
@@ -154,22 +145,6 @@ export const RightEditorPanel = () => {
 
     return (
         <div className="h-full flex flex-col relative">
-            {/* Floating controls — KI-Chat & Kommentare */}
-            <div className="absolute top-3 right-3 z-10 flex items-center gap-1">
-                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full bg-white/80 dark:bg-white/10 backdrop-blur-sm shadow-sm"
-                    onClick={handleToggleChat}
-                    title="KI-Chat"
-                >
-                    <Sparkles className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full bg-white/80 dark:bg-white/10 backdrop-blur-sm shadow-sm"
-                    onClick={handleToggleComments}
-                    title={showCommentSidebar ? "Kommentare ausblenden" : "Kommentare einblenden"}
-                >
-                    <MessagesSquare className="h-4 w-4" />
-                </Button>
-            </div>
-
             {/* Tone Preview Floating Banner */}
             {tonePreview && (
                 <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2 px-3 py-2 rounded-full bg-white/90 dark:bg-card/90 backdrop-blur-sm shadow-sm text-xs">

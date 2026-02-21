@@ -33,6 +33,8 @@ import { StationeryPicker } from "./StationeryPicker";
 import { WorkflowDots } from "../WorkflowDots";
 import { ToneSegmented } from "../ToneSegmented";
 import { useMagicFill } from "@/hooks/useMagicFill";
+import { ConsistencyBanner } from "../ConsistencyBanner";
+import { ComplianceRiskBanner } from "../ComplianceRiskBanner";
 
 interface DocumentType {
     id: number;
@@ -150,6 +152,22 @@ export const LeftControlPanel = ({ documentTypes }: LeftControlPanelProps) => {
                             />
                         )}
                     </div>
+
+                    {/* Konsistenz- und Compliance-Prüfung */}
+                    {state.formData.vorname && state.formData.nachname && (
+                        <ConsistencyBanner
+                            employeeName={`${state.formData.vorname} ${state.formData.nachname}`}
+                            currentFormData={state.formData as unknown as Record<string, unknown>}
+                            countryCode={documentCountryCode}
+                            documentTypeId={documentTypeId ?? undefined}
+                        />
+                    )}
+                    {state.editorContent && (
+                        <ComplianceRiskBanner
+                            contentHtml={state.editorContent}
+                            countryCode={documentCountryCode}
+                        />
+                    )}
 
                     {/* Textbausteine - Kompakter Link mit Modal */}
                     {totalClausesCount > 0 && (

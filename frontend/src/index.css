@@ -578,6 +578,11 @@
     display: inline;
   }
 
+  .dark .template-placeholder {
+    color: var(--canvas-text-secondary);
+    background: hsl(225 14% 22%);
+  }
+
   /* Logo skeleton when company logo not uploaded */
   .logo-skeleton {
     width: 120px;

@@ -125,12 +125,20 @@ export function BubbleMenu({ editorRef, onAIClick }: BubbleMenuProps) {
     <div
       ref={menuRef}
       className="bubble-menu"
+      role="toolbar"
+      aria-label="Textformatierung"
       style={{
         top: position.top,
         left: position.left,
         transform: "translate(-50%, -100%)",
       }}
       onMouseDown={(e) => e.preventDefault()} // Prevent editor blur
+      onKeyDown={(e) => {
+        if (e.key === "Escape") {
+          setPosition(null);
+          editorRef.current?.focus();
+        }
+      }}
     >
       {/* Text formatting */}
       <button className={`bubble-tool ${formatState.bold ? "active" : ""}`}

@@ -15,7 +15,7 @@
 
 import { useState, useMemo, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Save, FileText, FileType2, Loader2, CheckCircle2, Cloud, CloudOff, Download, ChevronDown, Printer } from "lucide-react";
+import { Save, FileText, FileType2, Loader2, CheckCircle2, Cloud, CloudOff, Download, ChevronDown, Printer, Sparkles, MessagesSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
     DropdownMenu,
@@ -42,7 +42,7 @@ const REQUIRED_FIELDS = [
 
 export const ActionBar = () => {
     const { state, actions } = useWizardContext();
-    const { documentTypeId, documentTitle, formData, isGenerating, autoSaveStatus, lastSavedText, lastExportedDocumentId } = state;
+    const { documentTypeId, documentTitle, formData, isGenerating, autoSaveStatus, lastSavedText, lastExportedDocumentId, showCommentSidebar, showChatSidebar } = state;
     const toast = useToast();
     const navigate = useNavigate();
 
@@ -215,6 +215,28 @@ export const ActionBar = () => {
 
     return (
         <div className="p-3 shadow-[var(--shadow-up-subtle)] bg-background space-y-2.5">
+            {/* Sidebar Toggles — KI-Chat & Kommentare */}
+            <div className="flex items-center justify-center gap-1">
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    className={`h-7 gap-1.5 text-xs ${showChatSidebar ? "text-primary bg-primary/10" : "text-muted-foreground"}`}
+                    onClick={() => actions.toggleChatSidebar()}
+                >
+                    <Sparkles className="w-3.5 h-3.5" />
+                    KI-Chat
+                </Button>
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    className={`h-7 gap-1.5 text-xs ${showCommentSidebar ? "text-primary bg-primary/10" : "text-muted-foreground"}`}
+                    onClick={() => actions.toggleCommentSidebar()}
+                >
+                    <MessagesSquare className="w-3.5 h-3.5" />
+                    Kommentare
+                </Button>
+            </div>
+
             {/* Auto-Save Status */}
             {autoSaveIndicator && (
                 <div className={`flex items-center justify-center gap-1.5 text-[11px] ${autoSaveIndicator.color}`}>
