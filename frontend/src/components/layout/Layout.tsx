@@ -1,8 +1,9 @@
 /**
- * Layout - Design System v2.1 (Sidebar Navigation)
+ * Layout - Design System v5.0 (Sidebar Navigation + Background Orbs)
  *
- * - Fixed left sidebar (260px) as primary navigation
+ * - Fixed left sidebar (248px) as primary navigation
  * - Content area offset by sidebar width
+ * - Background orbs: animated ambient gradient blobs
  * - Mobile: hamburger button + overlay sidebar
  * - Subtle footer anchor
  */
@@ -78,7 +79,7 @@ export const Layout = () => {
         };
     }, []);
 
-    // Initial app-load animation: sidebar slides in, content fades in
+    // Initial app-load animation: sidebar slides in, content fades in, orbs drift
     useGSAP(() => {
         const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
         if (prefersReduced) return;
@@ -95,6 +96,20 @@ export const Layout = () => {
             opacity: 0,
             duration: 0.5,
         }, "-=0.3");
+
+        // Ambient orb drift animation
+        gsap.to(".bg-orb-1", {
+            x: 40, y: 30,
+            duration: 18, repeat: -1, yoyo: true, ease: "sine.inOut",
+        });
+        gsap.to(".bg-orb-2", {
+            x: -30, y: -20,
+            duration: 22, repeat: -1, yoyo: true, ease: "sine.inOut",
+        });
+        gsap.to(".bg-orb-3", {
+            x: 20, y: -25,
+            duration: 15, repeat: -1, yoyo: true, ease: "sine.inOut",
+        });
     }, { scope: layoutRef });
 
     // Announce page changes for screen readers
@@ -120,6 +135,13 @@ export const Layout = () => {
                 <SkipLink targetId="main-content" />
                 <LiveRegion message={pageAnnouncement} priority="polite" />
 
+                {/* Background Orbs (Prototype ambient gradient blobs) */}
+                <div className="bg-orbs" aria-hidden="true">
+                    <div className="bg-orb bg-orb-1" />
+                    <div className="bg-orb bg-orb-2" />
+                    <div className="bg-orb bg-orb-3" />
+                </div>
+
                 {/* Sidebar Navigation */}
                 <div data-gsap="sidebar">
                     <Sidebar
@@ -128,8 +150,8 @@ export const Layout = () => {
                     />
                 </div>
 
-                {/* Main Content — offset by sidebar width on desktop */}
-                <div className="lg:ml-[var(--sidebar-width)] min-h-screen flex flex-col main-content">
+                {/* Main Content — offset by sidebar width on desktop, above orbs */}
+                <div className="lg:ml-[var(--sidebar-width)] min-h-screen flex flex-col main-content relative z-[1]">
                     {/* Mobile header bar with hamburger */}
                     <div className="lg:hidden sticky top-0 z-30 h-14 px-4 flex items-center justify-between bg-[var(--bg-surface)]/80 backdrop-blur-md border-b border-[rgba(0,0,0,0.04)] dark:border-[rgba(255,255,255,0.06)]">
                         <Button
@@ -154,7 +176,7 @@ export const Layout = () => {
                         tabIndex={-1}
                         data-gsap="main"
                     >
-                        <div className="px-4 sm:px-6 lg:px-10 py-6 lg:py-8 max-w-[var(--max-width-content)] mx-auto w-full">
+                        <div className="px-4 sm:px-6 lg:px-10 py-6 lg:py-8 max-w-[1380px] mx-auto w-full">
                             <PageTransition>
                                 <Outlet />
                             </PageTransition>

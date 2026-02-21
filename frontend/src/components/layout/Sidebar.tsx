@@ -49,26 +49,24 @@ const SidebarItem = ({ icon: Icon, label, href, active, badge, collapsed }: Side
         title={collapsed ? label : undefined}
         data-sidebar="nav-item"
         className={cn(
-            "group flex items-center transition-all duration-150 rounded-[var(--radius-md-ds)] mx-1",
+            "group flex items-center transition-all duration-[120ms] rounded-[var(--radius-sm-ds)] w-full text-left",
             collapsed
                 ? "justify-center px-0 py-2.5"
-                : "justify-between px-3 py-2.5",
+                : "gap-[11px] px-[10px] py-[9px]",
             active
-                ? "bg-[var(--nw-blue-50)] text-[var(--nw-blue-700)] font-semibold dark:bg-[rgba(36,49,134,0.15)] dark:text-[var(--nw-blue-300)]"
+                ? "bg-[var(--nw-blue-50)] text-[var(--nw-blue)] font-semibold dark:bg-[rgba(43,57,144,0.18)]"
                 : "text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
         )}
         aria-current={active ? "page" : undefined}
         aria-label={collapsed ? label : undefined}
     >
-        <div className={cn("flex items-center", collapsed ? "gap-0" : "gap-3")}>
-            <Icon className={cn(
-                "shrink-0 transition-colors w-5 h-5",
-                active ? "opacity-100" : "opacity-70 group-hover:opacity-100"
-            )} aria-hidden="true" />
-            {!collapsed && <span className="text-sm">{label}</span>}
-        </div>
+        <Icon className={cn(
+            "shrink-0 w-[18px] h-[18px]",
+            active ? "stroke-[1.8]" : "stroke-[1.8]"
+        )} aria-hidden="true" />
+        {!collapsed && <span className="text-[13.5px] font-medium">{label}</span>}
         {!collapsed && badge && (
-            <span className="text-[10px] font-medium bg-muted px-1.5 py-0.5 rounded-full text-muted-foreground">
+            <span className="ml-auto text-[9px] font-bold px-[7px] py-[2px] rounded-full bg-[var(--nw-blue)] text-white uppercase tracking-[0.04em]">
                 {badge}
             </span>
         )}
@@ -86,11 +84,11 @@ const SidebarSection = ({ title, children, defaultOpen = true, collapsed }: Side
     const [isOpen, setIsOpen] = useState(defaultOpen);
 
     return (
-        <div className={cn("space-y-1", collapsed ? "pt-2 first:pt-0" : "pt-5 first:pt-0")}>
+        <div className={cn(collapsed ? "pt-2 first:pt-0" : "mb-1.5")}>
             {!collapsed && (
                 <button
                     onClick={() => setIsOpen(!isOpen)}
-                    className="flex items-center justify-between w-full px-4 py-1.5 text-[10px] font-medium text-[var(--text-tertiary)] uppercase tracking-[0.08em] hover:text-[var(--text-secondary)] transition-colors"
+                    className="flex items-center justify-between w-full px-[10px] py-[6px] pt-3 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-[0.08em] hover:text-[var(--text-secondary)] transition-colors"
                 >
                     {title}
                     <ChevronDown className={cn(
@@ -100,7 +98,7 @@ const SidebarSection = ({ title, children, defaultOpen = true, collapsed }: Side
                 </button>
             )}
             {(collapsed || isOpen) && (
-                <div className="space-y-0.5">
+                <div className="space-y-px">
                     {children}
                 </div>
             )}
@@ -191,39 +189,32 @@ export const Sidebar = ({ collapsed = false, mobileOpen = false, onMobileClose }
     const sidebarContent = (
         <div ref={sidebarRef} className={cn(
             "h-screen flex flex-col font-sans transition-all duration-200",
-            "bg-[var(--bg-sidebar)] border-r border-[rgba(0,0,0,0.04)]",
-            "dark:border-[rgba(255,255,255,0.06)]",
+            "bg-[var(--bg-surface)] border-r border-[var(--border)]",
             collapsed ? "w-[var(--sidebar-collapsed)]" : "w-[var(--sidebar-width)]"
-        )}>
-            {/* Logo Section */}
+        )} style={{ padding: collapsed ? '24px 8px 16px' : '24px 14px 16px' }}>
+            {/* Brand Section (Prototype sidebar-brand) */}
             <div data-sidebar="logo" className={cn(
-                "flex items-center shrink-0",
-                collapsed ? "h-16 px-3 justify-center" : "h-16 px-5 justify-between"
+                "flex items-center shrink-0 mb-6",
+                collapsed ? "justify-center" : "gap-[10px] px-2"
             )}>
-                <Link to="/" className="flex items-center gap-3 group" title={collapsed ? "Niederwieser Docs" : undefined}>
-                    <img
-                        src="/niederwieser-logo-blue.svg"
-                        alt="Niederwieser"
-                        className={cn("w-auto dark:hidden", collapsed ? "h-5" : "h-7")}
-                    />
-                    <img
-                        src="/niederwieser-logo.svg"
-                        alt="Niederwieser"
-                        className={cn("w-auto hidden dark:block", collapsed ? "h-5" : "h-7")}
-                    />
+                <Link to="/" className="flex items-center gap-[10px] group" title={collapsed ? "Niederwieser Docs" : undefined}>
+                    <div className={cn(
+                        "flex items-center justify-center bg-[var(--nw-blue)] text-white font-extrabold rounded-[10px] shadow-[0_2px_8px_rgba(43,57,144,0.3)]",
+                        collapsed ? "w-8 h-8 text-[13px]" : "w-9 h-9 text-[15px]"
+                    )}>
+                        N
+                    </div>
                     {!collapsed && (
-                        <>
-                            <div className="h-5 w-px bg-foreground/10" />
-                            <span className="text-[11px] font-semibold text-[var(--text-tertiary)] uppercase tracking-[0.15em]">
-                                Docs
-                            </span>
-                        </>
+                        <div className="leading-tight">
+                            <div className="text-sm font-bold text-[var(--text-primary)]">Niederwieser Docs</div>
+                            <span className="text-[10px] font-medium text-[var(--text-tertiary)] uppercase tracking-[0.07em]">Smart Document Generator</span>
+                        </div>
                     )}
                 </Link>
                 {mobileOpen && onMobileClose && (
                     <button
                         onClick={onMobileClose}
-                        className="lg:hidden p-1 text-[var(--text-tertiary)] hover:text-[var(--text-primary)]"
+                        className="lg:hidden ml-auto p-1 text-[var(--text-tertiary)] hover:text-[var(--text-primary)]"
                         aria-label="Sidebar schließen"
                     >
                         <X className="w-5 h-5" />
@@ -231,25 +222,32 @@ export const Sidebar = ({ collapsed = false, mobileOpen = false, onMobileClose }
                 )}
             </div>
 
-            {/* "Neues Dokument" CTA */}
+            {/* "Neues Dokument" CTA (Prototype sidebar-cta) */}
             {!collapsed ? (
-                <div data-sidebar="cta" className="px-3 pt-4 pb-2">
-                    <Button
+                <div data-sidebar="cta" className="mb-7">
+                    <button
                         ref={magnetRef}
-                        size="sm"
-                        className="w-full gap-2 rounded-[var(--radius-md-ds)] h-9"
+                        className={cn(
+                            "w-full flex items-center justify-center gap-2 py-3 px-4",
+                            "bg-[var(--nw-blue)] text-white rounded-[var(--radius-md)]",
+                            "text-[13.5px] font-semibold",
+                            "shadow-[0_2px_10px_rgba(43,57,144,0.25)]",
+                            "transition-all duration-150",
+                            "hover:bg-[var(--nw-blue-light)] hover:-translate-y-px",
+                            pathname === "/generate" && "opacity-50 pointer-events-none"
+                        )}
                         onClick={() => navigate("/generate")}
                         disabled={pathname === "/generate"}
                     >
-                        <PlusCircle className="w-4 h-4" />
+                        <PlusCircle className="w-[17px] h-[17px]" />
                         Neues Dokument
-                    </Button>
+                    </button>
                 </div>
             ) : (
-                <div className="px-2 pt-3 pb-1">
+                <div className="mb-5">
                     <Button
                         size="icon"
-                        className="w-full h-9 rounded-[var(--radius-md-ds)]"
+                        className="w-full h-9 rounded-[var(--radius-sm-ds)]"
                         onClick={() => navigate("/generate")}
                         disabled={pathname === "/generate"}
                         title="Neues Dokument"
@@ -317,31 +315,24 @@ export const Sidebar = ({ collapsed = false, mobileOpen = false, onMobileClose }
                 )}
             </nav>
 
-            {/* Bottom Section */}
-            <div data-sidebar="bottom" className="mt-auto shrink-0">
-                <div className={cn("", collapsed ? "px-2 py-2" : "px-4 py-2")}>
+            {/* Bottom Section (Prototype sidebar-footer) */}
+            <div data-sidebar="bottom" className="mt-auto shrink-0 pt-3.5 border-t border-[var(--border-light)]">
+                <div className={cn("", collapsed ? "px-1 py-1" : "")}>
                     <button
                         onClick={() => setShowShortcuts(true)}
                         title={collapsed ? "Tastenkürzel (?)" : undefined}
                         className={cn(
-                            "w-full flex items-center py-2 text-xs text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors",
-                            collapsed ? "justify-center" : "justify-between"
+                            "w-full flex items-center py-2 px-[10px] text-[13px] text-[var(--text-secondary)] rounded-[var(--radius-sm-ds)] transition-all duration-[120ms]",
+                            "hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]",
+                            collapsed ? "justify-center" : "gap-2 mb-1.5"
                         )}
                     >
-                        <div className={cn("flex items-center", collapsed ? "gap-0" : "gap-2")}>
-                            <Keyboard className="w-3.5 h-3.5" />
-                            {!collapsed && <span>Tastenkürzel</span>}
-                        </div>
-                        {!collapsed && (
-                            <kbd className="px-1.5 py-0.5 bg-muted rounded-[4px] text-[10px] font-mono border border-border">?</kbd>
-                        )}
+                        <Keyboard className="w-4 h-4" />
+                        {!collapsed && <span>Tastenkürzel</span>}
                     </button>
                 </div>
 
-                <div className={cn(
-                    "border-t border-[rgba(0,0,0,0.04)] dark:border-[rgba(255,255,255,0.06)]",
-                    collapsed ? "p-2" : "p-3"
-                )}>
+                <div className={cn(collapsed ? "p-1" : "")}>
                     <UserDropdown collapsed={collapsed} />
                 </div>
             </div>

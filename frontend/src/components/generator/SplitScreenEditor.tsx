@@ -86,7 +86,7 @@ export const SplitScreenEditor = ({ documentTypes }: SplitScreenEditorProps) => 
     return (
         <div className="h-[calc(100vh-64px)] w-full overflow-hidden flex flex-col">
             {/* Breadcrumb-Navigation — Desktop only */}
-            <div className="hidden lg:flex items-center justify-between flex-shrink-0 px-4 py-2 border-b bg-background/80 backdrop-blur-sm">
+            <div className="hidden lg:flex items-center justify-between flex-shrink-0 px-4 py-2 border-b border-[var(--border)] bg-[var(--bg-surface)]">
                 <Breadcrumb items={breadcrumbItems} />
                 <Button
                     variant="ghost"
@@ -119,13 +119,13 @@ export const SplitScreenEditor = ({ documentTypes }: SplitScreenEditorProps) => 
                 </DialogContent>
             </Dialog>
 
-            {/* Mobile Tab-Switcher — nur auf kleinen Screens */}
-            <div className="flex lg:hidden border-b bg-background flex-shrink-0">
+            {/* Mobile Tab-Switcher — nur auf kleinen Screens (Prototype doc-tabs) */}
+            <div className="flex lg:hidden border-b border-[var(--border)] bg-[var(--bg-surface)] flex-shrink-0">
                 <button
                     onClick={() => setMobileTab("form")}
-                    className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium transition-colors ${mobileTab === "form"
-                        ? "text-primary border-b-2 border-primary bg-primary/5"
-                        : "text-muted-foreground hover:text-foreground"
+                    className={`flex-1 flex items-center justify-center gap-2 py-3.5 text-[12px] font-semibold transition-all duration-150 cursor-pointer ${mobileTab === "form"
+                        ? "text-[var(--nw-blue)] border-b-2 border-[var(--nw-blue)]"
+                        : "text-[var(--text-tertiary)] border-b-2 border-transparent hover:text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]"
                         }`}
                 >
                     <FileText className="w-4 h-4" />
@@ -133,9 +133,9 @@ export const SplitScreenEditor = ({ documentTypes }: SplitScreenEditorProps) => 
                 </button>
                 <button
                     onClick={() => setMobileTab("preview")}
-                    className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium transition-colors ${mobileTab === "preview"
-                        ? "text-primary border-b-2 border-primary bg-primary/5"
-                        : "text-muted-foreground hover:text-foreground"
+                    className={`flex-1 flex items-center justify-center gap-2 py-3.5 text-[12px] font-semibold transition-all duration-150 cursor-pointer ${mobileTab === "preview"
+                        ? "text-[var(--nw-blue)] border-b-2 border-[var(--nw-blue)]"
+                        : "text-[var(--text-tertiary)] border-b-2 border-transparent hover:text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]"
                         }`}
                 >
                     <Eye className="w-4 h-4" />
@@ -144,7 +144,7 @@ export const SplitScreenEditor = ({ documentTypes }: SplitScreenEditorProps) => 
                 {/* Mobile Cancel — compact destructive icon-button */}
                 <button
                     onClick={() => setCancelDialogOpen(true)}
-                    className="px-4 flex items-center justify-center text-destructive/70 hover:text-destructive transition-colors border-l border-border/40"
+                    className="px-4 flex items-center justify-center text-destructive/70 hover:text-destructive transition-colors border-l border-[var(--border-light)]"
                     title="Projekt abbrechen"
                 >
                     <XOctagon className="w-4 h-4" />
@@ -169,10 +169,10 @@ export const SplitScreenEditor = ({ documentTypes }: SplitScreenEditorProps) => 
                     <RightEditorPanel />
                 </div>
 
-                {/* Kommentar-Seitenleiste (Apple Pages Style) */}
+                {/* Kommentar-Seitenleiste */}
                 {showCommentSidebar && (
                     <div
-                        className={`w-full lg:w-[280px] bg-background border-t lg:border-t-0 lg:border-l overflow-hidden flex-shrink-0 max-h-[40vh] lg:max-h-none ${mobileTab === "preview" ? "block" : "hidden lg:block"
+                        className={`w-full lg:w-[280px] bg-[var(--bg-surface)] border-t lg:border-t-0 lg:border-l border-[var(--border)] overflow-hidden flex-shrink-0 max-h-[40vh] lg:max-h-none ${mobileTab === "preview" ? "block" : "hidden lg:block"
                             }`}
                     >
                         <CommentSidebar />
@@ -182,7 +182,7 @@ export const SplitScreenEditor = ({ documentTypes }: SplitScreenEditorProps) => 
                 {/* Chat-Assistent Seitenleiste */}
                 {showChatSidebar && (
                     <div
-                        className={`w-full lg:w-[340px] bg-background border-t lg:border-t-0 lg:border-l overflow-hidden flex-shrink-0 max-h-[40vh] lg:max-h-none ${mobileTab === "preview" ? "block" : "hidden lg:block"
+                        className={`w-full lg:w-[340px] bg-[var(--bg-surface)] border-t lg:border-t-0 lg:border-l border-[var(--border)] overflow-hidden flex-shrink-0 max-h-[40vh] lg:max-h-none ${mobileTab === "preview" ? "block" : "hidden lg:block"
                             }`}
                     >
                         <ChatAssistent

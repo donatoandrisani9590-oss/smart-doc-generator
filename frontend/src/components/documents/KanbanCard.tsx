@@ -70,53 +70,47 @@ export function KanbanCard({ card, onClick, onDelete }: KanbanCardProps) {
             {...attributes}
             onClick={() => onClick?.(card.id)}
             className={`
-                border-l-4 rounded-lg bg-background p-3 cursor-grab active:cursor-grabbing
-                shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-elevated)]
-                transition-shadow
+                border border-[var(--border-light)] rounded-[var(--radius-md)] bg-[var(--bg-surface)] p-4 cursor-grab active:cursor-grabbing
+                shadow-sm hover:shadow-md hover:-translate-y-px
+                transition-all duration-150
                 ${isDragging ? "opacity-50 ring-2 ring-primary/30" : ""}
-                ${isDraft ? "border-dashed border-warm-300 bg-warm-50/50 cursor-pointer" : ""}
+                ${isDraft ? "border-dashed border-[var(--border)] bg-[var(--bg-input)]/50 cursor-pointer" : ""}
             `}
         >
-            {/* Row 1: Type badge + overdue indicator */}
-            <div className="flex items-center justify-between gap-2 mb-1.5">
+            {/* Row 1: Type badge + overdue indicator (prototype kanban-card-type) */}
+            <div className="flex items-center justify-between gap-2 mb-1">
                 {card.document_type_name ? (
-                    <span
-                        className="text-[11px] font-medium px-1.5 py-0.5 rounded truncate max-w-[140px]"
-                        style={{
-                            backgroundColor: `${getDocTypeColor(card.document_type_name)}12`,
-                            color: getDocTypeColor(card.document_type_name),
-                        }}
-                    >
+                    <span className="text-[10px] font-bold uppercase tracking-[0.06em] text-[var(--text-muted)] truncate max-w-[140px]">
                         {card.document_type_name}
                     </span>
                 ) : (
                     <span />
                 )}
                 {isDraft && (
-                    <span className="text-[10px] font-medium text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded shrink-0">
+                    <span className="text-[10px] font-medium text-[var(--nw-amber)] bg-[var(--nw-amber-light)] px-1.5 py-0.5 rounded-full shrink-0">
                         Entwurf
                     </span>
                 )}
                 {overdue && (
-                    <span className="flex items-center gap-0.5 text-[10px] font-semibold text-red-600 dark:text-red-400 shrink-0">
+                    <span className="flex items-center gap-1 text-[11px] font-semibold text-[var(--nw-red)] shrink-0">
                         <AlertCircle className="w-3 h-3" />
                         überfällig
                     </span>
                 )}
             </div>
 
-            {/* Row 2: Title / Employee */}
-            <p className="text-sm font-medium text-foreground truncate leading-snug">
+            {/* Row 2: Title / Employee (prototype kanban-card-name) */}
+            <p className="text-sm font-bold text-[var(--text-primary)] truncate leading-snug">
                 {card.title || card.employee_name || "Dokument"}
             </p>
             {card.employee_name && card.title && (
-                <p className="text-xs text-muted-foreground truncate mt-0.5">
+                <p className="text-xs text-[var(--text-tertiary)] truncate mt-0.5">
                     {card.employee_name}
                 </p>
             )}
 
-            {/* Row 3: Date + Due date + Delete */}
-            <div className="flex items-center gap-3 mt-2 text-[11px] text-muted-foreground">
+            {/* Row 3: Date + Due date + Delete (prototype kanban-card-footer) */}
+            <div className="flex items-center gap-3 mt-2.5 text-[12px] text-[var(--text-muted)]">
                 {card.created_at && (
                     <span>{formatDistanceToNow(card.created_at)}</span>
                 )}

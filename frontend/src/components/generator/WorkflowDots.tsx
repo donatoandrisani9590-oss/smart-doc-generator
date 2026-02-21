@@ -24,15 +24,15 @@ export function WorkflowDots() {
             key={step.id}
             className={cn(
               "w-2 h-2 rounded-full transition-all duration-300",
-              i < currentStep && "bg-green-500",
-              i === currentStep && "bg-primary w-3 h-3",
-              i > currentStep && "bg-foreground/15"
+              i < currentStep && "bg-[var(--nw-green)]",
+              i === currentStep && "bg-[var(--nw-blue)] w-3 h-3",
+              i > currentStep && "bg-[var(--border)]"
             )}
             title={step.label}
           />
         ))}
       </div>
-      <span className="text-sm text-muted-foreground">
+      <span className="text-sm text-[var(--text-muted)]">
         {STEPS[currentStep]?.label}
       </span>
     </div>

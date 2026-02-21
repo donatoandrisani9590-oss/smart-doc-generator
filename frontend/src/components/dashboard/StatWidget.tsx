@@ -1,6 +1,6 @@
 /**
- * StatWidget — DS v2.1 KPI stat card with glass surface.
- * Large bold number + small caps label. Optional blue accent stripe.
+ * StatWidget — DS v5.0 KPI stat card with colored icon box.
+ * Prototype stat-card: bg-surface, border, radius-lg, colored icon square.
  * Numbers animate with GSAP count-up when scrolling into view.
  */
 
@@ -17,9 +17,11 @@ interface StatWidgetProps {
   accent?: boolean;
   onClick?: () => void;
   className?: string;
+  iconBg?: string;
+  iconColor?: string;
 }
 
-export function StatWidget({ value, label, icon: Icon, loading, accent, onClick, className }: StatWidgetProps) {
+export function StatWidget({ value, label, icon: Icon, loading, accent, onClick, className, iconBg, iconColor }: StatWidgetProps) {
   const Wrapper = onClick ? "button" : "div";
   const { ref: countRef, value: displayValue } = useCountUp(value, {
     duration: 1.4,
@@ -27,37 +29,39 @@ export function StatWidget({ value, label, icon: Icon, loading, accent, onClick,
     scrollTriggered: true,
   });
 
+  const defaultIconBg = accent ? "bg-[var(--nw-blue-50)]" : "bg-[var(--nw-blue-50)]";
+  const defaultIconColor = accent ? "text-[var(--nw-blue)]" : "text-[var(--nw-blue)]";
+
   return (
     <Wrapper
       className={cn(
-        "glass-card text-left relative overflow-hidden",
-        onClick && "cursor-pointer hover:-translate-y-[1px] hover:shadow-[0_8px_32px_rgba(36,49,134,0.08)] transition-all duration-200",
+        "w-full text-left bg-[var(--bg-surface)] border border-[var(--border)] rounded-[var(--radius-lg)] p-5",
+        "flex items-center gap-4 transition-all duration-150 shadow-sm",
+        onClick && "cursor-pointer hover:shadow-md hover:-translate-y-[2px]",
         className
       )}
       onClick={onClick}
       type={onClick ? "button" : undefined}
     >
-      {/* Blue accent stripe for primary KPI */}
-      {accent && (
-        <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-[var(--nw-blue-700)] rounded-l-[var(--radius-2xl)]" />
-      )}
-
-      <div className={cn("flex items-start justify-between", accent && "pl-2")}>
-        <div>
-          {loading ? (
-            <Skeleton className="h-9 w-16 rounded-lg" />
-          ) : (
-            <p ref={countRef as React.Ref<HTMLParagraphElement>} className="text-3xl font-bold tracking-tight text-[var(--text-primary)] tabular-nums">
-              {displayValue}
-            </p>
-          )}
-          <p className="text-xs text-[var(--text-tertiary)] uppercase tracking-wider mt-1">
-            {label}
-          </p>
+      {Icon && (
+        <div className={cn(
+          "w-11 h-11 rounded-[var(--radius-md)] flex items-center justify-center shrink-0",
+          iconBg || defaultIconBg
+        )}>
+          <Icon className={cn("w-5 h-5", iconColor || defaultIconColor)} />
         </div>
-        {Icon && (
-          <Icon className="w-4 h-4 text-[var(--text-tertiary)] opacity-60" />
+      )}
+      <div>
+        {loading ? (
+          <Skeleton className="h-7 w-16 rounded-lg" />
+        ) : (
+          <p ref={countRef as React.Ref<HTMLParagraphElement>} className="text-2xl font-extrabold tracking-tight text-[var(--text-primary)] tabular-nums leading-none">
+            {displayValue}
+          </p>
         )}
+        <p className="text-xs text-[var(--text-tertiary)] mt-1">
+          {label}
+        </p>
       </div>
     </Wrapper>
   );

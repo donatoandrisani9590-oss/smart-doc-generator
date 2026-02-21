@@ -186,14 +186,14 @@ export function EditorActionPanel() {
         <>
             <div className="absolute bottom-6 right-6 z-30 w-80">
                 {/* Collapsible Panel */}
-                <div className="bg-white/95 dark:bg-card/95 backdrop-blur-xl rounded-2xl shadow-float border border-warm-100 dark:border-border overflow-hidden transition-all duration-200">
+                <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-[var(--radius-xl)] shadow-[var(--shadow-lg)] overflow-hidden transition-all duration-200">
                     {/* Header — always visible */}
                     <button
                         onClick={() => setIsExpanded(!isExpanded)}
-                        className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-foreground hover:bg-warm-50/50 dark:hover:bg-warm-50/5 transition-colors"
+                        className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors"
                     >
                         <div className="flex items-center gap-2">
-                            <Download className="w-4 h-4 text-primary" />
+                            <Download className="w-4 h-4 text-[var(--nw-blue)]" />
                             Dokument abschließen
                         </div>
                         {isExpanded ? (
@@ -209,13 +209,13 @@ export function EditorActionPanel() {
                             {/* Format Toggle */}
                             <div className="space-y-1.5">
                                 <Label className="text-xs text-muted-foreground">Format</Label>
-                                <div className="flex gap-1 p-1 bg-warm-50 dark:bg-warm-50/10 rounded-lg">
+                                <div className="flex gap-1 p-1 bg-[var(--bg-input)] rounded-[var(--radius-md)]">
                                     <button
                                         onClick={() => setExportFormat("pdf")}
                                         className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-medium rounded-md transition-all ${
                                             exportFormat === "pdf"
-                                                ? "bg-white dark:bg-card shadow-soft-xs text-foreground"
-                                                : "text-muted-foreground hover:text-foreground"
+                                                ? "bg-[var(--bg-surface)] shadow-sm text-[var(--text-primary)]"
+                                                : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
                                         }`}
                                     >
                                         <FileText className="w-3.5 h-3.5 text-red-500" />
@@ -225,8 +225,8 @@ export function EditorActionPanel() {
                                         onClick={() => setExportFormat("docx")}
                                         className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-medium rounded-md transition-all ${
                                             exportFormat === "docx"
-                                                ? "bg-white dark:bg-card shadow-soft-xs text-foreground"
-                                                : "text-muted-foreground hover:text-foreground"
+                                                ? "bg-[var(--bg-surface)] shadow-sm text-[var(--text-primary)]"
+                                                : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
                                         }`}
                                     >
                                         <FileType2 className="w-3.5 h-3.5 text-blue-500" />
@@ -246,7 +246,7 @@ export function EditorActionPanel() {
                                         {attachments.map((att: { id: number; name: string }) => (
                                             <label
                                                 key={att.id}
-                                                className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-warm-50/50 dark:hover:bg-warm-50/5 cursor-pointer transition-colors"
+                                                className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-[var(--bg-hover)] cursor-pointer transition-colors"
                                             >
                                                 <Checkbox
                                                     checked={selectedAttachmentIds.includes(att.id)}
@@ -260,7 +260,7 @@ export function EditorActionPanel() {
                             )}
 
                             {/* Divider */}
-                            <div className="border-t border-dashed border-warm-200 dark:border-border/50" />
+                            <div className="border-t border-dashed border-[var(--border-light)]" />
 
                             {/* Date Fields */}
                             <div className="space-y-2">
@@ -291,7 +291,7 @@ export function EditorActionPanel() {
                             </div>
 
                             {/* Divider */}
-                            <div className="border-t border-dashed border-warm-200 dark:border-border/50" />
+                            <div className="border-t border-dashed border-[var(--border-light)]" />
 
                             {/* Action Buttons */}
                             <div className="space-y-2">

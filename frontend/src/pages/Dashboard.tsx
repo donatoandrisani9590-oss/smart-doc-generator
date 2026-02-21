@@ -180,18 +180,18 @@ export const Dashboard = () => {
     }}>
       <div className="max-w-7xl mx-auto space-y-10">
 
-        {/* ── Hero Section: Greeting + Search ── */}
-        <div className="text-center pt-8 pb-2 space-y-6" data-gsap="greeting">
-          <div className="space-y-2">
+        {/* ── Hero Section: Greeting + Search (Prototype ai-hero) ── */}
+        <div className="text-center pt-6 pb-2 space-y-6" data-gsap="greeting">
+          <div className="space-y-1.5">
             <TextReveal
               as="h1"
-              className="text-4xl font-bold tracking-tight text-[var(--text-primary)]"
+              className="text-[30px] font-extrabold tracking-[-0.03em] text-[var(--text-primary)]"
               stagger={0.05}
               duration={0.7}
             >
               {`${getGreeting()}${firstName ? `, ${firstName}` : ""}`}
             </TextReveal>
-            <p className="text-lg text-[var(--text-secondary)]" data-gsap="subtitle">
+            <p className="text-[15px] text-[var(--text-secondary)]" data-gsap="subtitle">
               {!hasDocTypes
                 ? "Richte deine erste Dokumentvorlage ein"
                 : <>Wie kann ich dir heute <span className="text-[var(--nw-blue-700)] dark:text-[var(--nw-blue-300)] font-medium">helfen?</span></>
@@ -224,14 +224,16 @@ export const Dashboard = () => {
           )}
         </div>
 
-        {/* ── KPI Cards Row ── */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+        {/* ── KPI Cards Row (Prototype stat-grid) ── */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div data-gsap="stat" data-hover="lift" data-spotlight>
             <StatWidget
               value={stats?.documents_this_month ?? 0}
               label="Diesen Monat"
               icon={FileBarChart}
               loading={statsLoading}
+              iconBg="bg-[var(--nw-blue-50)]"
+              iconColor="text-[var(--nw-blue)]"
             />
           </div>
           <div data-gsap="stat" data-hover="lift" data-spotlight>
@@ -242,6 +244,8 @@ export const Dashboard = () => {
               loading={statsLoading}
               accent
               onClick={() => navigate("/documents?status=draft")}
+              iconBg="bg-[var(--nw-amber-light)]"
+              iconColor="text-[var(--nw-amber)]"
             />
           </div>
           <div data-gsap="stat" data-hover="lift" data-spotlight>
@@ -251,6 +255,8 @@ export const Dashboard = () => {
               icon={Files}
               loading={statsLoading}
               onClick={() => navigate("/documents")}
+              iconBg="bg-[var(--nw-green-light)]"
+              iconColor="text-[var(--nw-green)]"
             />
           </div>
         </div>

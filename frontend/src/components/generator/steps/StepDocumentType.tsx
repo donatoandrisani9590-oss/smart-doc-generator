@@ -141,10 +141,10 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
         <div className="max-w-3xl mx-auto py-12 px-6">
             {/* Header */}
             <div className="mb-8">
-                <h1 className="text-3xl font-semibold tracking-tight text-[var(--text-primary)]">
+                <h1 className="text-[28px] font-extrabold tracking-[-0.03em] text-[var(--text-primary)]">
                     Neues Dokument
                 </h1>
-                <p className="text-base text-[var(--text-tertiary)] mt-2">
+                <p className="text-[15px] text-[var(--text-secondary)] mt-2">
                     Wähle eine Vorlage und starte die Erstellung.
                 </p>
             </div>
@@ -158,10 +158,10 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Dokumenttyp suchen..."
                     className={cn(
-                        "h-12 pl-11 pr-10 text-base rounded-xl",
-                        "border border-warm-200 bg-[var(--bg-surface)]",
-                        "placeholder:text-[var(--text-tertiary)]/60",
-                        "focus:ring-2 focus:ring-primary/20 focus:border-primary/40"
+                        "h-12 pl-11 pr-10 text-base rounded-[var(--radius-md)]",
+                        "border border-[var(--border)] bg-[var(--bg-surface)]",
+                        "placeholder:text-[var(--text-muted)]",
+                        "focus:ring-2 focus:ring-[var(--nw-blue)]/20 focus:border-[var(--nw-blue)]/40"
                     )}
                     disabled={isLoading}
                 />
@@ -205,7 +205,7 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
                 <section key={category} className="mb-8" aria-labelledby={`cat-${category}`}>
                     <h2
                         id={`cat-${category}`}
-                        className="text-xs font-medium uppercase tracking-wider text-[var(--text-tertiary)] mb-3"
+                        className="text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--text-muted)] mb-3"
                     >
                         {translateCategory(category)}
                     </h2>

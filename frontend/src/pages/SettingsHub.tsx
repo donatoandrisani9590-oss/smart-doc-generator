@@ -275,11 +275,11 @@ export default function SettingsHub() {
                 onOpenChange={setCommandPaletteOpen}
             />
 
-            {/* Header */}
-            <div className="flex items-start justify-between mb-6">
+            {/* Header (Prototype page-header) */}
+            <div className="flex items-start justify-between mb-8">
                 <div>
-                    <TextReveal as="h1" className="text-2xl font-semibold tracking-tight text-foreground" stagger={0.04} duration={0.6}>Einstellungen</TextReveal>
-                    <p className="text-sm text-muted-foreground/60 mt-1">
+                    <TextReveal as="h1" className="text-[28px] font-extrabold tracking-[-0.03em] text-[var(--text-primary)]" stagger={0.04} duration={0.6}>Einstellungen</TextReveal>
+                    <p className="text-sm text-[var(--text-secondary)] mt-1">
                         Firmendaten, Design, Verwaltung und Compliance
                     </p>
                 </div>
@@ -287,18 +287,18 @@ export default function SettingsHub() {
                     variant="ghost"
                     size="sm"
                     onClick={() => setCommandPaletteOpen(true)}
-                    className="gap-2 h-9 bg-muted/20 hover:bg-muted/40 rounded-full px-4"
+                    className="gap-2 h-9 bg-[var(--bg-surface)] hover:bg-[var(--bg-hover)] rounded-[var(--radius-sm-ds)] border border-[var(--border)] px-4"
                 >
-                    <Search className="h-3.5 w-3.5 text-muted-foreground/40" />
-                    <span className="hidden sm:inline text-muted-foreground/50 text-xs">Suchen</span>
-                    <kbd className="pointer-events-none hidden sm:inline-flex h-5 select-none items-center gap-1 rounded-full bg-muted/30 px-1.5 font-mono text-2xs font-medium text-muted-foreground/40 ml-2">
+                    <Search className="h-3.5 w-3.5 text-[var(--text-muted)]" />
+                    <span className="hidden sm:inline text-[var(--text-tertiary)] text-xs">Suchen</span>
+                    <kbd className="pointer-events-none hidden sm:inline-flex h-5 select-none items-center gap-1 rounded-full bg-[var(--bg-input)] px-1.5 font-mono text-2xs font-medium text-[var(--text-muted)] ml-2">
                         {navigator.platform.includes("Mac") ? "Cmd" : "Ctrl"}+K
                     </kbd>
                 </Button>
             </div>
 
-            {/* Main Layout: Sidebar + Content */}
-            <div className="flex flex-col md:flex-row ive-card overflow-hidden min-h-[600px] md:h-[calc(100vh-10rem)]">
+            {/* Main Layout: Sidebar + Content (Prototype settings-layout) */}
+            <div className="flex flex-col md:grid md:grid-cols-[220px_1fr] bg-[var(--bg-surface)] border border-[var(--border)] rounded-[var(--radius-xl)] overflow-hidden min-h-[600px] shadow-sm">
 
                 {/* Mobile: Horizontal Scroll Nav */}
                 <div className="md:hidden overflow-x-auto px-2 py-2">
@@ -321,30 +321,27 @@ export default function SettingsHub() {
                     </div>
                 </div>
 
-                {/* Desktop: Sidebar Navigation */}
-                <nav className="hidden md:block w-[240px] shrink-0 overflow-y-auto scrollbar-hide py-3">
+                {/* Desktop: Sidebar Navigation (Prototype settings-nav) */}
+                <nav className="hidden md:block border-r border-[var(--border)] bg-[var(--bg-sidebar)] overflow-y-auto scrollbar-hide py-5 px-3">
                     {filteredNav.map((group, groupIndex) => (
-                        <div key={group.id} className={cn("pb-3", groupIndex > 0 && "pt-3 mx-3")}>
-                            <h3 className="px-4 py-1 text-2xs font-medium text-muted-foreground/50 uppercase tracking-[0.12em]">
+                        <div key={group.id} className={cn("mb-5", groupIndex > 0 && "")}>
+                            <span className="block px-[10px] mb-1.5 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-[0.08em]">
                                 {group.label}
-                            </h3>
-                            <div className="space-y-0.5 mt-0.5 px-1.5">
+                            </span>
+                            <div className="space-y-0.5">
                                 {group.items.map((item) => (
                                     <button
                                         key={item.id}
                                         onClick={() => setActiveTab(item.id)}
                                         className={cn(
-                                            "w-full flex items-center gap-2.5 px-2.5 py-1.5 text-sm rounded-lg transition-all",
+                                            "w-full flex items-center gap-[10px] px-[10px] py-[9px] text-[13.5px] font-medium rounded-[var(--radius-sm-ds)] transition-all duration-[120ms]",
                                             activeTab === item.id
-                                                ? "bg-muted/50 text-foreground font-medium"
-                                                : "text-muted-foreground hover:bg-muted/30 hover:text-foreground"
+                                                ? "bg-[var(--nw-blue-50)] text-[var(--nw-blue)] font-semibold"
+                                                : "text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
                                         )}
                                     >
                                         <item.icon className={cn(
-                                            "w-3.5 h-3.5 shrink-0 transition-colors",
-                                            activeTab === item.id
-                                                ? "text-primary/70"
-                                                : "text-muted-foreground/50"
+                                            "w-[17px] h-[17px] shrink-0 stroke-[1.8]"
                                         )} />
                                         <span>{item.label}</span>
                                     </button>
@@ -354,8 +351,8 @@ export default function SettingsHub() {
                     ))}
                 </nav>
 
-                {/* Content Area — subtle gray bg for white-card-on-gray effect */}
-                <div className="flex-1 min-w-0 p-6 lg:p-8 overflow-y-auto bg-muted/30 border-l border-warm-100">
+                {/* Content Area (Prototype settings-content) */}
+                <div className="flex-1 min-w-0 p-8 overflow-y-auto">
                     {ActiveComponent ? (
                         <Suspense fallback={<TabSkeleton />}>
                             <ActiveComponent />

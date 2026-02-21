@@ -19,7 +19,6 @@ const AI_PREFIXES = ["erstelle", "generiere", "schreibe", "verfasse", "entwirf",
 
 export function CommandCenter({ className }: CommandCenterProps) {
   const [query, setQuery] = useState("");
-  const [isFocused, setIsFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const sparkleRef = useRef<SVGSVGElement>(null);
@@ -42,7 +41,6 @@ export function CommandCenter({ className }: CommandCenterProps) {
   };
 
   const handleFocus = useCallback(() => {
-    setIsFocused(true);
     const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (prefersReduced) return;
 
@@ -69,8 +67,6 @@ export function CommandCenter({ className }: CommandCenterProps) {
   }, []);
 
   const handleBlur = useCallback(() => {
-    setIsFocused(false);
-
     if (formRef.current) {
       gsap.to(formRef.current, {
         boxShadow: "0 0 0 0px rgba(36, 49, 134, 0), 0 16px 48px rgba(36, 49, 134, 0.08)",
@@ -110,13 +106,9 @@ export function CommandCenter({ className }: CommandCenterProps) {
         placeholder="Dokument suchen oder KI bitten, eines zu entwerfen..."
         className="hero-search-input"
       />
-      <Sparkles
-        ref={sparkleRef}
-        className={cn(
-          "hero-search-ai-icon transition-colors",
-          isFocused && "!color-[var(--nw-blue-500)]"
-        )}
-      />
+      <button type="submit" className="hero-search-send" aria-label="Suchen">
+        <Sparkles ref={sparkleRef} />
+      </button>
     </form>
   );
 }

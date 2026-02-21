@@ -123,13 +123,13 @@ export const ActionBar = () => {
     }, [autoSaveStatus, lastSavedText]);
 
     return (
-        <div className="p-3 shadow-[var(--shadow-up-subtle)] bg-background space-y-2.5">
+        <div className="p-3 shadow-[var(--shadow-up-subtle)] bg-[var(--bg-surface)] border-t border-[var(--border-light)] space-y-2.5">
             {/* Sidebar Toggles — KI-Chat & Kommentare */}
             <div className="flex items-center justify-center gap-1">
                 <Button
                     variant="ghost"
                     size="sm"
-                    className={`h-7 gap-1.5 text-xs ${showChatSidebar ? "text-primary bg-primary/10" : "text-muted-foreground"}`}
+                    className={`h-7 gap-1.5 text-xs ${showChatSidebar ? "text-[var(--nw-blue)] bg-[var(--nw-blue-50)]" : "text-[var(--text-muted)]"}`}
                     onClick={() => actions.toggleChatSidebar()}
                 >
                     <Sparkles className="w-3.5 h-3.5" />
@@ -138,7 +138,7 @@ export const ActionBar = () => {
                 <Button
                     variant="ghost"
                     size="sm"
-                    className={`h-7 gap-1.5 text-xs ${showCommentSidebar ? "text-primary bg-primary/10" : "text-muted-foreground"}`}
+                    className={`h-7 gap-1.5 text-xs ${showCommentSidebar ? "text-[var(--nw-blue)] bg-[var(--nw-blue-50)]" : "text-[var(--text-muted)]"}`}
                     onClick={() => actions.toggleCommentSidebar()}
                 >
                     <MessagesSquare className="w-3.5 h-3.5" />

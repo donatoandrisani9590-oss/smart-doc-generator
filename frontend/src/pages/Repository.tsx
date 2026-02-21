@@ -370,11 +370,11 @@ export const RepositoryPage = () => {
 
     return (
         <div ref={revealRef} className="space-y-6 max-w-6xl mx-auto">
-            {/* Header */}
+            {/* Header (Prototype page-header) */}
             <div className="flex items-start justify-between gap-3" data-reveal="fade-up">
                 <div className="min-w-0">
-                    <TextReveal as="h1" className="text-2xl font-semibold text-foreground leading-tight" stagger={0.04} duration={0.6}>Meine Dokumente</TextReveal>
-                    <p className="text-sm text-muted-foreground mt-2">
+                    <TextReveal as="h1" className="text-[28px] font-extrabold tracking-[-0.03em] text-[var(--text-primary)]" stagger={0.04} duration={0.6}>Meine Dokumente</TextReveal>
+                    <p className="text-sm text-[var(--text-secondary)] mt-1">
                         {drafts?.length ? `${drafts.length} Entwürfe, ` : ""}
                         {stats ? `${stats.total_documents} fertige Dokumente` : "Alle deine Dokumente"}
                     </p>

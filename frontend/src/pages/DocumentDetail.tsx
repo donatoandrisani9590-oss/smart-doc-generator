@@ -255,8 +255,8 @@ export const DocumentDetailPage = () => {
 
     return (
         <div ref={revealRef} className="flex flex-col h-[calc(100vh-4rem)] max-w-[1600px] mx-auto">
-            {/* Status Action Bar */}
-            <div data-reveal="fade-down" className="shrink-0 bg-white dark:bg-card rounded-xl p-3 shadow-soft-sm border border-warm-200/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mx-1 mb-3">
+            {/* Status Action Bar (Prototype-aligned) */}
+            <div data-reveal="fade-down" className="shrink-0 bg-[var(--bg-surface)] rounded-[var(--radius-lg)] p-4 shadow-sm border border-[var(--border)] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mx-1 mb-3">
                 <div className="flex items-center gap-3">
                     <Button variant="ghost" size="icon" className="shrink-0" onClick={() => navigate("/documents")}>
                         <ArrowLeft className="w-5 h-5" />
@@ -431,13 +431,14 @@ export const DocumentDetailPage = () => {
                 </div>
             )}
 
-            {/* Split-Screen: Preview + Sidebar */}
-            <div className="flex-1 flex gap-4 min-h-0 mx-1 pb-2">
-                {/* Left: Document Preview */}
+            {/* Split-Screen: Preview + Sidebar (Prototype doc-detail-wrapper) */}
+            <div className="flex-1 flex gap-5 min-h-0 mx-1 pb-2">
+                {/* Left: Document Preview Pane */}
                 <div
-                    className={`flex-1 min-w-0 transition-all duration-300 ${
+                    className={`flex-1 min-w-0 transition-all duration-300 bg-[#F7F7F5] dark:bg-[#0E0E14] border border-[var(--border)] rounded-[var(--radius-xl)] overflow-y-auto ${
                         sidebarOpen ? "lg:flex-[3]" : ""
                     }`}
+                    style={{ boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.02)' }}
                 >
                     {documentZones ? (
                         <FullDocumentPreview zones={documentZones} readOnly>
@@ -480,22 +481,22 @@ export const DocumentDetailPage = () => {
                     )}
                 </div>
 
-                {/* Right: Sidebar */}
+                {/* Right: Sidebar (Prototype doc-sidebar-pane) */}
                 <div
                     className={`shrink-0 transition-all duration-300 overflow-hidden ${
                         sidebarOpen
-                            ? "w-full lg:w-[380px] lg:flex-[2]"
+                            ? "w-full lg:w-[360px] lg:flex-[2]"
                             : "w-0 lg:w-0 opacity-0 pointer-events-none"
                     }`}
                 >
-                    <div className="flex flex-col h-full min-w-[320px]">
-                        {/* Tab Switcher */}
-                        <div className="flex border-b border-warm-200/50 mb-3">
+                    <div className="flex flex-col h-full min-w-[320px] bg-[var(--bg-surface)] border border-[var(--border)] rounded-[var(--radius-xl)] shadow-lg overflow-hidden">
+                        {/* Tab Switcher (Prototype doc-tabs) */}
+                        <div className="flex border-b border-[var(--border)]">
                             <button
-                                className={`flex-1 px-4 py-2.5 text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
+                                className={`flex-1 py-3.5 text-[12px] font-semibold transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer ${
                                     activeTab === "details"
-                                        ? "text-primary border-b-[3px] border-primary -mb-[1px]"
-                                        : "text-muted-foreground hover:text-foreground hover:bg-warm-50/50"
+                                        ? "text-[var(--nw-blue)] border-b-2 border-[var(--nw-blue)]"
+                                        : "text-[var(--text-tertiary)] border-b-2 border-transparent hover:text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]"
                                 }`}
                                 onClick={() => setActiveTab("details")}
                             >
@@ -503,10 +504,10 @@ export const DocumentDetailPage = () => {
                                 Details
                             </button>
                             <button
-                                className={`flex-1 px-4 py-2.5 text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
+                                className={`flex-1 py-3.5 text-[12px] font-semibold transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer ${
                                     activeTab === "verwaltung"
-                                        ? "text-primary border-b-[3px] border-primary -mb-[1px]"
-                                        : "text-muted-foreground hover:text-foreground hover:bg-warm-50/50"
+                                        ? "text-[var(--nw-blue)] border-b-2 border-[var(--nw-blue)]"
+                                        : "text-[var(--text-tertiary)] border-b-2 border-transparent hover:text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]"
                                 }`}
                                 onClick={() => setActiveTab("verwaltung")}
                             >
@@ -514,10 +515,10 @@ export const DocumentDetailPage = () => {
                                 Verwaltung
                             </button>
                             <button
-                                className={`flex-1 px-4 py-2.5 text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
+                                className={`flex-1 py-3.5 text-[12px] font-semibold transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer ${
                                     activeTab === "verlauf"
-                                        ? "text-primary border-b-[3px] border-primary -mb-[1px]"
-                                        : "text-muted-foreground hover:text-foreground hover:bg-warm-50/50"
+                                        ? "text-[var(--nw-blue)] border-b-2 border-[var(--nw-blue)]"
+                                        : "text-[var(--text-tertiary)] border-b-2 border-transparent hover:text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]"
                                 }`}
                                 onClick={() => setActiveTab("verlauf")}
                             >
@@ -525,27 +526,27 @@ export const DocumentDetailPage = () => {
                                 Verlauf
                             </button>
                             <button
-                                className={`flex-1 px-4 py-2.5 text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
+                                className={`flex-1 py-3.5 text-[12px] font-semibold transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer ${
                                     activeTab === "kommentare"
-                                        ? "text-primary border-b-[3px] border-primary -mb-[1px]"
-                                        : "text-muted-foreground hover:text-foreground hover:bg-warm-50/50"
+                                        ? "text-[var(--nw-blue)] border-b-2 border-[var(--nw-blue)]"
+                                        : "text-[var(--text-tertiary)] border-b-2 border-transparent hover:text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]"
                                 }`}
                                 onClick={() => setActiveTab("kommentare")}
                             >
                                 <MessageSquare className="w-3.5 h-3.5" />
                                 Kommentare
                                 {commentUnresolved > 0 && (
-                                    <span className="px-1.5 py-0.5 text-[10px] font-semibold rounded-full bg-primary text-white">
+                                    <span className="px-1.5 py-0.5 text-[10px] font-semibold rounded-full bg-[var(--nw-blue)] text-white">
                                         {commentUnresolved > 9 ? "9+" : commentUnresolved}
                                     </span>
                                 )}
                             </button>
                             {approvalEnabled && (
                                 <button
-                                    className={`flex-1 px-4 py-2.5 text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
+                                    className={`flex-1 py-3.5 text-[12px] font-semibold transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer ${
                                         activeTab === "freigabe"
-                                            ? "text-primary border-b-[3px] border-primary -mb-[1px]"
-                                            : "text-muted-foreground hover:text-foreground"
+                                            ? "text-[var(--nw-blue)] border-b-2 border-[var(--nw-blue)]"
+                                            : "text-[var(--text-tertiary)] border-b-2 border-transparent hover:text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]"
                                     }`}
                                     onClick={() => setActiveTab("freigabe")}
                                 >
@@ -555,8 +556,8 @@ export const DocumentDetailPage = () => {
                             )}
                         </div>
 
-                        {/* Tab Content */}
-                        <div className="flex-1 overflow-y-auto space-y-4 pr-1">
+                        {/* Tab Content (Prototype doc-tab-content) */}
+                        <div className="flex-1 overflow-y-auto p-[22px] space-y-4">
                             {activeTab === "details" && (
                                 <>
                                     {/* Employee Info Card */}

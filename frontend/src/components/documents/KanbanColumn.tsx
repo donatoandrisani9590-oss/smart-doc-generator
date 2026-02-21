@@ -8,12 +8,6 @@
 import { useState } from "react";
 import { useDroppable } from "@dnd-kit/core";
 import {
-    Edit3,
-    ShieldCheck,
-    Send,
-    RotateCcw,
-    CheckCircle,
-    Archive,
     ChevronDown,
     ChevronRight,
 } from "lucide-react";
@@ -23,16 +17,6 @@ import {
     type PipelineStage,
     type KanbanCardItem,
 } from "@/hooks/api/useKanbanQueries";
-
-// ── Stage icons ─────────────────────────────────────────────────────────
-const STAGE_ICONS: Record<PipelineStage, React.ElementType> = {
-    entwurf: Edit3,
-    freigabe: ShieldCheck,
-    versendet: Send,
-    ruecklauf: RotateCcw,
-    abgeschlossen: CheckCircle,
-    archiv: Archive,
-};
 
 // ═══════════════════════════════════════════════════════════════════════════
 
@@ -62,30 +46,33 @@ export function KanbanColumn({
     });
 
     const colors = STAGE_COLORS[stage];
-    const Icon = STAGE_ICONS[stage];
 
     return (
         <div
-            className={`flex flex-col rounded-xl ${colors.bg} ${colors.border} border min-w-[260px] w-[260px] shrink-0 transition-shadow ${
+            className={`flex flex-col bg-[var(--bg-surface)] border border-[var(--border)] rounded-[var(--radius-lg)] min-w-[260px] w-[260px] shrink-0 transition-shadow shadow-sm min-h-[400px] ${
                 isOver ? "ring-2 ring-primary/40 shadow-lg" : ""
             }`}
         >
-            {/* Column Header */}
+            {/* Column Header (Prototype kanban-col-header with status dot) */}
             <button
                 onClick={() => setCollapsed(!collapsed)}
-                className="flex items-center gap-2 px-3 py-2.5 select-none"
+                className="flex items-center justify-between px-5 py-4 select-none"
             >
-                <Icon className={`w-4 h-4 ${colors.icon} shrink-0`} />
-                <span className={`text-sm font-semibold ${colors.text} truncate`}>
-                    {label}
-                </span>
-                <span className={`ml-auto text-xs font-medium ${colors.text} opacity-70 tabular-nums`}>
+                <div className="flex items-center gap-2">
+                    <span className={`w-[9px] h-[9px] rounded-full ${colors.icon?.replace('text-', 'bg-') || 'bg-[var(--nw-blue)]'}`}
+                          style={{ background: `var(--color-${stage === 'entwurf' ? 'draft' : stage === 'abgeschlossen' ? 'done' : stage === 'versendet' ? 'sent' : stage === 'ruecklauf' ? 'return' : stage === 'freigabe' ? 'review' : 'archived'})` }}
+                    />
+                    <span className="text-sm font-bold text-[var(--text-primary)] truncate">
+                        {label}
+                    </span>
+                </div>
+                <span className="text-[13px] font-semibold text-[var(--text-tertiary)] tabular-nums">
                     {count}
                 </span>
                 {stage === "archiv" && (
                     collapsed
-                        ? <ChevronRight className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-                        : <ChevronDown className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                        ? <ChevronRight className="w-3.5 h-3.5 text-[var(--text-muted)] shrink-0 ml-1" />
+                        : <ChevronDown className="w-3.5 h-3.5 text-[var(--text-muted)] shrink-0 ml-1" />
                 )}
             </button>
 
@@ -93,12 +80,12 @@ export function KanbanColumn({
             {!collapsed && (
                 <div
                     ref={setNodeRef}
-                    className={`flex-1 px-2 pb-2 space-y-2 min-h-[80px] transition-colors rounded-b-xl ${
+                    className={`flex-1 px-3 pb-3 space-y-2.5 min-h-[80px] transition-colors rounded-b-[var(--radius-lg)] ${
                         isOver ? "bg-primary/5" : ""
                     }`}
                 >
                     {documents.length === 0 ? (
-                        <div className="flex items-center justify-center h-20 text-xs text-muted-foreground/50 italic">
+                        <div className="flex items-center justify-center h-20 text-xs text-[var(--text-muted)] italic">
                             Keine Dokumente
                         </div>
                     ) : (
@@ -113,7 +100,7 @@ export function KanbanColumn({
                     )}
                     {count > documents.length && (
                         <div className="text-center py-1">
-                            <span className="text-[11px] text-muted-foreground/60">
+                            <span className="text-[11px] text-[var(--text-muted)]">
                                 +{count - documents.length} weitere
                             </span>
                         </div>

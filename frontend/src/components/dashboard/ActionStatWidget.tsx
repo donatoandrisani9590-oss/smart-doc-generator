@@ -23,7 +23,7 @@ export function ActionStatWidget({ value, label, icon: Icon, accentColor, onClic
       type="button"
       onClick={onClick}
       className={cn(
-        "glass-card text-left cursor-pointer hover:-translate-y-[1px] hover:shadow-[0_8px_32px_rgba(36,49,134,0.08)] transition-all duration-200",
+        "glass-card text-left cursor-pointer hover:-translate-y-[1px] hover:shadow-[var(--shadow-lg)] transition-all duration-200",
         className
       )}
     >
