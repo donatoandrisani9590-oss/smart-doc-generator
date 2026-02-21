@@ -33,10 +33,17 @@ class DraftCreate(BaseModel):
     @field_validator("form_data")
     @classmethod
     def validate_form_data(cls, v: dict) -> dict:
-        """Ensure form_data is a valid dict and not excessively large."""
+        """Ensure form_data is a valid dict, not excessively large, and not empty."""
         serialized = json.dumps(v)
         if len(serialized) > 500_000:  # 500KB max
-            raise ValueError("form_data ist zu gross (max 500KB)")
+            raise ValueError("form_data ist zu groß (max 500KB)")
+        # Prevent ghost drafts: at least one field must have a non-empty value
+        non_empty = [
+            val for val in v.values()
+            if isinstance(val, str) and val.strip()
+        ]
+        if not non_empty:
+            raise ValueError("form_data muss mindestens ein ausgefülltes Feld enthalten")
         return v
 
     @field_validator("country_code")
