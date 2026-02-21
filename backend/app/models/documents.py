@@ -153,8 +153,8 @@ class DocumentTypeClause(Base):
     """
     __tablename__ = "document_type_clauses"
 
-    document_type_id = Column(Integer, ForeignKey("document_types.id"), primary_key=True)
-    clause_id = Column(Integer, ForeignKey("clauses.id"), primary_key=True)
+    document_type_id = Column(Integer, ForeignKey("document_types.id", ondelete="CASCADE"), primary_key=True)
+    clause_id = Column(Integer, ForeignKey("clauses.id", ondelete="CASCADE"), primary_key=True)
     display_order = Column(Integer, nullable=False)
     is_mandatory = Column(Boolean, default=True)
 
@@ -219,8 +219,8 @@ class ClauseVariant(Base):
     __tablename__ = "clause_variants"
 
     id = Column(Integer, primary_key=True, index=True)
-    group_id = Column(Integer, ForeignKey("clause_variant_groups.id"), nullable=False, index=True)
-    clause_id = Column(Integer, ForeignKey("clauses.id"), nullable=False, index=True)
+    group_id = Column(Integer, ForeignKey("clause_variant_groups.id", ondelete="CASCADE"), nullable=False, index=True)
+    clause_id = Column(Integer, ForeignKey("clauses.id", ondelete="CASCADE"), nullable=False, index=True)
 
     # Varianten-Details
     variant_name = Column(String(255), nullable=False)  # z.B. "3 Monate (Standard)"
@@ -300,7 +300,7 @@ class ClauseVersion(Base):
     __tablename__ = "clause_versions"
 
     id = Column(Integer, primary_key=True, index=True)
-    clause_id = Column(Integer, ForeignKey("clauses.id"), nullable=False, index=True)
+    clause_id = Column(Integer, ForeignKey("clauses.id", ondelete="CASCADE"), nullable=False, index=True)
     version_number = Column(Integer, nullable=False)
 
     # Inhalt dieser Version
@@ -346,7 +346,7 @@ class ClauseNote(Base):
     __tablename__ = "clause_notes"
 
     id = Column(Integer, primary_key=True, index=True)
-    clause_id = Column(Integer, ForeignKey("clauses.id"), nullable=False, index=True)
+    clause_id = Column(Integer, ForeignKey("clauses.id", ondelete="CASCADE"), nullable=False, index=True)
 
     # Notiz-Inhalt
     content = Column(Text, nullable=False)
