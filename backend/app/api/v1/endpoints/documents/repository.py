@@ -393,11 +393,20 @@ async def get_repository_stats(
     country_code: Optional[str] = None,
 ) -> Any:
     """Get statistics for the document repository."""
+    is_admin = getattr(current_user, "role", "user") == "admin"
+
+    # Base filters: not deleted, not archived, user-scoped
+    base_filters = [
+        models.GeneratedDocument.is_deleted == False,  # noqa: E712
+        models.GeneratedDocument.is_archived == False,  # noqa: E712
+    ]
+    if not is_admin:
+        base_filters.append(models.GeneratedDocument.created_by_id == current_user.id)
+    if country_code:
+        base_filters.append(models.GeneratedDocument.country_code == country_code)
 
     # Total documents
-    total_query = select(func.count(models.GeneratedDocument.id)).where(
-        models.GeneratedDocument.is_deleted == False
-    )
+    total_query = select(func.count(models.GeneratedDocument.id)).where(and_(*base_filters))
     total_result = await db.execute(total_query)
     total_documents = total_result.scalar() or 0
 
@@ -405,7 +414,7 @@ async def get_repository_stats(
     first_of_month = datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
     month_query = select(func.count(models.GeneratedDocument.id)).where(
         and_(
-            models.GeneratedDocument.is_deleted == False,
+            *base_filters,
             models.GeneratedDocument.created_at >= first_of_month,
         )
     )
@@ -415,7 +424,7 @@ async def get_repository_stats(
     # Documents with corrections
     corrections_query = select(func.count(models.GeneratedDocument.id)).where(
         and_(
-            models.GeneratedDocument.is_deleted == False,
+            *base_filters,
             models.GeneratedDocument.current_version > 1,
         )
     )
@@ -429,7 +438,7 @@ async def get_repository_stats(
             func.count(models.GeneratedDocument.id).label("count")
         )
         .join(DocumentType, models.GeneratedDocument.document_type_id == DocumentType.id)
-        .where(models.GeneratedDocument.is_deleted == False)
+        .where(and_(*base_filters))
         .group_by(DocumentType.id, DocumentType.name)
         .order_by(desc("count"))
         .limit(5)
@@ -452,7 +461,7 @@ async def get_repository_stats(
 
         month_count_query = select(func.count(models.GeneratedDocument.id)).where(
             and_(
-                models.GeneratedDocument.is_deleted == False,
+                *base_filters,
                 models.GeneratedDocument.created_at >= month_start,
                 models.GeneratedDocument.created_at < month_end,
             )
