@@ -259,14 +259,14 @@
     gap: 0.5rem;
     background: white;
     padding: 0.5rem;
-    border-radius: 8px;
+    border-radius: var(--radius-sm, 8px);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 /* E2E-007: Active Field Highlight in Preview */
 .preview-field-highlight {
     background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%) !important;
-    border-radius: 4px !important;
+    border-radius: var(--radius-xs, 4px) !important;
     padding: 2px 6px !important;
     box-shadow: 0 0 0 2px #f59e0b, 0 2px 8px rgba(245, 158, 11, 0.3) !important;
     animation: preview-highlight-pulse 1.5s ease-in-out infinite;
@@ -380,7 +380,7 @@
 
 /* Toolbar buttons */
 .document-editor-container .tox-tbtn {
-    border-radius: 4px !important;
+    border-radius: var(--radius-xs, 4px) !important;
 }
 
 .document-editor-container .tox-tbtn:hover {

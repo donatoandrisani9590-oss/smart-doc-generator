@@ -11,7 +11,7 @@
 .magic-preview-container {
     background: #fff;
     border: 1px solid #e5e7eb;
-    border-radius: 8px;
+    border-radius: var(--radius-sm, 8px);
     padding: 40px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     font-family: 'Times New Roman', Times, serif;
@@ -211,7 +211,7 @@
     color: white;
     font-size: 12px;
     font-family: system-ui, sans-serif;
-    border-radius: 4px;
+    border-radius: var(--radius-xs, 4px);
     white-space: nowrap;
     opacity: 0;
     visibility: hidden;
@@ -232,7 +232,7 @@
 .mapping-card {
     background: white;
     border: 1px solid #e5e7eb;
-    border-radius: 8px;
+    border-radius: var(--radius-sm, 8px);
     padding: 16px;
     transition: all 0.2s ease;
 }
@@ -258,7 +258,7 @@
     padding: 8px 12px;
     background: #f9fafb;
     border: 1px solid #e5e7eb;
-    border-radius: 6px;
+    border-radius: calc(var(--radius) - 6px);
     margin-bottom: 12px;
 }
 
@@ -302,7 +302,7 @@
     align-items: center;
     gap: 4px;
     padding: 2px 8px;
-    border-radius: 4px;
+    border-radius: var(--radius-xs, 4px);
     font-size: 12px;
     font-weight: 500;
 }
@@ -362,7 +362,7 @@
     padding: 0 6px;
     background: #f3f4f6;
     border: 1px solid #d1d5db;
-    border-radius: 4px;
+    border-radius: var(--radius-xs, 4px);
     font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
     font-size: 12px;
     color: #6b7280;
@@ -376,7 +376,7 @@
 .mapping-progress {
     height: 8px;
     background: #e5e7eb;
-    border-radius: 4px;
+    border-radius: var(--radius-xs, 4px);
     overflow: hidden;
 }
 
