@@ -24,7 +24,7 @@ from app.api import deps
 from app.models import core as core_models
 from app.models import enterprise as models
 from app.models.documents import DocumentType
-from app.models.enterprise import DocumentAction, DocumentApproval
+from app.models.enterprise import DocumentAction, DocumentApproval, DocumentDraft
 
 logger = logging.getLogger(__name__)
 
@@ -94,6 +94,7 @@ class KanbanCardItem(BaseModel):
     created_at: Optional[str] = None
     next_due_date: Optional[str] = None
     has_open_actions: bool = False
+    source: str = "document"  # "document" or "draft"
 
     class Config:
         from_attributes = True
@@ -697,12 +698,31 @@ async def get_kanban_board(
     )
     all_docs = all_docs_result.scalars().all()
 
-    # Dokumenttyp-Namen batch-laden
+    # ── Draft injection into "entwurf" column ────────────────────────────
+    draft_filters = [DocumentDraft.user_id == str(current_user.id)]
+    if search:
+        search_term = f"%{search}%"
+        draft_filters.append(DocumentDraft.name.ilike(search_term))
+    if document_type_id:
+        draft_filters.append(DocumentDraft.document_type_id == document_type_id)
+    if country_code:
+        draft_filters.append(DocumentDraft.country_code == country_code)
+
+    draft_result = await db.execute(
+        select(DocumentDraft)
+        .where(and_(*draft_filters))
+        .order_by(desc(DocumentDraft.updated_at))
+    )
+    drafts = draft_result.scalars().all()
+
+    # Dokumenttyp-Namen batch-laden (Dokumente + Entwürfe)
     doc_type_ids = list(set(d.document_type_id for d in all_docs if d.document_type_id))
+    draft_type_ids = list(set(d.document_type_id for d in drafts if d.document_type_id))
+    all_type_ids = list(set(doc_type_ids + draft_type_ids))
     doc_types: dict[int, str] = {}
-    if doc_type_ids:
+    if all_type_ids:
         dt_result = await db.execute(
-            select(DocumentType).where(DocumentType.id.in_(doc_type_ids))
+            select(DocumentType).where(DocumentType.id.in_(all_type_ids))
         )
         doc_types = {dt.id: dt.name for dt in dt_result.scalars().all()}
 
@@ -718,7 +738,6 @@ async def get_kanban_board(
     total = 0
     for stage in PIPELINE_STAGE_ORDER:
         count = stage_counts.get(stage, 0)
-        total += count
         cards = [
             KanbanCardItem(
                 id=doc.id,
@@ -729,9 +748,32 @@ async def get_kanban_board(
                 created_at=doc.created_at.isoformat() if doc.created_at else None,
                 next_due_date=doc.next_due_date.isoformat() if doc.next_due_date else None,
                 has_open_actions=doc.has_open_actions or False,
+                source="document",
             )
             for doc in stage_docs[stage]
         ]
+
+        # Inject drafts into "entwurf" column
+        if stage == "entwurf":
+            draft_cards = [
+                KanbanCardItem(
+                    id=draft.id * -1,  # Negative ID to distinguish from documents
+                    title=draft.name or "Unbenannter Entwurf",
+                    document_type_name=doc_types.get(draft.document_type_id),
+                    employee_name=None,
+                    pipeline_stage="entwurf",
+                    created_at=draft.updated_at.isoformat() if draft.updated_at else (draft.created_at.isoformat() if draft.created_at else None),
+                    next_due_date=None,
+                    has_open_actions=False,
+                    source="draft",
+                )
+                for draft in drafts[:per_column]
+            ]
+            # Merge: drafts first, then documents, limited to per_column total
+            cards = (draft_cards + cards)[:per_column]
+            count += len(drafts)
+
+        total += count
         columns.append(KanbanColumn(
             stage=stage,
             label=PIPELINE_STAGE_LABELS.get(stage, stage),
