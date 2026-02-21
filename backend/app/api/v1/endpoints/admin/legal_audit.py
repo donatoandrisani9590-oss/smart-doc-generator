@@ -10,7 +10,7 @@ GET  /admin/legal-audit/clauses/{clause_id}/audit-history -- Audit history for c
 """
 import logging
 import math
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, List
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -386,7 +386,7 @@ async def resolve_audit_result(
         )
 
     audit_result.is_resolved = True
-    audit_result.resolved_at = datetime.utcnow()
+    audit_result.resolved_at = datetime.now(timezone.utc)
     audit_result.resolved_by_id = current_user.id
 
     await db.commit()

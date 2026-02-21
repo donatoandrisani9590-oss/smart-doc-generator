@@ -21,7 +21,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, and_, or_, update, delete
 from pydantic import BaseModel
 from typing import Optional, List
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import json
 
 from app.db import get_db
@@ -409,7 +409,7 @@ async def list_notifications(
             Notification.is_dismissed == False,
             or_(
                 Notification.expires_at.is_(None),
-                Notification.expires_at > datetime.utcnow(),
+                Notification.expires_at > datetime.now(timezone.utc),
             ),
         )
     )
@@ -472,7 +472,7 @@ async def get_unread_count(
             Notification.is_dismissed == False,
             or_(
                 Notification.expires_at.is_(None),
-                Notification.expires_at > datetime.utcnow(),
+                Notification.expires_at > datetime.now(timezone.utc),
             ),
         )
     )
@@ -497,7 +497,7 @@ async def mark_as_read(
         raise HTTPException(status_code=404, detail="Benachrichtigung nicht gefunden")
 
     notification.is_read = True
-    notification.read_at = datetime.utcnow()
+    notification.read_at = datetime.now(timezone.utc)
     await db.commit()
 
     return {"message": "Als gelesen markiert"}
@@ -521,7 +521,7 @@ async def mark_all_as_read(
                 Notification.is_read == False,
             )
         )
-        .values(is_read=True, read_at=datetime.utcnow())
+        .values(is_read=True, read_at=datetime.now(timezone.utc))
     )
     await db.commit()
 

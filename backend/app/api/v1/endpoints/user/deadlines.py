@@ -75,7 +75,7 @@ def calculate_deadline_info(deadline: DocumentDeadline) -> dict:
     """Berechnet verbleibende Tage und Dringlichkeit."""
     try:
         deadline_date = datetime.strptime(deadline.deadline_date, "%Y-%m-%d").date()
-        today = datetime.utcnow().date()
+        today = datetime.now(timezone.utc).date()
         days_remaining = (deadline_date - today).days
 
         if days_remaining < 0:
@@ -111,7 +111,7 @@ async def list_deadlines(
     """
     Liste aller Fristen mit Filtern.
     """
-    today = datetime.utcnow().date()
+    today = datetime.now(timezone.utc).date()
     max_date = today + timedelta(days=days_ahead)
 
     query = select(DocumentDeadline).where(
@@ -162,7 +162,7 @@ async def get_deadline_summary(
     """
     Dashboard-Zusammenfassung der Fristen.
     """
-    today = datetime.utcnow().date()
+    today = datetime.now(timezone.utc).date()
     week_end = today + timedelta(days=7)
     month_end = today + timedelta(days=30)
 

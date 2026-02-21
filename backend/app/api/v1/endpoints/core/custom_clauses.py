@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc, or_
 from pydantic import BaseModel, Field, field_validator
 from typing import Optional, Annotated
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app.db import get_db
 from app.models.enterprise import CustomClauseTemplate
@@ -227,7 +227,7 @@ async def update_custom_template(
     if update.description is not None:
         template.description = update.description.strip()
 
-    template.updated_at = datetime.utcnow()
+    template.updated_at = datetime.now(timezone.utc)
 
     await db.commit()
 

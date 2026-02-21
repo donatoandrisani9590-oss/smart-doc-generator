@@ -181,8 +181,8 @@ async def get_clause_impact_analysis(
         # Versuche Nutzung zu zählen (falls Tabelle existiert)
         usage_count = 0
         try:
-            from datetime import datetime, timedelta
-            thirty_days_ago = datetime.utcnow() - timedelta(days=30)
+            from datetime import datetime, timedelta, timezone
+            thirty_days_ago = datetime.now(timezone.utc) - timedelta(days=30)
 
             # Zähle generierte Dokumente mit diesem Dokumenttyp
             usage_query = (

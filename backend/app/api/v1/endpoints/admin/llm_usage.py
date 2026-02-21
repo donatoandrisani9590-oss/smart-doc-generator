@@ -12,7 +12,7 @@ Data source: LLMCallLog model (fire-and-forget logging from llm_service).
 """
 import logging
 import math
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional, List
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -118,7 +118,7 @@ async def get_llm_stats(
     """
     _require_admin(current_user)
     try:
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
         week_start = today_start - timedelta(weeks=1)
 
@@ -314,7 +314,7 @@ async def get_daily_stats(
     """
     _require_admin(current_user)
     try:
-        cutoff = datetime.utcnow() - timedelta(days=days)
+        cutoff = datetime.now(timezone.utc) - timedelta(days=days)
 
         daily_query = (
             select(

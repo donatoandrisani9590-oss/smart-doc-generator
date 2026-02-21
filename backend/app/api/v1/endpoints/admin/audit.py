@@ -15,7 +15,7 @@ from sqlalchemy import select, func, and_, or_, desc
 from sqlalchemy.orm import selectinload
 from pydantic import BaseModel
 from typing import Optional, List, Any
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import json
 
 from app.db import get_db
@@ -282,7 +282,7 @@ async def get_audit_stats(
     - Top users by activity
     - Recent errors
     """
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
     week_start = today_start - timedelta(days=7)
     month_start = today_start - timedelta(days=30)
@@ -475,7 +475,7 @@ async def get_user_activity(
 
     Useful for compliance reporting and user activity review.
     """
-    cutoff = datetime.utcnow() - timedelta(days=days)
+    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
 
     query = (
         select(AuditLog)
@@ -652,7 +652,7 @@ async def export_audit_logs(
             io.StringIO(output),
             media_type="application/json",
             headers={
-                "Content-Disposition": f"attachment; filename=audit_log_export_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.json"
+                "Content-Disposition": f"attachment; filename=audit_log_export_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.json"
             },
         )
     else:
@@ -701,6 +701,6 @@ async def export_audit_logs(
             output,
             media_type="text/csv",
             headers={
-                "Content-Disposition": f"attachment; filename=audit_log_export_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.csv"
+                "Content-Disposition": f"attachment; filename=audit_log_export_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.csv"
             },
         )

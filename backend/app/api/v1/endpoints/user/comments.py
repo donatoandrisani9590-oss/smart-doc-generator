@@ -23,7 +23,7 @@ from sqlalchemy import select, func, and_, update, delete
 from sqlalchemy.orm import selectinload, joinedload
 from pydantic import BaseModel, Field
 from typing import Optional, List
-from datetime import datetime
+from datetime import datetime, timezone
 import re
 import json
 
@@ -629,7 +629,7 @@ async def update_comment(
 
     # Content aktualisieren
     comment.content = request.content
-    comment.updated_at = datetime.utcnow()
+    comment.updated_at = datetime.now(timezone.utc)
 
     # Alte Mentions löschen
     await db.execute(delete(CommentMention).where(CommentMention.comment_id == comment_id))
@@ -703,7 +703,7 @@ async def delete_comment(
 
     # Soft Delete
     comment.is_deleted = True
-    comment.deleted_at = datetime.utcnow()
+    comment.deleted_at = datetime.now(timezone.utc)
     comment.deleted_by_id = current_user.id
 
     await db.commit()
@@ -762,7 +762,7 @@ async def resolve_comment(
 
     comment.is_resolved = request.is_resolved
     if request.is_resolved:
-        comment.resolved_at = datetime.utcnow()
+        comment.resolved_at = datetime.now(timezone.utc)
         comment.resolved_by_id = current_user.id
     else:
         comment.resolved_at = None
