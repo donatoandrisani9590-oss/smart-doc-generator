@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import FileResponse
 from sqlalchemy import select
@@ -27,7 +27,7 @@ async def download_shared_document(
     if not share:
         raise HTTPException(status_code=404, detail="Link ungueltig oder abgelaufen")
     
-    if share.expires_at < datetime.utcnow():
+    if share.expires_at < datetime.now(timezone.utc):
         raise HTTPException(status_code=410, detail="Link abgelaufen")
         
     # Fetch document

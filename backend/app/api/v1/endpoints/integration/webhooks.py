@@ -21,7 +21,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, delete
 from pydantic import BaseModel, Field, HttpUrl
 from typing import Optional, List, Literal
-from datetime import datetime
+from datetime import datetime, timezone
 import httpx
 import logging
 import hashlib
@@ -156,7 +156,7 @@ async def send_webhook(
     """
     payload = WebhookEventPayload(
         event=event,
-        timestamp=datetime.utcnow(),
+        timestamp=datetime.now(timezone.utc),
         data=data
     )
 
@@ -430,7 +430,7 @@ async def test_webhook_subscription(
         data={
             "message": "Dies ist ein Test-Event vom HR Document Generator",
             "subscription_id": subscription_id,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat()
         },
         secret=subscription.secret
     )
@@ -529,7 +529,7 @@ async def _send_and_update_webhook(
         )
         subscription = result.scalars().first()
         if subscription:
-            subscription.last_triggered_at = datetime.utcnow()
+            subscription.last_triggered_at = datetime.now(timezone.utc)
             subscription.trigger_count = (subscription.trigger_count or 0) + 1
             if not success:
                 subscription.last_error = error

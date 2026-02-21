@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from pydantic import BaseModel
 from typing import Optional, List
-from datetime import datetime
+from datetime import datetime, timezone
 import secrets
 import logging
 
@@ -214,7 +214,7 @@ async def generate_api_key(
     # Neuen API Key generieren (32 Bytes = 64 Hex Zeichen)
     new_api_key = f"docgen_{secrets.token_hex(32)}"
     config.api_key = new_api_key
-    config.api_key_created_at = datetime.utcnow()
+    config.api_key_created_at = datetime.now(timezone.utc)
 
     await db.commit()
 

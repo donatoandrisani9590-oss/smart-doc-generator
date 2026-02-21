@@ -20,7 +20,7 @@ import os
 import re
 import tempfile
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, List, Dict, Any, Tuple
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Query
@@ -757,7 +757,7 @@ async def smart_bulk_execute(
                         failed_rows=failed,
                         draft_ids=json.dumps(draft_ids),
                         errors=json.dumps(errors_list) if errors_list else None,
-                        completed_at=datetime.utcnow(),
+                        completed_at=datetime.now(timezone.utc),
                     )
                 )
                 await session.commit()
