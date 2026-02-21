@@ -458,7 +458,7 @@ def html_to_docx_paragraph(doc: Document, html_content: str, form_data: dict, co
                 try:
                     style = 'List Bullet' if element.name == 'ul' else 'List Number'
                     para = doc.add_paragraph(style=style)
-                except:
+                except (KeyError, ValueError):
                     para = doc.add_paragraph()
                     prefix = "• " if element.name == 'ul' else ""
                     para.add_run(prefix)

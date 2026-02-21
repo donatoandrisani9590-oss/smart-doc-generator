@@ -505,7 +505,7 @@ async def smart_chat(
             parsed = json.loads(response.content)
             if "response" in parsed:
                 natural_response = parsed["response"]
-        except:
+        except (json.JSONDecodeError, TypeError, KeyError):
             pass
 
         return SmartChatResponse(

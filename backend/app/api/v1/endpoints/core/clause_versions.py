@@ -153,7 +153,7 @@ async def restore_version(
     try:
         major, minor = clause.version.split('.')
         clause.version = f"{major}.{int(minor) + 1}"
-    except:
+    except (ValueError, AttributeError):
         clause.version = f"{clause.version}.restored"
     
     await db.commit()
