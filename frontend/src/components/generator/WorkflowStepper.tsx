@@ -116,7 +116,7 @@ export const WorkflowStepper = ({ compact = false }: WorkflowStepperProps) => {
                         className={cn(
                             "ive-pill-tab flex items-center gap-1",
                             isCurrent && "ive-pill-tab-active",
-                            isCompleted && "text-green-600/70 dark:text-green-400/70"
+                            isCompleted && "text-[var(--nw-green-600)] dark:text-[var(--nw-green-400)]"
                         )}
                     >
                         {isCompleted && <Check className="w-3 h-3" />}

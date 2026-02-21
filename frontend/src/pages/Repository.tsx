@@ -10,10 +10,15 @@
 import { useState, useMemo, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate, Link, Navigate } from "react-router-dom";
+import { useScrollReveal } from "@/hooks/useScrollReveal";
+import { TextReveal } from "@/components/ui/text-reveal";
 // Card imports removed - using direct div styling for SimpleDocs design
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Pagination } from "@/components/ui/pagination";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SkeletonRepositoryTable } from "@/components/ui/skeleton";
 import {
     useRepository,
@@ -30,8 +35,6 @@ import {
     Download,
     Trash2,
     Archive,
-    ChevronLeft,
-    ChevronRight,
     Loader2,
     User,
     Clock,
@@ -69,15 +72,15 @@ import { MotionContainer, MotionListItem } from "@/components/ui/motion";
 // ── View mode type ────────────────────────────────────────────────────────
 type ViewMode = "kanban" | "list";
 
-// ── Dokumenttyp-Farbkodierung (Corporate Palette) ─────────────────────
-// Inline-Styles statt dynamischer Tailwind-Klassen (JIT kann dynamische Klassen nicht generieren)
+// ── Dokumenttyp-Farbkodierung (DS v2.1 Corporate Palette) ─────────────
+// Inline-Styles via CSS custom properties for theme-awareness
 const DOC_TYPE_COLORS = [
-    { border: "#243186", badgeBg: "rgba(36,49,134,0.08)", badgeText: "#243186", darkBadgeBg: "rgba(36,49,134,0.15)", darkBadgeText: "#94A3D8" },  // Primary
-    { border: "#6EBD84", badgeBg: "rgba(110,189,132,0.10)", badgeText: "#6EBD84", darkBadgeBg: "rgba(110,189,132,0.15)", darkBadgeText: "#A8E8B8" }, // Secondary
-    { border: "#A8A2A0", badgeBg: "rgba(168,162,160,0.12)", badgeText: "#736B67", darkBadgeBg: "rgba(168,162,160,0.15)", darkBadgeText: "#C5BFBD" }, // Warm
-    { border: "#4A5EB0", badgeBg: "rgba(74,94,176,0.08)", badgeText: "#4A5EB0", darkBadgeBg: "rgba(74,94,176,0.15)", darkBadgeText: "#94A3D8" },  // Indigo-ish
-    { border: "#8B6EBD", badgeBg: "rgba(139,110,189,0.08)", badgeText: "#8B6EBD", darkBadgeBg: "rgba(139,110,189,0.15)", darkBadgeText: "#C4A8E8" }, // Purple
-    { border: "#BD6E6E", badgeBg: "rgba(189,110,110,0.08)", badgeText: "#BD6E6E", darkBadgeBg: "rgba(189,110,110,0.15)", darkBadgeText: "#E8A8A8" }, // Red-ish
+    { border: "var(--nw-blue-700)",  badgeBg: "var(--nw-blue-50)",      badgeText: "var(--nw-blue-700)",  darkBadgeBg: "rgba(36,49,134,0.15)",   darkBadgeText: "var(--nw-blue-300)" },
+    { border: "var(--nw-green-500)", badgeBg: "var(--nw-green-50)",     badgeText: "var(--nw-green-700)", darkBadgeBg: "rgba(110,189,132,0.15)", darkBadgeText: "var(--nw-green-300)" },
+    { border: "var(--nw-warm-500)",  badgeBg: "var(--nw-warm-100)",     badgeText: "var(--nw-warm-700)",  darkBadgeBg: "rgba(168,162,160,0.15)", darkBadgeText: "var(--nw-warm-300)" },
+    { border: "var(--nw-blue-500)",  badgeBg: "var(--nw-blue-50)",      badgeText: "var(--nw-blue-500)",  darkBadgeBg: "rgba(74,94,176,0.15)",   darkBadgeText: "var(--nw-blue-300)" },
+    { border: "var(--color-review)", badgeBg: "var(--color-review-bg)", badgeText: "var(--color-review)", darkBadgeBg: "rgba(139,110,189,0.15)", darkBadgeText: "#C4A8E8" },
+    { border: "var(--color-return)", badgeBg: "var(--color-return-bg)", badgeText: "var(--color-return)", darkBadgeBg: "rgba(189,110,110,0.15)", darkBadgeText: "#E8A8A8" },
 ] as const;
 
 const getDocTypeColorIndex = (typeName: string): number => {
@@ -109,6 +112,7 @@ export const RepositoryPage = () => {
     const toast = useToast();
     const undo = useUndo();
     const queryClient = useQueryClient();
+    const revealRef = useScrollReveal({ immediate: true });
 
     // Feature toggle check
     const isEnabled = useFeatureEnabled("show_documents_overview");
@@ -365,11 +369,11 @@ export const RepositoryPage = () => {
     }
 
     return (
-        <div className="space-y-6 max-w-6xl mx-auto">
+        <div ref={revealRef} className="space-y-6 max-w-6xl mx-auto">
             {/* Header */}
-            <div className="flex items-start justify-between gap-3">
+            <div className="flex items-start justify-between gap-3" data-reveal="fade-up">
                 <div className="min-w-0">
-                    <h1 className="text-2xl font-semibold text-foreground leading-tight">Meine Dokumente</h1>
+                    <TextReveal as="h1" className="text-2xl font-semibold text-foreground leading-tight" stagger={0.04} duration={0.6}>Meine Dokumente</TextReveal>
                     <p className="text-sm text-muted-foreground mt-2">
                         {drafts?.length ? `${drafts.length} Entwürfe, ` : ""}
                         {stats ? `${stats.total_documents} fertige Dokumente` : "Alle deine Dokumente"}
@@ -377,30 +381,20 @@ export const RepositoryPage = () => {
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
                     {/* View Toggle */}
-                    <div className="flex bg-muted rounded-lg p-0.5">
-                        <button
-                            onClick={() => setViewMode("kanban")}
-                            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors ${viewMode === "kanban"
-                                ? "bg-background text-foreground shadow-sm"
-                                : "text-muted-foreground hover:text-foreground"
-                                }`}
-                            title="Kanban-Ansicht"
-                        >
+                    <ToggleGroup
+                        type="single"
+                        value={viewMode}
+                        onValueChange={(val) => { if (val) setViewMode(val as "kanban" | "list"); }}
+                    >
+                        <ToggleGroupItem value="kanban" title="Kanban-Ansicht">
                             <LayoutGrid className="w-3.5 h-3.5" />
                             <span className="hidden sm:inline">Kanban</span>
-                        </button>
-                        <button
-                            onClick={() => setViewMode("list")}
-                            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors ${viewMode === "list"
-                                ? "bg-background text-foreground shadow-sm"
-                                : "text-muted-foreground hover:text-foreground"
-                                }`}
-                            title="Listen-Ansicht"
-                        >
+                        </ToggleGroupItem>
+                        <ToggleGroupItem value="list" title="Listen-Ansicht">
                             <List className="w-3.5 h-3.5" />
                             <span className="hidden sm:inline">Liste</span>
-                        </button>
-                    </div>
+                        </ToggleGroupItem>
+                    </ToggleGroup>
                     <Link to="/generate">
                         <Button className="h-9 gap-2 btn-primary-soft">
                             <PlusCircle className="w-4 h-4" />
@@ -433,7 +427,7 @@ export const RepositoryPage = () => {
             </div>
 
             {/* Status Filter - Segmented Control */}
-            <div className="ive-pill-tabs">
+            <div className="ive-pill-tabs" data-reveal="fade-up" data-reveal-delay="0.1">
                 {[
                     { key: "all" as const, label: "Alle", count: (stats?.total_documents ?? 0) + (drafts?.length ?? 0) },
                     { key: "draft" as const, label: "Entwürfe", count: drafts?.length ?? 0 },
@@ -493,7 +487,7 @@ export const RepositoryPage = () => {
             )}
 
             {/* Search - SimpleDocs Style */}
-            <div className="card-soft p-4">
+            <div className="card-soft p-4" data-reveal="fade-up" data-reveal-delay="0.15">
                 <div className="flex gap-3">
                     <div className="relative flex-1">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -527,23 +521,27 @@ export const RepositoryPage = () => {
                             <label className="text-sm font-medium text-foreground/60 mb-1 block">
                                 Dokumenttyp
                             </label>
-                            <select
-                                value={filters.document_type_id || ""}
-                                onChange={(e) =>
+                            <Select
+                                value={filters.document_type_id ? String(filters.document_type_id) : "__all__"}
+                                onValueChange={(val) =>
                                     updateFilter(
                                         "document_type_id",
-                                        e.target.value ? Number(e.target.value) : undefined
+                                        val === "__all__" ? undefined : Number(val)
                                     )
                                 }
-                                className="w-full h-10 px-0 border-0 bg-transparent text-sm shadow-[inset_0_-1px_0_0_hsl(33_12%_78%)] focus:shadow-[inset_0_-2px_0_0_hsl(228_58%_33%)] transition-shadow outline-none"
                             >
-                                <option value="">Alle Typen</option>
-                                {(documentTypes || []).map((dt: { id: number; name: string }) => (
-                                    <option key={dt.id} value={dt.id}>
-                                        {dt.name}
-                                    </option>
-                                ))}
-                            </select>
+                                <SelectTrigger>
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="__all__">Alle Typen</SelectItem>
+                                    {(documentTypes || []).map((dt: { id: number; name: string }) => (
+                                        <SelectItem key={dt.id} value={String(dt.id)}>
+                                            {dt.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                         </div>
                         {/* Datums- und Korrektur-Filter nur in Listen-Ansicht (Kanban nutzt keine Datumsfilter) */}
                         {viewMode === "list" && (
@@ -898,29 +896,12 @@ export const RepositoryPage = () => {
 
                     {/* Pagination */}
                     {repository && repository.total_pages > 1 && (
-                        <div className="flex items-center justify-between mt-6 pt-4 border-t">
-                            <p className="text-sm text-muted-foreground">
-                                Seite {repository.page} von {repository.total_pages}
-                            </p>
-                            <div className="flex gap-2">
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    disabled={repository.page <= 1}
-                                    onClick={() => updateFilter("page", repository.page - 1)}
-                                >
-                                    <ChevronLeft className="w-4 h-4" />
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    disabled={repository.page >= repository.total_pages}
-                                    onClick={() => updateFilter("page", repository.page + 1)}
-                                >
-                                    <ChevronRight className="w-4 h-4" />
-                                </Button>
-                            </div>
-                        </div>
+                        <Pagination
+                            currentPage={repository.page}
+                            totalPages={repository.total_pages}
+                            onPageChange={(p) => updateFilter("page", p)}
+                            className="mt-6 pt-4 border-t"
+                        />
                     )}
                 </div>
             </div>}

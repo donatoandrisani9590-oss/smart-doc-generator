@@ -12,6 +12,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Pagination } from "@/components/ui/pagination";
 import {
     Select,
     SelectContent,
@@ -30,8 +31,6 @@ import {
     XCircle,
     HelpCircle,
     RefreshCw,
-    ChevronLeft,
-    ChevronRight,
     Scale,
     Zap,
 } from "lucide-react";
@@ -529,31 +528,12 @@ export function LegalAuditPage() {
                             </div>
 
                             {/* Pagination */}
-                            {results.total_pages > 1 && (
-                                <div className="flex items-center justify-between mt-4">
-                                    <div className="text-sm text-muted-foreground">
-                                        Seite {results.page} von {results.total_pages}
-                                    </div>
-                                    <div className="flex gap-2">
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            disabled={page <= 1}
-                                            onClick={() => setPage(p => Math.max(1, p - 1))}
-                                        >
-                                            <ChevronLeft className="w-4 h-4" />
-                                        </Button>
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            disabled={page >= results.total_pages}
-                                            onClick={() => setPage(p => p + 1)}
-                                        >
-                                            <ChevronRight className="w-4 h-4" />
-                                        </Button>
-                                    </div>
-                                </div>
-                            )}
+                            <Pagination
+                                currentPage={results.page}
+                                totalPages={results.total_pages}
+                                onPageChange={setPage}
+                                className="mt-4"
+                            />
                         </>
                     )}
                 </CardContent>

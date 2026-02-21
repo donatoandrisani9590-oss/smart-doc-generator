@@ -12,9 +12,10 @@ import { Clock, AlertCircle, Trash2 } from "lucide-react";
 import { formatDistanceToNow } from "@/lib/dateUtils";
 import type { KanbanCardItem } from "@/hooks/api/useKanbanQueries";
 
-// ── Document type color palette (matches Repository.tsx) ────────────────
+// ── Document type color palette (DS v2.1, matches Repository.tsx) ────────
 const DOC_TYPE_COLORS = [
-    "#243186", "#6EBD84", "#A8A2A0", "#4A5EB0", "#8B6EBD", "#BD6E6E",
+    "var(--nw-blue-700)", "var(--nw-green-500)", "var(--nw-warm-500)",
+    "var(--nw-blue-500)", "var(--color-review)", "var(--color-return)",
 ] as const;
 
 function getDocTypeColor(typeName?: string | null): string {

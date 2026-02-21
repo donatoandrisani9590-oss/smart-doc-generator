@@ -154,7 +154,7 @@ export const CommandPalette = ({ open, onOpenChange }: CommandPaletteProps) => {
 
                 {/* Settings */}
                 <CommandGroup heading="Einstellungen">
-                    <CommandItem onSelect={() => runCommand(() => navigate("/settings?tab=templates"))}>
+                    <CommandItem onSelect={() => runCommand(() => navigate("/templates"))}>
                         <LayoutTemplate className="mr-2 h-4 w-4" />
                         <span>Vorlagen verwalten</span>
                     </CommandItem>

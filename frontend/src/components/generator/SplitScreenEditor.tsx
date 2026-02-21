@@ -153,9 +153,9 @@ export const SplitScreenEditor = ({ documentTypes }: SplitScreenEditorProps) => 
 
             {/* Content-Area: Split-Screen Layout */}
             <div className="flex-1 flex flex-col lg:flex-row overflow-hidden min-h-0">
-                {/* Linke Seite: Steuerung */}
+                {/* Linke Seite: Glass Panel Steuerung */}
                 <div
-                    className={`w-full lg:w-[360px] lg:min-w-[360px] lg:max-w-[360px] bg-background lg:border-r lg:border-border/70 dark:lg:border-border/40 overflow-hidden flex-shrink-0 lg:block ${mobileTab === "form" ? "flex-1" : "hidden"
+                    className={`w-full lg:w-[360px] lg:min-w-[360px] lg:max-w-[360px] glass-panel overflow-hidden flex-shrink-0 lg:block ${mobileTab === "form" ? "flex-1" : "hidden"
                         } lg:flex-initial lg:max-h-none`}
                 >
                     <LeftControlPanel documentTypes={documentTypes} />

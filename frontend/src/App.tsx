@@ -27,6 +27,7 @@ const NotFoundPage = lazy(() => import("@/pages/NotFound").then(m => ({ default:
 const DeadlinesCalendar = lazy(() => import("@/pages/DeadlinesCalendar"));
 const BulkUploadPage = lazy(() => import("@/pages/BulkUpload"));
 const SettingsHub = lazy(() => import("@/pages/SettingsHub"));
+const TemplatesHub = lazy(() => import("@/pages/TemplatesHub"));
 const AgentPage = lazy(() => import("@/pages/AgentPage"));
 const GuestReviewPage = lazy(() => import("@/pages/GuestReviewPage"));
 const BulkWizardPage = lazy(() => import("@/pages/BulkWizardPage"));
@@ -84,26 +85,32 @@ function App() {
                 <Route path="deadlines" element={<PageErrorBoundary><DeadlinesCalendar /></PageErrorBoundary>} />
                 <Route path="notifications" element={<PageErrorBoundary><NotificationsPage /></PageErrorBoundary>} />
 
-                {/* UX-Refactoring: Neuer Settings-Hub */}
+                {/* Templates Hub — separated from Settings for better UX */}
+                <Route path="templates" element={<PageErrorBoundary><TemplatesHub /></PageErrorBoundary>} />
+
+                {/* Settings Hub — system configuration only */}
                 <Route path="settings" element={<PageErrorBoundary><SettingsHub /></PageErrorBoundary>} />
 
-                {/* Legacy Admin Routes - Redirect zum Settings-Hub */}
+                {/* Legacy: /settings?tab=templates → /templates */}
+                {/* Handled in SettingsHub via redirect logic */}
+
+                {/* Legacy Admin Routes - Redirect to appropriate hub */}
                 <Route path="admin/company-settings" element={<Navigate to="/settings?tab=general" replace />} />
                 <Route path="admin/settings" element={<Navigate to="/settings?tab=design" replace />} />
-                <Route path="admin/clauses" element={<Navigate to="/settings?tab=clauses" replace />} />
-                <Route path="admin/attachments" element={<Navigate to="/settings?tab=attachments" replace />} />
-                <Route path="admin/types" element={<Navigate to="/settings?tab=templates" replace />} />
                 <Route path="admin/document-designer" element={<Navigate to="/settings?tab=designer" replace />} />
-                <Route path="admin/form-fields" element={<Navigate to="/settings?tab=form-fields" replace />} />
                 <Route path="admin/template-preview" element={<Navigate to="/settings?tab=preview" replace />} />
                 <Route path="admin/users" element={<Navigate to="/settings?tab=users" replace />} />
                 <Route path="admin/works-council" element={<Navigate to="/settings?tab=works-council" replace />} />
                 <Route path="admin/retention" element={<Navigate to="/settings?tab=retention" replace />} />
                 <Route path="admin/audit" element={<Navigate to="/settings?tab=audit" replace />} />
                 <Route path="admin/clause-approvals" element={<Navigate to="/settings?tab=approvals" replace />} />
+                {/* Template-related legacy routes → TemplatesHub */}
+                <Route path="admin/types" element={<Navigate to="/templates?tab=types" replace />} />
+                <Route path="admin/clauses" element={<Navigate to="/templates?tab=clauses" replace />} />
+                <Route path="admin/attachments" element={<Navigate to="/templates?tab=attachments" replace />} />
+                <Route path="admin/form-fields" element={<Navigate to="/templates?tab=form-fields" replace />} />
                 {/* Catch-all for any other /admin/* routes */}
                 <Route path="admin/*" element={<Navigate to="/settings" replace />} />
-                <Route path="templates" element={<Navigate to="/settings?tab=templates" replace />} />
 
                 {/* 404 Catch-all Route */}
                 <Route path="*" element={<NotFoundPage />} />

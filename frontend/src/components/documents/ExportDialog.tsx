@@ -10,7 +10,16 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
 import {
     useExportFormats,
     useExportPreview,
@@ -19,7 +28,6 @@ import {
     type ExportPreview,
 } from "@/hooks/useApi";
 import {
-    X,
     Download,
     FileArchive,
     FilePlus,
@@ -30,10 +38,11 @@ import {
 
 interface ExportDialogProps {
     documentIds: number[];
-    onClose: () => void;
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
 }
 
-export const ExportDialog = ({ documentIds, onClose }: ExportDialogProps) => {
+export const ExportDialog = ({ documentIds, open, onOpenChange }: ExportDialogProps) => {
     const [exportFormat, setExportFormat] = useState<"zip" | "merged_pdf">("zip");
     const [filenamePrefix, setFilenamePrefix] = useState("export");
     const [includeSeparators, setIncludeSeparators] = useState(false);
@@ -49,13 +58,13 @@ export const ExportDialog = ({ documentIds, onClose }: ExportDialogProps) => {
 
     // Load preview on mount
     useEffect(() => {
-        if (documentIds.length > 0) {
+        if (open && documentIds.length > 0) {
             exportPreview.mutate(documentIds, {
                 onSuccess: (data) => setPreview(data),
             });
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- load preview once on mount; exportPreview mutation is stable
-    }, [documentIds]);
+    }, [documentIds, open]);
 
     const handleExport = async () => {
         if (exportFormat === "zip") {
@@ -63,14 +72,14 @@ export const ExportDialog = ({ documentIds, onClose }: ExportDialogProps) => {
                 documentIds,
                 filenamePrefix,
             });
-            onClose();
+            onOpenChange(false);
         } else {
             await mergePdf.mutateAsync({
                 documentIds,
                 outputFilename: filenamePrefix,
                 includeSeparatorPages: includeSeparators,
             });
-            onClose();
+            onOpenChange(false);
         }
     };
 
@@ -81,31 +90,23 @@ export const ExportDialog = ({ documentIds, onClose }: ExportDialogProps) => {
     };
 
     return (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-background rounded-lg shadow-xl max-w-lg w-full mx-4 max-h-[80vh] overflow-auto">
-                {/* Header */}
-                <div className="p-6 border-b flex justify-between items-center">
-                    <div>
-                        <h2 className="text-lg font-semibold flex items-center gap-2">
-                            <Download className="w-5 h-5" />
-                            Dokumente exportieren
-                        </h2>
-                        <p className="text-sm text-muted-foreground">
-                            {documentIds.length} Dokument{documentIds.length !== 1 ? "e" : ""} ausgewählt
-                        </p>
-                    </div>
-                    <Button variant="ghost" size="sm" onClick={onClose}>
-                        <X className="w-5 h-5" />
-                    </Button>
-                </div>
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent className="max-w-lg max-h-[80vh] overflow-auto">
+                <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2">
+                        <Download className="w-5 h-5" />
+                        Dokumente exportieren
+                    </DialogTitle>
+                    <DialogDescription>
+                        {documentIds.length} Dokument{documentIds.length !== 1 ? "e" : ""} ausgewählt
+                    </DialogDescription>
+                </DialogHeader>
 
-                {/* Content */}
-                <div className="p-6 space-y-6">
+                <div className="space-y-6">
                     {/* Export Format Selection */}
                     <div>
                         <label className="text-sm font-medium mb-3 block">Export-Format</label>
                         <div className="grid grid-cols-2 gap-3">
-                            {/* ZIP Option */}
                             <button
                                 onClick={() => setExportFormat("zip")}
                                 disabled={!preview?.can_zip}
@@ -122,7 +123,6 @@ export const ExportDialog = ({ documentIds, onClose }: ExportDialogProps) => {
                                 </div>
                             </button>
 
-                            {/* Merge PDF Option */}
                             <button
                                 onClick={() => setExportFormat("merged_pdf")}
                                 disabled={!preview?.can_merge_pdf}
@@ -166,15 +166,14 @@ export const ExportDialog = ({ documentIds, onClose }: ExportDialogProps) => {
 
                     {/* PDF Merge Options */}
                     {exportFormat === "merged_pdf" && (
-                        <div>
-                            <label className="flex items-center gap-2 cursor-pointer">
-                                <input
-                                    type="checkbox"
-                                    checked={includeSeparators}
-                                    onChange={(e) => setIncludeSeparators(e.target.checked)}
-                                    className="w-4 h-4 rounded"
-                                />
-                                <span className="text-sm">Trennseiten zwischen Dokumenten einfügen</span>
+                        <div className="flex items-center gap-2">
+                            <Checkbox
+                                id="include-separators"
+                                checked={includeSeparators}
+                                onCheckedChange={(checked) => setIncludeSeparators(checked === true)}
+                            />
+                            <label htmlFor="include-separators" className="text-sm cursor-pointer">
+                                Trennseiten zwischen Dokumenten einfügen
                             </label>
                         </div>
                     )}
@@ -232,9 +231,8 @@ export const ExportDialog = ({ documentIds, onClose }: ExportDialogProps) => {
                     )}
                 </div>
 
-                {/* Footer */}
-                <div className="p-6 border-t flex justify-end gap-3">
-                    <Button variant="outline" onClick={onClose} disabled={isExporting}>
+                <DialogFooter>
+                    <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isExporting}>
                         Abbrechen
                     </Button>
                     <Button
@@ -253,8 +251,8 @@ export const ExportDialog = ({ documentIds, onClose }: ExportDialogProps) => {
                             </>
                         )}
                     </Button>
-                </div>
-            </div>
-        </div>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     );
 };

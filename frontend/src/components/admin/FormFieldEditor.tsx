@@ -14,6 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
     Dialog,
@@ -246,18 +247,18 @@ export const FormFieldEditor = ({ documentTypeId, documentTypeName }: FormFieldE
                         {/* Field Type */}
                         <div className="space-y-2">
                             <Label htmlFor="field_type">Feldtyp</Label>
-                            <select
-                                id="field_type"
-                                value={editForm.field_type || "text"}
-                                onChange={(e) => setEditForm({ ...editForm, field_type: e.target.value })}
-                                className="w-full h-10 px-3 border border-input rounded-md bg-background text-sm"
-                            >
-                                {fieldTypes.map((type) => (
-                                    <option key={type.type} value={type.type}>
-                                        {type.label} - {type.description}
-                                    </option>
-                                ))}
-                            </select>
+                            <Select value={editForm.field_type || "text"} onValueChange={(val) => setEditForm({ ...editForm, field_type: val })}>
+                                <SelectTrigger id="field_type">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {fieldTypes.map((type) => (
+                                        <SelectItem key={type.type} value={type.type}>
+                                            {type.label} - {type.description}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                         </div>
 
                         {/* Required */}

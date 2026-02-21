@@ -13,7 +13,7 @@
  * - Auf globale Einstellungen zurücksetzen
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   FileText,
   Copy,
@@ -50,7 +50,8 @@ import {
 } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-// ToggleGroup nicht verfügbar - verwenden wir Buttons stattdessen
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useToast } from "@/components/ui/toast";
 import { api } from "@/lib/api-client";
 
@@ -194,11 +195,13 @@ export const TemplateHeaderFooterEditor = ({
   // Reset to Global Settings
   // ═══════════════════════════════════════════════════════════════════════════
 
-  const handleReset = async () => {
-    if (!confirm("Individuelle Einstellungen zurücksetzen? Es werden dann die globalen Design-Einstellungen verwendet.")) {
-      return;
-    }
+  const [confirmReset, setConfirmReset] = useState(false);
 
+  const handleReset = useCallback(() => {
+    setConfirmReset(true);
+  }, []);
+
+  const doReset = useCallback(async () => {
     try {
       await api.delete(`/api/v1/document-types/${documentTypeId}/header-footer`);
       toast.success("Zurückgesetzt", "Globale Design-Einstellungen werden verwendet");
@@ -206,7 +209,7 @@ export const TemplateHeaderFooterEditor = ({
     } catch {
       toast.error("Fehler", "Zurücksetzen fehlgeschlagen");
     }
-  };
+  }, [documentTypeId, toast, loadSettings]);
 
   // ═══════════════════════════════════════════════════════════════════════════
   // Copy from Template
@@ -419,35 +422,25 @@ export const TemplateHeaderFooterEditor = ({
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label>Logo-Position</Label>
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  variant={settings.custom_logo_position === "left" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => updateSetting("custom_logo_position", "left")}
-                >
-                  <AlignLeft className="w-4 h-4 mr-2" />
+              <ToggleGroup
+                type="single"
+                value={settings.custom_logo_position || "right"}
+                onValueChange={(val) => { if (val) updateSetting("custom_logo_position", val); }}
+                size="lg"
+              >
+                <ToggleGroupItem value="left">
+                  <AlignLeft className="w-4 h-4" />
                   Links
-                </Button>
-                <Button
-                  type="button"
-                  variant={settings.custom_logo_position === "center" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => updateSetting("custom_logo_position", "center")}
-                >
-                  <AlignCenter className="w-4 h-4 mr-2" />
+                </ToggleGroupItem>
+                <ToggleGroupItem value="center">
+                  <AlignCenter className="w-4 h-4" />
                   Mitte
-                </Button>
-                <Button
-                  type="button"
-                  variant={settings.custom_logo_position === "right" || !settings.custom_logo_position ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => updateSetting("custom_logo_position", "right")}
-                >
-                  <AlignRight className="w-4 h-4 mr-2" />
+                </ToggleGroupItem>
+                <ToggleGroupItem value="right">
+                  <AlignRight className="w-4 h-4" />
                   Rechts
-                </Button>
-              </div>
+                </ToggleGroupItem>
+              </ToggleGroup>
             </div>
 
             <div className="space-y-2">
@@ -569,6 +562,16 @@ export const TemplateHeaderFooterEditor = ({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={confirmReset}
+        onOpenChange={setConfirmReset}
+        title="Einstellungen zurücksetzen"
+        description="Individuelle Einstellungen zurücksetzen? Es werden dann die globalen Design-Einstellungen verwendet."
+        confirmLabel="Zurücksetzen"
+        confirmVariant="default"
+        onConfirm={doReset}
+      />
     </div>
   );
 };

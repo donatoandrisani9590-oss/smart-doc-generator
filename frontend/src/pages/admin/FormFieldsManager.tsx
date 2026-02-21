@@ -7,6 +7,7 @@
 
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useDocumentTypes, type DocumentType } from "@/hooks/useApi";
 import { FormFieldEditor } from "@/components/admin/FormFieldEditor";
 import { FileText, Loader2, ChevronRight } from "lucide-react";
@@ -33,17 +34,15 @@ export const FormFieldsManager = () => {
                     <CardHeader>
                         <div className="flex justify-between items-center">
                             <CardTitle className="text-base text-foreground/80">Dokumenttyp wählen</CardTitle>
-                            <select
-                                value={countryCode}
-                                onChange={(e) => {
-                                    setCountryCode(e.target.value);
-                                    setSelectedDocType(null);
-                                }}
-                                className="h-8 px-2 text-sm border-0 rounded-lg bg-muted/30 focus:ring-0"
-                            >
-                                <option value="DE">DE</option>
-                                <option value="IT">IT</option>
-                            </select>
+                            <Select value={countryCode} onValueChange={(val) => { setCountryCode(val); setSelectedDocType(null); }}>
+                                <SelectTrigger className="h-8 w-20">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="DE">DE</SelectItem>
+                                    <SelectItem value="IT">IT</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
                     </CardHeader>
                     <CardContent>

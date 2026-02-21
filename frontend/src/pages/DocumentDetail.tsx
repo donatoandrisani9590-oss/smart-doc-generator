@@ -8,6 +8,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate, Link, useSearchParams } from "react-router-dom";
+import { useScrollReveal } from "@/hooks/useScrollReveal";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useRepositoryDocument } from "@/hooks/useApi";
@@ -174,6 +175,7 @@ export const DocumentDetailPage = () => {
     ) ?? [];
 
     const isLockedByOther = lockStatus?.is_locked && !lockStatus?.is_own_lock;
+    const revealRef = useScrollReveal({ immediate: true });
 
     const [relatedDocs, setRelatedDocs] = useState<RelatedDocument[]>([]);
 
@@ -252,9 +254,9 @@ export const DocumentDetailPage = () => {
     }
 
     return (
-        <div className="flex flex-col h-[calc(100vh-4rem)] max-w-[1600px] mx-auto">
+        <div ref={revealRef} className="flex flex-col h-[calc(100vh-4rem)] max-w-[1600px] mx-auto">
             {/* Status Action Bar */}
-            <div className="shrink-0 bg-white dark:bg-card rounded-xl p-3 shadow-soft-sm border border-warm-200/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mx-1 mb-3">
+            <div data-reveal="fade-down" className="shrink-0 bg-white dark:bg-card rounded-xl p-3 shadow-soft-sm border border-warm-200/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mx-1 mb-3">
                 <div className="flex items-center gap-3">
                     <Button variant="ghost" size="icon" className="shrink-0" onClick={() => navigate("/documents")}>
                         <ArrowLeft className="w-5 h-5" />

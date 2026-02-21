@@ -116,17 +116,17 @@ export function CreateDocumentDialog({
                 <DialogHeader>
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-warm-50 flex items-center justify-center">
-                            <Icon className="w-5 h-5 text-[#86868B]" />
+                            <Icon className="w-5 h-5 text-[var(--text-tertiary)]" />
                         </div>
                         <div>
-                            <DialogTitle className="text-lg font-semibold text-[#1D1D1F]">
+                            <DialogTitle className="text-lg font-semibold text-[var(--text-primary)]">
                                 {selectedType.name}
                             </DialogTitle>
                             {selectedType.category && (
                                 <DialogDescription className="mt-0.5">
                                     <Badge
                                         variant="outline"
-                                        className="text-[11px] font-normal text-[#86868B] border-warm-200"
+                                        className="text-[11px] font-normal text-[var(--text-tertiary)] border-warm-200"
                                     >
                                         {translateCategory(selectedType.category)}
                                     </Badge>
@@ -143,7 +143,7 @@ export function CreateDocumentDialog({
                     <div className="space-y-2">
                         <Label
                             htmlFor="dialog-document-title"
-                            className="text-sm font-medium text-[#1D1D1F]"
+                            className="text-sm font-medium text-[var(--text-primary)]"
                         >
                             Dokumentname
                         </Label>
@@ -156,7 +156,7 @@ export function CreateDocumentDialog({
                             className="h-11 rounded-xl"
                             autoFocus
                         />
-                        <p className="text-xs text-[#86868B]">
+                        <p className="text-xs text-[var(--text-tertiary)]">
                             Dieser Name erscheint in deiner Dokumentübersicht.
                         </p>
                     </div>
@@ -167,7 +167,7 @@ export function CreateDocumentDialog({
                             open={templateSectionOpen || !!selectedTemplateId}
                             onOpenChange={setTemplateSectionOpen}
                         >
-                            <CollapsibleTrigger className="flex items-center gap-2 text-sm text-[#86868B] hover:text-[#1D1D1F] transition-colors group w-full">
+                            <CollapsibleTrigger className="flex items-center gap-2 text-sm text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors group w-full">
                                 <LayoutTemplate className="w-4 h-4" />
                                 <span>Vorlage verwenden (optional)</span>
                                 <ChevronDown
@@ -179,7 +179,7 @@ export function CreateDocumentDialog({
                                 />
                             </CollapsibleTrigger>
                             <CollapsibleContent className="pt-3 space-y-2">
-                                <p className="text-xs text-[#86868B]">
+                                <p className="text-xs text-[var(--text-tertiary)]">
                                     Verwende eine DOCX-Vorlage als Layout-Basis (mit Logo,
                                     Kopf-/Fußzeile).
                                 </p>
@@ -190,8 +190,8 @@ export function CreateDocumentDialog({
                                         className={cn(
                                             "w-full text-left px-3 py-2.5 rounded-xl border transition-all text-sm",
                                             !selectedTemplateId
-                                                ? "ring-2 ring-primary/30 bg-primary/5 border-primary/20 font-medium text-[#1D1D1F]"
-                                                : "border-warm-100 hover:border-warm-200 text-[#86868B]"
+                                                ? "ring-2 ring-primary/30 bg-primary/5 border-primary/20 font-medium text-[var(--text-primary)]"
+                                                : "border-warm-100 hover:border-warm-200 text-[var(--text-tertiary)]"
                                         )}
                                     >
                                         Standard-Layout (ohne Vorlage)
@@ -199,7 +199,7 @@ export function CreateDocumentDialog({
 
                                     {/* Own templates */}
                                     {ownTemplates.length > 0 && (
-                                        <div className="text-[10px] font-semibold text-[#86868B] uppercase tracking-wider pt-1">
+                                        <div className="text-[10px] font-semibold text-[var(--text-tertiary)] uppercase tracking-wider pt-1">
                                             Eigene Vorlagen
                                         </div>
                                     )}
@@ -214,7 +214,7 @@ export function CreateDocumentDialog({
 
                                     {/* Shared templates */}
                                     {sharedTemplates.length > 0 && (
-                                        <div className="text-[10px] font-semibold text-[#86868B] uppercase tracking-wider pt-1">
+                                        <div className="text-[10px] font-semibold text-[var(--text-tertiary)] uppercase tracking-wider pt-1">
                                             Geteilte Vorlagen
                                         </div>
                                     )}
@@ -287,7 +287,7 @@ function TemplateOptionButton({
                 <span
                     className={cn(
                         "text-sm truncate",
-                        isSelected ? "font-medium text-[#1D1D1F]" : "text-[#1D1D1F]"
+                        isSelected ? "font-medium text-[var(--text-primary)]" : "text-[var(--text-primary)]"
                     )}
                 >
                     {template.name}

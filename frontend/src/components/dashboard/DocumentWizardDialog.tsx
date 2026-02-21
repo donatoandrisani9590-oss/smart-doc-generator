@@ -201,7 +201,7 @@ export const DocumentWizardDialog = ({
                                     <Button
                                         onClick={() => {
                                             onOpenChange(false);
-                                            navigate("/settings?tab=templates");
+                                            navigate("/templates");
                                         }}
                                         className="bg-primary hover:bg-primary/90"
                                     >

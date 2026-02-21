@@ -12,6 +12,7 @@ import { useState, useCallback, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Textarea } from "@/components/ui/textarea";
 import {
     Dialog,
@@ -31,7 +32,6 @@ import {
 } from "lucide-react";
 import { apiFetch } from "@/lib/api-client";
 import { useToast } from "@/components/ui/toast";
-import { cn } from "@/lib/utils";
 import { StationeryCard } from "@/components/admin/StationeryCard";
 import { TemplateUploadDialog } from "@/components/admin/TemplateUploadDialog";
 import type { StationeryTemplate } from "@/components/admin/StationeryCard";
@@ -390,28 +390,25 @@ export function StationeryGalleryPage() {
 
             {/* Country Filter — ive-pill-tabs */}
             {uniqueCountries.length > 0 && (
-                <div className="ive-pill-tabs">
-                    <button
-                        className={cn("ive-pill-tab", activeCountryFilter === "all" && "ive-pill-tab-active")}
-                        onClick={() => setActiveCountryFilter("all")}
-                    >
+                <ToggleGroup
+                    type="single"
+                    value={activeCountryFilter}
+                    onValueChange={(val) => { if (val) setActiveCountryFilter(val); }}
+                >
+                    <ToggleGroupItem value="all">
                         Alle ({templates.length})
-                    </button>
+                    </ToggleGroupItem>
                     {uniqueCountries.map((cc) => {
                         const count = templates.filter(
                             (t) => t.country_code?.toUpperCase() === cc
                         ).length;
                         return (
-                            <button
-                                key={cc}
-                                className={cn("ive-pill-tab", activeCountryFilter === cc && "ive-pill-tab-active")}
-                                onClick={() => setActiveCountryFilter(cc)}
-                            >
+                            <ToggleGroupItem key={cc} value={cc}>
                                 {countryFlag(cc)} {cc} ({count})
-                            </button>
+                            </ToggleGroupItem>
                         );
                     })}
-                </div>
+                </ToggleGroup>
             )}
 
             {/* Card Grid or Loading / Empty State */}

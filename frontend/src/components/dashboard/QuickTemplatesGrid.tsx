@@ -1,11 +1,15 @@
 /**
- * QuickTemplatesGrid — Top 3 document type cards for quick access.
- * Each card is a mini floating surface inside a widget-card container.
- * Hover: translateY(-1px) + shadow lift. "KI" badge for SmartMode.
+ * QuickTemplatesGrid — DS v2.1 quick-access document type cards.
+ * Glass card container with hover lift. "KI" badge for SmartMode.
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useGSAP } from "@gsap/react";
+
+gsap.registerPlugin(ScrollTrigger);
 import {
   FileText, Briefcase, FileSignature, UserMinus, Wand2, Award,
   AlertTriangle, Home, GraduationCap, Car, FileCheck, Clock,
@@ -45,9 +49,9 @@ const getIconForType = (name: string) => {
 };
 
 const ICON_COLORS = [
-  "text-primary",
-  "text-[#6EBD84]",
-  "text-warm-500",
+  "text-[var(--nw-blue-600)]",
+  "text-[var(--nw-green-600)]",
+  "text-[var(--nw-warm-600)]",
 ];
 
 interface QuickTemplatesGridProps {
@@ -60,6 +64,29 @@ export function QuickTemplatesGrid({ className }: QuickTemplatesGridProps) {
   const [loading, setLoading] = useState(true);
   const [smartModeOpen, setSmartModeOpen] = useState(false);
   const [selectedType, setSelectedType] = useState<DocumentType | null>(null);
+  const gridRef = useRef<HTMLDivElement>(null);
+
+  // Stagger-reveal items when they scroll into view
+  useGSAP(() => {
+    const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (prefersReduced || !gridRef.current || loading) return;
+
+    const items = gridRef.current.querySelectorAll("[data-template-item]");
+    if (items.length === 0) return;
+
+    gsap.from(items, {
+      y: 16,
+      opacity: 0,
+      duration: 0.4,
+      stagger: 0.08,
+      ease: "power2.out",
+      scrollTrigger: {
+        trigger: gridRef.current,
+        start: "top 92%",
+        once: true,
+      },
+    });
+  }, { scope: gridRef, dependencies: [loading, types] });
 
   useEffect(() => {
     api.get<DocumentType[]>("/api/v1/document-types")
@@ -70,8 +97,8 @@ export function QuickTemplatesGrid({ className }: QuickTemplatesGridProps) {
 
   if (loading) {
     return (
-      <div className={cn("widget-card", className)}>
-        <p className="text-xs font-semibold text-[#86868B] uppercase tracking-wider mb-4">Schnellstart</p>
+      <div className={cn("glass-card", className)}>
+        <p className="text-xs font-semibold text-[var(--text-tertiary)] uppercase tracking-wider mb-4">Schnellstart</p>
         <div className="grid grid-cols-1 gap-3">
           {[1, 2, 3].map((i) => <Skeleton key={i} className="h-14 rounded-xl" />)}
         </div>
@@ -82,8 +109,8 @@ export function QuickTemplatesGrid({ className }: QuickTemplatesGridProps) {
   if (types.length === 0) return null;
 
   return (
-    <div className={cn("widget-card", className)}>
-      <p className="text-xs font-semibold text-[#86868B] dark:text-muted-foreground uppercase tracking-wider mb-4">
+    <div ref={gridRef} className={cn("glass-card", className)}>
+      <p className="text-xs font-semibold text-[var(--text-tertiary)] uppercase tracking-wider mb-4">
         Schnellstart
       </p>
       <div className="grid grid-cols-1 gap-2">
@@ -94,7 +121,8 @@ export function QuickTemplatesGrid({ className }: QuickTemplatesGridProps) {
           return (
             <div
               key={type.id}
-              className="flex items-center gap-3 p-3 rounded-xl transition-all duration-200 hover:bg-[#F5F5F7] dark:hover:bg-muted hover:-translate-y-px group"
+              data-template-item
+              className="flex items-center gap-3 p-3 rounded-[var(--radius-md-ds)] transition-all duration-200 hover:bg-[var(--bg-hover)] hover:-translate-y-px group"
             >
               <button
                 onClick={() => navigate(`/generate?type=${type.id}`)}
@@ -102,11 +130,11 @@ export function QuickTemplatesGrid({ className }: QuickTemplatesGridProps) {
               >
                 <Icon className={cn("w-5 h-5 shrink-0", iconColor)} />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-[#1D1D1F] dark:text-foreground truncate">
+                  <p className="text-sm font-medium text-[var(--text-primary)] truncate">
                     {type.name}
                   </p>
                   {type.description && (
-                    <p className="text-xs text-[#86868B] dark:text-muted-foreground truncate">
+                    <p className="text-xs text-[var(--text-secondary)] truncate">
                       {type.description}
                     </p>
                   )}
@@ -117,7 +145,7 @@ export function QuickTemplatesGrid({ className }: QuickTemplatesGridProps) {
                   setSelectedType(type);
                   setSmartModeOpen(true);
                 }}
-                className="flex items-center gap-1 px-2 py-1 rounded-lg bg-primary/8 text-primary text-xs font-medium hover:bg-primary/15 transition-colors shrink-0 opacity-0 group-hover:opacity-100"
+                className="flex items-center gap-1 px-2 py-1 rounded-lg bg-[var(--nw-blue-50)] text-[var(--nw-blue-700)] text-xs font-medium hover:bg-[var(--nw-blue-100)] transition-colors shrink-0 opacity-0 group-hover:opacity-100"
                 title="Mit KI erstellen"
               >
                 <Wand2 className="w-3 h-3" />

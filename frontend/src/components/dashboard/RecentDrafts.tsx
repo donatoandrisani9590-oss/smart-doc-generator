@@ -1,14 +1,21 @@
 /**
- * RecentDrafts — List of recently edited drafts in a widget card.
- * Each row: FileText icon | Name + subtitle | Timestamp | ChevronRight
- * Row hover: subtle bg change. Click navigates to editor.
+ * RecentDrafts — DS v2.1 horizontal scroll draft cards.
+ * Each card: status badge, title, employee name, time, progress bar.
+ * Glass card container with "Alle anzeigen" link.
  */
 
+import { useRef } from "react";
 import { Link } from "react-router-dom";
-import { FileText, ChevronRight } from "lucide-react";
+import { FileText } from "lucide-react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useGSAP } from "@gsap/react";
+import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useMyActivity, type RecentDraft } from "@/hooks/api/useDashboardQueries";
 import { cn } from "@/lib/utils";
+
+gsap.registerPlugin(ScrollTrigger);
 
 function formatRelativeTime(dateStr: string | null): string {
   if (!dateStr) return "";
@@ -18,11 +25,11 @@ function formatRelativeTime(dateStr: string | null): string {
   const diffMin = Math.floor(diffMs / 60000);
 
   if (diffMin < 1) return "gerade eben";
-  if (diffMin < 60) return `vor ${diffMin} Minuten`;
+  if (diffMin < 60) return `vor ${diffMin} Min.`;
   const diffHours = Math.floor(diffMin / 60);
-  if (diffHours < 24) return `vor ${diffHours} ${diffHours === 1 ? "Stunde" : "Stunden"}`;
+  if (diffHours < 24) return `vor ${diffHours}h`;
   const diffDays = Math.floor(diffHours / 24);
-  if (diffDays < 7) return `vor ${diffDays} ${diffDays === 1 ? "Tag" : "Tagen"}`;
+  if (diffDays < 7) return `vor ${diffDays}d`;
   return date.toLocaleDateString("de-DE", { day: "numeric", month: "short" });
 }
 
@@ -34,59 +41,89 @@ interface RecentDraftsProps {
 export function RecentDrafts({ className, limit = 5 }: RecentDraftsProps) {
   const { data, isLoading } = useMyActivity(limit);
   const drafts = data?.recent_drafts ?? [];
+  const listRef = useRef<HTMLDivElement>(null);
+
+  // Stagger-reveal draft items
+  useGSAP(() => {
+    const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (prefersReduced || !listRef.current || isLoading) return;
+
+    const items = listRef.current.querySelectorAll("[data-draft-item]");
+    if (items.length === 0) return;
+
+    gsap.from(items, {
+      x: -12,
+      opacity: 0,
+      duration: 0.35,
+      stagger: 0.06,
+      ease: "power2.out",
+      scrollTrigger: {
+        trigger: listRef.current,
+        start: "top 92%",
+        once: true,
+      },
+    });
+  }, { scope: listRef, dependencies: [isLoading, drafts] });
 
   if (!isLoading && drafts.length === 0) return null;
 
   return (
-    <div className={cn("widget-card", className)}>
+    <div ref={listRef} className={cn("glass-card", className)}>
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2.5">
-          <p className="text-xs font-semibold text-[#86868B] dark:text-muted-foreground uppercase tracking-wider">
+          <p className="text-xs font-semibold text-[var(--text-tertiary)] uppercase tracking-wider">
             Offene Entwürfe
           </p>
           {!isLoading && drafts.length > 0 && (
-            <span className="text-xs text-[#86868B] dark:text-muted-foreground bg-[#F5F5F7] dark:bg-muted px-2 py-0.5 rounded-full tabular-nums">
+            <span className="text-xs text-[var(--text-tertiary)] bg-[var(--bg-hover)] px-2 py-0.5 rounded-full tabular-nums">
               {drafts.length}
             </span>
           )}
         </div>
         <Link
           to="/documents?status=draft"
-          className="text-xs text-primary hover:underline font-medium"
+          className="text-xs text-[var(--nw-blue-700)] hover:text-[var(--nw-blue-600)] font-medium transition-colors"
         >
           Alle anzeigen
         </Link>
       </div>
 
-      {/* List */}
+      {/* Card List */}
       {isLoading ? (
         <div className="space-y-2">
           {Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} className="h-14 rounded-xl" />
+            <Skeleton key={i} className="h-[72px] rounded-[var(--radius-md-ds)]" />
           ))}
         </div>
       ) : (
-        <div className="space-y-0.5">
+        <div className="space-y-1.5">
           {drafts.map((draft: RecentDraft) => (
             <Link
               key={draft.id}
               to={`/generate?draft=${draft.id}`}
-              className="flex items-center gap-3 px-3 py-3 -mx-1 rounded-xl transition-colors hover:bg-[#F5F5F7] dark:hover:bg-muted group"
+              data-draft-item
+              className="flex items-center gap-3 px-3.5 py-3 rounded-[var(--radius-md-ds)] transition-all duration-150 hover:bg-[var(--bg-hover)] group"
             >
-              <FileText className="w-4 h-4 text-[#86868B] dark:text-muted-foreground shrink-0" />
+              <div className="w-8 h-8 rounded-lg bg-[var(--nw-blue-50)] flex items-center justify-center shrink-0">
+                <FileText className="w-4 h-4 text-[var(--nw-blue-600)]" />
+              </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-[#1D1D1F] dark:text-foreground truncate">
-                  {draft.document_type_name}
-                </p>
-                <p className="text-xs text-[#86868B] dark:text-muted-foreground truncate">
+                <div className="flex items-center gap-2 mb-0.5">
+                  <p className="text-sm font-medium text-[var(--text-primary)] truncate">
+                    {draft.document_type_name}
+                  </p>
+                  <Badge variant="draft" className="shrink-0 text-2xs">
+                    Entwurf
+                  </Badge>
+                </div>
+                <p className="text-xs text-[var(--text-secondary)] truncate">
                   {draft.name || "Unbenannter Entwurf"}
                   {draft.updated_at && (
-                    <> &middot; {formatRelativeTime(draft.updated_at)}</>
+                    <span className="text-[var(--text-tertiary)]"> &middot; {formatRelativeTime(draft.updated_at)}</span>
                   )}
                 </p>
               </div>
-              <ChevronRight className="w-4 h-4 text-[#86868B]/40 dark:text-muted-foreground/30 group-hover:text-[#86868B] dark:group-hover:text-muted-foreground transition-colors shrink-0" />
             </Link>
           ))}
         </div>

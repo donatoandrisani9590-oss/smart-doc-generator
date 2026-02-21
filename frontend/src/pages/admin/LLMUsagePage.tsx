@@ -8,7 +8,6 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
     Select,
@@ -23,10 +22,9 @@ import {
     Clock,
     AlertCircle,
     Loader2,
-    ChevronLeft,
-    ChevronRight,
     BarChart3,
 } from "lucide-react";
+import { Pagination } from "@/components/ui/pagination";
 import { api } from "@/lib/api-client";
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -510,31 +508,12 @@ export function LLMUsagePage() {
                             </div>
 
                             {/* Pagination */}
-                            {logs.total_pages > 1 && (
-                                <div className="flex items-center justify-between mt-4">
-                                    <div className="text-sm text-muted-foreground">
-                                        Seite {logs.page} von {logs.total_pages}
-                                    </div>
-                                    <div className="flex gap-2">
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            disabled={page <= 1}
-                                            onClick={() => setPage((p) => Math.max(1, p - 1))}
-                                        >
-                                            <ChevronLeft className="w-4 h-4" />
-                                        </Button>
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            disabled={page >= logs.total_pages}
-                                            onClick={() => setPage((p) => p + 1)}
-                                        >
-                                            <ChevronRight className="w-4 h-4" />
-                                        </Button>
-                                    </div>
-                                </div>
-                            )}
+                            <Pagination
+                                currentPage={logs.page}
+                                totalPages={logs.total_pages}
+                                onPageChange={setPage}
+                                className="mt-4"
+                            />
                         </>
                     )}
                 </CardContent>

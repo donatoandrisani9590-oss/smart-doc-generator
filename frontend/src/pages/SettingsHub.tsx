@@ -1,8 +1,11 @@
 /**
- * SettingsHub - Zentrale Einstellungsseite mit Sidebar-Navigation
+ * SettingsHub - System-Einstellungen (ohne Vorlagen)
+ *
+ * Vorlagen-Verwaltung wurde in TemplatesHub.tsx separiert,
+ * da Test-User sich beim Anlegen von Vorlagen verirrt haben.
  *
  * Sidebar-Layout (wie GitHub/Notion Settings):
- * - Links: Kategorisierte Navigation (7 Gruppen, 17 Eintraege)
+ * - Links: Kategorisierte Navigation (6 Gruppen, 12 Einträge)
  * - Rechts: Content-Area mit lazy-loaded Komponenten
  * - Mobile: Horizontale Scroll-Leiste statt Sidebar
  */
@@ -17,13 +20,9 @@ import {
     Activity,
     Building2,
     Palette,
-    FileText,
-    BookOpen,
     Users,
     Shield,
     Archive,
-    Paperclip,
-    FormInput,
     UserCheck,
     CheckSquare,
     Layout,
@@ -31,37 +30,32 @@ import {
     ToggleRight,
     Search,
     Bot,
-    LayoutTemplate,
     Stamp,
     Sparkles,
     Scale,
 } from "lucide-react";
 import { SettingsCommandPalette } from "@/components/settings/SettingsCommandPalette";
+import { TextReveal } from "@/components/ui/text-reveal";
 
-// Lazy load sub-pages
+// Lazy load sub-pages (template-related pages moved to TemplatesHub.tsx)
 const CompanySettingsPage = lazy(() => import("./admin/CompanySettingsPage"));
 const DesignManager = lazy(() => import("./admin/DesignManager").then(m => ({ default: m.DesignManager })));
-const DocumentTypesManager = lazy(() => import("./admin/DocumentTypesManager").then(m => ({ default: m.DocumentTypesManager })));
-const ClausesPage = lazy(() => import("./admin/ClausesPage").then(m => ({ default: m.ClausesPage })));
-const AttachmentsPage = lazy(() => import("./admin/AttachmentsPage").then(m => ({ default: m.AttachmentsPage })));
 const UsersPage = lazy(() => import("./admin/UsersPage").then(m => ({ default: m.UsersPage })));
 const AuditLogPage = lazy(() => import("./admin/AuditLogPage").then(m => ({ default: m.AuditLogPage })));
 const RetentionPoliciesPage = lazy(() => import("./admin/RetentionPoliciesPage"));
-const FormFieldsManager = lazy(() => import("./admin/FormFieldsManager").then(m => ({ default: m.FormFieldsManager })));
 const WorksCouncilTemplatesPage = lazy(() => import("./admin/WorksCouncilTemplatesPage"));
 const ClauseApprovalQueue = lazy(() => import("./admin/ClauseApprovalQueue").then(m => ({ default: m.ClauseApprovalQueue })));
 const DocumentDesigner = lazy(() => import("./admin/DocumentDesigner").then(m => ({ default: m.DocumentDesigner })));
 const TemplatePreviewPage = lazy(() => import("./admin/TemplatePreviewPage").then(m => ({ default: m.TemplatePreviewPage })));
 const FeatureSettingsPanel = lazy(() => import("@/components/settings/FeatureSettingsPanel").then(m => ({ default: m.FeatureSettingsPanel })));
 const CopilotStudioSettings = lazy(() => import("@/components/settings/CopilotStudioSettings").then(m => ({ default: m.CopilotStudioSettings })));
-const UserTemplatesPage = lazy(() => import("./admin/UserTemplatesPage").then(m => ({ default: m.UserTemplatesPage })));
 const StationeryGalleryPage = lazy(() => import("./admin/StationeryGalleryPage").then(m => ({ default: m.StationeryGalleryPage })));
 const LLMUsagePage = lazy(() => import("./admin/LLMUsagePage"));
 const TeamInstructionsPage = lazy(() => import("./admin/TeamInstructionsPage"));
 const LegalAuditPage = lazy(() => import("./admin/LegalAuditPage"));
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Navigation Structure - 7 Groups, 17 Items
+// Navigation Structure - 6 Groups, 12 Items (templates moved to TemplatesHub)
 // ═══════════════════════════════════════════════════════════════════════════
 
 interface SettingsNavItem {
@@ -85,17 +79,6 @@ const SETTINGS_NAV: SettingsNavGroup[] = [
         items: [
             { id: "general", label: "Firmendaten", icon: Building2, component: CompanySettingsPage },
             { id: "features", label: "Funktionen", icon: ToggleRight, component: FeatureSettingsPanel },
-        ],
-    },
-    {
-        id: "dokumente",
-        label: "Dokumente",
-        items: [
-            { id: "templates", label: "Vorlagen", icon: FileText, component: DocumentTypesManager },
-            { id: "clauses", label: "Textbausteine", icon: BookOpen, component: ClausesPage },
-            { id: "form-fields", label: "Formularfelder", icon: FormInput, component: FormFieldsManager },
-            { id: "attachments", label: "Anlagen", icon: Paperclip, component: AttachmentsPage },
-            { id: "user-templates", label: "Eigene Vorlagen", icon: LayoutTemplate, component: UserTemplatesPage },
         ],
     },
     {
@@ -170,12 +153,8 @@ const TabSkeleton = () => (
 const LEGACY_ROUTE_MAP: Record<string, string> = {
     "company-settings": "general",
     "settings": "design",
-    "types": "templates",
-    "clauses": "clauses",
     "users": "users",
     "clause-approvals": "approvals",
-    "attachments": "attachments",
-    "form-fields": "form-fields",
     "document-designer": "designer",
     "template-preview": "preview",
     "works-council": "works-council",
@@ -207,6 +186,23 @@ export default function SettingsHub() {
     }, [isAdmin]);
 
     const visibleItems = useMemo(() => filteredNav.flatMap(g => g.items), [filteredNav]);
+
+    // Tabs that moved to TemplatesHub — redirect if accessed via old URL
+    const TEMPLATES_HUB_TABS: Record<string, string> = {
+        templates: "types",
+        clauses: "clauses",
+        "form-fields": "form-fields",
+        attachments: "attachments",
+        "user-templates": "user-templates",
+    };
+
+    // Redirect template-related tabs to TemplatesHub
+    useEffect(() => {
+        const rawTab = searchParams.get("tab");
+        if (rawTab && rawTab in TEMPLATES_HUB_TABS) {
+            navigate(`/templates?tab=${TEMPLATES_HUB_TABS[rawTab]}`, { replace: true });
+        }
+    }, [searchParams, navigate]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // Resolve tab aliases (e.g. "branding" → "design")
     const resolveTab = (tab: string): string => TAB_ALIASES[tab] || tab;
@@ -282,9 +278,9 @@ export default function SettingsHub() {
             {/* Header */}
             <div className="flex items-start justify-between mb-6">
                 <div>
-                    <h1 className="text-2xl font-semibold tracking-tight text-foreground">Einstellungen</h1>
+                    <TextReveal as="h1" className="text-2xl font-semibold tracking-tight text-foreground" stagger={0.04} duration={0.6}>Einstellungen</TextReveal>
                     <p className="text-sm text-muted-foreground/60 mt-1">
-                        Firmendaten, Design, Vorlagen und Verwaltung
+                        Firmendaten, Design, Verwaltung und Compliance
                     </p>
                 </div>
                 <Button

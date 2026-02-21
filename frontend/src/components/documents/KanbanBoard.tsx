@@ -58,6 +58,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useToast } from "@/components/ui/toast";
 
 // ── Pending drop type ────────────────────────────────────────────────────
@@ -93,18 +95,26 @@ export function KanbanBoard({ filters = {}, onCardClick, onDraftClick }: KanbanB
     } = useKanbanBoard({ ...filters, include_archived: true });
     const moveMutation = useMoveDocument();
     const deleteDraftMutation = useDeleteDraft();
+    const [deleteDraftConfirm, setDeleteDraftConfirm] = useState<number | null>(null);
 
     const handleDeleteDraft = useCallback(
-        async (draftId: number) => {
-            if (!window.confirm("Entwurf endgültig löschen?")) return;
+        (draftId: number) => {
+            setDeleteDraftConfirm(draftId);
+        },
+        []
+    );
+
+    const confirmDeleteDraft = useCallback(
+        async () => {
+            if (!deleteDraftConfirm) return;
             try {
-                await deleteDraftMutation.mutateAsync(draftId);
+                await deleteDraftMutation.mutateAsync(deleteDraftConfirm);
                 toast.success("Gelöscht", "Entwurf wurde gelöscht");
             } catch {
                 toast.error("Fehler", "Entwurf konnte nicht gelöscht werden");
             }
         },
-        [deleteDraftMutation, toast]
+        [deleteDraftConfirm, deleteDraftMutation, toast]
     );
 
     // ── Drag state ───────────────────────────────────────────────────────
@@ -347,17 +357,17 @@ export function KanbanBoard({ filters = {}, onCardClick, onDraftClick }: KanbanB
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="send-method">Versandart</Label>
-                            <select
-                                id="send-method"
-                                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                                value={sendMethod}
-                                onChange={(e) => setSendMethod(e.target.value)}
-                            >
-                                <option value="post">Post</option>
-                                <option value="email">E-Mail</option>
-                                <option value="persoenlich">Persönlich</option>
-                                <option value="intern">Intern</option>
-                            </select>
+                            <Select value={sendMethod} onValueChange={setSendMethod}>
+                                <SelectTrigger id="send-method">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="post">Post</SelectItem>
+                                    <SelectItem value="email">E-Mail</SelectItem>
+                                    <SelectItem value="persoenlich">Persönlich</SelectItem>
+                                    <SelectItem value="intern">Intern</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
                     </div>
                     <DialogFooter>
@@ -458,6 +468,16 @@ export function KanbanBoard({ filters = {}, onCardClick, onDraftClick }: KanbanB
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
+
+            {/* ── Delete Draft Confirmation ──────────────────────── */}
+            <ConfirmDialog
+                open={deleteDraftConfirm !== null}
+                onOpenChange={(open) => { if (!open) setDeleteDraftConfirm(null); }}
+                title="Entwurf löschen"
+                description="Entwurf endgültig löschen?"
+                confirmLabel="Löschen"
+                onConfirm={confirmDeleteDraft}
+            />
         </>
     );
 }

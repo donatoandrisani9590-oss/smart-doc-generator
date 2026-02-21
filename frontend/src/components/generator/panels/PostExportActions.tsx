@@ -30,6 +30,7 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { api } from "@/lib/api-client";
 import { useMoveDocument } from "@/hooks/api/useKanbanQueries";
 import { useToast } from "@/components/ui/toast";
@@ -205,16 +206,17 @@ export function PostExportActions({ documentId }: PostExportActionsProps) {
                         </PopoverTrigger>
                         <PopoverContent side="right" align="start" className="w-56 p-3 space-y-3">
                             <p className="text-xs font-medium">Versandart</p>
-                            <select
-                                className="flex h-8 w-full rounded-md border border-input bg-transparent px-2 py-1 text-xs shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                                value={sendMethod}
-                                onChange={(e) => setSendMethod(e.target.value)}
-                            >
-                                <option value="post">Post</option>
-                                <option value="email">E-Mail</option>
-                                <option value="persoenlich">Persönlich</option>
-                                <option value="intern">Intern</option>
-                            </select>
+                            <Select value={sendMethod} onValueChange={setSendMethod}>
+                                <SelectTrigger className="h-8 text-xs">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="post">Post</SelectItem>
+                                    <SelectItem value="email">E-Mail</SelectItem>
+                                    <SelectItem value="persoenlich">Persönlich</SelectItem>
+                                    <SelectItem value="intern">Intern</SelectItem>
+                                </SelectContent>
+                            </Select>
                             <Button
                                 size="sm"
                                 className="w-full h-7 text-xs"

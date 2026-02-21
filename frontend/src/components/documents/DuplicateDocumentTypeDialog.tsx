@@ -19,6 +19,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Copy, Loader2, Check } from "lucide-react";
 import {
@@ -141,16 +142,16 @@ export const DuplicateDocumentTypeDialog = ({
                             {/* Target Country */}
                             <div className="space-y-2">
                                 <Label htmlFor="targetCountry">Zielland (optional)</Label>
-                                <select
-                                    id="targetCountry"
-                                    value={targetCountry}
-                                    onChange={(e) => setTargetCountry(e.target.value)}
-                                    className="w-full h-10 px-3 border border-input rounded-md bg-background text-sm"
-                                >
-                                    <option value="">Gleiches Land ({documentType.country_code})</option>
-                                    <option value="DE">Deutschland (DE)</option>
-                                    <option value="IT">Italien (IT)</option>
-                                </select>
+                                <Select value={targetCountry || "__same__"} onValueChange={(val) => setTargetCountry(val === "__same__" ? "" : val)}>
+                                    <SelectTrigger id="targetCountry">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="__same__">Gleiches Land ({documentType.country_code})</SelectItem>
+                                        <SelectItem value="DE">Deutschland (DE)</SelectItem>
+                                        <SelectItem value="IT">Italien (IT)</SelectItem>
+                                    </SelectContent>
+                                </Select>
                             </div>
 
                             {/* Include Options */}

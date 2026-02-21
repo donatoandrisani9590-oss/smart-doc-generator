@@ -711,7 +711,7 @@ export function DocumentTypeImportWizard({
                                 </ul>
                             </div>
 
-                            <Button onClick={() => { handleClose(); navigate("/settings?tab=templates"); }}>
+                            <Button onClick={() => { handleClose(); navigate("/templates"); }}>
                                 <Sparkles className="w-4 h-4 mr-2" />
                                 Zu den Dokumententypen
                             </Button>

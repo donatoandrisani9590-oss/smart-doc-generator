@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { apiFetch } from "@/lib/api-client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Loader2, BookOpen, Plus, Star, Trash2 } from "lucide-react";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useCustomClauseTemplates, useCreateCustomTemplate } from "@/hooks/useApi";
 import {
     Dialog,
@@ -55,15 +56,19 @@ export const CustomClauseTemplates = ({ countryCode, onInsert }: CustomClauseTem
         }
     };
 
-    const handleDelete = async (id: number) => {
-        if (!confirm("Vorlage wirklich löschen?")) return;
+    const [deleteTemplateId, setDeleteTemplateId] = useState<number | null>(null);
 
-        await apiFetch(`/api/v1/custom-clauses/templates/${id}`, {
+    const handleDelete = useCallback((id: number) => {
+        setDeleteTemplateId(id);
+    }, []);
+
+    const confirmDelete = useCallback(async () => {
+        if (deleteTemplateId === null) return;
+        await apiFetch(`/api/v1/custom-clauses/templates/${deleteTemplateId}`, {
             method: "DELETE",
         });
-
         refetch();
-    };
+    }, [deleteTemplateId, refetch]);
 
     const templates = data?.items || [];
 
@@ -182,6 +187,15 @@ export const CustomClauseTemplates = ({ countryCode, onInsert }: CustomClauseTem
                     </div>
                 )}
             </CardContent>
+
+            <ConfirmDialog
+                open={deleteTemplateId !== null}
+                onOpenChange={(open) => { if (!open) setDeleteTemplateId(null); }}
+                title="Vorlage löschen"
+                description="Vorlage wirklich löschen?"
+                confirmLabel="Löschen"
+                onConfirm={confirmDelete}
+            />
         </Card>
     );
 };

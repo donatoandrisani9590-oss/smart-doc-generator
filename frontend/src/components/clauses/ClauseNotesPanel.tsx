@@ -7,11 +7,12 @@
  * - Diese Notizen erscheinen NICHT im generierten Dokument
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { apiFetch } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import {
     Select,
     SelectContent,
@@ -136,18 +137,23 @@ export function ClauseNotesPanel({ clauseId, onNotesCountChange }: ClauseNotesPa
         }
     };
 
-    const deleteNote = async (noteId: number) => {
-        if (!confirm("Notiz wirklich löschen?")) return;
+    const [deleteNoteId, setDeleteNoteId] = useState<number | null>(null);
 
+    const deleteNote = useCallback((noteId: number) => {
+        setDeleteNoteId(noteId);
+    }, []);
+
+    const confirmDeleteNote = useCallback(async () => {
+        if (deleteNoteId === null) return;
         try {
-            await apiFetch(`/api/v1/clauses/${clauseId}/notes/${noteId}`, {
+            await apiFetch(`/api/v1/clauses/${clauseId}/notes/${deleteNoteId}`, {
                 method: "DELETE",
             });
             await fetchNotes();
         } catch (err) {
             console.error("Delete failed:", err);
         }
-    };
+    }, [deleteNoteId, clauseId, fetchNotes]);
 
     const formatDate = (isoString: string) => {
         return new Date(isoString).toLocaleDateString("de-DE", {
@@ -320,6 +326,14 @@ export function ClauseNotesPanel({ clauseId, onNotesCountChange }: ClauseNotesPa
                     })}
                 </div>
             )}
+            <ConfirmDialog
+                open={deleteNoteId !== null}
+                onOpenChange={(open) => { if (!open) setDeleteNoteId(null); }}
+                title="Notiz löschen"
+                description="Notiz wirklich löschen?"
+                confirmLabel="Löschen"
+                onConfirm={confirmDeleteNote}
+            />
         </div>
     );
 }

@@ -33,10 +33,9 @@ import {
     Share2,
     Settings,
     Loader2,
-    ChevronLeft,
-    ChevronRight,
     Filter,
 } from "lucide-react";
+import { Pagination } from "@/components/ui/pagination";
 import { formatDistanceToNow } from "@/lib/dateUtils";
 
 // Notification type icons
@@ -175,31 +174,12 @@ export const NotificationsPage = () => {
                     )}
 
                     {/* Pagination */}
-                    {totalPages > 1 && (
-                        <div className="flex items-center justify-between mt-6 pt-4 border-t">
-                            <div className="text-sm text-muted-foreground">
-                                Seite {page} von {totalPages}
-                            </div>
-                            <div className="flex gap-2">
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    disabled={page <= 1}
-                                    onClick={() => setPage(page - 1)}
-                                >
-                                    <ChevronLeft className="w-4 h-4" />
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    disabled={page >= totalPages}
-                                    onClick={() => setPage(page + 1)}
-                                >
-                                    <ChevronRight className="w-4 h-4" />
-                                </Button>
-                            </div>
-                        </div>
-                    )}
+                    <Pagination
+                        currentPage={page}
+                        totalPages={totalPages}
+                        onPageChange={setPage}
+                        className="mt-6 pt-4 border-t"
+                    />
                 </CardContent>
             </Card>
         </div>

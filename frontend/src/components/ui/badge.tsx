@@ -24,7 +24,7 @@ import { cn } from "@/lib/utils"
  * - version: Versionsnummer (dezent)
  */
 const badgeVariants = cva(
-    "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+    "inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-medium h-6 leading-none transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
     {
         variants: {
             variant: {
@@ -41,6 +41,22 @@ const badgeVariants = cva(
                     "border-transparent bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300",
                 muted:
                     "border-transparent bg-muted text-muted-foreground",
+
+                // === DS v2.1 DOCUMENT STATUS BADGES ===
+                draft:
+                    "border-transparent bg-[var(--color-draft-bg)] text-[var(--color-draft)]",
+                review:
+                    "border-transparent bg-[var(--color-review-bg)] text-[var(--color-review)]",
+                sent:
+                    "border-transparent bg-[var(--color-sent-bg)] text-[var(--color-sent)]",
+                return:
+                    "border-transparent bg-[var(--color-return-bg)] text-[var(--color-return)]",
+                done:
+                    "border-transparent bg-[var(--color-done-bg)] text-[var(--color-done)]",
+                archived:
+                    "border-transparent bg-[var(--color-archived-bg)] text-[var(--color-archived)]",
+                type:
+                    "border-transparent bg-[var(--nw-blue-50)] text-[var(--nw-blue-700)]",
 
                 // === KATEGORIE BADGES ===
                 outline:

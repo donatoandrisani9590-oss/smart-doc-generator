@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
     Dialog,
     DialogContent,
@@ -625,18 +626,18 @@ export const TeamsPage = () => {
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="memberRole">Rolle</Label>
-                            <select
-                                id="memberRole"
-                                value={newMemberRole}
-                                onChange={(e) => setNewMemberRole(e.target.value)}
-                                className="w-full h-10 px-3 border border-input rounded-md bg-background text-sm"
-                            >
-                                <option value="member">Mitglied - Kann Dokumente teilen</option>
-                                <option value="viewer">Betrachter - Nur Ansicht</option>
-                                {(selectedTeam?.my_role === "owner") && (
-                                    <option value="admin">Administrator - Kann Team verwalten</option>
-                                )}
-                            </select>
+                            <Select value={newMemberRole} onValueChange={setNewMemberRole}>
+                                <SelectTrigger id="memberRole">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="member">Mitglied - Kann Dokumente teilen</SelectItem>
+                                    <SelectItem value="viewer">Betrachter - Nur Ansicht</SelectItem>
+                                    {(selectedTeam?.my_role === "owner") && (
+                                        <SelectItem value="admin">Administrator - Kann Team verwalten</SelectItem>
+                                    )}
+                                </SelectContent>
+                            </Select>
                         </div>
                     </div>
                     <DialogFooter>

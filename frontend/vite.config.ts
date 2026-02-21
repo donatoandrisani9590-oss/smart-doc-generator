@@ -60,6 +60,8 @@ export default defineConfig({
           ],
           // Rich text editor (heavy)
           'vendor-editor': ['tinymce'],
+          // Animation & scroll (shared across pages)
+          'vendor-motion': ['gsap', '@gsap/react', 'lenis', 'framer-motion'],
           // Utilities
           'vendor-utils': ['date-fns', 'lucide-react', 'clsx', 'tailwind-merge'],
         },

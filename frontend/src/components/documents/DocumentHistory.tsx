@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, FileText, Download, Trash2, RefreshCw, Calendar } from "lucide-react";
 import { useDocumentHistory, useDeleteDocument } from "@/hooks/useApi";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 interface DocumentHistoryProps {
     userId?: string;
@@ -14,12 +15,16 @@ export const DocumentHistory = ({ userId = "anonymous", countryCode }: DocumentH
     const { data, isLoading, refetch } = useDocumentHistory(userId, countryCode);
     const deleteDoc = useDeleteDocument();
     const [searchTerm, setSearchTerm] = useState("");
+    const [deleteDocId, setDeleteDocId] = useState<number | null>(null);
 
-    const handleDelete = async (id: number) => {
-        if (confirm("Dokument wirklich löschen?")) {
-            await deleteDoc.mutateAsync(id);
-        }
-    };
+    const handleDelete = useCallback((id: number) => {
+        setDeleteDocId(id);
+    }, []);
+
+    const confirmDelete = useCallback(async () => {
+        if (deleteDocId === null) return;
+        await deleteDoc.mutateAsync(deleteDocId);
+    }, [deleteDocId, deleteDoc]);
 
     const handleDownload = (id: number) => {
         window.open(`/api/v1/documents/history/${id}/download`, "_blank");
@@ -136,6 +141,15 @@ export const DocumentHistory = ({ userId = "anonymous", countryCode }: DocumentH
                     </p>
                 )}
             </CardContent>
+
+            <ConfirmDialog
+                open={deleteDocId !== null}
+                onOpenChange={(open) => { if (!open) setDeleteDocId(null); }}
+                title="Dokument löschen"
+                description="Dokument wirklich löschen?"
+                confirmLabel="Löschen"
+                onConfirm={confirmDelete}
+            />
         </Card>
     );
 };

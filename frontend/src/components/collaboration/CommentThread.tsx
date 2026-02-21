@@ -16,7 +16,7 @@
  * />
  */
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     MessageSquare,
@@ -45,6 +45,7 @@ import {
     CollapsibleContent,
     CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "@/lib/dateUtils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -507,16 +508,21 @@ export const CommentThread = ({
         }
     };
 
-    const handleDelete = async (commentId: number) => {
-        if (!confirm("Kommentar wirklich löschen?")) return;
+    const [deleteCommentId, setDeleteCommentId] = useState<number | null>(null);
 
+    const handleDelete = useCallback((commentId: number) => {
+        setDeleteCommentId(commentId);
+    }, []);
+
+    const confirmDelete = useCallback(async () => {
+        if (deleteCommentId === null) return;
         try {
-            await deleteComment.mutateAsync(commentId);
+            await deleteComment.mutateAsync(deleteCommentId);
             refetch();
         } catch (error) {
             console.error("Failed to delete comment:", error);
         }
-    };
+    }, [deleteCommentId, deleteComment, refetch]);
 
     const threads = data?.comments || [];
     const unresolvedCount = data?.unresolved_count || 0;
@@ -630,6 +636,15 @@ export const CommentThread = ({
                     </AnimatePresence>
                 )}
             </div>
+
+            <ConfirmDialog
+                open={deleteCommentId !== null}
+                onOpenChange={(open) => { if (!open) setDeleteCommentId(null); }}
+                title="Kommentar löschen"
+                description="Kommentar wirklich löschen?"
+                confirmLabel="Löschen"
+                onConfirm={confirmDelete}
+            />
         </div>
     );
 };

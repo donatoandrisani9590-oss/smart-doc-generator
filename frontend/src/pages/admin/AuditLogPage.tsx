@@ -9,6 +9,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Pagination } from "@/components/ui/pagination";
 import {
     Select,
     SelectContent,
@@ -35,8 +36,6 @@ import {
     Search,
     Filter,
     Download,
-    ChevronLeft,
-    ChevronRight,
     Activity,
     AlertCircle,
     User,
@@ -287,18 +286,22 @@ export const AuditLogPage = () => {
                                 <label className="text-xs font-medium text-foreground mb-1 block">
                                     Entitäts-Typ
                                 </label>
-                                <select
-                                    value={filters.entity_type || ""}
-                                    onChange={(e) => handleFilterChange("entity_type", e.target.value)}
-                                    className="w-full h-10 px-3 border border-input rounded-md bg-background text-sm"
+                                <Select
+                                    value={filters.entity_type || "__all__"}
+                                    onValueChange={(val) => handleFilterChange("entity_type", val === "__all__" ? "" : val)}
                                 >
-                                    <option value="">Alle</option>
-                                    <option value="document">Dokument</option>
-                                    <option value="clause">Textbaustein</option>
-                                    <option value="document_type">Dokumenttyp</option>
-                                    <option value="form_field">Formularfeld</option>
-                                    <option value="user">Benutzer</option>
-                                </select>
+                                    <SelectTrigger>
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="__all__">Alle</SelectItem>
+                                        <SelectItem value="document">Dokument</SelectItem>
+                                        <SelectItem value="clause">Textbaustein</SelectItem>
+                                        <SelectItem value="document_type">Dokumenttyp</SelectItem>
+                                        <SelectItem value="form_field">Formularfeld</SelectItem>
+                                        <SelectItem value="user">Benutzer</SelectItem>
+                                    </SelectContent>
+                                </Select>
                             </div>
                             <div>
                                 <label className="text-xs font-medium text-foreground mb-1 block">
@@ -459,31 +462,12 @@ export const AuditLogPage = () => {
                             </div>
 
                             {/* Pagination */}
-                            {logs.total_pages > 1 && (
-                                <div className="flex items-center justify-between mt-4">
-                                    <div className="text-sm text-muted-foreground">
-                                        Seite {logs.page} von {logs.total_pages}
-                                    </div>
-                                    <div className="flex gap-2">
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            disabled={logs.page <= 1}
-                                            onClick={() => handleFilterChange("page", logs.page - 1)}
-                                        >
-                                            <ChevronLeft className="w-4 h-4" />
-                                        </Button>
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            disabled={logs.page >= logs.total_pages}
-                                            onClick={() => handleFilterChange("page", logs.page + 1)}
-                                        >
-                                            <ChevronRight className="w-4 h-4" />
-                                        </Button>
-                                    </div>
-                                </div>
-                            )}
+                            <Pagination
+                                currentPage={logs.page}
+                                totalPages={logs.total_pages}
+                                onPageChange={(p) => handleFilterChange("page", p)}
+                                className="mt-4"
+                            />
                         </>
                     )}
                 </CardContent>

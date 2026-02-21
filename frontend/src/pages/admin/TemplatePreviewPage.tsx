@@ -6,6 +6,7 @@
 
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useDocumentTypes, type DocumentType } from "@/hooks/useApi";
 import { TemplatePreview } from "@/components/admin/TemplatePreview";
 import { FileText, Loader2, ChevronRight } from "lucide-react";
@@ -45,14 +46,15 @@ export const TemplatePreviewPage = () => {
                     <CardHeader>
                         <div className="flex items-center justify-between">
                             <CardTitle className="text-base">Dokumenttyp auswählen</CardTitle>
-                            <select
-                                value={countryCode}
-                                onChange={(e) => setCountryCode(e.target.value)}
-                                className="h-8 px-2 text-sm border border-input rounded-md bg-background"
-                            >
-                                <option value="DE">Deutschland</option>
-                                <option value="IT">Italien</option>
-                            </select>
+                            <Select value={countryCode} onValueChange={setCountryCode}>
+                                <SelectTrigger className="h-8 w-36">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="DE">Deutschland</SelectItem>
+                                    <SelectItem value="IT">Italien</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
                     </CardHeader>
                     <CardContent>

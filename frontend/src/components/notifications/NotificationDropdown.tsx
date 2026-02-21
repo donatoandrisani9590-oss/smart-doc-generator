@@ -1,15 +1,19 @@
 /**
  * NotificationDropdown Component (15.5.6)
  *
- * Dropdown menu showing user notifications with:
+ * Popover menu showing user notifications with:
  * - Unread count badge
  * - Quick mark as read
  * - Link to full notification center
  */
 
-import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
 import {
     useNotifications,
     useUnreadCount,
@@ -57,8 +61,6 @@ const priorityColors: Record<string, string> = {
 };
 
 export const NotificationDropdown = () => {
-    const [isOpen, setIsOpen] = useState(false);
-
     const { data: countData } = useUnreadCount();
     const { data: notifications, isLoading } = useNotifications(1, false);
     const markAsRead = useMarkAsRead();
@@ -83,98 +85,80 @@ export const NotificationDropdown = () => {
     };
 
     return (
-        <div className="relative">
-            {/* Trigger Button */}
-            <Button
-                variant="ghost"
-                size="sm"
-                className="relative"
-                onClick={() => setIsOpen(!isOpen)}
-            >
-                <Bell className="w-5 h-5" />
-                {unreadCount > 0 && (
-                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
-                        {unreadCount > 9 ? "9+" : unreadCount}
-                    </span>
-                )}
-            </Button>
+        <Popover>
+            <PopoverTrigger asChild>
+                <Button variant="ghost" size="sm" className="relative">
+                    <Bell className="w-5 h-5" />
+                    {unreadCount > 0 && (
+                        <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
+                            {unreadCount > 9 ? "9+" : unreadCount}
+                        </span>
+                    )}
+                </Button>
+            </PopoverTrigger>
 
-            {/* Dropdown */}
-            {isOpen && (
-                <>
-                    {/* Backdrop */}
-                    <div
-                        className="fixed inset-0 z-40"
-                        onClick={() => setIsOpen(false)}
-                    />
-
-                    {/* Dropdown Content */}
-                    <div className="absolute right-0 top-full mt-2 w-96 bg-background border rounded-lg shadow-xl z-20 overflow-hidden">
-                        {/* Header */}
-                        <div className="p-4 border-b flex items-center justify-between bg-muted/30">
-                            <div className="flex items-center gap-2">
-                                <Bell className="w-5 h-5" />
-                                <h3 className="font-semibold">Benachrichtigungen</h3>
-                                {unreadCount > 0 && (
-                                    <span className="px-2 py-0.5 bg-primary text-primary-foreground text-xs rounded-full">
-                                        {unreadCount} neu
-                                    </span>
-                                )}
-                            </div>
-                            {unreadCount > 0 && (
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={handleMarkAllAsRead}
-                                    className="text-xs"
-                                >
-                                    <CheckCheck className="w-4 h-4 mr-1" />
-                                    Alle lesen
-                                </Button>
-                            )}
-                        </div>
-
-                        {/* Notification List */}
-                        <div className="max-h-96 overflow-y-auto">
-                            {isLoading ? (
-                                <div className="flex justify-center py-8">
-                                    <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-                                </div>
-                            ) : items.length === 0 ? (
-                                <div className="py-8 text-center text-muted-foreground">
-                                    <Bell className="w-12 h-12 mx-auto mb-4 opacity-30" />
-                                    <p>Keine Benachrichtigungen</p>
-                                </div>
-                            ) : (
-                                <div className="divide-y">
-                                    {items.slice(0, 5).map((notification) => (
-                                        <NotificationItemRow
-                                            key={notification.id}
-                                            notification={notification}
-                                            onMarkAsRead={handleMarkAsRead}
-                                            onDismiss={handleDismiss}
-                                            onClick={() => setIsOpen(false)}
-                                        />
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Footer */}
-                        <div className="p-3 border-t bg-muted/30">
-                            <Link
-                                to="/notifications"
-                                className="flex items-center justify-center gap-1 text-sm text-primary hover:underline"
-                                onClick={() => setIsOpen(false)}
-                            >
-                                Alle Benachrichtigungen anzeigen
-                                <ChevronRight className="w-4 h-4" />
-                            </Link>
-                        </div>
+            <PopoverContent align="end" className="w-96 p-0">
+                {/* Header */}
+                <div className="p-4 border-b flex items-center justify-between bg-muted/30">
+                    <div className="flex items-center gap-2">
+                        <Bell className="w-5 h-5" />
+                        <h3 className="font-semibold">Benachrichtigungen</h3>
+                        {unreadCount > 0 && (
+                            <span className="px-2 py-0.5 bg-primary text-primary-foreground text-xs rounded-full">
+                                {unreadCount} neu
+                            </span>
+                        )}
                     </div>
-                </>
-            )}
-        </div>
+                    {unreadCount > 0 && (
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={handleMarkAllAsRead}
+                            className="text-xs"
+                        >
+                            <CheckCheck className="w-4 h-4 mr-1" />
+                            Alle lesen
+                        </Button>
+                    )}
+                </div>
+
+                {/* Notification List */}
+                <div className="max-h-96 overflow-y-auto">
+                    {isLoading ? (
+                        <div className="flex justify-center py-8">
+                            <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+                        </div>
+                    ) : items.length === 0 ? (
+                        <div className="py-8 text-center text-muted-foreground">
+                            <Bell className="w-12 h-12 mx-auto mb-4 opacity-30" />
+                            <p>Keine Benachrichtigungen</p>
+                        </div>
+                    ) : (
+                        <div className="divide-y">
+                            {items.slice(0, 5).map((notification) => (
+                                <NotificationItemRow
+                                    key={notification.id}
+                                    notification={notification}
+                                    onMarkAsRead={handleMarkAsRead}
+                                    onDismiss={handleDismiss}
+                                />
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                {/* Footer */}
+                <div className="p-3 border-t bg-muted/30">
+                    <Link
+                        to="/notifications"
+                        className="flex items-center justify-center gap-1 text-sm text-primary hover:underline"
+                    >
+                        Alle Benachrichtigungen anzeigen
+                        <ChevronRight className="w-4 h-4" />
+                    </Link>
+                </div>
+            </PopoverContent>
+        </Popover>
     );
 };
 
@@ -183,12 +167,10 @@ const NotificationItemRow = ({
     notification,
     onMarkAsRead,
     onDismiss,
-    onClick,
 }: {
     notification: NotificationItem;
     onMarkAsRead: (id: number, e: React.MouseEvent) => void;
     onDismiss: (id: number, e: React.MouseEvent) => void;
-    onClick: () => void;
 }) => {
     const Icon = typeIcons[notification.notification_type] || Bell;
     const priorityClass = priorityColors[notification.priority] || priorityColors.normal;
@@ -255,7 +237,7 @@ const NotificationItemRow = ({
 
     if (notification.action_url) {
         return (
-            <Link to={notification.action_url} onClick={onClick}>
+            <Link to={notification.action_url}>
                 {content}
             </Link>
         );

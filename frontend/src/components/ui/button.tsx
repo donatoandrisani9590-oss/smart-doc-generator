@@ -5,26 +5,27 @@ import { motion } from "framer-motion"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-    "inline-flex items-center justify-center whitespace-nowrap rounded-full text-sm font-medium ring-offset-background transition-all duration-300 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+    "inline-flex items-center justify-center whitespace-nowrap rounded-[var(--radius-md-ds)] text-sm font-semibold ring-offset-background transition-all duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
     {
         variants: {
             variant: {
-                default: "bg-primary text-primary-foreground hover:bg-primary/85 hover:shadow-[0_4px_14px_rgba(36,49,134,0.35)] active:shadow-[0_2px_6px_rgba(36,49,134,0.25)]",
+                default: "bg-[var(--nw-blue-700)] text-white shadow-[0_1px_2px_rgba(36,49,134,0.12)] hover:bg-[var(--nw-blue-600)] hover:shadow-[0_2px_8px_rgba(36,49,134,0.18)] hover:-translate-y-[0.5px] active:bg-[var(--nw-blue-800)] active:translate-y-0 active:shadow-[0_1px_2px_rgba(36,49,134,0.12)]",
                 destructive:
-                    "bg-destructive text-destructive-foreground hover:bg-destructive/85 hover:shadow-[0_4px_14px_rgba(220,38,38,0.3)]",
+                    "bg-destructive text-destructive-foreground shadow-[0_1px_2px_rgba(220,38,38,0.12)] hover:bg-destructive/90 hover:shadow-[0_2px_8px_rgba(220,38,38,0.18)]",
                 outline:
-                    "border-2 border-primary bg-transparent text-primary hover:bg-primary hover:text-primary-foreground hover:shadow-[0_4px_14px_rgba(36,49,134,0.25)]",
+                    "bg-[var(--bg-surface)] text-[var(--text-primary)] border border-[rgba(0,0,0,0.10)] hover:bg-[var(--bg-hover)] hover:border-[rgba(0,0,0,0.15)]",
                 secondary:
-                    "border-2 border-secondary bg-transparent text-secondary hover:bg-secondary hover:text-secondary-foreground hover:shadow-[0_4px_14px_rgba(110,189,132,0.3)]",
-                ghost: "hover:bg-accent hover:text-accent-foreground",
+                    "bg-[var(--bg-surface)] text-[var(--text-primary)] border border-[rgba(0,0,0,0.10)] hover:bg-[var(--bg-hover)] hover:border-[rgba(0,0,0,0.15)]",
+                ghost: "text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]",
                 link: "text-primary underline-offset-4 hover:underline",
+                ai: "bg-gradient-to-br from-[var(--nw-blue-700)] to-[var(--nw-blue-500)] text-white font-semibold shadow-[0_1px_2px_rgba(36,49,134,0.12)] btn-ai-shimmer hover:shadow-[0_2px_8px_rgba(36,49,134,0.24)]",
                 success:
-                    "border-2 border-secondary bg-transparent text-secondary hover:bg-secondary hover:text-secondary-foreground hover:shadow-[0_4px_14px_rgba(110,189,132,0.3)]",
+                    "bg-[var(--nw-green-50)] text-[var(--nw-green-700)] border border-[var(--nw-green-200)] hover:bg-[var(--nw-green-100)] hover:border-[var(--nw-green-300)]",
                 warning:
-                    "border-2 border-amber-500 bg-transparent text-amber-600 hover:bg-amber-500 hover:text-white hover:shadow-[0_4px_14px_rgba(245,158,11,0.3)]",
+                    "bg-[var(--color-warning-bg)] text-[var(--color-warning)] border border-amber-200 hover:bg-amber-100 hover:border-amber-300 dark:border-amber-700 dark:hover:bg-amber-900/30",
             },
             size: {
-                default: "h-10 px-5 py-2",
+                default: "h-[38px] px-5 py-2",
                 sm: "h-9 px-4",
                 lg: "h-11 px-8",
                 icon: "h-10 w-10",

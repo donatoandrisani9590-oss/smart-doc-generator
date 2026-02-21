@@ -39,7 +39,7 @@ export function OnboardingRing({
       { id: "company", label: "Firmendaten", icon: Building2, href: "/settings?tab=general", isComplete: hasCompanyData },
       { id: "branding", label: "Branding", icon: Palette, href: "/settings?tab=design", isComplete: hasLogo },
       { id: "clauses", label: "Textbausteine", icon: FileText, href: "/settings?tab=clauses", isComplete: clauseCount > 0 },
-      { id: "templates", label: "Vorlage erstellen", icon: LayoutTemplate, href: "/settings?tab=templates", isComplete: documentTypeCount > 0 },
+      { id: "templates", label: "Vorlage erstellen", icon: LayoutTemplate, href: "/templates", isComplete: documentTypeCount > 0 },
     ],
     [hasCompanyData, hasLogo, clauseCount, documentTypeCount]
   );
@@ -61,7 +61,7 @@ export function OnboardingRing({
       {/* Dismiss button */}
       <button
         onClick={onDismiss}
-        className="absolute top-3 right-3 text-[#86868B] hover:text-[#1D1D1F] dark:hover:text-foreground transition-colors p-1 rounded-lg hover:bg-[#F5F5F7] dark:hover:bg-muted"
+        className="absolute top-3 right-3 text-[var(--text-tertiary)] hover:text-[var(--text-primary)] dark:hover:text-foreground transition-colors p-1 rounded-lg hover:bg-[var(--bg-hover)] dark:hover:bg-muted"
       >
         <X className="w-3.5 h-3.5" />
       </button>
@@ -94,13 +94,13 @@ export function OnboardingRing({
               className="dark:stroke-primary transition-all duration-500"
             />
           </svg>
-          <span className="absolute inset-0 flex items-center justify-center text-sm font-medium text-[#1D1D1F] dark:text-foreground">
+          <span className="absolute inset-0 flex items-center justify-center text-sm font-medium text-[var(--text-primary)] dark:text-foreground">
             {completedCount}/{total}
           </span>
         </div>
         <div>
-          <p className="text-sm font-semibold text-[#1D1D1F] dark:text-foreground">Einrichtung</p>
-          <p className="text-xs text-[#86868B] dark:text-muted-foreground">
+          <p className="text-sm font-semibold text-[var(--text-primary)] dark:text-foreground">Einrichtung</p>
+          <p className="text-xs text-[var(--text-tertiary)] dark:text-muted-foreground">
             {total - completedCount} {total - completedCount === 1 ? "Schritt" : "Schritte"} verbleibend
           </p>
         </div>
@@ -118,7 +118,7 @@ export function OnboardingRing({
                 "flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors",
                 step.isComplete
                   ? "text-secondary"
-                  : "text-[#86868B] dark:text-muted-foreground hover:text-[#1D1D1F] dark:hover:text-foreground hover:bg-[#F5F5F7] dark:hover:bg-muted"
+                  : "text-[var(--text-tertiary)] dark:text-muted-foreground hover:text-[var(--text-primary)] dark:hover:text-foreground hover:bg-[var(--bg-hover)] dark:hover:bg-muted"
               )}
             >
               {step.isComplete ? (

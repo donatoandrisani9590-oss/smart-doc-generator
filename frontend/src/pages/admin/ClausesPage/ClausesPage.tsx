@@ -14,6 +14,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Pagination } from "@/components/ui/pagination";
 import {
     Select,
     SelectContent,
@@ -394,22 +396,18 @@ export const ClausesPage = () => {
                 </div>
                 <div className="flex gap-2">
                     {/* View Mode Toggle */}
-                    <div className="ive-pill-tabs">
-                        <button
-                            className={cn("ive-pill-tab", viewMode === 'cards' && "ive-pill-tab-active")}
-                            onClick={() => setViewMode('cards')}
-                            title="Karten-Ansicht"
-                        >
+                    <ToggleGroup
+                        type="single"
+                        value={viewMode}
+                        onValueChange={(val) => { if (val) setViewMode(val as "cards" | "table"); }}
+                    >
+                        <ToggleGroupItem value="cards" title="Karten-Ansicht">
                             <LayoutGrid className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                            className={cn("ive-pill-tab", viewMode === 'table' && "ive-pill-tab-active")}
-                            onClick={() => setViewMode('table')}
-                            title="Tabellen-Ansicht"
-                        >
+                        </ToggleGroupItem>
+                        <ToggleGroupItem value="table" title="Tabellen-Ansicht">
                             <List className="w-3.5 h-3.5" />
-                        </button>
-                    </div>
+                        </ToggleGroupItem>
+                    </ToggleGroup>
                     <Button
                         variant="outline"
                         className="gap-2"
@@ -969,31 +967,12 @@ export const ClausesPage = () => {
             )}
 
             {/* Client-side Pagination */}
-            {totalClausePages > 1 && (
-                <div className="flex items-center justify-between pt-4">
-                    <p className="text-sm text-muted-foreground">
-                        {filteredClauses.length} Textbausteine · Seite {clausePage} von {totalClausePages}
-                    </p>
-                    <div className="flex gap-2">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            disabled={clausePage <= 1}
-                            onClick={() => setClausePage(p => p - 1)}
-                        >
-                            Zurück
-                        </Button>
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            disabled={clausePage >= totalClausePages}
-                            onClick={() => setClausePage(p => p + 1)}
-                        >
-                            Weiter
-                        </Button>
-                    </div>
-                </div>
-            )}
+            <Pagination
+                currentPage={clausePage}
+                totalPages={totalClausePages}
+                onPageChange={setClausePage}
+                className="pt-4"
+            />
                 </TabsContent>
 
                 {/* Varianten Tab */}

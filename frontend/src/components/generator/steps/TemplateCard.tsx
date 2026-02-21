@@ -33,8 +33,8 @@ export function TemplateCard({ type, compact, onClick }: TemplateCardProps) {
                 )}
                 aria-label={`${type.name} auswählen`}
             >
-                <Icon className="w-4 h-4 text-[#86868B] shrink-0" />
-                <span className="text-sm font-medium text-[#1D1D1F] truncate">
+                <Icon className="w-4 h-4 text-[var(--text-tertiary)] shrink-0" />
+                <span className="text-sm font-medium text-[var(--text-primary)] truncate">
                     {type.name}
                 </span>
             </button>
@@ -52,19 +52,19 @@ export function TemplateCard({ type, compact, onClick }: TemplateCardProps) {
             )}
             aria-label={`${type.name} auswählen`}
         >
-            <Icon className="w-6 h-6 text-[#86868B] mb-3" />
-            <span className="text-[15px] font-semibold text-[#1D1D1F] leading-tight">
+            <Icon className="w-6 h-6 text-[var(--text-tertiary)] mb-3" />
+            <span className="text-[15px] font-semibold text-[var(--text-primary)] leading-tight">
                 {type.name}
             </span>
             {type.description && (
-                <span className="text-sm text-[#86868B] mt-1 line-clamp-2">
+                <span className="text-sm text-[var(--text-tertiary)] mt-1 line-clamp-2">
                     {type.description}
                 </span>
             )}
             {type.category && (
                 <Badge
                     variant="outline"
-                    className="mt-3 text-[11px] font-normal text-[#86868B] border-warm-200"
+                    className="mt-3 text-[11px] font-normal text-[var(--text-tertiary)] border-warm-200"
                 >
                     {translateCategory(type.category)}
                 </Badge>

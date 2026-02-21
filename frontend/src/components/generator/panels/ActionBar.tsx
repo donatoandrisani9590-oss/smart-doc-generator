@@ -108,15 +108,15 @@ export const ActionBar = () => {
     const autoSaveIndicator = useMemo(() => {
         switch (autoSaveStatus) {
             case 'saving':
-                return { icon: <Cloud className="w-3 h-3 animate-pulse" />, text: "Speichert...", color: "text-blue-500" };
+                return { icon: <Cloud className="w-3 h-3 animate-pulse" />, text: "Speichert...", color: "text-[var(--nw-blue-500)]" };
             case 'saved':
-                return { icon: <CheckCircle2 className="w-3 h-3" />, text: lastSavedText || "Gespeichert", color: "text-green-600" };
+                return { icon: <CheckCircle2 className="w-3 h-3" />, text: lastSavedText || "Gespeichert", color: "text-[var(--nw-green-600)]" };
             case 'error':
-                return { icon: <CloudOff className="w-3 h-3" />, text: "Speichern fehlgeschlagen", color: "text-red-500" };
+                return { icon: <CloudOff className="w-3 h-3" />, text: "Speichern fehlgeschlagen", color: "text-destructive" };
             case 'offline':
-                return { icon: <CloudOff className="w-3 h-3" />, text: "Offline gespeichert", color: "text-amber-500" };
+                return { icon: <CloudOff className="w-3 h-3" />, text: "Offline gespeichert", color: "text-[var(--color-draft)]" };
             case 'pending':
-                return { icon: <Cloud className="w-3 h-3" />, text: "Änderungen...", color: "text-warm-400" };
+                return { icon: <Cloud className="w-3 h-3" />, text: "Änderungen...", color: "text-[var(--text-tertiary)]" };
             default:
                 return null;
         }

@@ -1,10 +1,11 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, FileText, Upload, Download, Trash2 } from "lucide-react";
 import { useMasterTemplates } from "@/hooks/useApi";
 import { apiFetch } from "@/lib/api-client";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 interface TemplateManagerProps {
     countryCode?: string;
@@ -72,12 +73,17 @@ export const TemplateManager = ({ countryCode: initialCountry = "DE" }: Template
         );
     };
 
-    const handleDelete = async (template: { country_code: string; category: string }) => {
-        if (!confirm("Template wirklich löschen?")) return;
+    const [deleteTarget, setDeleteTarget] = useState<{ country_code: string; category: string } | null>(null);
 
+    const handleDelete = useCallback((template: { country_code: string; category: string }) => {
+        setDeleteTarget(template);
+    }, []);
+
+    const confirmDelete = useCallback(async () => {
+        if (!deleteTarget) return;
         try {
             const response = await apiFetch(
-                `/api/v1/admin/templates/${template.country_code}/${template.category}`,
+                `/api/v1/admin/templates/${deleteTarget.country_code}/${deleteTarget.category}`,
                 { method: "DELETE" }
             );
 
@@ -89,7 +95,7 @@ export const TemplateManager = ({ countryCode: initialCountry = "DE" }: Template
         } catch (err) {
             setError(err instanceof Error ? err.message : "Löschen fehlgeschlagen");
         }
-    };
+    }, [deleteTarget, refetch]);
 
     const formatBytes = (bytes: number) => {
         if (bytes < 1024) return `${bytes} B`;
@@ -223,6 +229,15 @@ export const TemplateManager = ({ countryCode: initialCountry = "DE" }: Template
                     </code>
                 </div>
             </CardContent>
+
+            <ConfirmDialog
+                open={deleteTarget !== null}
+                onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}
+                title="Template löschen"
+                description="Template wirklich löschen?"
+                confirmLabel="Löschen"
+                onConfirm={confirmDelete}
+            />
         </Card>
     );
 };

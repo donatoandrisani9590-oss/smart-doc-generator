@@ -127,7 +127,7 @@ export const QuickAccessTiles = () => {
                                 Neu
                             </Button>
                         </Link>
-                        <Link to="/settings?tab=templates">
+                        <Link to="/templates">
                             <Button variant="outline" size="sm" className="gap-2 text-primary border-primary/30 hover:bg-primary/5">
                                 <FileUp className="w-4 h-4" />
                                 Word importieren

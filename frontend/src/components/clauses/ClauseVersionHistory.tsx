@@ -1,6 +1,7 @@
-
+import { useState, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Loader2, History, RotateCcw, Eye, Clock } from "lucide-react";
 import { useClauseVersions, useRestoreClauseVersion } from "@/hooks/useApi";
 import { sanitizeHtml } from "@/utils/sanitize";
@@ -20,14 +21,17 @@ interface ClauseVersionHistoryProps {
 export const ClauseVersionHistory = ({ clauseId, clauseTitle }: ClauseVersionHistoryProps) => {
     const { data, isLoading, refetch } = useClauseVersions(clauseId);
     const restoreVersion = useRestoreClauseVersion();
+    const [restoreVersionId, setRestoreVersionId] = useState<number | null>(null);
 
+    const handleRestore = useCallback((versionId: number) => {
+        setRestoreVersionId(versionId);
+    }, []);
 
-    const handleRestore = async (versionId: number) => {
-        if (confirm("Möchtest du diese Version wirklich wiederherstellen? Die aktuelle Version wird als Backup gespeichert.")) {
-            await restoreVersion.mutateAsync({ clauseId, versionId });
-            refetch();
-        }
-    };
+    const confirmRestore = useCallback(async () => {
+        if (restoreVersionId === null) return;
+        await restoreVersion.mutateAsync({ clauseId, versionId: restoreVersionId });
+        refetch();
+    }, [restoreVersionId, restoreVersion, clauseId, refetch]);
 
     const formatDate = (dateStr: string) => {
         return new Date(dateStr).toLocaleDateString("de-DE", {
@@ -143,6 +147,16 @@ export const ClauseVersionHistory = ({ clauseId, clauseTitle }: ClauseVersionHis
                     </div>
                 )}
             </CardContent>
+
+            <ConfirmDialog
+                open={restoreVersionId !== null}
+                onOpenChange={(open) => { if (!open) setRestoreVersionId(null); }}
+                title="Version wiederherstellen"
+                description="Möchtest du diese Version wirklich wiederherstellen? Die aktuelle Version wird als Backup gespeichert."
+                confirmLabel="Wiederherstellen"
+                confirmVariant="default"
+                onConfirm={confirmRestore}
+            />
         </Card>
     );
 };

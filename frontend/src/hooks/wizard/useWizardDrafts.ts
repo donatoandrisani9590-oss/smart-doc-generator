@@ -154,7 +154,7 @@ export function useWizardDrafts(params: UseWizardDraftsParams): UseWizardDraftsR
         );
         if (!hasSubstantiveData && !loadedDraftId) return;
 
-        const draftName = data.documentTitle?.trim() || "Unbenannter Entwurf";
+        const draftName = data.documentTitle?.trim() || `Entwurf – ${new Date().toLocaleDateString("de-DE")}`;
         const draftData = {
             document_type_id: data.documentTypeId,
             name: draftName,
@@ -316,13 +316,16 @@ export function useWizardDrafts(params: UseWizardDraftsParams): UseWizardDraftsR
             return;
         }
 
-        // Auto-generate title if empty (instead of blocking save)
+        // Auto-generate title if empty (DS v2.1 §7: never save as "Unbenannter Entwurf")
         let draftName = documentTitle.trim();
         if (!draftName) {
-            const nameParts = [formData.vorname, formData.nachname].filter(Boolean);
-            draftName = nameParts.length > 0
-                ? `Entwurf - ${nameParts.join(" ")}`
-                : `Entwurf - ${new Date().toLocaleDateString("de-DE")}`;
+            if (formData.nachname && formData.vorname) {
+                draftName = `Entwurf – ${formData.nachname}, ${formData.vorname}`;
+            } else if (formData.nachname) {
+                draftName = `Entwurf – ${formData.nachname}`;
+            } else {
+                draftName = `Entwurf – ${new Date().toLocaleDateString("de-DE")}`;
+            }
         }
 
         setIsSaving(true);

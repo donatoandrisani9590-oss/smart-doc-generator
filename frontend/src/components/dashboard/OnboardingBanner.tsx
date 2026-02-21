@@ -80,7 +80,7 @@ export function OnboardingBanner({
                 id: "templates",
                 label: "Vorlage erstellen",
                 icon: LayoutTemplate,
-                href: "/settings?tab=templates",
+                href: "/templates",
                 isComplete: documentTypeCount > 0,
             },
         ],

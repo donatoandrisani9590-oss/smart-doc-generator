@@ -141,17 +141,17 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
         <div className="max-w-3xl mx-auto py-12 px-6">
             {/* Header */}
             <div className="mb-8">
-                <h1 className="text-3xl font-semibold tracking-tight text-[#1D1D1F]">
+                <h1 className="text-3xl font-semibold tracking-tight text-[var(--text-primary)]">
                     Neues Dokument
                 </h1>
-                <p className="text-base text-[#86868B] mt-2">
+                <p className="text-base text-[var(--text-tertiary)] mt-2">
                     Wähle eine Vorlage und starte die Erstellung.
                 </p>
             </div>
 
             {/* Search Bar */}
             <div className="relative mb-8">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-[#86868B]" />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-[var(--text-tertiary)]" />
                 <Input
                     id="document-type-search"
                     value={searchQuery}
@@ -159,8 +159,8 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
                     placeholder="Dokumenttyp suchen..."
                     className={cn(
                         "h-12 pl-11 pr-10 text-base rounded-xl",
-                        "border border-warm-200 bg-white",
-                        "placeholder:text-[#86868B]/60",
+                        "border border-warm-200 bg-[var(--bg-surface)]",
+                        "placeholder:text-[var(--text-tertiary)]/60",
                         "focus:ring-2 focus:ring-primary/20 focus:border-primary/40"
                     )}
                     disabled={isLoading}
@@ -169,7 +169,7 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
                     <Button
                         variant="ghost"
                         size="icon"
-                        className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 text-[#86868B] hover:text-[#1D1D1F]"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 text-[var(--text-tertiary)] hover:text-[var(--text-primary)]"
                         onClick={() => setSearchQuery("")}
                     >
                         <X className="w-4 h-4" />
@@ -182,7 +182,7 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
                 <section className="mb-8" aria-labelledby="recent-heading">
                     <h2
                         id="recent-heading"
-                        className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-[#86868B] mb-3"
+                        className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-[var(--text-tertiary)] mb-3"
                     >
                         <Clock className="w-3 h-3" />
                         Zuletzt verwendet
@@ -205,7 +205,7 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
                 <section key={category} className="mb-8" aria-labelledby={`cat-${category}`}>
                     <h2
                         id={`cat-${category}`}
-                        className="text-xs font-medium uppercase tracking-wider text-[#86868B] mb-3"
+                        className="text-xs font-medium uppercase tracking-wider text-[var(--text-tertiary)] mb-3"
                     >
                         {translateCategory(category)}
                     </h2>
@@ -224,8 +224,8 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
             {/* No Results */}
             {filteredTypes.length === 0 && (
                 <div className="text-center py-16">
-                    <Search className="w-8 h-8 mx-auto mb-3 text-[#86868B]/40" />
-                    <p className="text-sm text-[#86868B]">
+                    <Search className="w-8 h-8 mx-auto mb-3 text-[var(--text-tertiary)]/40" />
+                    <p className="text-sm text-[var(--text-tertiary)]">
                         Keine Ergebnisse für &ldquo;{searchQuery}&rdquo;
                     </p>
                 </div>
@@ -234,8 +234,8 @@ export const StepDocumentType = ({ documentTypes, isLoading }: StepDocumentTypeP
             {/* Footer Link */}
             <div className="text-center pt-4">
                 <a
-                    href="/settings?tab=templates"
-                    className="text-xs text-[#86868B]/50 hover:text-[#86868B] transition-colors inline-flex items-center gap-1"
+                    href="/templates"
+                    className="text-xs text-[var(--text-tertiary)]/50 hover:text-[var(--text-tertiary)] transition-colors inline-flex items-center gap-1"
                 >
                     Eigene Word-Vorlage importieren
                     <ArrowRight className="w-3 h-3" />
