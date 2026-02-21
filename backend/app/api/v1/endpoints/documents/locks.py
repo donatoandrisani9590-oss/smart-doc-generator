@@ -80,7 +80,7 @@ class LockAcquiredResponse(BaseModel):
 
 def _utcnow() -> datetime:
     """Get current UTC time as naive datetime (compatible with SQLite)."""
-    return datetime.utcnow()
+    return datetime.now(timezone.utc)
 
 
 def _make_naive(dt: Optional[datetime]) -> Optional[datetime]:

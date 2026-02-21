@@ -17,7 +17,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_, or_, desc, asc, func
 from sqlalchemy.orm import joinedload
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from app.db import get_db
 from app.api import deps
@@ -253,7 +253,7 @@ async def list_documents(
 
     # Action-based filtering (Handlungsbedarf-Karten)
     if action_filter:
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         if action_filter == "ohne_versand":
             action_cond = models.GeneratedDocument.workflow_status == "erstellt"
             query = query.where(action_cond)
@@ -496,7 +496,7 @@ async def get_action_summary(
     (created_by_id), sofern kein Admin. Admins sehen alle Dokumente.
     """
     is_admin = getattr(current_user, "role", "user") == "admin"
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
 
     # Basis-Filter: nicht gelöschte Dokumente
     base_filters = [models.GeneratedDocument.is_deleted == False]  # noqa: E712
@@ -862,7 +862,7 @@ async def change_document_stage(
     # Sonderfälle: Archivieren / Entarchivieren
     if body.target_stage == "archiv":
         doc.is_archived = True
-        doc.archived_at = datetime.utcnow()
+        doc.archived_at = datetime.now(timezone.utc)
         doc.archived_by = str(current_user.id)
     elif current_stage == "archiv" and body.target_stage != "archiv":
         doc.is_archived = False
@@ -1159,7 +1159,7 @@ async def perform_bulk_action(
         user_id = str(current_user.id)
         for doc in documents:
             doc.is_archived = True
-            doc.archived_at = datetime.utcnow()
+            doc.archived_at = datetime.now(timezone.utc)
             doc.archived_by = user_id
             processed += 1
         await db.commit()

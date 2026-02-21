@@ -21,7 +21,7 @@ from __future__ import annotations
 
 import logging
 from typing import Any, List, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -715,7 +715,7 @@ async def approve_document(
 
     old_status = approval.status
     approval.status = "approved"
-    approval.decided_at = datetime.utcnow()
+    approval.decided_at = datetime.now(timezone.utc)
     if data and data.comment:
         approval.decision_comment = data.comment
 
@@ -805,7 +805,7 @@ async def request_changes(
 
     old_status = approval.status
     approval.status = "changes_requested"
-    approval.decided_at = datetime.utcnow()
+    approval.decided_at = datetime.now(timezone.utc)
     approval.decision_comment = data.comment
 
     # Bei Gruppenanfrage: Reagierenden als approver_id setzen
@@ -893,7 +893,7 @@ async def reject_document(
 
     old_status = approval.status
     approval.status = "rejected"
-    approval.decided_at = datetime.utcnow()
+    approval.decided_at = datetime.now(timezone.utc)
     approval.decision_comment = data.comment
 
     # Bei Gruppenanfrage: Reagierenden als approver_id setzen
@@ -980,7 +980,7 @@ async def resubmit_for_approval(
     approval.status = "pending_approval"
     approval.decided_at = None
     approval.decision_comment = data.comment if data and data.comment else None
-    approval.requested_at = datetime.utcnow()
+    approval.requested_at = datetime.now(timezone.utc)
 
     # Determine who to notify
     notify_user_ids: list[int] = []

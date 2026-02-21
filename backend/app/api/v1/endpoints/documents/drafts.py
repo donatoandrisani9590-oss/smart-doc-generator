@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from pydantic import BaseModel, field_validator
 from typing import Optional, Union, List, Any
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import json
 
 from app.db import get_db
@@ -176,7 +176,7 @@ async def get_draft_stats(
             "ttl_days": 30
         }
 
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     ttl_days = 30  # Standard-TTL
     warning_threshold = td(days=7)
     expiry_threshold = td(days=ttl_days) - warning_threshold
@@ -510,7 +510,7 @@ async def refresh_draft_ttl(
         raise HTTPException(status_code=404, detail="Entwurf nicht gefunden")
 
     # Update timestamp to reset TTL
-    draft.updated_at = datetime.utcnow()
+    draft.updated_at = datetime.now(timezone.utc)
     await db.commit()
 
     return {
