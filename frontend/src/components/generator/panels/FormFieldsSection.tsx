@@ -403,7 +403,7 @@ export const FormFieldsSection = ({
     /** CSS-Klasse für ein validiertes Input-Feld */
     const fieldClass = useCallback((field: string, value: string, extra?: string): string => {
         const error = getInlineError(field, value);
-        const baseClass = "h-8 text-sm ive-input";
+        const baseClass = "h-9 text-sm canvas-input";
         const errorClass = error ? "border-red-500 focus-visible:ring-red-500/30" : "";
         // Subtle pulse for empty required fields (even before touched)
         const isEmpty = !value || !value.trim();
@@ -493,25 +493,6 @@ export const FormFieldsSection = ({
                 </div>
             )}
 
-            {/* Fortschrittsanzeige für Pflichtfelder */}
-            <div className="pb-3">
-                <div className="flex items-center justify-between text-[11px] text-muted-foreground/60 mb-1.5">
-                    <span>
-                        {requiredFieldsProgress.filled} {labels.progress_filled} {requiredFieldsProgress.total} {labels.progress_suffix}
-                    </span>
-                    <span>
-                        <span className="text-primary/40">*</span> = {labels.required}
-                    </span>
-                </div>
-                {/* Slim progress bar */}
-                <div className="h-1 w-full rounded-full bg-foreground/[0.06] overflow-hidden">
-                    <div
-                        className="h-full rounded-full bg-primary/40 transition-all duration-500 ease-out"
-                        style={{ width: `${requiredFieldsProgress.percentage}%` }}
-                    />
-                </div>
-            </div>
-
             {/* Mitarbeiterdaten */}
             <div className="space-y-3">
                 <h4 className="ive-section-header">
@@ -566,7 +547,7 @@ export const FormFieldsSection = ({
                         value={formData.strasse}
                         onChange={(e) => actions.updateFormField("strasse", e.target.value)}
                         placeholder={labels.strasse_placeholder}
-                        className="h-8 text-sm ive-input"
+                        className="h-9 text-sm canvas-input"
                     />
                 </div>
 
@@ -590,7 +571,7 @@ export const FormFieldsSection = ({
                             id="ort"
                             value={formData.ort}
                             onChange={(e) => actions.updateFormField("ort", e.target.value)}
-                            className="h-8 text-sm ive-input"
+                            className="h-9 text-sm canvas-input"
                         />
                     </div>
                 </div>
@@ -602,7 +583,7 @@ export const FormFieldsSection = ({
                         type="date"
                         value={formData.geburtsdatum}
                         onChange={(e) => actions.updateFormField("geburtsdatum", e.target.value)}
-                        className="h-8 text-sm ive-input"
+                        className="h-9 text-sm canvas-input"
                     />
                 </div>
             </div>
@@ -629,7 +610,7 @@ export const FormFieldsSection = ({
                         value={formData.vertragsart}
                         onValueChange={(v) => actions.updateFormField("vertragsart", v)}
                     >
-                        <SelectTrigger className="h-8 text-sm ive-input">
+                        <SelectTrigger className="h-9 text-sm canvas-select-trigger">
                             <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -740,7 +721,7 @@ export const FormFieldsSection = ({
                         value={formData.probezeit}
                         onValueChange={(v) => actions.updateFormField("probezeit", v)}
                     >
-                        <SelectTrigger className="h-8 text-sm ive-input">
+                        <SelectTrigger className="h-9 text-sm canvas-select-trigger">
                             <SelectValue placeholder={labels.probezeit_placeholder} />
                         </SelectTrigger>
                         <SelectContent>
@@ -762,7 +743,7 @@ export const FormFieldsSection = ({
                             value={formData.entgeltgruppe}
                             onChange={(e) => actions.updateFormField("entgeltgruppe", e.target.value)}
                             placeholder={labels.entgeltgruppe_placeholder}
-                            className="h-8 text-sm ive-input"
+                            className="h-9 text-sm canvas-input"
                         />
                     </div>
                 )}
@@ -776,7 +757,7 @@ export const FormFieldsSection = ({
                         value={formData.kuendigungsfrist}
                         onValueChange={(v) => actions.updateFormField("kuendigungsfrist", v)}
                     >
-                        <SelectTrigger className="h-8 text-sm ive-input">
+                        <SelectTrigger className="h-9 text-sm canvas-select-trigger">
                             <SelectValue placeholder={labels.kuendigungsfrist_placeholder} />
                         </SelectTrigger>
                         <SelectContent>
@@ -796,7 +777,7 @@ export const FormFieldsSection = ({
                         value={formData.au_frist}
                         onValueChange={(v) => actions.updateFormField("au_frist", v)}
                     >
-                        <SelectTrigger className="h-8 text-sm ive-input">
+                        <SelectTrigger className="h-9 text-sm canvas-select-trigger">
                             <SelectValue placeholder={labels.au_frist_placeholder} />
                         </SelectTrigger>
                         <SelectContent>
@@ -836,7 +817,7 @@ export const FormFieldsSection = ({
                                 value={formData.urlaubsgeld_pro_tag}
                                 onChange={(e) => actions.updateFormField("urlaubsgeld_pro_tag", e.target.value)}
                                 placeholder={labels.urlaubsgeld_placeholder}
-                                className="h-8 text-sm ive-input"
+                                className="h-9 text-sm canvas-input"
                             />
                         </div>
                         <div className="space-y-1">
@@ -849,7 +830,7 @@ export const FormFieldsSection = ({
                                 value={formData.vwl_betrag}
                                 onChange={(e) => actions.updateFormField("vwl_betrag", e.target.value)}
                                 placeholder={labels.vwl_placeholder}
-                                className="h-8 text-sm ive-input"
+                                className="h-9 text-sm canvas-input"
                             />
                         </div>
                     </div>

@@ -155,7 +155,7 @@ export const SplitScreenEditor = ({ documentTypes }: SplitScreenEditorProps) => 
             <div className="flex-1 flex flex-col lg:flex-row overflow-hidden min-h-0">
                 {/* Linke Seite: Steuerung */}
                 <div
-                    className={`w-full lg:w-[340px] xl:w-[380px] lg:min-w-[300px] lg:max-w-[420px] bg-background lg:border-r lg:border-border/70 dark:lg:border-border/40 overflow-hidden flex-shrink-0 lg:block ${mobileTab === "form" ? "flex-1" : "hidden"
+                    className={`w-full lg:w-[360px] lg:min-w-[360px] lg:max-w-[360px] bg-background lg:border-r lg:border-border/70 dark:lg:border-border/40 overflow-hidden flex-shrink-0 lg:block ${mobileTab === "form" ? "flex-1" : "hidden"
                         } lg:flex-initial lg:max-h-none`}
                 >
                     <LeftControlPanel documentTypes={documentTypes} />

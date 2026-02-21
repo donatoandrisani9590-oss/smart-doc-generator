@@ -12,7 +12,7 @@
  */
 
 import { useState, useCallback } from "react";
-import { FileText, Users, Layers, Paperclip, ChevronRight } from "lucide-react";
+import { Users, Layers, Paperclip, ChevronRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
@@ -30,8 +30,8 @@ import { ClauseSelectionSection } from "./ClauseSelectionSection";
 import { ActionBar } from "./ActionBar";
 import { AttachmentSelector } from "../AttachmentSelector";
 import { StationeryPicker } from "./StationeryPicker";
-import { ToneCards } from "../ToneCards";
-import { DocumentStatusBadge, useDocumentStatus } from "@/components/documents/DocumentStatusBadge";
+import { WorkflowDots } from "../WorkflowDots";
+import { ToneSegmented } from "../ToneSegmented";
 import { useMagicFill } from "@/hooks/useMagicFill";
 
 interface DocumentType {
@@ -54,18 +54,9 @@ export const LeftControlPanel = ({ documentTypes }: LeftControlPanelProps) => {
     const [showAttachmentsModal, setShowAttachmentsModal] = useState(false);
 
     const selectedDocumentType = documentTypes.find(t => t.id === documentTypeId);
-    const documentTypeName = selectedDocumentType?.name || "Dokument";
     const documentCountryCode = selectedDocumentType?.country_code || "DE";
     const enabledClausesCount = documentClauses.filter(c => c.is_enabled).length;
     const totalClausesCount = documentClauses.length;
-
-    // Berechne Dokumentstatus für Badge
-    const documentStatus = useDocumentStatus({
-        documentTypeId,
-        formData: state.formData,
-        documentTitle,
-        hasExported: state.hasExported,
-    });
 
     // Magic Fill — Vorschläge aus historischen Dokumenten
     const magicFill = useMagicFill({
@@ -100,20 +91,14 @@ export const LeftControlPanel = ({ documentTypes }: LeftControlPanelProps) => {
 
     return (
         <div className="h-full flex flex-col overflow-hidden">
-            {/* Header mit Dokumenttitel */}
-            <div className="p-4 pb-3 bg-background shrink-0">
-                <div className="flex items-center justify-between gap-2 mb-2.5">
-                    <div className="flex items-center gap-2 min-w-0">
-                        <FileText className="w-3.5 h-3.5 text-muted-foreground/40 shrink-0" />
-                        <span className="text-[13px] text-muted-foreground/50 truncate">{documentTypeName}</span>
-                    </div>
-                    <DocumentStatusBadge status={documentStatus} size="sm" />
-                </div>
+            {/* Header — WorkflowDots + Dokumenttitel */}
+            <div className="p-4 pb-3 bg-background shrink-0 space-y-3">
+                <WorkflowDots />
                 <Input
                     value={documentTitle}
                     onChange={(e) => actions.setDocumentTitle(e.target.value)}
                     placeholder="Dokumenttitel eingeben..."
-                    className="ive-input text-lg font-semibold"
+                    className="canvas-input text-lg font-semibold h-auto py-2"
                 />
             </div>
 
@@ -133,10 +118,10 @@ export const LeftControlPanel = ({ documentTypes }: LeftControlPanelProps) => {
 
             {/* Tonalität */}
             <div className="px-4 pb-3">
-                <ToneCards
-                    value={state.toneOfVoice}
-                    onChange={actions.setToneOfVoice}
-                />
+                <div className="text-[11px] font-medium text-muted-foreground/45 uppercase tracking-widest mb-1.5">
+                    Tonalität
+                </div>
+                <ToneSegmented value={state.toneOfVoice} onChange={actions.setToneOfVoice} />
             </div>
 
             {/* Scrollbarer Bereich für Sektionen */}
