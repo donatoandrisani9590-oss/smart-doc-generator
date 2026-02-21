@@ -8,7 +8,7 @@
 
 import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
-import { Clock, AlertCircle } from "lucide-react";
+import { Clock, AlertCircle, Trash2 } from "lucide-react";
 import { formatDistanceToNow } from "@/lib/dateUtils";
 import type { KanbanCardItem } from "@/hooks/api/useKanbanQueries";
 
@@ -42,9 +42,10 @@ function formatDueDate(dueDateStr: string): string {
 interface KanbanCardProps {
     card: KanbanCardItem;
     onClick?: (id: number) => void;
+    onDelete?: (id: number) => void;
 }
 
-export function KanbanCard({ card, onClick }: KanbanCardProps) {
+export function KanbanCard({ card, onClick, onDelete }: KanbanCardProps) {
     const isDraft = card.source === "draft" || card.id < 0;
 
     const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
@@ -113,7 +114,7 @@ export function KanbanCard({ card, onClick }: KanbanCardProps) {
                 </p>
             )}
 
-            {/* Row 3: Date + Due date */}
+            {/* Row 3: Date + Due date + Delete */}
             <div className="flex items-center gap-3 mt-2 text-[11px] text-muted-foreground">
                 {card.created_at && (
                     <span>{formatDistanceToNow(card.created_at)}</span>
@@ -123,6 +124,18 @@ export function KanbanCard({ card, onClick }: KanbanCardProps) {
                         <Clock className="w-3 h-3" />
                         {formatDueDate(card.next_due_date)}
                     </span>
+                )}
+                {isDraft && onDelete && (
+                    <button
+                        className="ml-auto text-muted-foreground hover:text-destructive transition-colors"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onDelete(Math.abs(card.id));
+                        }}
+                        title="Entwurf löschen"
+                    >
+                        <Trash2 className="w-3.5 h-3.5" />
+                    </button>
                 )}
             </div>
         </div>

@@ -52,3 +52,22 @@ export const useSaveDraft = () => {
         },
     });
 };
+
+export const useDeleteDraft = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (draftId: number) => {
+            const res = await fetch(`${API_BASE}/drafts/${draftId}`, {
+                method: "DELETE",
+            });
+            if (!res.ok) throw new Error("Entwurf konnte nicht gelöscht werden");
+            return res.json();
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["drafts"] });
+            queryClient.invalidateQueries({ queryKey: ["kanban"] });
+            queryClient.invalidateQueries({ queryKey: ["repository-stats"] });
+        },
+    });
+};

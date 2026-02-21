@@ -43,6 +43,7 @@ interface KanbanColumnProps {
     documents: KanbanCardItem[];
     defaultCollapsed?: boolean;
     onCardClick?: (id: number) => void;
+    onDeleteDraft?: (draftId: number) => void;
 }
 
 export function KanbanColumn({
@@ -52,6 +53,7 @@ export function KanbanColumn({
     documents,
     defaultCollapsed = false,
     onCardClick,
+    onDeleteDraft,
 }: KanbanColumnProps) {
     const [collapsed, setCollapsed] = useState(defaultCollapsed);
     const { isOver, setNodeRef } = useDroppable({
@@ -105,6 +107,7 @@ export function KanbanColumn({
                                 key={card.id}
                                 card={card}
                                 onClick={onCardClick}
+                                onDelete={onDeleteDraft}
                             />
                         ))
                     )}

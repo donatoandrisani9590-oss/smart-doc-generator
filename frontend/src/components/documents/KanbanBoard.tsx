@@ -12,6 +12,7 @@
  */
 
 import { useState, useCallback, useMemo } from "react";
+import { useDeleteDraft } from "@/hooks/api/useDraftQueries";
 import {
     DndContext,
     DragOverlay,
@@ -91,6 +92,20 @@ export function KanbanBoard({ filters = {}, onCardClick, onDraftClick }: KanbanB
         error,
     } = useKanbanBoard({ ...filters, include_archived: true });
     const moveMutation = useMoveDocument();
+    const deleteDraftMutation = useDeleteDraft();
+
+    const handleDeleteDraft = useCallback(
+        async (draftId: number) => {
+            if (!window.confirm("Entwurf endgültig löschen?")) return;
+            try {
+                await deleteDraftMutation.mutateAsync(draftId);
+                toast.success("Gelöscht", "Entwurf wurde gelöscht");
+            } catch {
+                toast.error("Fehler", "Entwurf konnte nicht gelöscht werden");
+            }
+        },
+        [deleteDraftMutation, toast]
+    );
 
     // ── Drag state ───────────────────────────────────────────────────────
     const [activeCard, setActiveCard] = useState<KanbanCardItem | null>(null);
@@ -287,12 +302,12 @@ export function KanbanBoard({ filters = {}, onCardClick, onDraftClick }: KanbanB
                                 defaultCollapsed={stage === "archiv"}
                                 onCardClick={(id) => {
                                     if (id < 0) {
-                                        // Negative ID = draft, convert back to positive
                                         onDraftClick?.(Math.abs(id));
                                     } else {
                                         onCardClick?.(id);
                                     }
                                 }}
+                                onDeleteDraft={handleDeleteDraft}
                             />
                         );
                     })}
