@@ -587,7 +587,7 @@ function RequestApprovalDialog({
                                         onChange={(e) => onApproverQueryChange(e.target.value)}
                                     />
                                     {approverSuggestions.length > 0 && approverQuery.length >= 1 && (
-                                        <div className="absolute z-10 w-full mt-1 bg-white border border-warm-200 rounded-lg shadow-lg max-h-40 overflow-y-auto">
+                                        <div className="absolute z-20 w-full mt-1 bg-white border border-warm-200 rounded-lg shadow-lg max-h-40 overflow-y-auto">
                                             {approverSuggestions.map((suggestion) => (
                                                 <button
                                                     key={suggestion.id}

@@ -109,7 +109,7 @@ export const NotificationDropdown = () => {
                     />
 
                     {/* Dropdown Content */}
-                    <div className="absolute right-0 top-full mt-2 w-96 bg-background border rounded-lg shadow-xl z-50 overflow-hidden">
+                    <div className="absolute right-0 top-full mt-2 w-96 bg-background border rounded-lg shadow-xl z-20 overflow-hidden">
                         {/* Header */}
                         <div className="p-4 border-b flex items-center justify-between bg-muted/30">
                             <div className="flex items-center gap-2">

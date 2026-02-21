@@ -20,7 +20,7 @@ const DialogOverlay = React.forwardRef<
         ref={ref}
         className={cn(
             // Base overlay with frosted glass effect
-            "fixed inset-0 z-50 glass-overlay",
+            "fixed inset-0 z-40 glass-overlay",
             // Animations
             "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
             className
