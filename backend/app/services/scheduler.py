@@ -20,7 +20,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 from sqlalchemy import select, and_
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -96,6 +96,7 @@ async def _run_all_checks() -> None:
             "overdue_approvals": 0,
             "overdue_returns": 0,
             "due_reminders": 0,
+            "expired_drafts": 0,
         }
 
         try:
@@ -112,6 +113,11 @@ async def _run_all_checks() -> None:
             stats["due_reminders"] = await _check_due_reminders(db)
         except Exception:
             logger.exception("Fehler bei Wiedervorlagenprüfung")
+
+        try:
+            stats["expired_drafts"] = await _cleanup_expired_drafts(db)
+        except Exception:
+            logger.exception("Fehler bei Draft-Garbage-Collection")
 
         await db.commit()
 
@@ -383,3 +389,49 @@ async def _check_due_reminders(db: AsyncSession) -> int:
         notified += 1
 
     return notified
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# CHECK 4: DRAFT GARBAGE COLLECTION
+# ═══════════════════════════════════════════════════════════════════════════
+
+async def _cleanup_expired_drafts(db: AsyncSession) -> int:
+    """
+    Löscht abgelaufene und leere Entwürfe:
+    1. Drafts älter als 30 Tage (expired TTL)
+    2. Leere Drafts (form_data='{}') älter als 24 Stunden
+    """
+    from app.models.enterprise import DocumentDraft
+
+    now = datetime.now(timezone.utc)
+    deleted = 0
+
+    # 1) Expired drafts (>30 days old)
+    ttl_cutoff = now - timedelta(days=30)
+    expired_result = await db.execute(
+        select(DocumentDraft).where(DocumentDraft.created_at < ttl_cutoff)
+    )
+    expired_drafts = expired_result.scalars().all()
+    for draft in expired_drafts:
+        await db.delete(draft)
+        deleted += 1
+
+    # 2) Empty drafts (form_data='{}') older than 24 hours
+    empty_cutoff = now - timedelta(hours=24)
+    empty_result = await db.execute(
+        select(DocumentDraft).where(
+            and_(
+                DocumentDraft.created_at < empty_cutoff,
+                DocumentDraft.form_data.in_(['{}', '""', '']),
+            )
+        )
+    )
+    empty_drafts = empty_result.scalars().all()
+    for draft in empty_drafts:
+        await db.delete(draft)
+        deleted += 1
+
+    if deleted > 0:
+        logger.info("Draft-Garbage-Collection: %d Entwürfe gelöscht", deleted)
+
+    return deleted
