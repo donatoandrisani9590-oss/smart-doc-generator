@@ -178,7 +178,7 @@ export const Dashboard = () => {
       (hoverRef as React.MutableRefObject<HTMLDivElement | null>).current = el;
       (spotlightRef as React.MutableRefObject<HTMLDivElement | null>).current = el;
     }}>
-      <div className="max-w-7xl mx-auto space-y-10">
+      <div className="max-w-7xl mx-auto space-y-6">
 
         {/* ── Hero Section: Greeting + Search (Prototype ai-hero) ── */}
         <div className="text-center pt-6 pb-2 space-y-6" data-gsap="greeting">
@@ -261,9 +261,9 @@ export const Dashboard = () => {
           </div>
         </div>
 
-        {/* ── Action Stats — only non-zero values ── */}
+        {/* ── Action Stats — only non-zero values, tight to KPI row ── */}
         {actionSummary && ACTION_STATS.filter((a) => (actionSummary[a.key] ?? 0) > 0).length > 0 && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+          <div className="-mt-2 flex flex-wrap gap-3">
             {ACTION_STATS
               .filter((a) => (actionSummary[a.key] ?? 0) > 0)
               .map((a) => (

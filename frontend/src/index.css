@@ -499,11 +499,6 @@
     box-shadow: var(--shadow-sm);
     border-radius: var(--radius-lg);
     padding: 22px;
-    transition: all 0.2s ease;
-  }
-  .glass-card:hover {
-    box-shadow: var(--shadow-md);
-    transform: translateY(-1px);
   }
 
   /* === Cursor Spotlight — radial glow on hover === */

@@ -1,6 +1,6 @@
 /**
- * ActionStatWidget — DS v2.1 conditional action-stat card.
- * Only renders when count > 0. Colored accent dot for urgency.
+ * ActionStatWidget — DS v5.0 compact action-stat pill.
+ * Only renders when count > 0. Inline layout with accent dot.
  */
 
 import { type LucideIcon } from "lucide-react";
@@ -23,20 +23,21 @@ export function ActionStatWidget({ value, label, icon: Icon, accentColor, onClic
       type="button"
       onClick={onClick}
       className={cn(
-        "glass-card text-left cursor-pointer hover:-translate-y-[1px] hover:shadow-[var(--shadow-lg)] transition-all duration-200",
+        "flex items-center gap-2.5 px-4 py-2.5 rounded-[var(--radius-lg)]",
+        "bg-[var(--bg-surface)] border border-[var(--border)] shadow-[var(--shadow-sm)]",
+        "text-left cursor-pointer transition-all duration-150",
+        "hover:shadow-[var(--shadow-md)] hover:-translate-y-[1px]",
         className
       )}
     >
-      <div className="flex items-center gap-2 mb-2">
-        <span className={cn("w-1.5 h-1.5 rounded-full", accentColor)} />
-        <Icon className="w-4 h-4 text-[var(--text-tertiary)]" />
-      </div>
-      <p className="text-2xl font-bold tracking-tight text-[var(--text-primary)]">
+      <span className={cn("w-2 h-2 rounded-full shrink-0", accentColor)} />
+      <Icon className="w-4 h-4 text-[var(--text-tertiary)] shrink-0" />
+      <span className="text-lg font-bold tracking-tight text-[var(--text-primary)] tabular-nums">
         {value}
-      </p>
-      <p className="text-xs text-[var(--text-tertiary)] uppercase tracking-wider mt-1">
+      </span>
+      <span className="text-xs text-[var(--text-tertiary)] uppercase tracking-wider">
         {label}
-      </p>
+      </span>
     </button>
   );
 }
