@@ -1,34 +1,20 @@
 /**
- * ActionBar - Export und Speichern Buttons für den Split-Screen Editor
+ * ActionBar - Status bar for the Split-Screen Editor
  *
  * Fixiert am unteren Rand des linken Panels:
+ * - Sidebar Toggles (KI-Chat, Kommentare)
  * - Auto-Save Status Anzeige
  * - ValidationProgress Ampel (zeigt Formular-Status)
  * - Entwurf speichern Button (erlaubt partielle Daten)
- * - PDF Export Button
- * - DOCX Export Button
  *
- * Zeigt Loading-States während Export/Speichern.
- * v5.1: Draft-Speichern ohne vollständige Validierung, Auto-Save Status
- * v6.0: PostExportActions (Lifecycle-Aktionen nach erstem Export)
+ * Export functionality has moved to EditorActionPanel (floating on canvas).
  */
 
-import { useState, useMemo, useCallback, useRef } from "react";
-import { useNavigate } from "react-router-dom";
-import { Save, FileText, FileType2, Loader2, CheckCircle2, Cloud, CloudOff, Download, ChevronDown, Printer, Sparkles, MessagesSquare } from "lucide-react";
+import { useState, useMemo, useCallback } from "react";
+import { Save, Loader2, CheckCircle2, Cloud, CloudOff, Sparkles, MessagesSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { useToast } from "@/components/ui/toast";
 import { useWizardContext } from "../WizardContext";
 import { ValidationProgress, type ValidationState, type ValidationIssue } from "../ValidationProgress";
-import { ExportSuccessModal } from "../ExportSuccessModal";
-import { ExportReviewModal } from "../ExportReviewModal";
-import { PostExportActions } from "./PostExportActions";
 
 // Pflichtfelder Definition
 const REQUIRED_FIELDS = [
@@ -42,24 +28,9 @@ const REQUIRED_FIELDS = [
 
 export const ActionBar = () => {
     const { state, actions } = useWizardContext();
-    const { documentTypeId, documentTitle, formData, isGenerating, autoSaveStatus, lastSavedText, lastExportedDocumentId, showCommentSidebar, showChatSidebar } = state;
-    const toast = useToast();
-    const navigate = useNavigate();
+    const { documentTypeId, documentTitle, formData, isGenerating, autoSaveStatus, lastSavedText, showCommentSidebar, showChatSidebar } = state;
 
     const [isSavingDraft, setIsSavingDraft] = useState(false);
-    const [isExportingPdf, setIsExportingPdf] = useState(false);
-    const [isExportingDocx, setIsExportingDocx] = useState(false);
-
-    // Guard against double-click race condition (setState is async)
-    const exportInProgressRef = useRef(false);
-
-    // Export Review Modal state (Zusammenfassung vor Export)
-    const [showReviewModal, setShowReviewModal] = useState(false);
-    const [reviewExportFormat, setReviewExportFormat] = useState<"pdf" | "docx">("pdf");
-
-    // Export Success Modal state
-    const [showSuccessModal, setShowSuccessModal] = useState(false);
-    const [lastExportFormat, setLastExportFormat] = useState<"pdf" | "docx">("pdf");
 
     // Berechne Validierungs-State für die Ampel
     const validationState: ValidationState = useMemo(() => {
@@ -117,7 +88,6 @@ export const ActionBar = () => {
         }
     }, []);
 
-    const canExport = documentTypeId && validationState.isValid;
     // Drafts only need a document type - partial data is explicitly allowed
     const canSaveDraft = !!documentTypeId;
 
@@ -132,68 +102,7 @@ export const ActionBar = () => {
         }
     };
 
-    // Review-Modal öffnen statt direkt exportieren
-    const handleOpenReview = useCallback((format: "pdf" | "docx") => {
-        setReviewExportFormat(format);
-        setShowReviewModal(true);
-    }, []);
-
-    // Shared export logic (DRY)
-    const performExport = async (format: "pdf" | "docx"): Promise<boolean> => {
-        if (!canExport || exportInProgressRef.current) return false;
-        exportInProgressRef.current = true;
-        if (format === "pdf") setIsExportingPdf(true);
-        else setIsExportingDocx(true);
-
-        try {
-            await actions.exportDocument(format);
-            return true;
-        } catch (err) {
-            toast.error(
-                "Export fehlgeschlagen",
-                err instanceof Error ? err.message : "Bitte versuche es erneut.",
-            );
-            return false;
-        } finally {
-            if (format === "pdf") setIsExportingPdf(false);
-            else setIsExportingDocx(false);
-            exportInProgressRef.current = false;
-        }
-    };
-
-    // Export nach Review-Bestätigung
-    const handleConfirmExport = async () => {
-        const format = reviewExportFormat;
-        const success = await performExport(format);
-        setShowReviewModal(false);
-        if (success) {
-            setLastExportFormat(format);
-            setShowSuccessModal(true);
-        }
-    };
-
-    // Direct export (für Download Again — überspringt Review)
-    const handleDirectExport = async (format: "pdf" | "docx") => {
-        const success = await performExport(format);
-        if (success) {
-            setLastExportFormat(format);
-            setShowSuccessModal(true);
-        }
-    };
-
-    // Download Again from Success Modal (skips review)
-    const handleDownloadAgain = async (format: "pdf" | "docx") => {
-        setShowSuccessModal(false);
-        await handleDirectExport(format);
-    };
-
-    // Navigate to "Meine Dokumente" from success modal
-    const handleGoToDocuments = () => {
-        setShowSuccessModal(false);
-        navigate("/documents");
-    };
-
-    const isAnyLoading = isSavingDraft || isExportingPdf || isExportingDocx || isGenerating;
+    const isAnyLoading = isSavingDraft || isGenerating;
 
     // Auto-Save Status Anzeige
     const autoSaveIndicator = useMemo(() => {
@@ -252,84 +161,20 @@ export const ActionBar = () => {
                 className="w-full"
             />
 
-            {/* Speichern + Exportieren — side by side */}
-            <div className="flex items-center gap-2">
-                <Button
-                    variant="ghost"
-                    className="flex-1 gap-2"
-                    onClick={handleSaveDraft}
-                    disabled={!canSaveDraft || isAnyLoading}
-                >
-                    {isSavingDraft ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                        <Save className="w-4 h-4" />
-                    )}
-                    Speichern
-                </Button>
-
-                {canExport && (
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button
-                                variant="default"
-                                className="flex-1 gap-2"
-                                disabled={isAnyLoading}
-                                title="Exportiert das Dokument mit dem gewählten Briefpapier"
-                            >
-                                {(isExportingPdf || isExportingDocx) ? (
-                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                ) : (
-                                    <Download className="w-4 h-4" />
-                                )}
-                                {isExportingPdf ? "PDF…" : isExportingDocx ? "DOCX…" : "Exportieren"}
-                                {!isAnyLoading && <ChevronDown className="w-3.5 h-3.5 ml-auto opacity-60" />}
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="center" className="w-[calc(var(--radix-dropdown-menu-trigger-width))]">
-                            <DropdownMenuItem onClick={() => handleOpenReview("pdf")} className="gap-2 cursor-pointer">
-                                <FileText className="w-4 h-4 text-red-500" />
-                                Als PDF exportieren
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleOpenReview("docx")} className="gap-2 cursor-pointer">
-                                <FileType2 className="w-4 h-4 text-blue-500" />
-                                Als DOCX exportieren
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => window.print()} className="gap-2 cursor-pointer">
-                                <Printer className="w-4 h-4 text-muted-foreground" />
-                                Drucken
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+            {/* Speichern */}
+            <Button
+                variant="ghost"
+                className="w-full gap-2"
+                onClick={handleSaveDraft}
+                disabled={!canSaveDraft || isAnyLoading}
+            >
+                {isSavingDraft ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                    <Save className="w-4 h-4" />
                 )}
-            </div>
-
-            {/* Post-Export Lifecycle Actions (visible after first export) */}
-            {lastExportedDocumentId && (
-                <PostExportActions documentId={lastExportedDocumentId} />
-            )}
-
-            {/* Export Review Modal (Zusammenfassung vor Export) */}
-            <ExportReviewModal
-                isOpen={showReviewModal}
-                onClose={() => setShowReviewModal(false)}
-                onConfirm={handleConfirmExport}
-                isExporting={isExportingPdf || isExportingDocx}
-                exportFormat={reviewExportFormat}
-                documentTitle={documentTitle}
-                formData={formData}
-            />
-
-            {/* Export Success Modal */}
-            <ExportSuccessModal
-                isOpen={showSuccessModal}
-                onClose={() => setShowSuccessModal(false)}
-                documentTitle={documentTitle}
-                exportFormat={lastExportFormat}
-                documentId={lastExportedDocumentId}
-                onDownloadAgain={handleDownloadAgain}
-                onGoToDocuments={handleGoToDocuments}
-            />
+                Entwurf speichern
+            </Button>
         </div>
     );
 };
