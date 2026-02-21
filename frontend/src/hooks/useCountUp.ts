@@ -61,6 +61,9 @@ export function useCountUp(to: number, options: CountUpOptions = {}) {
   }, [from, to, duration, ease, delay]);
 
   useGSAP(() => {
+    // Reset animation guard when target value changes (e.g. data loaded after initial render)
+    hasAnimated.current = false;
+
     const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (prefersReduced) {
       setValue(to);
