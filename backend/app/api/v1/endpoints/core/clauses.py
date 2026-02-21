@@ -172,32 +172,28 @@ async def get_clause_impact_analysis(
     result = await db.execute(query)
     document_types = result.all()
 
-    # Nutzungsstatistiken für die letzten 30 Tage abrufen
-    # (Wenn GeneratedDocument-Tabelle existiert)
+    # Nutzungsstatistiken für die letzten 30 Tage (single aggregated query)
+    from datetime import datetime, timezone, timedelta
+    thirty_days_ago = datetime.now(timezone.utc) - timedelta(days=30)
+
+    usage_counts_map: dict[int, int] = {}
+    try:
+        usage_result = await db.execute(
+            select(
+                GeneratedDocument.document_type_id,
+                func.count().label("usage_count"),
+            )
+            .where(GeneratedDocument.created_at >= thirty_days_ago)
+            .group_by(GeneratedDocument.document_type_id)
+        )
+        usage_counts_map = {row.document_type_id: row.usage_count for row in usage_result}
+    except Exception as e:
+        logger.debug("Usage-Abfrage fehlgeschlagen: %s", e)
+
     affected_types = []
     total_usage = 0
-
     for dt in document_types:
-        # Versuche Nutzung zu zählen (falls Tabelle existiert)
-        usage_count = 0
-        try:
-            from datetime import datetime, timedelta, timezone
-            thirty_days_ago = datetime.now(timezone.utc) - timedelta(days=30)
-
-            # Zähle generierte Dokumente mit diesem Dokumenttyp
-            usage_query = (
-                select(func.count())
-                .select_from(GeneratedDocument)
-                .where(GeneratedDocument.document_type_id == dt.id)
-                .where(GeneratedDocument.created_at >= thirty_days_ago)
-            )
-            usage_result = await db.execute(usage_query)
-            usage_count = usage_result.scalar() or 0
-        except (Exception,) as e:
-            # Tabelle GeneratedDocument existiert möglicherweise nicht
-            logger.debug("Usage-Abfrage fehlgeschlagen für Dokumenttyp %s: %s", dt.id, e)
-            usage_count = 0
-
+        usage_count = usage_counts_map.get(dt.id, 0)
         affected_types.append(DocumentTypeUsage(
             id=dt.id,
             name=dt.name,
