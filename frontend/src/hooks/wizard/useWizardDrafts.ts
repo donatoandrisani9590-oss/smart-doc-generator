@@ -148,6 +148,12 @@ export function useWizardDrafts(params: UseWizardDraftsParams): UseWizardDraftsR
     const performAutoSave = useCallback(async (data: typeof autoSaveData): Promise<void> => {
         if (!data.documentTypeId) return;
 
+        // Prevent ghost drafts: don't create a new draft if form has no real data
+        const hasSubstantiveData = Object.values(data.formData).some(
+            v => typeof v === "string" && v.trim().length > 0
+        );
+        if (!hasSubstantiveData && !loadedDraftId) return;
+
         const draftName = data.documentTitle?.trim() || "Unbenannter Entwurf";
         const draftData = {
             document_type_id: data.documentTypeId,
