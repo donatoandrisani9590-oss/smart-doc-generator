@@ -77,9 +77,10 @@ function toDateInputValue(date: Date): string {
 interface KanbanBoardProps {
     filters?: KanbanFilters;
     onCardClick?: (id: number) => void;
+    onDraftClick?: (draftId: number) => void;
 }
 
-export function KanbanBoard({ filters = {}, onCardClick }: KanbanBoardProps) {
+export function KanbanBoard({ filters = {}, onCardClick, onDraftClick }: KanbanBoardProps) {
     const toast = useToast();
 
     // ── Data ─────────────────────────────────────────────────────────────
@@ -284,7 +285,14 @@ export function KanbanBoard({ filters = {}, onCardClick }: KanbanBoardProps) {
                                 count={col?.count ?? 0}
                                 documents={col?.documents ?? []}
                                 defaultCollapsed={stage === "archiv"}
-                                onCardClick={onCardClick}
+                                onCardClick={(id) => {
+                                    if (id < 0) {
+                                        // Negative ID = draft, convert back to positive
+                                        onDraftClick?.(Math.abs(id));
+                                    } else {
+                                        onCardClick?.(id);
+                                    }
+                                }}
                             />
                         );
                     })}

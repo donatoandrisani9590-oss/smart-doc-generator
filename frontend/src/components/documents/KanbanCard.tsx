@@ -45,14 +45,17 @@ interface KanbanCardProps {
 }
 
 export function KanbanCard({ card, onClick }: KanbanCardProps) {
+    const isDraft = card.source === "draft" || card.id < 0;
+
     const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
         id: `card-${card.id}`,
         data: { documentId: card.id, currentStage: card.pipeline_stage },
+        disabled: isDraft,
     });
 
     const style = {
         transform: CSS.Translate.toString(transform),
-        borderLeftColor: getDocTypeColor(card.document_type_name),
+        borderLeftColor: isDraft ? undefined : getDocTypeColor(card.document_type_name),
     };
 
     const overdue = isOverdue(card.next_due_date);
@@ -69,6 +72,7 @@ export function KanbanCard({ card, onClick }: KanbanCardProps) {
                 shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-elevated)]
                 transition-shadow
                 ${isDragging ? "opacity-50 ring-2 ring-primary/30" : ""}
+                ${isDraft ? "border-dashed border-warm-300 bg-warm-50/50 cursor-pointer" : ""}
             `}
         >
             {/* Row 1: Type badge + overdue indicator */}
@@ -85,6 +89,11 @@ export function KanbanCard({ card, onClick }: KanbanCardProps) {
                     </span>
                 ) : (
                     <span />
+                )}
+                {isDraft && (
+                    <span className="text-[10px] font-medium text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded shrink-0">
+                        Entwurf
+                    </span>
                 )}
                 {overdue && (
                     <span className="flex items-center gap-0.5 text-[10px] font-semibold text-red-600 dark:text-red-400 shrink-0">

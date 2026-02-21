@@ -24,6 +24,7 @@ export interface KanbanCardItem {
     created_at: string | null;
     next_due_date: string | null;
     has_open_actions: boolean;
+    source?: "document" | "draft";
 }
 
 export interface KanbanColumn {

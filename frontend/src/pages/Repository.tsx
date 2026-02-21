@@ -604,6 +604,7 @@ export const RepositoryPage = () => {
                         ownership: ownershipTab,
                     }}
                     onCardClick={(id) => navigate(`/documents/${id}`)}
+                    onDraftClick={(draftId) => navigate(`/generate?draft=${draftId}`)}
                 />
             )}
 
