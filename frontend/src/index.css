@@ -1007,23 +1007,15 @@
   outline: none;
   font-size: 1.05rem;
   line-height: 1.7;
-  color: #374151;
-}
-
-.dark .tiptap-strict .ProseMirror {
-  color: hsl(220 10% 88%);
+  color: hsl(var(--muted-foreground));
 }
 
 .tiptap-strict .ProseMirror p.is-editor-empty:first-child::before {
-  color: #9ca3af;
+  color: hsl(var(--muted-foreground) / 0.6);
   content: attr(data-placeholder);
   float: left;
   height: 0;
   pointer-events: none;
-}
-
-.dark .tiptap-strict .ProseMirror p.is-editor-empty:first-child::before {
-  color: hsl(220 8% 45%);
 }
 
 /* Placeholder Chips in Editor - "Smart" Feel */
@@ -1032,14 +1024,12 @@
   align-items: center;
   padding: 0 0.4em;
   margin: 0 0.1em;
-  background: #eef2ff;
-  /* Indigo-50 */
-  color: #4f46e5;
-  /* Indigo-600 */
-  border-radius: 4px;
+  background: hsl(var(--primary) / 0.05);
+  color: hsl(var(--primary));
+  border-radius: calc(var(--radius) - 8px);
   font-weight: 500;
   font-size: 0.9em;
-  border: 1px solid #e0e7ff;
+  border: 1px solid hsl(var(--primary) / 0.1);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
   cursor: default;
   user-select: all;
@@ -1047,21 +1037,9 @@
 }
 
 .placeholder-chip:hover {
-  background: #e0e7ff;
+  background: hsl(var(--primary) / 0.1);
   transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(79, 70, 229, 0.1);
-}
-
-.dark .placeholder-chip {
-  background: hsl(228 35% 20%);
-  color: hsl(228 70% 72%);
-  border-color: hsl(228 30% 28%);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
-}
-
-.dark .placeholder-chip:hover {
-  background: hsl(228 35% 25%);
-  box-shadow: 0 2px 4px rgba(100, 120, 220, 0.15);
+  box-shadow: 0 2px 4px hsl(var(--primary) / 0.1);
 }
 
 /* Animations */

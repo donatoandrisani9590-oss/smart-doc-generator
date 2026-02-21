@@ -504,7 +504,7 @@ export const AttachmentsPage = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
             >
-                <Card className="bg-gradient-to-br from-[#243186]/5 to-[#243186]/10 border-primary/20">
+                <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
                     <CardContent className="pt-6">
                         <div className="flex items-center gap-4">
                             <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
@@ -520,7 +520,7 @@ export const AttachmentsPage = () => {
                     </CardContent>
                 </Card>
 
-                <Card className="bg-gradient-to-br from-[#6EBD84]/5 to-[#6EBD84]/10 border-[#6EBD84]/20">
+                <Card className="bg-gradient-to-br from-secondary/5 to-secondary/10 border-secondary/20">
                     <CardContent className="pt-6">
                         <div className="flex items-center gap-4">
                             <div className="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center">
@@ -539,7 +539,7 @@ export const AttachmentsPage = () => {
                 <Card className="bg-gradient-to-br from-border/20 to-border/30 border-border/40">
                     <CardContent className="pt-6">
                         <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-xl bg-[#6E6E73]/10 flex items-center justify-center">
+                            <div className="w-12 h-12 rounded-xl bg-muted-foreground/10 flex items-center justify-center">
                                 <HardDrive className="w-6 h-6 text-muted-foreground" />
                             </div>
                             <div>
@@ -654,7 +654,7 @@ export const AttachmentsPage = () => {
                                         <CardContent className="p-4">
                                             <div className="flex items-center gap-4">
                                                 {/* File Icon */}
-                                                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#243186]/5 to-[#243186]/10 flex items-center justify-center flex-shrink-0">
+                                                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary/5 to-primary/10 flex items-center justify-center flex-shrink-0">
                                                     {getFileIcon(attachment.file_type)}
                                                 </div>
 

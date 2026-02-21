@@ -99,10 +99,10 @@ export const Dashboard = () => {
 
         {/* ── Greeting (no card, pure typography) ── */}
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight text-[#1D1D1F] dark:text-foreground">
+          <h1 className="text-3xl font-semibold tracking-tight text-foreground">
             {getGreeting()}{firstName ? `, ${firstName}` : ""}
           </h1>
-          <p className="text-base text-[#86868B] dark:text-muted-foreground mt-1">
+          <p className="text-base text-muted-foreground mt-1">
             {subtitle}
           </p>
         </div>

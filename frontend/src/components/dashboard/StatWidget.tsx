@@ -34,16 +34,16 @@ export function StatWidget({ value, label, icon: Icon, loading, onClick, classNa
           {loading ? (
             <Skeleton className="h-9 w-16 rounded" />
           ) : (
-            <p className="text-3xl font-light tracking-tight text-[#1D1D1F] dark:text-foreground">
+            <p className="text-3xl font-light tracking-tight text-foreground">
               {value}
             </p>
           )}
-          <p className="text-xs text-[#86868B] dark:text-muted-foreground uppercase tracking-wider mt-1">
+          <p className="text-xs text-muted-foreground uppercase tracking-wider mt-1">
             {label}
           </p>
         </div>
         {Icon && (
-          <Icon className="w-4 h-4 text-[#86868B] dark:text-muted-foreground opacity-60" />
+          <Icon className="w-4 h-4 text-muted-foreground opacity-60" />
         )}
       </div>
     </Wrapper>

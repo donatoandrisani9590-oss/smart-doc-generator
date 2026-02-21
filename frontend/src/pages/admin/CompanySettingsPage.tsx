@@ -234,7 +234,7 @@ export default function CompanySettingsPage() {
             {/* ─── Header Row ──────────────────────────────────────── */}
             <div className="flex items-start justify-between gap-4">
                 <div>
-                    <h1 className="text-xl font-semibold tracking-tight text-[#1D1D1F]">
+                    <h1 className="text-xl font-semibold tracking-tight text-foreground">
                         Stammdaten
                     </h1>
                     <p className="text-sm text-muted-foreground mt-0.5">
@@ -280,7 +280,7 @@ export default function CompanySettingsPage() {
                                 <Building2 className="w-[18px] h-[18px] text-primary" />
                             </div>
                             <div>
-                                <h2 className="text-[15px] font-semibold text-[#1D1D1F]">
+                                <h2 className="text-base font-semibold text-foreground">
                                     Unternehmensdaten
                                 </h2>
                                 <p className="text-xs text-muted-foreground">
@@ -366,7 +366,7 @@ export default function CompanySettingsPage() {
                                 <Bot className="w-[18px] h-[18px] text-primary" />
                             </div>
                             <div>
-                                <h2 className="text-[15px] font-semibold text-[#1D1D1F]">
+                                <h2 className="text-base font-semibold text-foreground">
                                     Unternehmensweite KI-Anweisungen
                                 </h2>
                                 <p className="text-xs text-muted-foreground">
@@ -379,7 +379,7 @@ export default function CompanySettingsPage() {
                         <div className="space-y-2">
                             <label
                                 htmlFor="ai-instructions"
-                                className="text-sm font-medium text-[#1D1D1F] flex items-center gap-2"
+                                className="text-sm font-medium text-foreground flex items-center gap-2"
                             >
                                 <Bot className="w-3.5 h-3.5 text-muted-foreground/60" />
                                 Anweisungen für die KI
@@ -465,7 +465,7 @@ function FieldGroup({ id, icon: Icon, label, value, onChange, placeholder }: Fie
         <div className="space-y-1.5">
             <label
                 htmlFor={id}
-                className="text-sm font-medium text-[#1D1D1F] flex items-center gap-2"
+                className="text-sm font-medium text-foreground flex items-center gap-2"
             >
                 {Icon && <Icon className="w-3.5 h-3.5 text-muted-foreground/60" />}
                 {label}
