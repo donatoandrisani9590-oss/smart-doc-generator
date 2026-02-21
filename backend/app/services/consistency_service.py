@@ -15,7 +15,7 @@ import json
 import hashlib
 import logging
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Optional, Dict, Any, Literal
 
 from pydantic import BaseModel, Field
@@ -244,7 +244,7 @@ class ConsistencyService:
                 issues=[],
                 documents_checked=0,
                 overall_status="consistent",
-                checked_at=datetime.utcnow().isoformat(),
+                checked_at=datetime.now(timezone.utc).isoformat(),
                 employee_name=employee_name,
             )
             await cache.set(redis_key, result.model_dump(), ttl=1800)
@@ -335,7 +335,7 @@ class ConsistencyService:
             issues=issues,
             documents_checked=len(historical),
             overall_status=overall_status,
-            checked_at=datetime.utcnow().isoformat(),
+            checked_at=datetime.now(timezone.utc).isoformat(),
             employee_name=employee_name,
         )
 

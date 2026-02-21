@@ -13,7 +13,7 @@ import asyncio
 import re
 import hashlib
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import List, Optional, Dict, Any, Callable
 from pydantic import BaseModel, Field
@@ -412,7 +412,7 @@ class ComplianceService:
         result = ComplianceScanResult(
             risks=risks,
             overall_score=score,
-            scanned_at=datetime.utcnow().isoformat(),
+            scanned_at=datetime.now(timezone.utc).isoformat(),
             provider=provider,
             scan_duration_ms=duration_ms,
             content_hash=content_hash

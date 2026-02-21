@@ -22,7 +22,7 @@ import logging
 from pathlib import Path
 from typing import Dict, List, Any, Optional, Tuple
 from dataclasses import dataclass, field, asdict
-from datetime import datetime
+from datetime import datetime, timezone
 from difflib import SequenceMatcher
 
 from docx import Document
@@ -259,7 +259,7 @@ class DocumentAnalyzerWithPositions:
             sections=self.sections,
             detected_values=self.detected_values,
             statistics=statistics,
-            created_at=datetime.utcnow().isoformat()
+            created_at=datetime.now(timezone.utc).isoformat()
         )
 
     def _extract_sections(self):

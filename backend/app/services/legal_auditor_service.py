@@ -8,7 +8,7 @@ import json
 import logging
 import time
 import asyncio
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 from sqlalchemy import select, and_
@@ -109,7 +109,7 @@ class LegalAuditorService:
 
         # Update clause legal_status
         clause.legal_status = result_data["status"]
-        clause.last_audited_at = datetime.utcnow()
+        clause.last_audited_at = datetime.now(timezone.utc)
 
         await db.commit()
         await db.refresh(audit_result)
