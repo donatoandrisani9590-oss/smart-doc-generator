@@ -63,9 +63,9 @@ class CacheService:
                 value = await self._redis_client.get(key)
                 if value:
                     return json.loads(value)
-            except Exception:
-                pass
-        
+            except Exception as e:
+                logger.warning("Redis GET failed for key=%s: %s", key, e)
+
         return self._memory_cache.get(key)
     
     async def set(self, key: str, value: Any, ttl: int = 300) -> bool:
@@ -82,9 +82,9 @@ class CacheService:
             try:
                 await self._redis_client.setex(key, ttl, serialized)
                 return True
-            except Exception:
-                pass
-        
+            except Exception as e:
+                logger.warning("Redis SET failed for key=%s: %s", key, e)
+
         # Memory cache fallback (no TTL enforcement)
         self._memory_cache[key] = value
         return True
@@ -97,9 +97,9 @@ class CacheService:
         if self._redis_client:
             try:
                 await self._redis_client.delete(key)
-            except Exception:
-                pass
-        
+            except Exception as e:
+                logger.warning("Redis DELETE failed for key=%s: %s", key, e)
+
         self._memory_cache.pop(key, None)
         return True
     
@@ -115,9 +115,9 @@ class CacheService:
                 async for key in self._redis_client.scan_iter(match=pattern):
                     await self._redis_client.delete(key)
                     count += 1
-            except Exception:
-                pass
-        
+            except Exception as e:
+                logger.warning("Redis SCAN/DELETE failed for pattern=%s: %s", pattern, e)
+
         # Memory cache pattern matching (fnmatch for proper glob support)
         import fnmatch
         keys_to_delete = [k for k in self._memory_cache if fnmatch.fnmatch(k, pattern)]
@@ -135,9 +135,9 @@ class CacheService:
         if self._redis_client:
             try:
                 await self._redis_client.flushdb()
-            except Exception:
-                pass
-        
+            except Exception as e:
+                logger.warning("Redis FLUSHDB failed: %s", e)
+
         self._memory_cache.clear()
         return True
 
