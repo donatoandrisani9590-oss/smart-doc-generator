@@ -29,13 +29,13 @@ const SidebarItem = ({ icon: Icon, label, href, active, badge, collapsed }: Side
         to={href}
         title={collapsed ? label : undefined}
         className={cn(
-            "group flex items-center transition-all rounded-lg mx-1",
+            "group flex items-center transition-all duration-150 rounded-lg mx-1",
             collapsed
                 ? "justify-center px-0 py-2.5"
-                : "justify-between px-3 py-2.5 text-sm",
+                : "justify-between px-3 py-2",
             active
-                ? "bg-muted/40 text-foreground font-semibold"
-                : "text-foreground/50 hover:bg-muted/30 hover:text-foreground"
+                ? "bg-white dark:bg-white/10 shadow-soft-xs text-primary font-medium"
+                : "text-foreground/50 hover:bg-warm-100 dark:hover:bg-warm-100/10 hover:text-foreground"
         )}
         aria-current={active ? "page" : undefined}
         aria-label={collapsed ? label : undefined}
@@ -71,7 +71,7 @@ const SidebarSection = ({ title, children, defaultOpen = true, collapsed }: Side
             {!collapsed && (
                 <button
                     onClick={() => setIsOpen(!isOpen)}
-                    className="flex items-center justify-between w-full px-4 py-1.5 text-[10px] font-medium text-muted-foreground/30 uppercase tracking-widest hover:text-muted-foreground/50 transition-colors"
+                    className="flex items-center justify-between w-full px-4 py-1.5 text-[10px] font-medium text-muted-foreground/40 uppercase tracking-widest hover:text-muted-foreground/60 transition-colors"
                 >
                     {title}
                     <ChevronDown className={cn(
@@ -120,11 +120,11 @@ export const Sidebar = ({ collapsed = false }: SidebarProps) => {
         <>
             <KeyboardShortcutsDialog open={showShortcuts} onOpenChange={setShowShortcuts} />
             <div className={cn(
-                "h-screen flex flex-col font-sans glass-sidebar transition-all duration-200",
+                "h-screen flex flex-col font-sans bg-warm-50/80 dark:bg-card border-r border-warm-100 dark:border-border transition-all duration-200",
                 collapsed ? "w-16" : "w-[260px]"
             )}>
                 {/* Logo Section - Niederwieser Corporate */}
-                <div className={cn("h-16 flex items-center", collapsed ? "px-3 justify-center" : "px-5")}>
+                <div className={cn("h-16 flex items-center border-b border-warm-100 dark:border-border/50", collapsed ? "px-3 justify-center" : "px-5")}>
                     <Link to="/" className="flex items-center gap-3 group" title={collapsed ? "Niederwieser Docs" : undefined}>
                         <img
                             src="/niederwieser-logo-blue.svg"
@@ -235,7 +235,7 @@ export const Sidebar = ({ collapsed = false }: SidebarProps) => {
 
                     {/* User Dropdown */}
                     <div className={cn(
-                        "bg-muted/20",
+                        "border-t border-warm-100 dark:border-border/50",
                         collapsed ? "p-2" : "p-3"
                     )}>
                         <UserDropdown collapsed={collapsed} />
