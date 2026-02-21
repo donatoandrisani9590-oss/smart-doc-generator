@@ -429,7 +429,7 @@ export const FormFieldsSection = ({
 
     return (
         <TooltipProvider>
-        <div className="space-y-5 px-0.5">
+        <div className="space-y-4">
             {/* Magic Fill: Vorschläge aus Teamhistorie */}
             {activeSuggestions.length > 0 && (
                 <div className="mb-1 p-3 rounded-xl bg-primary/[0.03] space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
@@ -494,7 +494,7 @@ export const FormFieldsSection = ({
             )}
 
             {/* Mitarbeiterdaten */}
-            <div className="space-y-3">
+            <div className="bg-warm-50/50 dark:bg-warm-50/5 rounded-xl p-3 space-y-3">
                 <h4 className="ive-section-header">
                     {labels.section_employee}
                 </h4>
@@ -589,7 +589,7 @@ export const FormFieldsSection = ({
             </div>
 
             {/* Vertragsdaten */}
-            <div className="space-y-3 pt-5 border-t border-border/15">
+            <div className="bg-warm-50/50 dark:bg-warm-50/5 rounded-xl p-3 space-y-3">
                 <h4 className="ive-section-header">
                     {labels.section_contract}
                 </h4>
@@ -789,7 +789,7 @@ export const FormFieldsSection = ({
             </div>
 
             {/* Zusatzleistungen */}
-            <div className="space-y-3 pt-5 border-t border-border/15">
+            <div className="bg-warm-50/50 dark:bg-warm-50/5 rounded-xl p-3 space-y-3">
                 <h4 className="ive-section-header">
                     {labels.section_benefits}
                 </h4>
@@ -903,7 +903,7 @@ export const FormFieldsSection = ({
 
             {/* AT-Optionen (nur bei AT-Angestellter) */}
             {formData.vertragsart === "at_angestellter" && (
-                <div className="space-y-3 pt-5 border-t border-border/15">
+                <div className="bg-warm-50/50 dark:bg-warm-50/5 rounded-xl p-3 space-y-3">
                     <h4 className="ive-section-header">
                         {labels.section_at}
                     </h4>
@@ -945,7 +945,7 @@ export const FormFieldsSection = ({
             )}
 
             {/* Unterzeichner */}
-            <div className="space-y-3 pt-5 border-t border-border/15">
+            <div className="bg-warm-50/50 dark:bg-warm-50/5 rounded-xl p-3 space-y-3">
                 <h4 className="ive-section-header">
                     {labels.section_signatory}
                 </h4>
