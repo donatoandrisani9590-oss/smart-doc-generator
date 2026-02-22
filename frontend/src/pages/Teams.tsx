@@ -7,6 +7,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { TextReveal } from "@/components/ui/text-reveal";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -207,12 +208,12 @@ export const TeamsPage = () => {
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 max-w-6xl mx-auto">
             {/* Header */}
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-2xl font-bold">Teams</h1>
-                    <p className="text-muted-foreground">
+                    <TextReveal as="h1" className="text-[28px] font-extrabold tracking-[-0.03em] text-[var(--text-primary)]" stagger={0.04} duration={0.6}>Teams</TextReveal>
+                    <p className="text-[14px] text-[var(--text-secondary)] mt-1">
                         Verwalte deine Teams und teile Dokumente mit Kollegen
                     </p>
                 </div>
@@ -235,16 +236,16 @@ export const TeamsPage = () => {
                         {isLoading ? (
                             <SkeletonTeamsList items={3} />
                         ) : teams?.length === 0 ? (
-                            <div className="text-center py-8">
-                                <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
-                                    <Users className="w-7 h-7 text-muted-foreground" />
+                            <div className="empty-state py-10">
+                                <div className="w-14 h-14 rounded-2xl bg-[var(--nw-warm-100)] flex items-center justify-center mb-4">
+                                    <Users className="w-7 h-7 text-[var(--nw-warm-500)]" />
                                 </div>
-                                <h3 className="font-medium mb-1">Noch kein Team</h3>
-                                <p className="text-sm text-muted-foreground mb-4 max-w-xs mx-auto">
+                                <p className="text-sm font-semibold text-[var(--text-primary)] mb-1">Noch kein Team</p>
+                                <p className="text-[13px] text-[var(--text-secondary)] max-w-[280px] leading-relaxed mb-5">
                                     Erstelle ein Team, um Dokumente mit Kollegen zu teilen.
                                 </p>
-                                <Button onClick={() => setCreateDialogOpen(true)}>
-                                    <Plus className="w-4 h-4 mr-2" />
+                                <Button onClick={() => setCreateDialogOpen(true)} className="gap-2">
+                                    <Plus className="w-4 h-4" />
                                     Erstes Team erstellen
                                 </Button>
                             </div>

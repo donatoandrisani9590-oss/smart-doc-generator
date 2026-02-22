@@ -70,7 +70,7 @@ export function KanbanCard({ card, onClick, onDelete }: KanbanCardProps) {
             {...attributes}
             onClick={() => onClick?.(card.id)}
             className={`
-                border border-[var(--border-light)] rounded-[var(--radius-md)] bg-[var(--bg-surface)] p-4 cursor-grab active:cursor-grabbing
+                border border-[var(--border-light)] rounded-[var(--radius-md)] bg-[var(--bg-surface)] p-3 cursor-grab active:cursor-grabbing
                 shadow-sm hover:shadow-md hover:-translate-y-px
                 transition-all duration-150
                 ${isDragging ? "opacity-50 ring-2 ring-primary/30" : ""}

@@ -9,9 +9,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useGSAP } from "@gsap/react";
+import { motion, useInView } from "framer-motion";
 import {
   FileBarChart,
   FileStack,
@@ -37,8 +35,6 @@ import { RecentDrafts } from "@/components/dashboard/RecentDrafts";
 import { TextReveal } from "@/components/ui/text-reveal";
 import { useGsapHover } from "@/hooks/useGsapHover";
 import { useCursorSpotlight } from "@/hooks/useCursorSpotlight";
-
-gsap.registerPlugin(ScrollTrigger);
 
 // ── Helpers (unchanged from original) ────────────────────────────────────
 
@@ -86,6 +82,13 @@ const ACTION_STATS = [
   { key: "entwuerfe_ablaufend" as const, label: "Entwürfe ablaufend", icon: Timer, accent: "bg-warm-400" },
 ];
 
+// ── Framer Motion transition defaults ────────────────────────────────────
+
+const fadeUpTransition = {
+  duration: 0.6,
+  ease: [0.33, 1, 0.68, 1] as const,
+};
+
 // ── Component ────────────────────────────────────────────────────────────
 
 export const Dashboard = () => {
@@ -97,71 +100,12 @@ export const Dashboard = () => {
   const hoverRef = useGsapHover();
   const spotlightRef = useCursorSpotlight();
 
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const bottomInView = useInView(bottomRef, { once: true, margin: "-10% 0px" });
+
   const [actionSummary, setActionSummary] = useState<ActionSummaryResponse | null>(null);
 
   const firstName = user ? getFirstName(user.email) : null;
-
-  // GSAP entrance + scroll-reveal animations
-  useGSAP(() => {
-    const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (prefersReduced) return;
-
-    // Hero subtitle: fade-up (TextReveal handles the h1 word-split)
-    gsap.from("[data-gsap='subtitle']", {
-      y: 14,
-      opacity: 0,
-      duration: 0.6,
-      delay: 0.25,
-      ease: "power2.out",
-    });
-
-    // Command Center: scale-in with slight delay
-    gsap.from("[data-gsap='command']", {
-      y: 16,
-      opacity: 0,
-      scale: 0.98,
-      duration: 0.6,
-      delay: 0.35,
-      ease: "power2.out",
-    });
-
-    // Stat widgets: staggered reveal
-    gsap.from("[data-gsap='stat']", {
-      y: 30,
-      opacity: 0,
-      duration: 0.5,
-      stagger: 0.08,
-      delay: 0.5,
-      ease: "power2.out",
-    });
-
-    // Parallax: hero greeting moves slower than content on scroll
-    gsap.to("[data-gsap='greeting']", {
-      y: -40,
-      ease: "none",
-      scrollTrigger: {
-        trigger: "[data-gsap='greeting']",
-        start: "top top+=100",
-        end: "bottom top",
-        scrub: 0.8,
-      },
-    });
-
-    // Bottom grid sections: scroll-triggered reveal
-    gsap.utils.toArray<HTMLElement>("[data-gsap='section']").forEach((el) => {
-      gsap.from(el, {
-        y: 40,
-        opacity: 0,
-        duration: 0.7,
-        ease: "power2.out",
-        scrollTrigger: {
-          trigger: el,
-          start: "top 90%",
-          once: true,
-        },
-      });
-    });
-  }, { scope: containerRef });
 
   // Fetch action summary for conditional stat cards
   useEffect(() => {
@@ -181,7 +125,7 @@ export const Dashboard = () => {
       <div className="max-w-7xl mx-auto space-y-6">
 
         {/* ── Hero Section: Greeting + Search (Prototype ai-hero) ── */}
-        <div className="text-center pt-6 pb-2 space-y-6" data-gsap="greeting">
+        <div className="text-center pt-6 pb-2 space-y-6">
           <div className="space-y-1.5">
             <TextReveal
               as="h1"
@@ -191,22 +135,36 @@ export const Dashboard = () => {
             >
               {`${getGreeting()}${firstName ? `, ${firstName}` : ""}`}
             </TextReveal>
-            <p className="text-[15px] text-[var(--text-secondary)]" data-gsap="subtitle">
+            <motion.p
+              className="text-[15px] text-[var(--text-secondary)]"
+              initial={{ y: 14, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ ...fadeUpTransition, delay: 0.25 }}
+            >
               {!hasDocTypes
                 ? "Richte deine erste Dokumentvorlage ein"
-                : <>Wie kann ich dir heute <span className="text-[var(--nw-blue-700)] dark:text-[var(--nw-blue-300)] font-medium">helfen?</span></>
+                : <>Wie kann ich dir heute <span className="text-[var(--nw-blue-700)] dark:text-[var(--nw-blue-300)] font-bold">helfen?</span></>
               }
-            </p>
+            </motion.p>
           </div>
 
           {/* Glass Search Bar */}
-          <div data-gsap="command">
+          <motion.div
+            initial={{ y: 16, opacity: 0, scale: 0.98 }}
+            animate={{ y: 0, opacity: 1, scale: 1 }}
+            transition={{ ...fadeUpTransition, delay: 0.35 }}
+          >
             <CommandCenter />
-          </div>
+          </motion.div>
 
           {/* Action Chips — top 3 document types as quick-start pills */}
           {hasDocTypes && documentTypes && (
-            <div className="action-chips" data-gsap="subtitle">
+            <motion.div
+              className="action-chips"
+              initial={{ y: 14, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ ...fadeUpTransition, delay: 0.25 }}
+            >
               {documentTypes.filter((t: { is_active: boolean }) => t.is_active).slice(0, 3).map((type: { id: number; name: string }) => {
                 const Icon = getChipIcon(type.name);
                 return (
@@ -220,45 +178,62 @@ export const Dashboard = () => {
                   </button>
                 );
               })}
-            </div>
+            </motion.div>
           )}
         </div>
 
         {/* ── KPI Cards Row (Prototype stat-grid) ── */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div data-gsap="stat" data-hover="lift" data-spotlight>
-            <StatWidget
-              value={stats?.documents_this_month ?? 0}
-              label="Diesen Monat"
-              icon={FileBarChart}
-              loading={statsLoading}
-              iconBg="bg-[var(--nw-blue-50)]"
-              iconColor="text-[var(--nw-blue)]"
-            />
-          </div>
-          <div data-gsap="stat" data-hover="lift" data-spotlight>
-            <StatWidget
-              value={stats?.open_drafts ?? 0}
-              label="Offen"
-              icon={FileStack}
-              loading={statsLoading}
-              accent
-              onClick={() => navigate("/documents?status=draft")}
-              iconBg="bg-[var(--nw-amber-light)]"
-              iconColor="text-[var(--nw-amber)]"
-            />
-          </div>
-          <div data-gsap="stat" data-hover="lift" data-spotlight>
-            <StatWidget
-              value={stats?.documents_total ?? 0}
-              label="Gesamt"
-              icon={Files}
-              loading={statsLoading}
-              onClick={() => navigate("/documents")}
-              iconBg="bg-[var(--nw-green-light)]"
-              iconColor="text-[var(--nw-green)]"
-            />
-          </div>
+          {[
+            {
+              value: stats?.documents_this_month ?? 0,
+              label: "Diesen Monat",
+              icon: FileBarChart,
+              iconBg: "bg-[var(--nw-blue-50)]",
+              iconColor: "text-[var(--nw-blue)]",
+            },
+            {
+              value: stats?.open_drafts ?? 0,
+              label: "Offen",
+              icon: FileStack,
+              accent: true,
+              onClick: () => navigate("/documents?status=draft"),
+              iconBg: "bg-[var(--nw-amber-light)]",
+              iconColor: "text-[var(--nw-amber)]",
+            },
+            {
+              value: stats?.documents_total ?? 0,
+              label: "Gesamt",
+              icon: Files,
+              onClick: () => navigate("/documents"),
+              iconBg: "bg-[var(--nw-green-light)]",
+              iconColor: "text-[var(--nw-green)]",
+            },
+          ].map((stat, index) => (
+            <motion.div
+              key={stat.label}
+              data-hover="lift"
+              data-spotlight
+              initial={{ y: 30, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{
+                duration: 0.5,
+                delay: 0.5 + index * 0.08,
+                ease: [0.33, 1, 0.68, 1],
+              }}
+            >
+              <StatWidget
+                value={stat.value}
+                label={stat.label}
+                icon={stat.icon}
+                loading={statsLoading}
+                accent={stat.accent}
+                onClick={stat.onClick}
+                iconBg={stat.iconBg}
+                iconColor={stat.iconColor}
+              />
+            </motion.div>
+          ))}
         </div>
 
         {/* ── Action Stats — only non-zero values, tight to KPI row ── */}
@@ -266,8 +241,17 @@ export const Dashboard = () => {
           <div className="-mt-2 flex flex-wrap gap-3">
             {ACTION_STATS
               .filter((a) => (actionSummary[a.key] ?? 0) > 0)
-              .map((a) => (
-                <div key={a.key} data-gsap="stat">
+              .map((a, index) => (
+                <motion.div
+                  key={a.key}
+                  initial={{ y: 30, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{
+                    duration: 0.5,
+                    delay: 0.5 + index * 0.08,
+                    ease: [0.33, 1, 0.68, 1],
+                  }}
+                >
                   <ActionStatWidget
                     value={actionSummary[a.key]}
                     label={a.label}
@@ -275,22 +259,28 @@ export const Dashboard = () => {
                     accentColor={a.accent}
                     onClick={() => navigate(`/documents?action=${a.key}`)}
                   />
-                </div>
+                </motion.div>
               ))
             }
           </div>
         )}
 
         {/* ── Bottom Grid: Templates + Drafts ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {hasDocTypes && (
-            <div data-gsap="section">
-              <QuickTemplatesGrid />
-            </div>
-          )}
-          <div data-gsap="section">
+        <div ref={bottomRef} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <motion.div
+            initial={{ y: 40, opacity: 0 }}
+            animate={bottomInView ? { y: 0, opacity: 1 } : { y: 40, opacity: 0 }}
+            transition={{ duration: 0.7, ease: [0.33, 1, 0.68, 1] }}
+          >
+            <QuickTemplatesGrid />
+          </motion.div>
+          <motion.div
+            initial={{ y: 40, opacity: 0 }}
+            animate={bottomInView ? { y: 0, opacity: 1 } : { y: 40, opacity: 0 }}
+            transition={{ duration: 0.7, delay: 0.1, ease: [0.33, 1, 0.68, 1] }}
+          >
             <RecentDrafts />
-          </div>
+          </motion.div>
         </div>
 
       </div>

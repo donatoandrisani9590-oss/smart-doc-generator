@@ -280,7 +280,7 @@ export default function SettingsHub() {
                 <div>
                     <TextReveal as="h1" className="text-[28px] font-extrabold tracking-[-0.03em] text-[var(--text-primary)]" stagger={0.04} duration={0.6}>Einstellungen</TextReveal>
                     <p className="text-sm text-[var(--text-secondary)] mt-1">
-                        Firmendaten, Design, Verwaltung und Compliance
+                        Konfiguriere Vorlagen, Branding und Benutzer
                     </p>
                 </div>
                 <Button

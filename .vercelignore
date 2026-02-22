@@ -1,0 +1,6 @@
+backend/
+docs/
+.planning/
+*.md
+console-errors.txt
+niederwieser_docs_test_report.md

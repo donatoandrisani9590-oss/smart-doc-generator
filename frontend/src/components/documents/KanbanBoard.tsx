@@ -299,7 +299,7 @@ export function KanbanBoard({ filters = {}, onCardClick, onDraftClick }: KanbanB
                 onDragEnd={handleDragEnd}
             >
                 {/* Horizontally scrollable board */}
-                <div className="flex gap-3 overflow-x-auto pb-4 -mx-2 px-2">
+                <div className="flex gap-3.5 overflow-x-auto pb-4 -mx-2 px-2">
                     {PIPELINE_STAGES.map((stage) => {
                         const col = columnMap.get(stage);
                         return (

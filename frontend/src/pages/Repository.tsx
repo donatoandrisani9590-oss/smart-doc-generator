@@ -374,7 +374,7 @@ export const RepositoryPage = () => {
             <div className="flex items-start justify-between gap-3" data-reveal="fade-up">
                 <div className="min-w-0">
                     <TextReveal as="h1" className="text-[28px] font-extrabold tracking-[-0.03em] text-[var(--text-primary)]" stagger={0.04} duration={0.6}>Meine Dokumente</TextReveal>
-                    <p className="text-sm text-[var(--text-secondary)] mt-1">
+                    <p className="text-[14px] text-[var(--text-secondary)] mt-1">
                         {drafts?.length ? `${drafts.length} Entwürfe, ` : ""}
                         {stats ? `${stats.total_documents} fertige Dokumente` : "Alle deine Dokumente"}
                     </p>
@@ -426,8 +426,8 @@ export const RepositoryPage = () => {
                 </button>
             </div>
 
-            {/* Status Filter - Segmented Control */}
-            <div className="ive-pill-tabs" data-reveal="fade-up" data-reveal-delay="0.1">
+            {/* Status Filter Chips (MASTER_CLAUDE §5 — .filter-chip) */}
+            <div className="filter-chips" data-reveal="fade-up" data-reveal-delay="0.1">
                 {[
                     { key: "all" as const, label: "Alle", count: (stats?.total_documents ?? 0) + (drafts?.length ?? 0) },
                     { key: "draft" as const, label: "Entwürfe", count: drafts?.length ?? 0 },
@@ -446,11 +446,11 @@ export const RepositoryPage = () => {
                                 setActionFilter(null);
                             }
                         }}
-                        className={`ive-pill-tab ${activeFilter === card.key ? 'ive-pill-tab-active' : ''}`}
+                        className={`filter-chip ${activeFilter === card.key ? 'active' : ''}`}
                     >
                         {card.label}
                         {"count" in card && (
-                            <span className={`ml-1.5 text-xs ${activeFilter === card.key ? 'text-foreground/60' : 'text-muted-foreground/40'
+                            <span className={`ml-1.5 text-xs tabular-nums ${activeFilter === card.key ? 'text-white/70' : 'text-[var(--text-tertiary)]'
                                 }`}>
                                 {card.count}
                             </span>
@@ -722,14 +722,14 @@ export const RepositoryPage = () => {
                     {isLoading ? (
                         <SkeletonRepositoryTable rows={5} />
                     ) : filteredItems.length === 0 ? (
-                        <div className="text-center py-12">
-                            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
-                                <FileText className="w-8 h-8 text-muted-foreground" />
+                        <div className="empty-state py-12">
+                            <div className="w-14 h-14 rounded-2xl bg-[var(--nw-warm-100)] flex items-center justify-center mb-4">
+                                <FileText className="w-7 h-7 text-[var(--nw-warm-500)]" />
                             </div>
                             {hasActiveFilters ? (
                                 <>
-                                    <h3 className="text-lg font-medium mb-2">Keine Treffer</h3>
-                                    <p className="text-muted-foreground mb-4">
+                                    <p className="text-sm font-semibold text-[var(--text-primary)] mb-1">Keine Treffer</p>
+                                    <p className="text-[13px] text-[var(--text-secondary)] max-w-[280px] leading-relaxed mb-5">
                                         Versuche andere Suchkriterien.
                                     </p>
                                     <Button variant="outline" onClick={clearFilters}>
@@ -738,12 +738,12 @@ export const RepositoryPage = () => {
                                 </>
                             ) : (
                                 <>
-                                    <h3 className="text-lg font-medium mb-2">Noch keine Dokumente</h3>
-                                    <p className="text-muted-foreground mb-4">
+                                    <p className="text-sm font-semibold text-[var(--text-primary)] mb-1">Noch keine Dokumente</p>
+                                    <p className="text-[13px] text-[var(--text-secondary)] max-w-[280px] leading-relaxed mb-5">
                                         Erstelle dein erstes Dokument.
                                     </p>
-                                    <Button onClick={() => navigate("/generate")}>
-                                        <PlusCircle className="w-4 h-4 mr-2" />
+                                    <Button onClick={() => navigate("/generate")} className="gap-2">
+                                        <PlusCircle className="w-4 h-4" />
                                         Dokument erstellen
                                     </Button>
                                 </>
@@ -759,7 +759,7 @@ export const RepositoryPage = () => {
                                         key={`${item.type}-${item.id}`}
                                         index={index}
                                         disableInteraction
-                                        className="flex items-center gap-4 px-4 py-3.5 transition-colors cursor-pointer group hover:bg-warm-100/60 dark:hover:bg-warm-800/50"
+                                        className="flex items-center gap-4 px-4 py-3.5 transition-all duration-150 cursor-pointer group hover:bg-warm-100/60 dark:hover:bg-warm-800/50 hover:shadow-[var(--shadow-md)] hover:translate-x-[2px]"
                                         style={{ borderLeft: `4px solid ${typeColor.border}` }}
                                         onClick={() =>
                                             item.type === "draft"

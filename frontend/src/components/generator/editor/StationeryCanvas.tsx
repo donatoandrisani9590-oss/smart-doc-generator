@@ -7,7 +7,7 @@
  */
 
 import { DocumentEditor } from "@/components/editor/DocumentEditor";
-import type { Editor as TinyMCEEditor } from "tinymce";
+import type { Editor } from "@tiptap/react";
 import {
     Tooltip,
     TooltipContent,
@@ -29,7 +29,7 @@ interface StationeryCanvasProps {
     onChange: (html: string) => void;
     onUserEdit?: (html: string) => void;
     isLoading?: boolean;
-    onEditorInit?: (editor: TinyMCEEditor) => void;
+    onEditorInit?: (editor: Editor) => void;
 }
 
 export const StationeryCanvas = ({

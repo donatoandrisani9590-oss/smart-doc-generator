@@ -35,9 +35,9 @@ export function StatWidget({ value, label, icon: Icon, loading, accent, onClick,
   return (
     <Wrapper
       className={cn(
-        "w-full text-left bg-[var(--bg-surface)] border border-[var(--border)] rounded-[var(--radius-lg)] px-5 py-4",
-        "flex items-center gap-3.5 transition-all duration-150 shadow-[var(--shadow-sm)]",
-        onClick && "cursor-pointer hover:shadow-[var(--shadow-md)] hover:-translate-y-[1px]",
+        "w-full text-left bg-[var(--bg-surface)] border border-[var(--border)] rounded-[var(--radius-lg)] p-5",
+        "flex items-center gap-4 transition-all duration-150 shadow-[var(--shadow-sm)]",
+        onClick && "cursor-pointer hover:shadow-[var(--shadow-md)] hover:-translate-y-[2px]",
         className
       )}
       onClick={onClick}
@@ -45,7 +45,7 @@ export function StatWidget({ value, label, icon: Icon, loading, accent, onClick,
     >
       {Icon && (
         <div className={cn(
-          "w-10 h-10 rounded-[var(--radius-md)] flex items-center justify-center shrink-0",
+          "w-11 h-11 rounded-[var(--radius-md)] flex items-center justify-center shrink-0",
           iconBg || defaultIconBg
         )}>
           <Icon className={cn("w-5 h-5", iconColor || defaultIconColor)} />
@@ -55,7 +55,7 @@ export function StatWidget({ value, label, icon: Icon, loading, accent, onClick,
         {loading ? (
           <Skeleton className="h-7 w-16 rounded-lg" />
         ) : (
-          <p ref={countRef as React.Ref<HTMLParagraphElement>} className="text-2xl font-extrabold tracking-tight text-[var(--text-primary)] tabular-nums leading-none">
+          <p ref={countRef as React.Ref<HTMLParagraphElement>} className="text-[26px] font-extrabold tracking-tight text-[var(--text-primary)] tabular-nums leading-none">
             {displayValue}
           </p>
         )}

@@ -13,8 +13,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import gsap from "gsap";
-import { useGSAP } from "@gsap/react";
+import { motion } from "framer-motion";
 import {
     Keyboard,
     FolderOpen,
@@ -41,36 +40,48 @@ interface SidebarItemProps {
     active: boolean;
     badge?: string;
     collapsed?: boolean;
+    /** Stagger index for entrance animation */
+    animIndex?: number;
 }
 
-const SidebarItem = ({ icon: Icon, label, href, active, badge, collapsed }: SidebarItemProps) => (
-    <Link
-        to={href}
-        title={collapsed ? label : undefined}
-        data-sidebar="nav-item"
-        className={cn(
-            "group flex items-center transition-all duration-[120ms] rounded-[var(--radius-sm-ds)] w-full text-left",
-            collapsed
-                ? "justify-center px-0 py-2.5"
-                : "gap-[11px] px-[10px] py-[9px]",
-            active
-                ? "bg-[var(--nw-blue-50)] text-[var(--nw-blue)] font-semibold dark:bg-[rgba(43,57,144,0.18)]"
-                : "text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
-        )}
-        aria-current={active ? "page" : undefined}
-        aria-label={collapsed ? label : undefined}
+const SidebarItem = ({ icon: Icon, label, href, active, badge, collapsed, animIndex = 0 }: SidebarItemProps) => (
+    <motion.div
+        initial={{ opacity: 0, x: -12 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{
+            duration: 0.35,
+            delay: 0.25 + animIndex * 0.06,
+            ease: [0.33, 1, 0.68, 1],
+        }}
     >
-        <Icon className={cn(
-            "shrink-0 w-[18px] h-[18px]",
-            active ? "stroke-[1.8]" : "stroke-[1.8]"
-        )} aria-hidden="true" />
-        {!collapsed && <span className="text-[13.5px] font-medium">{label}</span>}
-        {!collapsed && badge && (
-            <span className="ml-auto text-[9px] font-bold px-[7px] py-[2px] rounded-full bg-[var(--nw-blue)] text-white uppercase tracking-[0.04em]">
-                {badge}
-            </span>
-        )}
-    </Link>
+        <Link
+            to={href}
+            title={collapsed ? label : undefined}
+            data-sidebar="nav-item"
+            className={cn(
+                "group flex items-center transition-all duration-[120ms] rounded-[var(--radius-sm-ds)] w-full text-left",
+                collapsed
+                    ? "justify-center px-0 py-2.5"
+                    : "gap-[11px] px-[10px] py-[9px]",
+                active
+                    ? "bg-[var(--nw-blue-50)] text-[var(--nw-blue)] font-semibold dark:bg-[rgba(43,57,144,0.18)]"
+                    : "text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
+            )}
+            aria-current={active ? "page" : undefined}
+            aria-label={collapsed ? label : undefined}
+        >
+            <Icon className={cn(
+                "shrink-0 w-[18px] h-[18px]",
+                active ? "stroke-[1.8]" : "stroke-[1.8]"
+            )} aria-hidden="true" />
+            {!collapsed && <span className="text-[13.5px] font-medium">{label}</span>}
+            {!collapsed && badge && (
+                <span className="ml-auto text-[9px] font-bold px-[7px] py-[2px] rounded-full bg-[var(--nw-blue)] text-white uppercase tracking-[0.04em]">
+                    {badge}
+                </span>
+            )}
+        </Link>
+    </motion.div>
 );
 
 interface SidebarSectionProps {
@@ -121,47 +132,8 @@ export const Sidebar = ({ collapsed = false, mobileOpen = false, onMobileClose }
     const sidebarRef = useRef<HTMLDivElement>(null);
     const magnetRef = useMagneticHover<HTMLButtonElement>({ strength: 0.2 });
 
-    // Staggered entrance animation for nav items
-    useGSAP(() => {
-        const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-        if (prefersReduced) return;
-
-        // Logo fade-in
-        gsap.from("[data-sidebar='logo']", {
-            opacity: 0,
-            y: -8,
-            duration: 0.4,
-            ease: "power2.out",
-        });
-
-        // CTA button scale-in
-        gsap.from("[data-sidebar='cta']", {
-            opacity: 0,
-            scale: 0.9,
-            duration: 0.4,
-            delay: 0.15,
-            ease: "back.out(2)",
-        });
-
-        // Nav items stagger cascade
-        gsap.from("[data-sidebar='nav-item']", {
-            opacity: 0,
-            x: -12,
-            duration: 0.35,
-            stagger: 0.06,
-            delay: 0.25,
-            ease: "power2.out",
-        });
-
-        // Bottom section fade-in
-        gsap.from("[data-sidebar='bottom']", {
-            opacity: 0,
-            y: 10,
-            duration: 0.4,
-            delay: 0.55,
-            ease: "power2.out",
-        });
-    }, { scope: sidebarRef });
+    // Track nav item index for staggered animation
+    let navIndex = 0;
 
     const handleKeyDown = useCallback((event: KeyboardEvent) => {
         const target = event.target as HTMLElement;
@@ -193,10 +165,16 @@ export const Sidebar = ({ collapsed = false, mobileOpen = false, onMobileClose }
             collapsed ? "w-[var(--sidebar-collapsed)]" : "w-[var(--sidebar-width)]"
         )} style={{ padding: collapsed ? '24px 8px 16px' : '24px 14px 16px' }}>
             {/* Brand Section (Prototype sidebar-brand) */}
-            <div data-sidebar="logo" className={cn(
-                "flex items-center shrink-0 mb-6",
-                collapsed ? "justify-center" : "gap-[10px] px-2"
-            )}>
+            <motion.div
+                data-sidebar="logo"
+                className={cn(
+                    "flex items-center shrink-0 mb-6",
+                    collapsed ? "justify-center" : "gap-[10px] px-2"
+                )}
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, ease: [0.33, 1, 0.68, 1] }}
+            >
                 <Link to="/" className="flex items-center gap-[10px] group" title={collapsed ? "Niederwieser Docs" : undefined}>
                     <div className={cn(
                         "flex items-center justify-center bg-[var(--nw-blue)] text-white font-extrabold rounded-[10px] shadow-[0_2px_8px_rgba(43,57,144,0.3)]",
@@ -220,11 +198,21 @@ export const Sidebar = ({ collapsed = false, mobileOpen = false, onMobileClose }
                         <X className="w-5 h-5" />
                     </button>
                 )}
-            </div>
+            </motion.div>
 
             {/* "Neues Dokument" CTA (Prototype sidebar-cta) */}
             {!collapsed ? (
-                <div data-sidebar="cta" className="mb-7">
+                <motion.div
+                    data-sidebar="cta"
+                    className="mb-7"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{
+                        duration: 0.4,
+                        delay: 0.15,
+                        ease: [0.34, 1.56, 0.64, 1], // back.out(2) equivalent
+                    }}
+                >
                     <button
                         ref={magnetRef}
                         className={cn(
@@ -242,7 +230,7 @@ export const Sidebar = ({ collapsed = false, mobileOpen = false, onMobileClose }
                         <PlusCircle className="w-[17px] h-[17px]" />
                         Neues Dokument
                     </button>
-                </div>
+                </motion.div>
             ) : (
                 <div className="mb-5">
                     <Button
@@ -269,6 +257,7 @@ export const Sidebar = ({ collapsed = false, mobileOpen = false, onMobileClose }
                         href="/"
                         active={pathname === "/" || pathname === "/deadlines" || pathname === "/teams"}
                         collapsed={collapsed}
+                        animIndex={navIndex++}
                     />
                     {isDocumentsEnabled && (
                         <SidebarItem
@@ -277,6 +266,7 @@ export const Sidebar = ({ collapsed = false, mobileOpen = false, onMobileClose }
                             href="/documents"
                             active={pathname.startsWith("/documents") || pathname.startsWith("/search")}
                             collapsed={collapsed}
+                            animIndex={navIndex++}
                         />
                     )}
                 </SidebarSection>
@@ -288,6 +278,7 @@ export const Sidebar = ({ collapsed = false, mobileOpen = false, onMobileClose }
                         href="/templates"
                         active={pathname.startsWith("/templates")}
                         collapsed={collapsed}
+                        animIndex={navIndex++}
                     />
                     <SidebarItem
                         icon={Sparkles}
@@ -295,6 +286,7 @@ export const Sidebar = ({ collapsed = false, mobileOpen = false, onMobileClose }
                         href="/agent"
                         active={pathname === "/agent"}
                         collapsed={collapsed}
+                        animIndex={navIndex++}
                     />
                 </SidebarSection>
 
@@ -305,6 +297,7 @@ export const Sidebar = ({ collapsed = false, mobileOpen = false, onMobileClose }
                         href="/settings"
                         active={pathname.startsWith("/settings") || pathname.startsWith("/admin")}
                         collapsed={collapsed}
+                        animIndex={navIndex++}
                     />
                 </SidebarSection>
 
@@ -316,7 +309,17 @@ export const Sidebar = ({ collapsed = false, mobileOpen = false, onMobileClose }
             </nav>
 
             {/* Bottom Section (Prototype sidebar-footer) */}
-            <div data-sidebar="bottom" className="mt-auto shrink-0 pt-3.5 border-t border-[var(--border-light)]">
+            <motion.div
+                data-sidebar="bottom"
+                className="mt-auto shrink-0 pt-3.5 border-t border-[var(--border-light)]"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{
+                    duration: 0.4,
+                    delay: 0.55,
+                    ease: [0.33, 1, 0.68, 1],
+                }}
+            >
                 <div className={cn("", collapsed ? "px-1 py-1" : "")}>
                     <button
                         onClick={() => setShowShortcuts(true)}
@@ -335,7 +338,7 @@ export const Sidebar = ({ collapsed = false, mobileOpen = false, onMobileClose }
                 <div className={cn(collapsed ? "p-1" : "")}>
                     <UserDropdown collapsed={collapsed} />
                 </div>
-            </div>
+            </motion.div>
         </div>
     );
 

@@ -10,6 +10,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { TextReveal } from "@/components/ui/text-reveal";
 import {
     useNotifications,
     useMarkAsRead,
@@ -33,7 +34,6 @@ import {
     Share2,
     Settings,
     Loader2,
-    Filter,
 } from "lucide-react";
 import { Pagination } from "@/components/ui/pagination";
 import { formatDistanceToNow } from "@/lib/dateUtils";
@@ -73,15 +73,12 @@ export const NotificationsPage = () => {
     const totalPages = Math.ceil((notifications?.total ?? 0) / 20);
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 max-w-6xl mx-auto">
             {/* Header */}
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-2xl font-bold flex items-center gap-2">
-                        <Bell className="w-6 h-6" />
-                        Benachrichtigungen
-                    </h1>
-                    <p className="text-muted-foreground">
+                    <TextReveal as="h1" className="text-[28px] font-extrabold tracking-[-0.03em] text-[var(--text-primary)]" stagger={0.04} duration={0.6}>Benachrichtigungen</TextReveal>
+                    <p className="text-[14px] text-[var(--text-secondary)] mt-1">
                         {notifications?.unread_count ?? 0} ungelesene Benachrichtigungen
                     </p>
                 </div>
@@ -110,33 +107,20 @@ export const NotificationsPage = () => {
             {showSettings && <NotificationSettings />}
 
             {/* Filters */}
-            <Card>
-                <CardContent className="pt-6">
-                    <div className="flex items-center gap-4">
-                        <Button
-                            variant={!unreadOnly ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => {
-                                setUnreadOnly(false);
-                                setPage(1);
-                            }}
-                        >
-                            Alle
-                        </Button>
-                        <Button
-                            variant={unreadOnly ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => {
-                                setUnreadOnly(true);
-                                setPage(1);
-                            }}
-                        >
-                            <Filter className="w-4 h-4 mr-2" />
-                            Nur ungelesen
-                        </Button>
-                    </div>
-                </CardContent>
-            </Card>
+            <div className="filter-chips">
+                <button
+                    className={`filter-chip ${!unreadOnly ? 'active' : ''}`}
+                    onClick={() => { setUnreadOnly(false); setPage(1); }}
+                >
+                    Alle
+                </button>
+                <button
+                    className={`filter-chip ${unreadOnly ? 'active' : ''}`}
+                    onClick={() => { setUnreadOnly(true); setPage(1); }}
+                >
+                    Nur ungelesen
+                </button>
+            </div>
 
             {/* Notification List */}
             <Card>
@@ -151,10 +135,12 @@ export const NotificationsPage = () => {
                             <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
                         </div>
                     ) : items.length === 0 ? (
-                        <div className="py-12 text-center text-muted-foreground">
-                            <Bell className="w-16 h-16 mx-auto mb-4 opacity-30" />
-                            <p className="text-lg">Keine Benachrichtigungen</p>
-                            <p className="text-sm">
+                        <div className="empty-state py-12">
+                            <div className="w-14 h-14 rounded-2xl bg-[var(--nw-warm-100)] flex items-center justify-center mb-4">
+                                <Bell className="w-7 h-7 text-[var(--nw-warm-500)]" />
+                            </div>
+                            <p className="text-sm font-semibold text-[var(--text-primary)] mb-1">Keine Benachrichtigungen</p>
+                            <p className="text-[13px] text-[var(--text-secondary)] max-w-[280px] leading-relaxed">
                                 {unreadOnly
                                     ? "Du hast alle Benachrichtigungen gelesen."
                                     : "Du hast noch keine Benachrichtigungen erhalten."}

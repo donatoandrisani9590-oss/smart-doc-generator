@@ -26,7 +26,7 @@ export function ActionStatWidget({ value, label, icon: Icon, accentColor, onClic
         "flex items-center gap-2.5 px-4 py-2.5 rounded-[var(--radius-lg)]",
         "bg-[var(--bg-surface)] border border-[var(--border)] shadow-[var(--shadow-sm)]",
         "text-left cursor-pointer transition-all duration-150",
-        "hover:shadow-[var(--shadow-md)] hover:-translate-y-[1px]",
+        "hover:shadow-[var(--shadow-md)] hover:-translate-y-[2px]",
         className
       )}
     >

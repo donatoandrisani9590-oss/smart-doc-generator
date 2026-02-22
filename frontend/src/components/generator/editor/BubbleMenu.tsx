@@ -1,98 +1,68 @@
+/**
+ * BubbleMenu — Floating toolbar that appears on text selection in Tiptap editor.
+ * Uses native DOM selection API for positioning (no Tiptap BubbleMenu extension needed).
+ */
+
 import { useState, useCallback, useEffect, useRef } from "react";
+import type { Editor } from "@tiptap/react";
 import {
   Bold, Italic, Underline, Heading1, Heading2,
   List, ListOrdered, Link, Sparkles,
 } from "lucide-react";
-import type { Editor as TinyMCEEditor } from "tinymce";
 
 interface BubbleMenuProps {
-  editorRef: React.MutableRefObject<TinyMCEEditor | null>;
+  editor: Editor | null;
   onAIClick: () => void;
 }
 
-interface FormatState {
-  bold: boolean;
-  italic: boolean;
-  underline: boolean;
-  h1: boolean;
-  h2: boolean;
-  ul: boolean;
-  ol: boolean;
-}
-
-export function BubbleMenu({ editorRef, onAIClick }: BubbleMenuProps) {
+export function BubbleMenu({ editor, onAIClick }: BubbleMenuProps) {
   const [position, setPosition] = useState<{ top: number; left: number } | null>(null);
-  const [formatState, setFormatState] = useState<FormatState>({
-    bold: false, italic: false, underline: false,
-    h1: false, h2: false, ul: false, ol: false,
-  });
   const menuRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const updatePosition = useCallback(() => {
-    const editor = editorRef.current;
-    if (!editor) return;
+    if (!editor) { setPosition(null); return; }
 
-    const selection = editor.selection;
-    if (!selection || selection.isCollapsed()) {
-      setPosition(null);
-      return;
-    }
+    const { from, to } = editor.state.selection;
+    if (from === to) { setPosition(null); return; }
 
-    const selectedText = selection.getContent({ format: "text" });
-    if (!selectedText || selectedText.trim().length === 0) {
-      setPosition(null);
-      return;
-    }
+    // Get the DOM coordinates of the selection
+    const view = editor.view;
+    const start = view.coordsAtPos(from);
+    const end = view.coordsAtPos(to);
 
-    const rng = selection.getRng();
-    const rect = rng.getBoundingClientRect();
-    const iframe = editor.iframeElement;
-    if (!iframe) return;
-
-    const iframeRect = iframe.getBoundingClientRect();
-
-    // Position bubble 8px above selection, centered horizontally
-    const top = iframeRect.top + rect.top - 8;
-    const left = iframeRect.left + rect.left + rect.width / 2;
+    // Position above the selection, centered
+    const top = start.top - 8;
+    const left = (start.left + end.right) / 2;
 
     // Clamp to viewport
-    const menuWidth = 340; // approximate
+    const menuWidth = 360;
     const clampedLeft = Math.max(menuWidth / 2 + 8, Math.min(left, window.innerWidth - menuWidth / 2 - 8));
     const clampedTop = Math.max(48, top);
 
     setPosition({ top: clampedTop, left: clampedLeft });
+  }, [editor]);
 
-    // Update format state
-    setFormatState({
-      bold: editor.formatter.match("bold"),
-      italic: editor.formatter.match("italic"),
-      underline: editor.formatter.match("underline"),
-      h1: editor.formatter.match("h1"),
-      h2: editor.formatter.match("h2"),
-      ul: !!editor.dom.getParent(selection.getNode(), "ul"),
-      ol: !!editor.dom.getParent(selection.getNode(), "ol"),
-    });
-  }, [editorRef]);
-
-  // Listen for selection changes
+  // Listen for selection changes via editor events
   useEffect(() => {
-    const editor = editorRef.current;
     if (!editor) return;
 
-    const handleSelectionChange = () => {
+    const handleUpdate = () => {
       clearTimeout(debounceRef.current);
-      debounceRef.current = setTimeout(updatePosition, 200);
+      debounceRef.current = setTimeout(updatePosition, 150);
     };
 
-    editor.on("selectionchange NodeChange mouseup keyup", handleSelectionChange);
+    editor.on("selectionUpdate", handleUpdate);
+    editor.on("transaction", handleUpdate);
+
     return () => {
       clearTimeout(debounceRef.current);
-      editor.off("selectionchange NodeChange mouseup keyup", handleSelectionChange);
+      editor.off("selectionUpdate", handleUpdate);
+      editor.off("transaction", handleUpdate);
     };
-  }, [editorRef, updatePosition]);
+  }, [editor, updatePosition]);
 
-  // Hide on escape
+  // Hide on Escape
   useEffect(() => {
     const handleKeydown = (e: KeyboardEvent) => {
       if (e.key === "Escape") setPosition(null);
@@ -101,25 +71,19 @@ export function BubbleMenu({ editorRef, onAIClick }: BubbleMenuProps) {
     return () => document.removeEventListener("keydown", handleKeydown);
   }, []);
 
-  const execCommand = useCallback((command: string, value?: string) => {
-    const editor = editorRef.current;
+  const handleLink = useCallback(() => {
     if (!editor) return;
-    editor.execCommand(command, false, value);
-    // Re-check format state after command
-    setTimeout(updatePosition, 50);
-  }, [editorRef, updatePosition]);
+    const previousUrl = editor.getAttributes("link").href ?? "";
+    const url = window.prompt("URL eingeben:", previousUrl);
+    if (url === null) return;
+    if (url === "") {
+      editor.chain().focus().extendMarkRange("link").unsetLink().run();
+    } else {
+      editor.chain().focus().extendMarkRange("link").setLink({ href: url }).run();
+    }
+  }, [editor]);
 
-  const formatBlock = useCallback((tag: string) => {
-    const editor = editorRef.current;
-    if (!editor) return;
-    const node = editor.selection.getNode();
-    const currentTag = node.nodeName.toLowerCase();
-    // Toggle: if already this heading, revert to paragraph
-    editor.execCommand("FormatBlock", false, currentTag === tag ? "p" : tag);
-    setTimeout(updatePosition, 50);
-  }, [editorRef, updatePosition]);
-
-  if (!position) return null;
+  if (!editor || !position) return null;
 
   return (
     <div
@@ -128,64 +92,56 @@ export function BubbleMenu({ editorRef, onAIClick }: BubbleMenuProps) {
       role="toolbar"
       aria-label="Textformatierung"
       style={{
+        position: "fixed",
         top: position.top,
         left: position.left,
         transform: "translate(-50%, -100%)",
+        zIndex: 50,
       }}
-      onMouseDown={(e) => e.preventDefault()} // Prevent editor blur
-      onKeyDown={(e) => {
-        if (e.key === "Escape") {
-          setPosition(null);
-          editorRef.current?.focus();
-        }
-      }}
+      onMouseDown={(e) => e.preventDefault()}
     >
-      {/* Text formatting */}
-      <button className={`bubble-tool ${formatState.bold ? "active" : ""}`}
-              onClick={() => execCommand("Bold")} title="Fett (Ctrl+B)">
+      <button className={`bubble-tool ${editor.isActive("bold") ? "active" : ""}`}
+              title="Fett (Ctrl+B)" onClick={() => editor.chain().focus().toggleBold().run()}>
         <Bold className="h-4 w-4" />
       </button>
-      <button className={`bubble-tool ${formatState.italic ? "active" : ""}`}
-              onClick={() => execCommand("Italic")} title="Kursiv (Ctrl+I)">
+      <button className={`bubble-tool ${editor.isActive("italic") ? "active" : ""}`}
+              title="Kursiv (Ctrl+I)" onClick={() => editor.chain().focus().toggleItalic().run()}>
         <Italic className="h-4 w-4" />
       </button>
-      <button className={`bubble-tool ${formatState.underline ? "active" : ""}`}
-              onClick={() => execCommand("Underline")} title="Unterstrichen (Ctrl+U)">
+      <button className={`bubble-tool ${editor.isActive("underline") ? "active" : ""}`}
+              title="Unterstrichen (Ctrl+U)" onClick={() => editor.chain().focus().toggleUnderline().run()}>
         <Underline className="h-4 w-4" />
       </button>
 
       <div className="bubble-separator" />
 
-      {/* Headings */}
-      <button className={`bubble-tool ${formatState.h1 ? "active" : ""}`}
-              onClick={() => formatBlock("h1")} title="Überschrift 1">
+      <button className={`bubble-tool ${editor.isActive("heading", { level: 1 }) ? "active" : ""}`}
+              title="Überschrift 1" onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}>
         <Heading1 className="h-4 w-4" />
       </button>
-      <button className={`bubble-tool ${formatState.h2 ? "active" : ""}`}
-              onClick={() => formatBlock("h2")} title="Überschrift 2">
+      <button className={`bubble-tool ${editor.isActive("heading", { level: 2 }) ? "active" : ""}`}
+              title="Überschrift 2" onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}>
         <Heading2 className="h-4 w-4" />
       </button>
 
       <div className="bubble-separator" />
 
-      {/* Lists & Link */}
-      <button className={`bubble-tool ${formatState.ul ? "active" : ""}`}
-              onClick={() => execCommand("InsertUnorderedList")} title="Aufzählung">
+      <button className={`bubble-tool ${editor.isActive("bulletList") ? "active" : ""}`}
+              title="Aufzählung" onClick={() => editor.chain().focus().toggleBulletList().run()}>
         <List className="h-4 w-4" />
       </button>
-      <button className={`bubble-tool ${formatState.ol ? "active" : ""}`}
-              onClick={() => execCommand("InsertOrderedList")} title="Nummerierung">
+      <button className={`bubble-tool ${editor.isActive("orderedList") ? "active" : ""}`}
+              title="Nummerierung" onClick={() => editor.chain().focus().toggleOrderedList().run()}>
         <ListOrdered className="h-4 w-4" />
       </button>
-      <button className="bubble-tool"
-              onClick={() => execCommand("mceLink")} title="Link einfügen">
+      <button className={`bubble-tool ${editor.isActive("link") ? "active" : ""}`}
+              title="Link einfügen" onClick={handleLink}>
         <Link className="h-4 w-4" />
       </button>
 
       <div className="bubble-separator" />
 
-      {/* AI Refinement */}
-      <button className="bubble-tool" onClick={onAIClick} title="KI-Nachbesserung">
+      <button className="bubble-tool" title="KI-Nachbesserung" onClick={onAIClick}>
         <Sparkles className="h-4 w-4" />
       </button>
     </div>

@@ -1,5 +1,5 @@
 /**
- * TextReveal — GSAP-powered word-by-word text reveal animation.
+ * TextReveal — Framer Motion-powered word-by-word text reveal animation.
  *
  * Splits text into words, animates each with a staggered fade-up.
  * Supports scroll-triggered or immediate (on-mount) reveal.
@@ -11,12 +11,8 @@
  *   </TextReveal>
  */
 
-import { useRef, type ElementType, type ReactNode } from "react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useGSAP } from "@gsap/react";
-
-gsap.registerPlugin(ScrollTrigger);
+import { useRef, useEffect, useState, type ElementType, type ReactNode } from "react";
+import { motion, useInView, type Variants } from "framer-motion";
 
 interface TextRevealProps {
   children: ReactNode;
@@ -42,54 +38,57 @@ export function TextReveal({
   scrollTriggered = false,
 }: TextRevealProps) {
   const containerRef = useRef<HTMLElement>(null);
+  const isInView = useInView(containerRef, { once: true, margin: "-12% 0px" });
+  const [prefersReduced, setPrefersReduced] = useState(false);
 
-  useGSAP(() => {
-    const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (prefersReduced || !containerRef.current) return;
-
-    const words = containerRef.current.querySelectorAll<HTMLElement>("[data-word]");
-    if (words.length === 0) return;
-
-    const fromVars: gsap.TweenVars = {
-      y: 18,
-      opacity: 0,
-      duration,
-      stagger,
-      delay,
-      ease: "power3.out",
-    };
-
-    if (scrollTriggered) {
-      gsap.from(words, {
-        ...fromVars,
-        scrollTrigger: {
-          trigger: containerRef.current,
-          start: "top 88%",
-          once: true,
-        },
-      });
-    } else {
-      gsap.from(words, fromVars);
-    }
-  }, { scope: containerRef });
+  useEffect(() => {
+    setPrefersReduced(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  }, []);
 
   // Split children text into words
   const text = typeof children === "string" ? children : String(children);
   const words = text.split(/\s+/).filter(Boolean);
 
+  // Determine whether to animate
+  const shouldAnimate = scrollTriggered ? isInView : true;
+
+  const wordVariants: Variants = {
+    hidden: { y: 18, opacity: 0 },
+    visible: (i: number) => ({
+      y: 0,
+      opacity: 1,
+      transition: {
+        duration,
+        delay: delay + i * stagger,
+        ease: [0.33, 1, 0.68, 1], // power3.out equivalent
+      },
+    }),
+  };
+
+  // Create the MotionTag dynamically from the `as` prop
+  const MotionTag = motion.create(Tag as "span");
+
   return (
-    <Tag ref={containerRef} className={className} aria-label={text}>
+    <MotionTag
+      ref={containerRef}
+      className={className}
+      aria-label={text}
+      initial={false}
+    >
       {words.map((word, i) => (
-        <span
+        <motion.span
           key={i}
-          data-word
+          custom={i}
+          initial={prefersReduced ? "visible" : "hidden"}
+          animate={prefersReduced || shouldAnimate ? "visible" : "hidden"}
+          variants={wordVariants}
           className="inline-block"
           style={{ marginRight: "0.25em" }}
           aria-hidden="true"
         >
           {word}
-        </span>
+        </motion.span>
       ))}
-    </Tag>
+    </MotionTag>
   );
 }

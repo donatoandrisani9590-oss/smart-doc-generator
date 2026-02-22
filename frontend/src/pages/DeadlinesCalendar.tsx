@@ -11,6 +11,7 @@ import { useState, useEffect } from "react";
 import { apiFetch } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { TextReveal } from "@/components/ui/text-reveal";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
@@ -237,15 +238,12 @@ export default function DeadlinesCalendar() {
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 max-w-6xl mx-auto">
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold flex items-center gap-2">
-                        <Calendar className="w-6 h-6" />
-                        Fristen-Kalender
-                    </h1>
-                    <p className="text-muted-foreground">
+                    <TextReveal as="h1" className="text-[28px] font-extrabold tracking-[-0.03em] text-[var(--text-primary)]" stagger={0.04} duration={0.6}>Fristen-Kalender</TextReveal>
+                    <p className="text-[14px] text-[var(--text-secondary)] mt-1">
                         Probezeiten, Befristungen und andere HR-Fristen
                     </p>
                 </div>
@@ -334,16 +332,16 @@ export default function DeadlinesCalendar() {
                 <SkeletonDeadlinesList items={4} />
             ) : deadlines.length === 0 ? (
                 <Card>
-                    <CardContent className="text-center py-12">
-                        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
-                            <Calendar className="w-8 h-8 text-muted-foreground" />
+                    <CardContent className="empty-state py-12">
+                        <div className="w-14 h-14 rounded-2xl bg-[var(--nw-warm-100)] flex items-center justify-center mb-4">
+                            <Calendar className="w-7 h-7 text-[var(--nw-warm-500)]" />
                         </div>
                         {statusFilter !== "all" || typeFilter !== "all" ? (
                             <>
-                                <h3 className="text-lg font-medium mb-2">
+                                <p className="text-sm font-semibold text-[var(--text-primary)] mb-1">
                                     Keine Fristen für diese Filter
-                                </h3>
-                                <p className="text-muted-foreground mb-4 max-w-md mx-auto">
+                                </p>
+                                <p className="text-[13px] text-[var(--text-secondary)] max-w-[280px] leading-relaxed mb-5">
                                     Passe deine Filtereinstellungen an oder setze sie zurück.
                                 </p>
                                 <Button
@@ -358,14 +356,14 @@ export default function DeadlinesCalendar() {
                             </>
                         ) : (
                             <>
-                                <h3 className="text-lg font-medium mb-2">
+                                <p className="text-sm font-semibold text-[var(--text-primary)] mb-1">
                                     Keine Fristen vorhanden
-                                </h3>
-                                <p className="text-muted-foreground mb-4 max-w-md mx-auto">
+                                </p>
+                                <p className="text-[13px] text-[var(--text-secondary)] max-w-[280px] leading-relaxed mb-5">
                                     Lege deine erste Frist an, um Probezeiten und Befristungen zu überwachen.
                                 </p>
-                                <Button onClick={() => setShowNewDialog(true)}>
-                                    <Plus className="w-4 h-4 mr-2" />
+                                <Button onClick={() => setShowNewDialog(true)} className="gap-2">
+                                    <Plus className="w-4 h-4" />
                                     Erste Frist anlegen
                                 </Button>
                             </>

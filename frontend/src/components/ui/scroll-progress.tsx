@@ -1,35 +1,42 @@
 /**
  * ScrollProgress — Thin animated progress bar at the top of the viewport.
  *
- * Uses GSAP ScrollTrigger to track scroll position with
+ * Uses a native scroll event listener to track scroll position with
  * hardware-accelerated scaleX transform for zero-jank rendering.
  * Only visible when the page is scrollable.
  */
 
-import { useRef } from "react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useGSAP } from "@gsap/react";
-
-gsap.registerPlugin(ScrollTrigger);
+import { useEffect, useRef, useCallback } from "react";
 
 export function ScrollProgress() {
   const barRef = useRef<HTMLDivElement>(null);
+  const rafRef = useRef<number>(0);
 
-  useGSAP(() => {
+  const updateProgress = useCallback(() => {
     if (!barRef.current) return;
 
-    gsap.to(barRef.current, {
-      scaleX: 1,
-      ease: "none",
-      scrollTrigger: {
-        trigger: document.documentElement,
-        start: "top top",
-        end: "bottom bottom",
-        scrub: 0.3,
-      },
-    });
-  });
+    const scrollTop = window.scrollY || document.documentElement.scrollTop;
+    const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+    const progress = scrollHeight > 0 ? Math.min(scrollTop / scrollHeight, 1) : 0;
+
+    barRef.current.style.transform = `scaleX(${progress})`;
+  }, []);
+
+  useEffect(() => {
+    const onScroll = () => {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = requestAnimationFrame(updateProgress);
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    // Initial measurement
+    updateProgress();
+
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      cancelAnimationFrame(rafRef.current);
+    };
+  }, [updateProgress]);
 
   return (
     <div
@@ -38,6 +45,7 @@ export function ScrollProgress() {
       style={{
         transform: "scaleX(0)",
         background: "linear-gradient(90deg, var(--nw-blue-500), var(--nw-green-500))",
+        willChange: "transform",
       }}
       aria-hidden="true"
     />

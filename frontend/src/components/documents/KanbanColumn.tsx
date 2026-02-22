@@ -56,7 +56,7 @@ export function KanbanColumn({
             {/* Column Header (Prototype kanban-col-header with status dot) */}
             <button
                 onClick={() => setCollapsed(!collapsed)}
-                className="flex items-center justify-between px-5 py-4 select-none"
+                className="flex items-center justify-between px-4 py-3 select-none"
             >
                 <div className="flex items-center gap-2">
                     <span className={`w-[9px] h-[9px] rounded-full ${colors.icon?.replace('text-', 'bg-') || 'bg-[var(--nw-blue)]'}`}
@@ -80,7 +80,7 @@ export function KanbanColumn({
             {!collapsed && (
                 <div
                     ref={setNodeRef}
-                    className={`flex-1 px-3 pb-3 space-y-2.5 min-h-[80px] transition-colors rounded-b-[var(--radius-lg)] ${
+                    className={`flex-1 px-4 pb-4 space-y-2 min-h-[80px] transition-colors rounded-b-[var(--radius-lg)] ${
                         isOver ? "bg-primary/5" : ""
                     }`}
                 >

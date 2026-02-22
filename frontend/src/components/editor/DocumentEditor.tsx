@@ -1,40 +1,34 @@
 /**
- * DocumentEditor - TinyMCE-based WYSIWYG Editor for Document Preview
+ * DocumentEditor - Tiptap-based WYSIWYG Editor for Document Preview
  *
- * Self-hosted TinyMCE Community Edition with:
+ * Headless Tiptap editor with:
  * - Two-way binding (value prop + onChange callback)
- * - Minimalist toolbar (Bold, Italic, Lists, Tables, Images)
- * - A4 document styling
- * - No menubar, single scrollbar
+ * - A4 document styling via prose classes
+ * - Dark mode support
+ * - Programmatic vs user edit tracking
+ * - Character count footer
  */
 
 import { useRef, useCallback, useEffect, useState } from "react";
-import { Editor } from "@tinymce/tinymce-react";
+import { useEditor, EditorContent } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import Underline from "@tiptap/extension-underline";
+import TextAlign from "@tiptap/extension-text-align";
+import { Table } from "@tiptap/extension-table";
+import TableRow from "@tiptap/extension-table-row";
+import TableCell from "@tiptap/extension-table-cell";
+import TableHeader from "@tiptap/extension-table-header";
+import Link from "@tiptap/extension-link";
+import Highlight from "@tiptap/extension-highlight";
+import Color from "@tiptap/extension-color";
+import { TextStyle } from "@tiptap/extension-text-style";
+import Typography from "@tiptap/extension-typography";
+import CharacterCount from "@tiptap/extension-character-count";
+import Placeholder from "@tiptap/extension-placeholder";
 import { useDebouncedCallback } from "use-debounce";
 import { Loader2 } from "lucide-react";
-import type { Editor as TinyMCEEditor } from "tinymce";
 import { useTheme } from "@/contexts/ThemeContext";
-
-// Import TinyMCE core (required for self-hosted)
-import "tinymce/tinymce";
-// Import plugins
-import "tinymce/plugins/lists";
-import "tinymce/plugins/table";
-import "tinymce/plugins/image";
-import "tinymce/plugins/link";
-import "tinymce/plugins/autoresize";
-import "tinymce/plugins/searchreplace";
-import "tinymce/plugins/fullscreen";
-import "tinymce/plugins/code";
-import "tinymce/plugins/charmap";
-import "tinymce/plugins/pagebreak";
-import "tinymce/plugins/anchor";
-import "tinymce/plugins/insertdatetime";
-import "tinymce/plugins/wordcount";
-// Import theme, icons, and model
-import "tinymce/themes/silver";
-import "tinymce/icons/default";
-import "tinymce/models/dom";
+import type { Editor } from "@tiptap/react";
 
 interface DocumentEditorProps {
   /** HTML content to display/edit */
@@ -46,21 +40,53 @@ interface DocumentEditorProps {
   /** Whether the editor is in read-only mode */
   readOnly?: boolean;
 
-  /** Loading state (shows skeleton while true) */
+  /** Loading state (shows spinner while true) */
   isLoading?: boolean;
 
   /** Additional CSS class for the container */
   className?: string;
 
-  /** Compact toolbar mode for split-screen usage */
+  /** Compact mode for split-screen usage */
   compact?: boolean;
 
   /** Callback specifically for user-initiated edits (keyboard input, formatting) */
   onUserEdit?: (html: string) => void;
 
-  /** Callback to expose the TinyMCE editor instance */
-  onEditorInit?: (editor: TinyMCEEditor) => void;
+  /** Callback to expose the Tiptap Editor instance */
+  onEditorInit?: (editor: Editor) => void;
 }
+
+// Build the extensions array once (static, no need to recreate per render)
+const extensions = [
+  StarterKit.configure({
+    heading: {
+      levels: [1, 2, 3],
+    },
+  }),
+  Underline,
+  TextAlign.configure({
+    types: ["heading", "paragraph"],
+  }),
+  Table.configure({
+    resizable: true,
+  }),
+  TableRow,
+  TableCell,
+  TableHeader,
+  Link.configure({
+    openOnClick: false,
+  }),
+  Highlight.configure({
+    multicolor: true,
+  }),
+  Color,
+  TextStyle,
+  Typography,
+  CharacterCount,
+  Placeholder.configure({
+    placeholder: "Dokumenttext eingeben\u2026",
+  }),
+];
 
 export const DocumentEditor = ({
   value,
@@ -74,76 +100,120 @@ export const DocumentEditor = ({
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
 
-  const editorRef = useRef<TinyMCEEditor | null>(null);
-  const [isEditorReady, setIsEditorReady] = useState(false);
   const lastValueRef = useRef(value);
+  const [isEditorReady, setIsEditorReady] = useState(false);
 
-  // Track if editor has been initialized and is ready to accept user input
-  // This prevents firing onUserEdit during initial content setup
+  // Track if editor has been initialized and is ready to accept user input.
+  // Prevents firing onUserEdit during initial content setup.
   const isInitializedRef = useRef(false);
 
-  // Track if we're currently updating content programmatically (not user edit)
+  // Track if we are currently updating content programmatically (not a user edit)
   const isProgrammaticUpdateRef = useRef(false);
 
   // Debounce onChange to avoid excessive re-renders (300ms)
-  const debouncedOnChange = useDebouncedCallback((content: string, isUserEdit: boolean) => {
-    onChange(content);
-    // Only call onUserEdit if:
-    // 1. This was not a programmatic update
-    // 2. Editor is fully initialized
-    // 3. onUserEdit callback exists
-    if (isUserEdit && onUserEdit && isInitializedRef.current) {
-      onUserEdit(content);
-    }
-  }, 300);
+  const debouncedOnChange = useDebouncedCallback(
+    (content: string, isUserEdit: boolean) => {
+      onChange(content);
+      if (isUserEdit && onUserEdit && isInitializedRef.current) {
+        onUserEdit(content);
+      }
+    },
+    300
+  );
 
-  // Handle editor content changes
-  const handleEditorChange = useCallback(
-    (content: string) => {
-      lastValueRef.current = content;
-      // Pass whether this is a user edit (not programmatic)
+  // onUpdate handler for Tiptap
+  const handleUpdate = useCallback(
+    ({ editor }: { editor: Editor }) => {
+      const html = editor.getHTML();
+      lastValueRef.current = html;
       const isUserEdit = !isProgrammaticUpdateRef.current;
-      debouncedOnChange(content, isUserEdit);
+      debouncedOnChange(html, isUserEdit);
     },
     [debouncedOnChange]
   );
 
+  const editor = useEditor({
+    extensions,
+    content: value,
+    editable: !readOnly,
+    editorProps: {
+      attributes: {
+        class: [
+          "prose prose-sm max-w-[595px] mx-auto p-10 min-h-[842px]",
+          "font-sans text-[10pt] leading-relaxed text-gray-900",
+          "focus:outline-none",
+          // Missing variable highlighting
+          "[&_.missing-variable]:bg-red-50",
+          "[&_.missing-variable]:text-red-600",
+          "[&_.missing-variable]:border",
+          "[&_.missing-variable]:border-dashed",
+          "[&_.missing-variable]:border-red-500",
+          "[&_.missing-variable]:rounded",
+          "[&_.missing-variable]:px-1",
+          "[&_.missing-variable]:text-[9pt]",
+          "[&_.missing-variable]:italic",
+          // Dark mode prose overrides
+          isDark ? "dark:prose-invert dark:text-warm-100" : "",
+        ]
+          .filter(Boolean)
+          .join(" "),
+        "aria-label": "Dokumenteneditor",
+      },
+    },
+    onUpdate: handleUpdate,
+    onCreate: ({ editor: editorInstance }) => {
+      setIsEditorReady(true);
+      if (onEditorInit) {
+        onEditorInit(editorInstance);
+      }
+    },
+    // Vite/React: render immediately (not SSR)
+    immediatelyRender: true,
+  });
+
+  // Update editable state when readOnly prop changes
+  useEffect(() => {
+    if (editor) {
+      editor.setEditable(!readOnly);
+    }
+  }, [editor, readOnly]);
+
   // Update editor content when value prop changes externally
   useEffect(() => {
-    if (editorRef.current && isEditorReady) {
-      // Only update if value changed externally (not from our own onChange)
+    if (editor && isEditorReady) {
       if (value !== lastValueRef.current) {
-        // Mark as programmatic update to prevent triggering onUserEdit
         isProgrammaticUpdateRef.current = true;
         lastValueRef.current = value;
-        editorRef.current.setContent(value || "");
-        // Reset flag after a longer delay to allow TinyMCE to fully process the content change
-        // TinyMCE can take time to normalize HTML and fire multiple events
-        // Using 1000ms to ensure all TinyMCE internal events have finished
+        editor.commands.setContent(value || "", { emitUpdate: false });
+        // Reset programmatic flag after Tiptap processes the update
         setTimeout(() => {
           isProgrammaticUpdateRef.current = false;
-        }, 1000);
+        }, 500);
       }
     }
-  }, [value, isEditorReady]);
+  }, [value, editor, isEditorReady]);
 
-  // Mark editor as fully initialized after initial content is set
-  // This adds a delay to ensure TinyMCE has finished all initialization
+  // Mark editor as fully initialized after initial content is set.
+  // Adds a delay so that Tiptap finishes all initial processing.
   useEffect(() => {
     if (isEditorReady && !isInitializedRef.current) {
-      // Wait 1 second after editor is ready to mark as initialized
-      // This gives TinyMCE time to normalize content and fire initial events
       const timer = setTimeout(() => {
         isInitializedRef.current = true;
-      }, 1000);
+      }, 800);
       return () => clearTimeout(timer);
     }
   }, [isEditorReady]);
 
-  // Show loading skeleton
-  if (isLoading) {
+  // Character count from the extension
+  const characterCount = editor?.storage.characterCount?.characters() ?? 0;
+  const wordCount = editor?.storage.characterCount?.words() ?? 0;
+
+  // Loading state: show spinner
+  if (isLoading && !editor?.getText()) {
     return (
-      <div className={`document-editor-loading ${className || ""}`}>
+      <div
+        className={`flex items-center justify-center min-h-[400px] ${className || ""}`}
+      >
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
@@ -151,136 +221,28 @@ export const DocumentEditor = ({
 
   return (
     <div
-      className={`document-editor-container ${className || ""}`}
+      className={[
+        "document-editor-container rounded-2xl overflow-hidden",
+        "bg-[var(--glass-1-bg)] backdrop-blur-[var(--glass-1-blur)]",
+        "border border-[var(--glass-1-border)]",
+        "shadow-[var(--glass-1-shadow)]",
+        className || "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
     >
-      <Editor
-        key={`editor-${resolvedTheme}`}
-        onInit={(_evt, editor) => {
-          editorRef.current = editor;
-          setIsEditorReady(true);
-          if (onEditorInit) onEditorInit(editor);
-        }}
-        initialValue={value}
-        onEditorChange={handleEditorChange}
-        disabled={readOnly}
-        tinymceScriptSrc="/tinymce/tinymce.min.js"
-        licenseKey="gpl"
-        init={{
+      {/* Editor content area */}
+      <div className="bg-white dark:bg-warm-900 rounded-b-2xl">
+        <EditorContent editor={editor} />
+      </div>
 
-          // === Core Settings ===
-          height: "auto",
-          min_height: 800,
-          width: "100%",
-
-          // === UI Configuration (Minimalist) ===
-          menubar: false,
-          statusbar: true, // Show word count
-          branding: false,
-          promotion: false,
-          resize: false,
-
-          // === Plugins ===
-          plugins: [
-            "lists",
-            "table",
-            "image",
-            "link",
-            "autoresize",
-            "searchreplace",
-            "fullscreen",
-            "code",
-            "charmap",
-            "pagebreak",
-            "anchor",
-            "insertdatetime",
-            "wordcount",
-          ],
-
-          // === Toolbar hidden — formatting via BubbleMenu ===
-          toolbar: false,
-
-          // === Font Configuration (like Word) ===
-          font_family_formats:
-            "Arial=Arial, Helvetica, sans-serif;" +
-            "Calibri=Calibri, sans-serif;" +
-            "Times New Roman=Times New Roman, Times, serif;" +
-            "Georgia=Georgia, serif;" +
-            "Verdana=Verdana, Geneva, sans-serif;" +
-            "Helvetica=Helvetica, Arial, sans-serif;" +
-            "Courier New=Courier New, Courier, monospace;" +
-            "Trebuchet MS=Trebuchet MS, sans-serif;" +
-            "Garamond=Garamond, serif;",
-          font_size_formats: "8pt 9pt 10pt 11pt 12pt 14pt 16pt 18pt 20pt 24pt 28pt 36pt",
-
-          // === Table Plugin Configuration ===
-          table_toolbar:
-            "tableprops tabledelete | tableinsertrowbefore tableinsertrowafter tabledeleterow | tableinsertcolbefore tableinsertcolafter tabledeletecol",
-          table_default_styles: {
-            width: "100%",
-            borderCollapse: "collapse",
-          },
-
-          // === Image Plugin Configuration ===
-          images_reuse_filename: true,
-          // Default: convert to base64 data URL
-          images_upload_handler: (blobInfo) => {
-            return Promise.resolve(
-              `data:${blobInfo.blob().type};base64,${blobInfo.base64()}`
-            );
-          },
-
-          // === Content Styling (A4 Document) ===
-          content_css: "/tinymce-document.css",
-          content_style: [
-            "hr { border: none !important; border-top: 1px solid #d1d1d6 !important; margin: 10mm 0 !important; } .document-header { border-bottom-width: 1px !important; }",
-            isDark
-              ? "body { background: #1a1d2e !important; color: #dde1e8 !important; } .document-title { color: #7b8bcc !important; } table td, table th { border-color: #2a2f42 !important; } table th { background: #1e2236 !important; } .custom-clause { background: #1e2236 !important; border-left-color: #5566aa !important; } .party-role { color: #8890a4 !important; } hr { border-top-color: #3a3f52 !important; }"
-              : "",
-          ].join(" "),
-          body_class: "mce-content-body",
-
-          // === Self-Hosted Asset Paths (dark skin when dark mode) ===
-          skin_url: isDark
-            ? "/tinymce/skins/ui/oxide-dark"
-            : "/tinymce/skins/ui/oxide",
-          content_css_cors: true,
-
-          // === Editor Behavior ===
-          paste_data_images: true,
-          paste_as_text: false,
-          browser_spellcheck: true,
-
-          // === Prevent Double Scrollbars ===
-          autoresize_bottom_margin: 20,
-          autoresize_overflow_padding: 20,
-
-          // === Setup Callback ===
-          setup: (editor) => {
-            editor.on("init", () => {
-              // Apply A4 paper styling to editor body
-              const body = editor.getBody();
-              body.style.fontFamily = "'Arial', 'Inter', sans-serif";
-              body.style.fontSize = "11pt";
-              body.style.lineHeight = "1.15";
-              body.style.color = isDark ? "#dde1e8" : "#1D1D1F";
-              body.style.margin = "0";
-              body.style.background = isDark ? "#1a1d2e" : "#ffffff";
-              body.style.boxSizing = "border-box";
-              body.style.width = "100%";
-              body.style.maxWidth = "100%";
-              body.style.overflowX = "hidden";
-
-              // Responsive padding: Use smaller margins when container is narrow
-              const containerWidth = editor.getContainer()?.offsetWidth || 800;
-              if (containerWidth < 750) {
-                body.style.padding = "15mm 12mm 15mm 15mm";
-              } else {
-                body.style.padding = "25mm 20mm 20mm 25mm";
-              }
-            });
-          },
-        }}
-      />
+      {/* Character count footer */}
+      {editor && (
+        <div className="flex items-center justify-end gap-3 px-4 py-1.5 text-[11px] text-muted-foreground border-t border-[var(--glass-1-border)] bg-[var(--glass-1-bg)]">
+          <span>{wordCount} Wörter</span>
+          <span>{characterCount} Zeichen</span>
+        </div>
+      )}
     </div>
   );
 };

@@ -1,5 +1,5 @@
 /**
- * useGsapHover — Attaches GSAP-powered hover micro-interactions to elements.
+ * useGsapHover — Attaches CSS-powered hover micro-interactions to elements.
  *
  * Scans for [data-hover] elements within a container and adds
  * mouse-enter/leave animations (lift, scale, shadow).
@@ -14,41 +14,77 @@
  */
 
 import { useRef, useEffect } from "react";
-import gsap from "gsap";
 
 export type HoverPreset = "lift" | "scale" | "glow";
 
-const HOVER_ENTER: Record<HoverPreset, gsap.TweenVars> = {
-  lift: { y: -4, boxShadow: "0 8px 25px rgba(0,0,0,0.08)", duration: 0.3, ease: "power2.out" },
-  scale: { scale: 1.03, duration: 0.25, ease: "power2.out" },
-  glow: { boxShadow: "0 0 20px rgba(36,49,134,0.12)", duration: 0.3, ease: "power2.out" },
+interface HoverStyles {
+  enter: Record<string, string>;
+  leave: Record<string, string>;
+}
+
+const HOVER_STYLES: Record<HoverPreset, HoverStyles> = {
+  lift: {
+    enter: {
+      transform: "translateY(-4px)",
+      boxShadow: "0 8px 25px rgba(0,0,0,0.08)",
+    },
+    leave: {
+      transform: "translateY(0px)",
+      boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+    },
+  },
+  scale: {
+    enter: {
+      transform: "scale(1.03)",
+    },
+    leave: {
+      transform: "scale(1)",
+    },
+  },
+  glow: {
+    enter: {
+      boxShadow: "0 0 20px rgba(36,49,134,0.12)",
+    },
+    leave: {
+      boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+    },
+  },
 };
 
-const HOVER_LEAVE: Record<HoverPreset, gsap.TweenVars> = {
-  lift: { y: 0, boxShadow: "0 1px 3px rgba(0,0,0,0.04)", duration: 0.25, ease: "power2.inOut" },
-  scale: { scale: 1, duration: 0.2, ease: "power2.inOut" },
-  glow: { boxShadow: "0 1px 3px rgba(0,0,0,0.04)", duration: 0.25, ease: "power2.inOut" },
-};
+function applyStyles(el: HTMLElement, styles: Record<string, string>) {
+  for (const [key, value] of Object.entries(styles)) {
+    el.style.setProperty(
+      key.replace(/([A-Z])/g, "-$1").toLowerCase(),
+      value
+    );
+  }
+}
 
 export function useGsapHover<T extends HTMLElement = HTMLDivElement>() {
   const containerRef = useRef<T>(null);
 
   useEffect(() => {
-    const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const prefersReduced = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
     if (prefersReduced || !containerRef.current) return;
 
-    const elements = containerRef.current.querySelectorAll<HTMLElement>("[data-hover]");
+    const elements =
+      containerRef.current.querySelectorAll<HTMLElement>("[data-hover]");
     const cleanups: Array<() => void> = [];
 
     elements.forEach((el) => {
       const preset = (el.dataset.hover as HoverPreset) || "lift";
-      const enterVars = HOVER_ENTER[preset];
-      const leaveVars = HOVER_LEAVE[preset];
+      const styles = HOVER_STYLES[preset];
 
-      if (!enterVars) return;
+      if (!styles) return;
 
-      const onEnter = () => gsap.to(el, enterVars);
-      const onLeave = () => gsap.to(el, leaveVars);
+      // Set CSS transition for smooth animation
+      el.style.transition =
+        "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1)";
+
+      const onEnter = () => applyStyles(el, styles.enter);
+      const onLeave = () => applyStyles(el, styles.leave);
 
       el.addEventListener("mouseenter", onEnter);
       el.addEventListener("mouseleave", onLeave);

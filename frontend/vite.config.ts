@@ -1,40 +1,33 @@
 import path from "path"
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import { viteStaticCopy } from 'vite-plugin-static-copy'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [
-    react(),
-    viteStaticCopy({
-      targets: [
-        {
-          src: 'node_modules/tinymce/skins',
-          dest: 'tinymce'
-        },
-        {
-          src: 'node_modules/tinymce/themes',
-          dest: 'tinymce'
-        },
-        {
-          src: 'node_modules/tinymce/icons',
-          dest: 'tinymce'
-        },
-        {
-          src: 'node_modules/tinymce/models',
-          dest: 'tinymce'
-        },
-        {
-          src: 'node_modules/tinymce/plugins',
-          dest: 'tinymce'
-        }
-      ]
-    })
-  ],
+  plugins: [react()],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      // TinyMCE stubs — replaced by Tiptap in Phase 6
+      "@tinymce/tinymce-react": path.resolve(__dirname, "./src/stubs/tinymce-react.tsx"),
+      "tinymce/tinymce": path.resolve(__dirname, "./src/stubs/tinymce-noop.ts"),
+      "tinymce/plugins/lists": path.resolve(__dirname, "./src/stubs/tinymce-noop.ts"),
+      "tinymce/plugins/table": path.resolve(__dirname, "./src/stubs/tinymce-noop.ts"),
+      "tinymce/plugins/image": path.resolve(__dirname, "./src/stubs/tinymce-noop.ts"),
+      "tinymce/plugins/link": path.resolve(__dirname, "./src/stubs/tinymce-noop.ts"),
+      "tinymce/plugins/autoresize": path.resolve(__dirname, "./src/stubs/tinymce-noop.ts"),
+      "tinymce/plugins/searchreplace": path.resolve(__dirname, "./src/stubs/tinymce-noop.ts"),
+      "tinymce/plugins/fullscreen": path.resolve(__dirname, "./src/stubs/tinymce-noop.ts"),
+      "tinymce/plugins/code": path.resolve(__dirname, "./src/stubs/tinymce-noop.ts"),
+      "tinymce/plugins/charmap": path.resolve(__dirname, "./src/stubs/tinymce-noop.ts"),
+      "tinymce/plugins/pagebreak": path.resolve(__dirname, "./src/stubs/tinymce-noop.ts"),
+      "tinymce/plugins/anchor": path.resolve(__dirname, "./src/stubs/tinymce-noop.ts"),
+      "tinymce/plugins/insertdatetime": path.resolve(__dirname, "./src/stubs/tinymce-noop.ts"),
+      "tinymce/plugins/wordcount": path.resolve(__dirname, "./src/stubs/tinymce-noop.ts"),
+      "tinymce/themes/silver": path.resolve(__dirname, "./src/stubs/tinymce-noop.ts"),
+      "tinymce/icons/default": path.resolve(__dirname, "./src/stubs/tinymce-noop.ts"),
+      "tinymce/models/dom": path.resolve(__dirname, "./src/stubs/tinymce-noop.ts"),
+      "tinymce": path.resolve(__dirname, "./src/stubs/tinymce-core.ts"),
     },
   },
   build: {
@@ -58,10 +51,8 @@ export default defineConfig({
             '@radix-ui/react-accordion',
             '@radix-ui/react-scroll-area',
           ],
-          // Rich text editor (heavy)
-          'vendor-editor': ['tinymce'],
-          // Animation & scroll (shared across pages)
-          'vendor-motion': ['gsap', '@gsap/react', 'lenis', 'framer-motion'],
+          // Animation & scroll
+          'vendor-motion': ['lenis', 'framer-motion'],
           // Utilities
           'vendor-utils': ['date-fns', 'lucide-react', 'clsx', 'tailwind-merge'],
         },

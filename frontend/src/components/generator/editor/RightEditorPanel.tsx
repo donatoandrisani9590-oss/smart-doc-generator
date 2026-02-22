@@ -7,7 +7,7 @@
 
 import { useState, useCallback, useRef, useMemo, useEffect } from "react";
 import { Loader2, RefreshCw, Check, Undo2 } from "lucide-react";
-import type { Editor as TinyMCEEditor } from "tinymce";
+import type { Editor } from "@tiptap/react";
 import { Button } from "@/components/ui/button";
 import { DocumentEditor } from "@/components/editor/DocumentEditor";
 import { StationeryCanvas } from "./StationeryCanvas";
@@ -50,10 +50,10 @@ export const RightEditorPanel = () => {
     } = state;
 
     // Editor reference — BubbleMenu handles selection tracking
-    const editorRef = useRef<TinyMCEEditor | null>(null);
+    const editorRef = useRef<Editor | null>(null);
     const [showAIPopover, setShowAIPopover] = useState(false);
 
-    const handleEditorInit = useCallback((editor: TinyMCEEditor) => {
+    const handleEditorInit = useCallback((editor: Editor) => {
         editorRef.current = editor;
     }, []);
 
@@ -225,18 +225,24 @@ export const RightEditorPanel = () => {
 
                 {/* BubbleMenu — appears on text selection */}
                 <BubbleMenu
-                    editorRef={editorRef}
+                    editor={editorRef.current}
                     onAIClick={() => setShowAIPopover(true)}
                 />
 
                 {/* AI Refinement popover — triggered from BubbleMenu sparkle */}
                 {showAIPopover && (
                     <AIToolbar
-                        getSelectedText={() => editorRef.current?.selection.getContent({ format: "text" }) || ""}
+                        getSelectedText={() => {
+                            const editor = editorRef.current;
+                            if (!editor) return "";
+                            const { from, to } = editor.state.selection;
+                            return editor.state.doc.textBetween(from, to, " ");
+                        }}
                         replaceSelectedText={(html) => {
-                            editorRef.current?.selection.setContent(html);
-                            const newContent = editorRef.current?.getContent() || "";
-                            actions.setEditorContent(newContent, true);
+                            const editor = editorRef.current;
+                            if (!editor) return;
+                            editor.chain().focus().insertContent(html).run();
+                            actions.setEditorContent(editor.getHTML(), true);
                             setShowAIPopover(false);
                         }}
                         documentContext={state.documentTitle || undefined}

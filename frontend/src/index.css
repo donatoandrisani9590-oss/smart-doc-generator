@@ -2,9 +2,9 @@
 @import "./styles/magic-import.css";
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   NIEDERWIESER DOCS — Design System v5.0
-   Prototype-aligned design tokens
-   Primary Blue #2B3990, Accent Green #4CAF6A
+   NIEDERWIESER DOCS — Design System v6.0
+   CI-approved design tokens (§5 + §60)
+   Primary Blue #243186, Secondary Green #6EBD84
    Typography: Plus Jakarta Sans + JetBrains Mono
    ═══════════════════════════════════════════════════════════════════════════ */
 
@@ -20,7 +20,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
 
-    --primary: 231 54% 37%;
+    --primary: 230 56% 33%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 140 40% 49%;
@@ -53,8 +53,8 @@
     --warm-200: 220 13% 91%;
 
     /* Hero gradient */
-    --gradient-hero: linear-gradient(135deg, #1E2A6E 0%, #3D4DAA 50%, #2B3990 100%);
-    --gradient-hero-subtle: linear-gradient(135deg, rgba(43,57,144,0.04) 0%, rgba(240,240,250,0.12) 100%);
+    --gradient-hero: linear-gradient(135deg, #1a2463 0%, #3a4db3 50%, #243186 100%);
+    --gradient-hero-subtle: linear-gradient(135deg, rgba(36,49,134,0.04) 0%, rgba(240,240,250,0.12) 100%);
 
     /* Prototype shadow scale */
     --shadow-sm: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02);
@@ -98,46 +98,58 @@
        Prototype v5.0 — Brand Color Tokens
        ═══════════════════════════════════════════════════════════════════════ */
 
-    /* Prototype shorthand aliases */
-    --nw-blue: #2B3990;
-    --nw-blue-dark: #1E2A6E;
-    --nw-blue-light: #3D4DAA;
-    --nw-green: #4CAF6A;
+    /* ── CI Brand Color Shorthands (§60.1 — mapping table) ── */
+    --nw-blue: #243186;          /* = var(--nw-blue-700) */
+    --nw-blue-dark: #1a2463;     /* = var(--nw-blue-900) */
+    --nw-blue-light: #3a4db3;    /* = var(--nw-blue-500) */
+    --nw-green: #6EBD84;         /* = var(--nw-green-500) */
     --nw-amber: #E8A838;
     --nw-red: #E53935;
-    --nw-purple: #7C4DFF;
-    --nw-green-light: #E8F5E9;
-    --nw-amber-light: #FFF8E8;
-    --nw-purple-light: #F3EFFE;
-    --nw-red-light: #FFEBEE;
-    --nw-blue-100-proto: #D8DCF2;
+    --nw-green-light: #e4f4e8;
+    --nw-amber-light: #fcf0d8;
+    --nw-red-light: #fad7d6;
     --text-muted: #C4C4D0;
     --border-light: #F0F0F4;
 
-    /* === CI Primary: Niederwieser Blue === */
-    --nw-blue-900: #0E1438;
-    --nw-blue-800: #1E2A6E;
-    --nw-blue-700: #2B3990;
-    --nw-blue-600: #2B3990;
-    --nw-blue-500: #3D4DAA;
-    --nw-blue-400: #5A6BC7;
-    --nw-blue-300: #8390D8;
-    --nw-blue-200: #B3BAE7;
-    --nw-blue-100: #D8DCF2;
-    --nw-blue-50:  #EEF0F9;
-    --nw-blue-25:  #F7F8FC;
+    /* === CI Primary: Niederwieser Blue (§5 + §60.1) === */
+    --nw-blue-900: #1a2463;
+    --nw-blue-800: #1e2a74;
+    --nw-blue-700: #243186;      /* CI Primary — single source of truth */
+    --nw-blue-600: #2d3d9e;
+    --nw-blue-500: #3a4db3;
+    --nw-blue-400: #5a6bc7;
+    --nw-blue-300: #8390d8;
+    --nw-blue-200: #b3bae7;
+    --nw-blue-100: #dcdff3;
+    --nw-blue-50:  #eef0f9;
+    --nw-blue-25:  #f7f8fc;
 
-    /* === CI Secondary: Green (Prototype) === */
-    --nw-green-900: #1B5E30;
-    --nw-green-800: #2E7D42;
-    --nw-green-700: #3D9950;
-    --nw-green-600: #43A55A;
-    --nw-green-500: #4CAF6A;
-    --nw-green-400: #6FC487;
-    --nw-green-300: #A0D5AD;
-    --nw-green-200: #C8E6CF;
-    --nw-green-100: #E8F5E9;
-    --nw-green-50:  #E8F5E9;
+    /* === CI Secondary: Niederwieser Green (§5 + §60.1) === */
+    --nw-green-700: #4e9963;
+    --nw-green-600: #5daa72;
+    --nw-green-500: #6EBD84;     /* CI Secondary — single source of truth */
+    --nw-green-400: #8bcb9a;
+    --nw-green-200: #c8e8cf;
+    --nw-green-100: #e4f4e8;
+    --nw-green-50:  #f2faf4;
+
+    /* === CI Accent: Niederwieser Amber (§60.1a — Entwürfe, Fristen) === */
+    --nw-amber-700: #b87d1a;
+    --nw-amber-600: #d49520;
+    --nw-amber-500: #E8A838;     /* CI Accent — prototype reference */
+    --nw-amber-400: #efc06a;
+    --nw-amber-200: #f8e2b3;
+    --nw-amber-100: #fcf0d8;
+    --nw-amber-50:  #fef7e8;
+
+    /* === CI Signal: Niederwieser Red (§60.1a — Überfällig, Kritisch) === */
+    --nw-red-700: #c22a27;
+    --nw-red-600: #d9322f;
+    --nw-red-500: #E53935;       /* CI Signal — prototype reference */
+    --nw-red-400: #eb6562;
+    --nw-red-200: #f5aeac;
+    --nw-red-100: #fad7d6;
+    --nw-red-50:  #fef0ef;
 
     /* === Neutral: Warm Grey/Beige === */
     --nw-warm-900: #3d3832;
@@ -492,12 +504,27 @@
     border-color: hsl(225 12% 22% / 0.4);
   }
 
-  /* === Design System v5.0 Cards (Prototype-aligned) === */
+  /* === Glass Card — §60.6: Glass & Depth for panels === */
   .glass-card {
+    background: var(--glass-1-bg);
+    backdrop-filter: blur(var(--glass-1-blur)) saturate(var(--glass-1-saturate));
+    -webkit-backdrop-filter: blur(var(--glass-1-blur)) saturate(var(--glass-1-saturate));
+    border: var(--glass-1-border);
+    box-shadow: var(--glass-1-shadow);
+    border-radius: var(--radius-2xl);
+    padding: 22px;
+  }
+  .dark .glass-card {
+    background: rgba(26, 29, 39, 0.55);
+    border-color: rgba(255, 255, 255, 0.06);
+  }
+
+  /* Surface card fallback — no backdrop-filter, solid bg */
+  .surface-card {
     background: var(--bg-surface);
     border: 1px solid var(--border);
     box-shadow: var(--shadow-sm);
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius-2xl);
     padding: 22px;
   }
 
@@ -1799,6 +1826,28 @@ html.dark body::after {
   background: radial-gradient(circle, rgba(76,175,106,0.08) 0%, transparent 70%);
 }
 
+/* Orb drift keyframes (replaces GSAP yoyo animations) */
+@keyframes orb-drift-1 {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(40px, 30px); }
+}
+
+@keyframes orb-drift-2 {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(-30px, -20px); }
+}
+
+@keyframes orb-drift-3 {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(20px, -25px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bg-orb {
+    animation: none !important;
+  }
+}
+
 /* ═══════════════════════════════════════════════════════════════════════════
    DESIGN SYSTEM v5.0 — Action Chips (Dashboard hero-chips)
    ═══════════════════════════════════════════════════════════════════════════ */
@@ -2163,6 +2212,57 @@ html.dark body::after {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
+   DESIGN SYSTEM v3.0 — Filter Chips (MASTER_CLAUDE §5)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.filter-chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.filter-chip {
+  padding: 7px 16px;
+  border-radius: var(--radius-full);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  cursor: pointer;
+  transition: all 0.12s;
+  white-space: nowrap;
+}
+
+.filter-chip:hover {
+  border-color: var(--nw-blue-300);
+  color: var(--nw-blue-700);
+}
+
+.filter-chip.active {
+  background: var(--nw-blue-700);
+  color: white;
+  border-color: var(--nw-blue-700);
+}
+
+[data-theme="dark"] .filter-chip {
+  background: var(--bg-surface);
+  border-color: var(--border);
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .filter-chip:hover {
+  border-color: var(--nw-blue-400);
+  color: var(--nw-blue-300);
+}
+
+[data-theme="dark"] .filter-chip.active {
+  background: var(--nw-blue-700);
+  color: white;
+  border-color: var(--nw-blue-600);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
    DESIGN SYSTEM v2.1 — Auto-Naming Pulse
    ═══════════════════════════════════════════════════════════════════════════ */
 
@@ -2209,6 +2309,89 @@ html.dark body::after {
 
 .btn-ai-shimmer:hover::after {
   left: 100%;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SHADCN/UI OVERRIDES — Glass & Depth (§60.6)
+   Prototyp-Treue: weiche Kanten, keine harten Borders, Tiefe
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── A. Border-Radius Override for Radix Containers ── */
+[data-radix-dialog-content],
+[data-radix-popover-content],
+[data-radix-dropdown-content] {
+  border-radius: var(--radius-2xl) !important;
+}
+
+.kanban-card,
+.doc-card,
+.stat-card {
+  border-radius: var(--radius-lg) !important;
+}
+
+/* ── B. Borderless Inputs inside Glass Containers ── */
+.glass-card input,
+.glass-card select,
+.glass-card textarea,
+[data-radix-select-trigger] {
+  border: 1px solid transparent !important;
+  background: var(--bg-input) !important;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.06);
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+
+.glass-card input:focus,
+.glass-card select:focus,
+.glass-card textarea:focus {
+  border-color: var(--nw-blue-400) !important;
+  box-shadow: 0 0 0 3px rgba(36, 49, 134, 0.08), inset 0 1px 3px rgba(0, 0, 0, 0.04);
+  background: var(--bg-surface) !important;
+}
+
+[data-theme="dark"] .glass-card input,
+[data-theme="dark"] .glass-card select,
+[data-theme="dark"] .glass-card textarea {
+  background: rgba(255, 255, 255, 0.04) !important;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* ── C. Glass Containers for Main Sections ── */
+.wizard-container,
+.settings-container,
+.agent-container,
+.detail-container {
+  background: rgba(255, 255, 255, 0.70);
+  backdrop-filter: blur(20px) saturate(120%);
+  -webkit-backdrop-filter: blur(20px) saturate(120%);
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-lg);
+}
+
+[data-theme="dark"] .wizard-container,
+[data-theme="dark"] .settings-container,
+[data-theme="dark"] .agent-container,
+[data-theme="dark"] .detail-container {
+  background: rgba(26, 29, 39, 0.75);
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+/* ── D. Dialog/Modal Glass ── */
+[data-radix-dialog-overlay] {
+  background: rgba(0, 0, 0, 0.4) !important;
+  backdrop-filter: blur(4px);
+}
+
+[data-radix-dialog-content] {
+  background: rgba(255, 255, 255, 0.90) !important;
+  backdrop-filter: blur(20px) saturate(120%);
+  border: 1px solid rgba(255, 255, 255, 0.75) !important;
+  box-shadow: var(--shadow-xl) !important;
+}
+
+[data-theme="dark"] [data-radix-dialog-content] {
+  background: rgba(26, 29, 39, 0.92) !important;
+  border-color: rgba(255, 255, 255, 0.06) !important;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════

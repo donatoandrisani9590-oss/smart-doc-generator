@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { lazy, Suspense } from "react";
-import { Layout } from "@/components/layout/Layout";
+import { AppShell } from "@/components/layout/AppShell";
 import { ErrorBoundary, PageErrorBoundary } from "@/components/ErrorBoundary";
 // Auth
 import { AuthProvider } from "@/contexts/AuthContext";
@@ -31,6 +31,7 @@ const TemplatesHub = lazy(() => import("@/pages/TemplatesHub"));
 const AgentPage = lazy(() => import("@/pages/AgentPage"));
 const GuestReviewPage = lazy(() => import("@/pages/GuestReviewPage"));
 const BulkWizardPage = lazy(() => import("@/pages/BulkWizardPage"));
+const ComplianceDashboard = lazy(() => import("@/pages/ComplianceDashboard"));
 
 // Minimal loading fallback
 function PageLoading() {
@@ -66,7 +67,7 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <FeatureSettingsProvider>
-                      <Layout />
+                      <AppShell />
                     </FeatureSettingsProvider>
                   </ProtectedRoute>
                 }
@@ -84,6 +85,7 @@ function App() {
                 <Route path="teams" element={<PageErrorBoundary><TeamsPage /></PageErrorBoundary>} />
                 <Route path="deadlines" element={<PageErrorBoundary><DeadlinesCalendar /></PageErrorBoundary>} />
                 <Route path="notifications" element={<PageErrorBoundary><NotificationsPage /></PageErrorBoundary>} />
+                <Route path="compliance" element={<PageErrorBoundary><ComplianceDashboard /></PageErrorBoundary>} />
 
                 {/* Templates Hub — separated from Settings for better UX */}
                 <Route path="templates" element={<PageErrorBoundary><TemplatesHub /></PageErrorBoundary>} />

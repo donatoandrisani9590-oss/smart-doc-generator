@@ -3,18 +3,16 @@
  *
  * - Fixed left sidebar (248px) as primary navigation
  * - Content area offset by sidebar width
- * - Background orbs: animated ambient gradient blobs
+ * - Background orbs: animated ambient gradient blobs (CSS keyframes)
  * - Mobile: hamburger button + overlay sidebar
  * - Subtle footer anchor
  */
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Menu } from "lucide-react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useGSAP } from "@gsap/react";
-import { ReactLenis, type LenisRef } from "lenis/react";
+import { motion } from "framer-motion";
+import { ReactLenis } from "lenis/react";
 import { Sidebar } from "./Sidebar";
 import { Footer } from "./Footer";
 import { KeyboardShortcutsDialog } from "./KeyboardShortcutsDialog";
@@ -26,9 +24,6 @@ import { useEventStream } from "@/hooks/useEventStream";
 import { Button } from "@/components/ui/button";
 import { ScrollProgress } from "@/components/ui/scroll-progress";
 import { PageTransition } from "@/components/ui/page-transition";
-
-// Register GSAP plugins globally (once)
-gsap.registerPlugin(ScrollTrigger, useGSAP);
 
 // Page titles based on route
 const getPageTitle = (pathname: string): string => {
@@ -56,61 +51,9 @@ export const Layout = () => {
     const [showTour, setShowTour] = useState(false);
     const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
     const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
-    const lenisRef = useRef<LenisRef>(null);
-    const layoutRef = useRef<HTMLDivElement>(null);
 
     // SSE Real-time Updates
     useEventStream();
-
-    // Sync Lenis smooth scroll with GSAP's ticker + ScrollTrigger
-    useEffect(() => {
-        const lenis = lenisRef.current?.lenis;
-        if (!lenis) return;
-
-        lenis.on("scroll", ScrollTrigger.update);
-
-        const update = (time: number) => lenis.raf(time * 1000);
-        gsap.ticker.add(update);
-        gsap.ticker.lagSmoothing(0);
-
-        return () => {
-            lenis.off("scroll", ScrollTrigger.update);
-            gsap.ticker.remove(update);
-        };
-    }, []);
-
-    // Initial app-load animation: sidebar slides in, content fades in, orbs drift
-    useGSAP(() => {
-        const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-        if (prefersReduced) return;
-
-        const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
-
-        tl.from("[data-gsap='sidebar']", {
-            x: -20,
-            opacity: 0,
-            duration: 0.5,
-        })
-        .from("[data-gsap='main']", {
-            y: 12,
-            opacity: 0,
-            duration: 0.5,
-        }, "-=0.3");
-
-        // Ambient orb drift animation
-        gsap.to(".bg-orb-1", {
-            x: 40, y: 30,
-            duration: 18, repeat: -1, yoyo: true, ease: "sine.inOut",
-        });
-        gsap.to(".bg-orb-2", {
-            x: -30, y: -20,
-            duration: 22, repeat: -1, yoyo: true, ease: "sine.inOut",
-        });
-        gsap.to(".bg-orb-3", {
-            x: 20, y: -25,
-            duration: 15, repeat: -1, yoyo: true, ease: "sine.inOut",
-        });
-    }, { scope: layoutRef });
 
     // Announce page changes for screen readers
     useEffect(() => {
@@ -127,28 +70,31 @@ export const Layout = () => {
     return (
         <ReactLenis
             root
-            ref={lenisRef}
-            options={{ autoRaf: false, lerp: 0.1, duration: 1.2 }}
+            options={{ lerp: 0.1, duration: 1.2 }}
         >
-            <div ref={layoutRef} className="min-h-screen bg-background font-sans text-foreground">
+            <div className="min-h-screen bg-background font-sans text-foreground">
                 <ScrollProgress />
                 <SkipLink targetId="main-content" />
                 <LiveRegion message={pageAnnouncement} priority="polite" />
 
-                {/* Background Orbs (Prototype ambient gradient blobs) */}
+                {/* Background Orbs (Prototype ambient gradient blobs) — CSS keyframe animations */}
                 <div className="bg-orbs" aria-hidden="true">
-                    <div className="bg-orb bg-orb-1" />
-                    <div className="bg-orb bg-orb-2" />
-                    <div className="bg-orb bg-orb-3" />
+                    <div className="bg-orb bg-orb-1" style={{ animation: "orb-drift-1 18s ease-in-out infinite alternate" }} />
+                    <div className="bg-orb bg-orb-2" style={{ animation: "orb-drift-2 22s ease-in-out infinite alternate" }} />
+                    <div className="bg-orb bg-orb-3" style={{ animation: "orb-drift-3 15s ease-in-out infinite alternate" }} />
                 </div>
 
                 {/* Sidebar Navigation */}
-                <div data-gsap="sidebar">
+                <motion.div
+                    initial={{ x: -20, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    transition={{ duration: 0.5, ease: [0.33, 1, 0.68, 1] }}
+                >
                     <Sidebar
                         mobileOpen={mobileSidebarOpen}
                         onMobileClose={() => setMobileSidebarOpen(false)}
                     />
-                </div>
+                </motion.div>
 
                 {/* Main Content — offset by sidebar width on desktop, above orbs */}
                 <div className="lg:ml-[var(--sidebar-width)] min-h-screen flex flex-col main-content relative z-[1]">
@@ -169,19 +115,21 @@ export const Layout = () => {
                         <div className="w-9" />
                     </div>
 
-                    <main
+                    <motion.main
                         id="main-content"
                         className="flex-1 overflow-x-hidden"
                         role="main"
                         tabIndex={-1}
-                        data-gsap="main"
+                        initial={{ y: 12, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        transition={{ duration: 0.5, delay: 0.2, ease: [0.33, 1, 0.68, 1] }}
                     >
                         <div className="px-4 sm:px-6 lg:px-10 py-6 lg:py-8 max-w-[1380px] mx-auto w-full">
                             <PageTransition>
                                 <Outlet />
                             </PageTransition>
                         </div>
-                    </main>
+                    </motion.main>
 
                     {/* Footer */}
                     <Footer />
